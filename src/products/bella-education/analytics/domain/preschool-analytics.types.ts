@@ -131,12 +131,17 @@ export interface PreschoolWeeklyMenuDayDTO {
 
 export interface PreschoolWeeklyMenuDTO {
   menuId: string;
+  updatedAt?: string;
   weekNumber: number;
   year: number;
   startDate: string;
   endDate: string;
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   days: PreschoolWeeklyMenuDayDTO[];
+  title?: string;
+  ageGroup?: string;
+  notes?: string | null;
+  academicYear?: string;
 }
 
 export interface ExecutiveDashboardDTO {

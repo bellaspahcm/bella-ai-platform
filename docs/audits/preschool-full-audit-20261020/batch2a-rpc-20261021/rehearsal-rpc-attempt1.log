@@ -1,0 +1,28 @@
+exactCombinedRpcPostcondition: PASS
+anonymousRpcActuallyDenied: PASS
+all33NonAnonymousRolesActuallyExecuteConstantSelect: PASS
+Expected values to be strictly deep-equal:
++ actual - expected
+... Skipped lines
+
+  {
+    dynamic_candidates: [
+      {
++       acl: '{=X/postgres,bella_migration_executor=X/postgres,postgres=X/postgres,service_role=X/postgres}',
+-       acl: '{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}',
+        anon_execute: true,
+        arguments: 'sql_query text',
+        definition: 'CREATE OR REPLACE FUNCTION public.exec_sql(sql_query text)\n' +
+          ' RETURNS void\n' +
+          ' LANGUAGE plpgsql\n' +
+...
+    function: {
++     acl: '{=X/postgres,bella_migration_executor=X/postgres,postgres=X/postgres,service_role=X/postgres}',
+-     acl: '{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}',
+      arguments: 'sql_query text',
+      definition: 'CREATE OR REPLACE FUNCTION public.exec_sql(sql_query text)\n' +
+        ' RETURNS void\n' +
+        ' LANGUAGE plpgsql\n' +
+        ' SECURITY DEFINER\n' +
+
+COMMAND_EXIT_CODE=1

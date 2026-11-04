@@ -7,12 +7,15 @@ export interface ClassroomLiveOverview {
   branchId: string;
   code: string;
   name: string;
+  grade?: string;
   room: string;
   teacher: string;
   teacherCount: number | null;
   students: number;
   maxStudents: number | null;
-  todayStatus: { present: number; excused: number; unmarked: number };
+  academicYear?: string;
+  focus?: string;
+  todayStatus: { present: number; excused: number; unmarked: number; absent?: number };
 }
 
 const record = (value: unknown): value is Record<string, unknown> => value !== null
@@ -41,7 +44,15 @@ export async function loadClassroomOverview(tenantId: string, signal?: AbortSign
     result.set(row.id, { id: row.id, tenantId, branchId: row.branchId,
       code: row.code as string, name: row.name as string, room: row.room as string, teacher: row.teacher as string,
       teacherCount: row.teacherCount as number | null, students: row.students, maxStudents: row.maxStudents as number | null,
-      todayStatus: { present: row.todayStatus.present, excused: row.todayStatus.excused, unmarked: row.todayStatus.unmarked } });
+      grade: typeof row.grade === 'string' && row.grade.trim() ? row.grade : undefined,
+      academicYear: typeof row.academicYear === 'string' && row.academicYear.trim() ? row.academicYear : undefined,
+      focus: typeof row.focus === 'string' && row.focus.trim() ? row.focus : undefined,
+      todayStatus: {
+        present: row.todayStatus.present,
+        excused: row.todayStatus.excused,
+        unmarked: row.todayStatus.unmarked,
+        absent: count(row.todayStatus.absent) ? row.todayStatus.absent : undefined,
+      } });
   }
   return result;
 }

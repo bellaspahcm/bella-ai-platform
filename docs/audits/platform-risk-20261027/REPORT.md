@@ -246,3 +246,55 @@ P0 API/tenant containment remains confirmed only for the tested scope. Auto jour
 - [Type Check run 40463958452](https://github.com/bellaspahcm/bella-ai-platform/actions/runs/40463958452) completed `success` on the same SHA; full typecheck was **PASS**.
 - Unit/integration, Real DB E2E, and migration jobs were **skipped by the dependency scope router**. The local selected regression remains 20 suites / 256 tests **PASS**; skipped GitHub jobs are not counted as CI test passes.
 - The candidate CI scope is complete for the selected gates. PR, merge, and Production deployment remain unperformed.
+
+## 10. Post-merge verification — PR #450 and dependency audit (2026-10-28)
+
+### Main revision and required CI
+
+- PR #450 (`Fix Preschool profile migration path validation`) merged at `2026-10-27T22:14:50Z`. GitHub `main` resolved to merge commit `438baf4b8279bdb2fb3289216866501e6f3315a2` during this verification.
+- [CI - Quality Gates run 40593322343](https://github.com/bellaspahcm/bella-ai-platform/actions/runs/40593322343) completed `success` on that exact SHA. `All Required Gates Passed` is **PASS**.
+- The `Real Database Business E2E` job is **PASS** on the merge SHA. Changed-migration validation and disposable Preschool schema/RLS preparation passed; `Run real teacher JWT, DB/RLS and Browser E2E on disposable profile` also passed. The `PROFILE_MIGRATION_SOURCE_MISSING_OR_OUTSIDE_REPOSITORY` failure did not recur in this executed acceptance path.
+- The separate `Apply changed migrations to isolated E2E database` and `Run real database business E2E` steps were **SKIPPED** because the disposable profile path was selected. The generic shared-database business E2E suite remains **NOT_PROVEN**; this PASS applies to the executed disposable Browser/JWT/DB/RLS acceptance path.
+- `Migration Gates` completed **PASS**, including the zero-downtime migration policy and Supabase migration drift check. [AutoMove RC Business Chain](https://github.com/bellaspahcm/bella-ai-platform/actions/runs/40593322547), [Static Analysis Security Suite](https://github.com/bellaspahcm/bella-ai-platform/actions/runs/40593322469), Architecture Gate/Guard, Quality and Security, and the no-new-debt baseline also completed **PASS** on the merge SHA.
+- The dependency-audit step in `Security Gates` was **SKIPPED**. The full Type Check was also **SKIPPED** by scope; the workflow's `Type Check Skipped` guard passed. These skipped checks are not counted as executed passes.
+
+### Dependency audit on merge-SHA package inputs
+
+The root and Mobile `package.json`/lockfile Git blob IDs were compared with the files at merge SHA `438baf4b8279bdb2fb3289216866501e6f3315a2` before running `npm audit`. The audit commands did not edit manifests or lockfiles.
+
+| Audit scope | Result | Findings |
+| --- | --- | --- |
+| Root, all dependencies | **FAIL**, exit 1 | 19 total: 10 High, 9 Moderate, 0 Critical |
+| Root, production only (`--omit=dev`) | **FAIL**, exit 1 | 3 total: `xlsx` High (npm reports no fix available), `fast-uri` Moderate, `nodemailer` Moderate. npm reports a fix available for the two Moderate findings; compatibility was not tested here. |
+| Mobile, all dependencies | **FAIL**, exit 1 | 4 Moderate, 0 High, 0 Critical: `@react-navigation/core`, `decode-uri-component`, `fast-uri`, and `query-string` |
+| Mobile, production only (`--omit=dev`) | **FAIL**, exit 1 | Same four Moderate findings; npm reports a fix available for each. |
+
+This refresh confirms the production `xlsx` High remains the highest dependency finding. It does not establish exploitability of Bella's production parser path or validate any proposed dependency update.
+
+### Remaining risk status and next action
+
+- `P0 API/tenant containment`: retain **`CONFIRMED / CONTAINED`** only for the previously tested five history tables and six RPCs. No primary database queries were run in this post-merge batch.
+- `bella_migration_executor`: the last catalog evidence (2026-10-27) confirmed `BYPASSRLS` and broad tenant-table DML. Current privileges were not re-queried, no grant changed, and a safe Bella-specific replacement remains **`NOT_PROVEN`** because the source-schema rehearsal is still blocked at migration `20260515010000` (`bookings.package_name` missing).
+- AutoMove production journey UPDATE role remains **`NOT_PROVEN`**. Healthcare verification remains **`BLOCKED_BY_TEST_ENVIRONMENT`** per the last DNS evidence; it was not rerun here.
+- Bella Enterprise / Go-Live remains **`NOT_PROVEN`**. PR merge and CI success do not prove Production deployment or full migration/E2E coverage.
+- Next priority remains a read-only revalidation and bounded redesign assessment for `bella_migration_executor`; preserve its current grants until a Bella-specific migration rehearsal proves an alternative. Keep the `xlsx` High open as the next dependency risk; no dependency or Production change was made in this batch.
+
+## 11. Executor privilege assessment — read-only follow-up (2026-10-28)
+
+### Current evidence boundary
+
+- Repository evidence reviewed against `main` SHA `438baf4b8279bdb2fb3289216866501e6f3315a2`; executor workflow, wrapper, migration executor, and cited privilege migrations match that revision. The 2026-10-27 catalog snapshot in section 9 remains the latest successful executor catalog read and is **historical**, not live.
+- Supabase project metadata for ref `lvnvkpyxtuilhrabtlwv` returned name `bellaspahcm's Project`, region `ap-southeast-1`, status `ACTIVE_HEALTHY`. This is the primary Bella ref previously owner-confirmed in section 8.
+- Read-only `supabase backups list --project-ref lvnvkpyxtuilhrabtlwv --output-format json` returned `walg_enabled=true`, `pitr_enabled=false`, `backups=[]`, and `physical_backup_data={}`. No available restore point was reported.
+- A live catalog query was attempted with explicit `--project-ref` and the existing `privileged-role-primary-readonly.sql`. Supabase CLI 2.115.0 returned exit 1, `LegacyDbQueryMutuallyExclusiveFlagsError`: `--project-ref` requires `--linked`. The scoped procedure prohibits `--linked`; no target-verified direct DB URL was used. The SQL did **not** reach the database. Therefore `LIVE_EXECUTOR_CATALOG = NOT_PROVEN`.
+- The tracked `backup_.sql` artifact is zero bytes. `scripts/backup-database.sh` dumps six Decision Engine tables and only prints a restore command; it is not a full Bella clone/restore procedure. The running local database containers found were named for Preschool and were not used.
+
+### Risk and operational need
+
+- The historical snapshot records `LOGIN`, `INHERIT`, and `BYPASSRLS`; no `SUPERUSER`, `CREATEDB`, or `CREATEROLE`; effective `SELECT/INSERT/UPDATE/DELETE/TRUNCATE` on 461 tenant/org/branch-key relations; RLS enabled on 438, disabled on 23, and `FORCE ROW LEVEL SECURITY` on none. The executor owned 12 relations; PostgreSQL default privileges granted broad DML on future tables in `public` and `migration_governance`. Treat these as the last observed historical values, not current catalog values.
+- The Production BDGF workflow supplies `DATABASE_EXECUTOR_URL`; the wrapper checks `current_user` and `session_user`, then the executor submits approved migration SQL through `db.query(migration_content)` in a transaction. This supports a need for executor login and the DDL/DML plus gate/audit access used by each approved migration. It does not prove a need for global `BYPASSRLS` or full DML on all tenant relations. Broad DML also does not grant DDL ownership over objects owned by another role. The minimum compatible grant set remains **`NOT_PROVEN`**.
+- Section 8 records a successful 2026-10-27 post-check showing the executor no longer had effective `EXECUTE` on `public.exec_sql(text)`. The source migrations grant `EXECUTE` broadly and list the executor among retained maintenance roles; the revoke is not encoded by those migration files. Current live ACL and replay equivalence remain **`NOT_PROVEN`**.
+
+### Decision
+
+Keep Production role attributes and grants unchanged. Executor risk remains **confirmed by historical evidence**; live rights remain **`NOT_PROVEN`**; safe privilege-reduction rehearsal remains **`NOT_READY`**. No catalog SQL reached the database and no role, grant, schema, or data changed; only project/backup metadata was read through Supabase's management API. This executor-specific evidence gap does not block independent Bella product work. AutoMove, Healthcare, dependency, and Go-Live states remain as recorded above.

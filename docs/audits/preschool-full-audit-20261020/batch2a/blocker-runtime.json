@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-10-20T16:24:41.286Z",
+  "target": "lvnvkpyxtuilhrabtlwv",
+  "endpoint": "/rest/v1/rpc/exec_sql",
+  "callerRole": "anon",
+  "userJwt": false,
+  "cookies": false,
+  "probeSql": "SELECT 1",
+  "businessTablesAccessed": [],
+  "mutationStatements": 0,
+  "status": 204,
+  "returnedVoid": true,
+  "anonymousRpcExecutionConfirmed": true,
+  "interpretation": "Read-only constant SELECT via existing SQL-execution RPC. Function catalog is SECURITY DEFINER owned by postgres with BYPASSRLS. Not a production containment change."
+}

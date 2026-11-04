@@ -11,6 +11,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import PreschoolSelect from '@/components/ui/PreschoolSelect';
 import { createClient } from '@supabase/supabase-js';
 import { 
   Users, 
@@ -158,88 +159,8 @@ export default function SchedulingPage() {
   }, [selectedDate, selectedClassroom]);
 
   // Handler 1: Initialize Ratio Policy & Seed Shift
-  const handleSeedShift = async () => {
-    setLoading(true);
-    setActionMessage(null);
-    try {
-      // 0. Clean up previous test seed data for DEFAULT_TENANT_ID for clean isolated state
-      await supabase
-        .from('edu_sched_shift_assignments')
-        .delete()
-        .eq('tenant_id', DEFAULT_TENANT_ID);
-
-      await supabase
-        .from('edu_sched_leave_requests')
-        .delete()
-        .eq('tenant_id', DEFAULT_TENANT_ID);
-
-      await supabase
-        .from('edu_sched_substitutions')
-        .delete()
-        .eq('tenant_id', DEFAULT_TENANT_ID);
-
-      await supabase
-        .from('edu_comm_exceptions')
-        .delete()
-        .eq('tenant_id', DEFAULT_TENANT_ID);
-
-      // Upsert Ratio Policy (5 children per caregiver for TODDLER)
-      await repo.upsertRatioPolicy({
-        tenantId: DEFAULT_TENANT_ID,
-        ageGroup: 'TODDLER',
-        maxChildrenPerCaregiver: 5,
-        minLeadTeachers: 1,
-      });
-
-      // Ensure shift template exists
-      let templateId = shiftTemplates[0]?.id;
-      if (!templateId) {
-        const t = await rosterService.createShiftTemplate({
-          tenantId: DEFAULT_TENANT_ID,
-          name: 'Ca Sáng (07:00 - 11:30)',
-          code: 'MORNING',
-          startTime: '07:00:00',
-          endTime: '11:30:00',
-        });
-        templateId = t.id;
-      }
-
-      // Assign Lead Teacher 1 and Lead Teacher 2 (exact 2 required for 10 children)
-      await rosterService.assignShift({
-        tenantId: DEFAULT_TENANT_ID,
-        classroomId: selectedClassroom,
-        shiftTemplateId: templateId,
-        staffPartyId: DEFAULT_TEACHER1_ID,
-        role: 'LEAD_TEACHER',
-        assignmentDate: selectedDate,
-      });
-
-      await rosterService.assignShift({
-        tenantId: DEFAULT_TENANT_ID,
-        classroomId: selectedClassroom,
-        shiftTemplateId: templateId,
-        staffPartyId: DEFAULT_TEACHER2_ID,
-        role: 'LEAD_TEACHER',
-        assignmentDate: selectedDate,
-      });
-
-      // Calculate ratio compliance snapshot
-      await complianceService.calculateAndRecordCompliance({
-        tenantId: DEFAULT_TENANT_ID,
-        classroomId: selectedClassroom,
-        snapshotDate: selectedDate,
-        shiftTemplateId: templateId,
-        ageGroup: 'TODDLER',
-        counts: { enrolledChildren: 10, expectedChildren: 10, presentChildren: 10 },
-      });
-
-      setActionMessage('✅ Đã khởi tạo Ca Sáng & Phân công Giáo viên thành công!');
-      await loadData();
-    } catch (err) {
-      setActionMessage(`❌ Lỗi khởi tạo ca: ${getErrorMessage(err)}`);
-    } finally {
-      setLoading(false);
-    }
+  const handleSeedShift = () => {
+    setActionMessage('Thao tác phân công ca mẫu đã tạm khóa vì đang dùng tenant và nhân sự mẫu. Không có dữ liệu nào được thay đổi.');
   };
 
   // Handler 2: Apply for Leave
@@ -351,11 +272,11 @@ export default function SchedulingPage() {
                 <ArrowLeft size={18} />
               </Link>
               <h1 className="preschool-brand-heading text-3xl font-extrabold tracking-tight text-[var(--education-brand-ink)]">
-                P8 Preschool Staff Scheduling & Shift Management
+                P8 Preschool Staff Scheduling &amp; Shift Management
               </h1>
             </div>
             <p className="text-muted-foreground text-sm mt-1 ml-11">
-              Hệ thống Xếp Ca Giảng Dạy, Kiểm Toán Tỷ Lệ Giáo Viên / Trẻ (Caregiver Ratio), Nghỉ Phép & Dạy Thay Tuân Thủ Quy Chuẩn
+              Hệ thống Xếp Ca Giảng Dạy, Kiểm Toán Tỷ Lệ Giáo Viên / Trẻ (Caregiver Ratio), Nghỉ Phép &amp; Dạy Thay Tuân Thủ Quy Chuẩn
             </p>
           </div>
 
@@ -449,7 +370,7 @@ export default function SchedulingPage() {
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            <Calendar size={16} /> Lịch Roster & Tỷ Lệ Bảo Mẫu
+            <Calendar size={16} /> Lịch Roster &amp; Tỷ Lệ Bảo Mẫu
           </button>
           <button
             data-testid="tab-leave"
@@ -460,7 +381,7 @@ export default function SchedulingPage() {
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            <UserX size={16} /> Quản Lý Nghỉ Phép & Phân Công Dạy Thay
+            <UserX size={16} /> Quản Lý Nghỉ Phép &amp; Phân Công Dạy Thay
             {leaveRequests.filter(l => l.status === 'PENDING').length > 0 && (
               <span className="px-2 py-0.5 text-xs rounded-full bg-amber-900 text-amber-200 font-bold">
                 {leaveRequests.filter(l => l.status === 'PENDING').length}
@@ -586,15 +507,16 @@ export default function SchedulingPage() {
               </h3>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Mã Nhân Viên</label>
-                <select
+                <PreschoolSelect
+                  aria-label="Mã Nhân Viên"
                   value={leaveStaffId}
                   onChange={(e) => setLeaveStaffId(e.target.value)}
-                  className="w-full bg-background border border-border rounded-lg p-2.5 text-sm text-foreground focus:outline-none focus:border-ring"
+                  className="py-2.5 text-sm font-semibold"
                 >
                   <option value={DEFAULT_TEACHER1_ID}>Giáo viên 1 (Teacher Lead 1)</option>
                   <option value={DEFAULT_TEACHER2_ID}>Giáo viên 2 (Teacher Lead 2)</option>
                   <option value={DEFAULT_CAREGIVER1_ID}>Bảo mẫu 1 (Caregiver 1)</option>
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -620,19 +542,20 @@ export default function SchedulingPage() {
 
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Loại Nghỉ Phép</label>
-                <select
+                <PreschoolSelect
+                  aria-label="Loại Nghỉ Phép"
                   value={leaveType}
                   onChange={(e) => {
                     if (isLeaveType(e.target.value)) {
                       setLeaveType(e.target.value);
                     }
                   }}
-                  className="w-full bg-background border border-border rounded-lg p-2.5 text-sm text-foreground"
+                  className="py-2.5 text-sm font-semibold"
                 >
                   <option value="SICK_LEAVE">Sick Leave (Nghỉ Bệnh)</option>
                   <option value="ANNUAL_LEAVE">Annual Leave (Nghỉ Phép Năm)</option>
                   <option value="EMERGENCY_LEAVE">Emergency Leave (Nghỉ Đột Xuất)</option>
-                </select>
+                </PreschoolSelect>
               </div>
 
               <button
@@ -649,7 +572,7 @@ export default function SchedulingPage() {
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-background border border-border rounded-2xl overflow-hidden">
                 <div className="p-4 border-b border-border font-semibold text-sm text-foreground">
-                  Danh Sách Đơn Xin Nghỉ Phép & Phân Công Dạy Thay
+                  Danh Sách Đơn Xin Nghỉ Phép &amp; Phân Công Dạy Thay
                 </div>
                 <div className="divide-y divide-slate-800/60">
                   {leaveRequests.length === 0 ? (
@@ -691,14 +614,16 @@ export default function SchedulingPage() {
 
                           {l.status === 'APPROVED' && (
                             <div className="flex items-center gap-2">
-                              <select
+                              <PreschoolSelect
+                                aria-label="Giáo viên thay thế"
                                 value={substituteStaffId}
                                 onChange={(e) => setSubstituteStaffId(e.target.value)}
-                                className="bg-background border border-border rounded px-2 py-1 text-xs text-foreground"
+                                wrapperClassName="min-w-[170px]"
+                                className="py-1.5 px-2.5 text-xs font-semibold"
                               >
                                 <option value={DEFAULT_TEACHER2_ID}>Giáo viên 2 (Teacher 2)</option>
                                 <option value={DEFAULT_CAREGIVER1_ID}>Bảo mẫu 1 (Caregiver 1)</option>
-                              </select>
+                              </PreschoolSelect>
                               <button
                                 data-testid="btn-assign-substitute"
                                 onClick={() => handleAssignSubstitute(l.id)}

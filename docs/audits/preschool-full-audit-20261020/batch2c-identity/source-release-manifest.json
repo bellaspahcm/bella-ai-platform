@@ -1,0 +1,64 @@
+{
+  "checkedAt": "2026-10-20T20:49:45.766Z",
+  "source": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+  "codeDeployed": false,
+  "commitPushMerge": false,
+  "groups": {
+    "platform": {
+      "patch": "platform-source-review.patch",
+      "sha256": "0abe21d9f769c40d6a71be76e03f1fb9dff764a5e1b6f03d0f2a1518fd9113db",
+      "files": [
+        {
+          "path": "src/services/user-actions.ts",
+          "sha256": "91d9c9d37a9aa9999c99246aac843207eed22fc2268e2ef82bb8c51b4ce18f3a"
+        },
+        {
+          "path": "src/services/onboarding-actions.ts",
+          "sha256": "24d26a654315ae4f9a0da9857bc5a70357ce6e10a001001559eca23b5fe4890f"
+        },
+        {
+          "path": "src/__tests__/user-actions.test.ts",
+          "sha256": "bfa9faa8a92e59fb2ff201cfaa939953bb0e13931b114849b904b07f41e7f6b9"
+        },
+        {
+          "path": "src/__tests__/onboarding.test.ts",
+          "sha256": "8382c0b678f65be69c0b65633b7142a9ce4dbc3e5a1bab89ad8cdb0efe05b40b"
+        },
+        {
+          "path": "supabase/migrations/20261021030000_restrict_exec_sql_client_execution.sql",
+          "sha256": "842ab47b0a880f366dba0921e7f418d2c5bf32edaf2d975d91faa408dfe5593e"
+        },
+        {
+          "path": "supabase/migrations/20261021050000_contain_shared_identity_client_writes.sql",
+          "sha256": "1bba114a86db0d0a7fa79b5a6f0fd6af8a26d8d02125387f2403851b0604110f"
+        }
+      ]
+    },
+    "education": {
+      "patch": "education-source-review.patch",
+      "sha256": "5eb0741919585a3bfceeddbc4955a367e282d89b95326aa4ac935a1b3727a89b",
+      "files": [
+        {
+          "path": "src/app/api/education/courses/route.ts",
+          "sha256": "b73d28b95afd13f5d4065ef6bd9a7d9091a4ae1e5ea38260f4a4153d4b810b65"
+        },
+        {
+          "path": "src/app/api/education/courses/[id]/route.ts",
+          "sha256": "87bed08b20d381680b2df33ad84a65fafabb8c56d13f08939c0338bfbf293436"
+        },
+        {
+          "path": "src/app/api/education/courses/request-context.ts",
+          "sha256": "1003e15e4f001f1772754cd9a041468f30d093e39c692987c4964e08e170c6f9"
+        },
+        {
+          "path": "src/app/api/education/courses/__tests__/route.test.ts",
+          "sha256": "66af8bfd3ef4e610017f8bb6a492a7d6b72dfcab7f0fa524be11cd8811e80ad3"
+        },
+        {
+          "path": "src/app/api/education/courses/__tests__/access.test.ts",
+          "sha256": "3a1610f43e419f977ed9e17c987f04dce019fb713185c185dcf4dd22cd6f14f7"
+        }
+      ]
+    }
+  }
+}

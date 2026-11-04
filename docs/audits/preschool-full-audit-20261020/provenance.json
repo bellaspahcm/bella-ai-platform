@@ -1,0 +1,10 @@
+{
+  "branch": "codex/preschool-full-audit-20261020",
+  "head": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+  "remoteMain": "f973dd7e56542aa7847b98c2a4236da86f1eabc3",
+  "divergence": "2\t3",
+  "scopedMainContentDiff": [],
+  "runtimeTrackedDiff": [],
+  "credentialsInEvidenceFiles": [],
+  "sourceCheckedAt": "2026-10-20T15:44:20.716Z"
+}

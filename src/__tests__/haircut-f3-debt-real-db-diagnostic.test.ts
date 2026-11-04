@@ -26,7 +26,7 @@ describeWithRealDb('Haircut P4.7 F3 debt real DB diagnostic', () => {
     supabase = createClient<Database>(supabaseUrl!, serviceRoleKey!, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    gateway = new SupabaseReceivableChargeGateway(supabase);
+    gateway = new SupabaseReceivableChargeGateway(supabase, 'service_role');
     service = new SemanticReceivableChargeService(gateway);
   });
 

@@ -154,7 +154,8 @@ class GateTest(unittest.TestCase):
                 "region": {"startLine": 19, "snippet": {"text": gate.APPROVED_CODE_SCANNING_SUPPRESSION[3]}},
             }}],
         }
-        Path("semgrep-results.sarif").write_text(json.dumps(sarif(results=[approved, approved])), encoding="utf-8")
+        n_over = len(gate.APPROVED_CODE_SCANNING_SUPPRESSIONS) + 1
+        Path("semgrep-results.sarif").write_text(json.dumps(sarif(results=[approved] * n_over)), encoding="utf-8")
         Path("semgrep-upload.sarif").write_text("stale upload", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "APPROVED_SUPPRESSION_AMBIGUOUS"):
             gate.write_code_scanning_sarif("semgrep-results.sarif", "semgrep-upload.sarif")

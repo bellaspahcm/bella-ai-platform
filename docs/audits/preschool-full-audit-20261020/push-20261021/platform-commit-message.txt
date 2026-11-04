@@ -1,0 +1,13 @@
+fix(identity): contain client writes and hold unsafe staff provisioning
+
+Block shared create/delete before privileged side effects while the management
+entitlement contract is unresolved. Require the retained admin onboarding client
+and remove unprivileged RPC/signUp fallback; preserve configured HQ/BabyCare rules.
+
+Persist approved users and onboarding-writer ACL containment plus the prior
+maintenance-only exec_sql boundary through bounded fail-closed migrations.
+Production already ran guarded ACL artifacts; this commit performs no DB rollout.
+
+Verification on this isolated branch:56 tests in3 suites, lint, Education scoped
+TypeScript and secret guard pass. Include exact production/rehearsal/review
+evidence; retain failed offline broad gates and NOT_READY/NOT_PROVEN boundaries.

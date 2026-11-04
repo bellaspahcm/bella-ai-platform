@@ -1,0 +1,1210 @@
+{
+  "sourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+  "algorithm": "SHA-256 of observed working-tree bytes",
+  "files": [
+    {
+      "file": "src/app/api/education/ai/copilot/route.ts",
+      "sha256": "57886afd25b37b5bcf759d544f3e0d81768705123f89ead9f05484ca4695db1e"
+    },
+    {
+      "file": "src/app/api/education/analytics/route.ts",
+      "sha256": "cefda7b94881732d002a181bea48d23874e0dc68f4d3809a0c5e9a9e0b3230fb"
+    },
+    {
+      "file": "src/app/api/education/announcements/route.ts",
+      "sha256": "3aa5deb74faf3365e92c53c1f7e5da2f7354484cbcaf99e6ec942b9213b9c052"
+    },
+    {
+      "file": "src/app/api/education/attendance/courses/route.ts",
+      "sha256": "278671553dfbedd60a936079fd687ae1471e029a44712d6867f5fb672a3eaca9"
+    },
+    {
+      "file": "src/app/api/education/attendance/handover/route.ts",
+      "sha256": "1d5af80532fa6f56ca6356b5a9910fea01b04829f05b7afdc28bb5d61341392b"
+    },
+    {
+      "file": "src/app/api/education/attendance/request-context.ts",
+      "sha256": "1b4622c72e524c91603d1a501b6bebc164f962a1791a2631443786f091958c31"
+    },
+    {
+      "file": "src/app/api/education/attendance/route.ts",
+      "sha256": "2ed25823ecfa3b7142a1dd9a73c54eb1c4955cc83242db08db14a7e7b39c3d87"
+    },
+    {
+      "file": "src/app/api/education/branches/manage/route.ts",
+      "sha256": "fe32a2eab6d802f91296c8b01d7ef3ed61a2cf8b722fcddd681bf8680acef6b4"
+    },
+    {
+      "file": "src/app/api/education/branches/route.ts",
+      "sha256": "d812204379a6218a8eefb0b3d69add8edbe3d502c8ad0926827af19d1c605251"
+    },
+    {
+      "file": "src/app/api/education/care/bulk/request-context.ts",
+      "sha256": "56e434b701f31f7268424f571fb16824b5d9a9ae6090858a31bd5ba838c49a68"
+    },
+    {
+      "file": "src/app/api/education/care/bulk/route.ts",
+      "sha256": "7411e3b3de461a6fa9a603dcab44b5885c764595e7c02eda4549c65644e5ec12"
+    },
+    {
+      "file": "src/app/api/education/care/classes/route.ts",
+      "sha256": "1d3d6b95ea57e65a8bd762cb5d60b48ecc905397b6149ebabfd0e1c7061dbffe"
+    },
+    {
+      "file": "src/app/api/education/care/digest/route.ts",
+      "sha256": "4c7acafba777084ae2e711d6c0136d20d7c82ca98f63d79b4bc7763e163a863d"
+    },
+    {
+      "file": "src/app/api/education/care/medication/route.ts",
+      "sha256": "e5afbc3baf062f6ef75acb313437f66c7cc7ad3ccd83037401d61767ffde3b07"
+    },
+    {
+      "file": "src/app/api/education/communication/messages/route.ts",
+      "sha256": "1d8dce9992930e9f43418d45d23bfbe1263e6f3c6e28f70089785ee618aad1b2"
+    },
+    {
+      "file": "src/app/api/education/communication/threads/route.ts",
+      "sha256": "ce6aefee80db6c40ba206032a5836ac71af47343650c16102e70c11b7aed2dda"
+    },
+    {
+      "file": "src/app/api/education/courses/canonical-request-context.ts",
+      "sha256": "9855335518ea813c146987d2566f0ea838cb75e394b55f9f501b91ce5138ed11"
+    },
+    {
+      "file": "src/app/api/education/courses/catalog/route.ts",
+      "sha256": "1e70e7fa89247c3ff4d99f9e1fd5ae32f16aa0284768728df1cdc48546a00a70"
+    },
+    {
+      "file": "src/app/api/education/courses/request-context.ts",
+      "sha256": "1a80cbc7a3a1abbc697fd24d14ab54d6da080fb0d6100b69957c236a7af4a7e2"
+    },
+    {
+      "file": "src/app/api/education/courses/route.ts",
+      "sha256": "108c15627d6527eeac3ad238ad5ad28d1ed33e2a0c19aa0c664bfcc6befd355b"
+    },
+    {
+      "file": "src/app/api/education/courses/[id]/route.ts",
+      "sha256": "e40a1591f2c31fdbf3d970aed96d7a82bf5fb877f56e0b51fd78e61594ab7d63"
+    },
+    {
+      "file": "src/app/api/education/courses/[id]/teachers/route.ts",
+      "sha256": "9af9b11672e2baa93527f36b8de14238d0177fc6916d80e51b97f973198a1b66"
+    },
+    {
+      "file": "src/app/api/education/curriculum/route.ts",
+      "sha256": "4cf2f5df59ff7ef7815b881d16cfafeb1ffa97c88c6e1b961cb6b0bc0898d4c7"
+    },
+    {
+      "file": "src/app/api/education/enrollments/admission-course-reader.ts",
+      "sha256": "899860a6f6a66bbc810ec6db285cc9b6d8d05f0f37203e8aee4be82db1c58c06"
+    },
+    {
+      "file": "src/app/api/education/enrollments/confirm-admission/route.ts",
+      "sha256": "db1d0ba3432dbb8b7725f3dc3eec8f6361a35ec6206a09705022ab71b0a47fa5"
+    },
+    {
+      "file": "src/app/api/education/enrollments/route.ts",
+      "sha256": "c4f5a0e3d88b31be663411abca59b95f2050fd144571656178f90330b21c54b4"
+    },
+    {
+      "file": "src/app/api/education/enrollments/student-360.service.ts",
+      "sha256": "9615883432231966e9b11606eb9116bfc8e85ca5dfaf9bb92b8f8ebca7d4a7e3"
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/communications/route.ts",
+      "sha256": "8126652184025686f68895f8039efdb313b3e00abf1e93870cbdddf2e0a3a8fe"
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/development/route.ts",
+      "sha256": "e9c5290c1fa9ea74a754f12780d11c1f7966b169e14227f2abaa4d6b56c1448d"
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/finance-summary/route.ts",
+      "sha256": "58dff6edfe3518493cab03030c2e17b6dac74e02a891043c48d82a353d87437d"
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/guardians/route.ts",
+      "sha256": "a86c1ff11c8891883a0afa486806623bfed7ce2d2875cef135284ef6e56559cc"
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/health/route.ts",
+      "sha256": "fb1cc38e7b1ad5f9ea432eec93c34601cc54438287dd13d0453d8b7fa273a446"
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/route.ts",
+      "sha256": "2ee920cd26359acfef16c791181f4069e43577a6c05dfbb90c5ca4774115da9b"
+    },
+    {
+      "file": "src/app/api/education/finance/route.ts",
+      "sha256": "83e9916c717dbe4ae9e59454205d39b106b39fa236d5d9d606bded1ded0c7091"
+    },
+    {
+      "file": "src/app/api/education/grades/route.ts",
+      "sha256": "db526268d21ae21db56da9dfab4c933dd640421587b0e5aec1d4e0ded8ad7c03"
+    },
+    {
+      "file": "src/app/api/education/nutrition/weekly-menu/route.ts",
+      "sha256": "dc07079e1602d425908f37505f5bfa6eeccb0710f35c20480e9be90c8414563b"
+    },
+    {
+      "file": "src/app/api/education/parent-daily/route.ts",
+      "sha256": "cd11601735cf1698945e46f6693f21783c92bec3231cf781c59e6aa725ce6976"
+    },
+    {
+      "file": "src/app/api/education/portal/token/route.ts",
+      "sha256": "731dfa29dfc378124e5c8ec0945593dc3943df6e46e90ada54bcf33df981ab73"
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/attendance/route.ts",
+      "sha256": "4cae818e84889fc83eff499f5de8e2ada76785bc4d1641b8ab895f00a8308ace"
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/care/route.ts",
+      "sha256": "da672ab586214c701f22ea058236848bb1605c90fefb8dfd300ff7b90c6ba1b9"
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/chat/route.ts",
+      "sha256": "0e0713562fc4d462b5965c41371fe8f41bd8d367d4da2e4a015f7e42d49b8e24"
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/copilot/route.ts",
+      "sha256": "88558a237e14aaf8ddcc8ad4e9fe1e25dfbc0e63a7d7af94485da9e95a9d65c0"
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/route.ts",
+      "sha256": "271a3873715740035bac1e3027bbeef980cfa8d2fcb97b41526ff4fd02c4fad5"
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/tuition/route.ts",
+      "sha256": "f07b51675953e60f99e2de69e0fb524d870a52dbefd5ef4421d8b4cd3469e5e0"
+    },
+    {
+      "file": "src/app/api/education/student-registry/route.ts",
+      "sha256": "3e4d4102d2c8496abe2c94321031c9f1dd04cbbdc441faa3e0492f37ddbf8f5b"
+    },
+    {
+      "file": "src/app/api/education/teachers/request-context.ts",
+      "sha256": "663fa627335e563d3ac7282d29faba289a4b3712dc9e67a5360cfe157de86411"
+    },
+    {
+      "file": "src/app/api/education/teachers/route.ts",
+      "sha256": "6475a8a80844c330af05134ca16ad97938cbd9e7889963f1f555c3481ad5fa39"
+    },
+    {
+      "file": "src/app/api/education/teachers/teacher-360.service.ts",
+      "sha256": "1f1b138e52bb5ef55675a0b2ef5cc846dcea49c30b8908975698004297d31130"
+    },
+    {
+      "file": "src/app/api/education/teachers/[id]/route.ts",
+      "sha256": "e00f3e42be997fa1f8cc6bcd11b100ee72b351493f963de8bb1f4180ecc34d1a"
+    },
+    {
+      "file": "src/app/api/education/work-queue/identity.persistence.ts",
+      "sha256": "98930503ea2f1a0fbf663f18bc336148b5cb14eb89e9d87902aa41d8402aeff0"
+    },
+    {
+      "file": "src/app/api/education/work-queue/incident-queue.persistence.ts",
+      "sha256": "64fe56a857dd3b7e0f5f8ab8f5583547268c9411e52c91ed2e925bebd7bc8ccc"
+    },
+    {
+      "file": "src/app/api/education/work-queue/request-review.persistence.ts",
+      "sha256": "b78f643b2e2e0b1f7d27608f6618cb4ef0fa075b3e002a50c82ec2b05990ad2c"
+    },
+    {
+      "file": "src/app/api/education/work-queue/route.ts",
+      "sha256": "7fc09b076e2f697848ba3d30ee741d7ef0d03a04cc492f7e886f32523e979481"
+    },
+    {
+      "file": "src/app/dashboard/education/attendance/page.tsx",
+      "sha256": "9f9095a3d83faeefa28291da49779f8ed345be53d0ad9cc57d108b24f168449b"
+    },
+    {
+      "file": "src/app/dashboard/education/attendance/preschool-attendance.tsx",
+      "sha256": "d70cea00133ec056a528c9caf56faf53e4e0c60e77aad0b2ae5be3f8552be026"
+    },
+    {
+      "file": "src/app/dashboard/education/branches/page.tsx",
+      "sha256": "1842514642d0388624d9435a4830ac6ea2346fe2621340e40b27abb617fbe74c"
+    },
+    {
+      "file": "src/app/dashboard/education/branches/workspace.tsx",
+      "sha256": "d9d9fcb54ca5d625c6f51a011b97dcdec85ea3dc03acdaae9b9465b9f82f621b"
+    },
+    {
+      "file": "src/app/dashboard/education/care/care-save.ts",
+      "sha256": "e9cd8d4a5646092bdd086c38e6aafd978cf07788f2cabb55dd8b88876e2a897b"
+    },
+    {
+      "file": "src/app/dashboard/education/care/page.tsx",
+      "sha256": "970790a3aeedfc63c821efe079922f724e1c9bb86624b56c5e469816f4e2eb65"
+    },
+    {
+      "file": "src/app/dashboard/education/care/WeeklyMenuEditorModal.tsx",
+      "sha256": "4b8008e0ee2b7d6017943a1456a7a5c6a35ba01d818afc3fc62c78544d9352d0"
+    },
+    {
+      "file": "src/app/dashboard/education/communication/page.tsx",
+      "sha256": "96c4dbfceaf30a321c7065fa2fc612da932cb2871caa1c409b60c5fefee28585"
+    },
+    {
+      "file": "src/app/dashboard/education/components/AdmissionConfirmModal.tsx",
+      "sha256": "191dcf255ece7deb2beaaacf8f5b923aa1dfe7504402d8fc195c3c7488d5d976"
+    },
+    {
+      "file": "src/app/dashboard/education/courses/CanonicalClassroomCatalog.tsx",
+      "sha256": "d56bf51d0a693c8f8ff648c4d09cf4e585ba255128f8f680150fa6a448657747"
+    },
+    {
+      "file": "src/app/dashboard/education/courses/classroom-live-data.ts",
+      "sha256": "f61306774d245ef33de18e6a4c671568c43c92f2caafe06e8611faaf2836ff96"
+    },
+    {
+      "file": "src/app/dashboard/education/courses/page.tsx",
+      "sha256": "d161f4bc6f471604f0ecdb6fbf47e9e7e3950203cb0d0b9b8d0715bb4fd94962"
+    },
+    {
+      "file": "src/app/dashboard/education/courses/[id]/page.tsx",
+      "sha256": "fce32dfa02977b2b1ee5ba7202109ccdf44d1d07236e62ab3a226b8ed7b86498"
+    },
+    {
+      "file": "src/app/dashboard/education/curriculum/LessonPlanEditorModal.tsx",
+      "sha256": "7158fe64cb35adc895ae5efd39e7459e120b7946e7cdb4f475c76fdf49e39ae9"
+    },
+    {
+      "file": "src/app/dashboard/education/curriculum/page.tsx",
+      "sha256": "09cf859afd1c390e77a6b1cef6786c9c79a3766e42c0aeb8110032f8c0ce7278"
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/EnrollmentCreateForm.tsx",
+      "sha256": "3e94de2ea81a104fa14cc28587ddc6b195c54977e0f7afe1a48e3dbf12b6a24f"
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/page.tsx",
+      "sha256": "3eb90213b492213ae46f2029140b478b72289a86112abc5ee18dd0afb62e69b3"
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/PreschoolStudentRegistry.tsx",
+      "sha256": "7f117cf7e566568588334eec881727ec6c8935c8618ce8bd605017ab816f691b"
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/registry-reader.ts",
+      "sha256": "b837c8352d9f9709503af59ccaf70baa429e1303bfdf1ce9eef1b7974e455e08"
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/[id]/page.tsx",
+      "sha256": "a394e97476e6a9b64cf08c65c218e43c30b61de34797daf417fd7b143f1dd99d"
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/[id]/PortalAccessLink.tsx",
+      "sha256": "09e9bafeb2b79803e628caa95ab39a1636dea990cdb3fab654da5d6488146f14"
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/[id]/Student360LegacyLayout.tsx",
+      "sha256": "cbf64b07020f3be7b9f2e460772bf83a12d566122c75c1031c009189b14c8c4b"
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/[id]/StudentCommunication.tsx",
+      "sha256": "d5a511dfa1e39342087591a52f90fdc46aea73dc08c9216664ea7610818a81ed"
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/[id]/StudentDevelopment.tsx",
+      "sha256": "34db3047224225c6ac6c98d5595b2564f05151fe01ec636466731f56cee03b23"
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/[id]/StudentEditModal.tsx",
+      "sha256": "49ff50fc1e690e444db9735d14727b83279e5f578d315c62c75643b4f606bcaf"
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/[id]/StudentFinance.tsx",
+      "sha256": "c8e8ca31c2736dd43cb198d4b5528c19a12cbe6d9b9dde0e10538191f4c0ef6e"
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/[id]/StudentGuardians.tsx",
+      "sha256": "d171f74fbffc09ce8c8cb56fb0de90c371a5d73a7a8910f49dddd344a52441b9"
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/[id]/StudentHealth.tsx",
+      "sha256": "87b0c6474979377251f18469750a5f1e4d8c644727831da06f93d569357845ed"
+    },
+    {
+      "file": "src/app/dashboard/education/facilities/page.tsx",
+      "sha256": "5d1988a857d9b4b248a7d2cda91f2dcc2a436cf192c9a649384ce68dc70b642b"
+    },
+    {
+      "file": "src/app/dashboard/education/finance/page.tsx",
+      "sha256": "3343b8a497b517661bd373bb4968de512e3af680b230d7d91f7242cfca77d828"
+    },
+    {
+      "file": "src/app/dashboard/education/grades/page.tsx",
+      "sha256": "cc1a9f11c93d8242e50b86a6703fb19967cf266eb32b206d11be4727f2e85878"
+    },
+    {
+      "file": "src/app/dashboard/education/learning/page.tsx",
+      "sha256": "50b03106455b6a2a902a2c6b9b4df090795b3ac8c63df0405f9490d0803cb7ae"
+    },
+    {
+      "file": "src/app/dashboard/education/my-class/page.tsx",
+      "sha256": "4e76744a77ca5874971f562a092ee629f9f54a0831cda9b139994f3a5cb64f1b"
+    },
+    {
+      "file": "src/app/dashboard/education/nutrition/page.tsx",
+      "sha256": "5fb395d828c083235fd89f49c6dc434653afa8ce3625ae6b35cb47e2ad457cf4"
+    },
+    {
+      "file": "src/app/dashboard/education/page.tsx",
+      "sha256": "7fc0faa7a16329acb577c6d4c51fd615ae09bddbe0e9db8d97fdca8e258b9d6b"
+    },
+    {
+      "file": "src/app/dashboard/education/parent-inbox/page.tsx",
+      "sha256": "030d490a0f07f752449730944967852dd9aaff81167abd728ed54cf46359d289"
+    },
+    {
+      "file": "src/app/dashboard/education/reports/page.tsx",
+      "sha256": "026550be548da309ef6b27514fe38f062906beaf91a70b18bb5c0bf42c183829"
+    },
+    {
+      "file": "src/app/dashboard/education/scheduling/page.tsx",
+      "sha256": "8da71fbbe7d4f719d65d269842e272601cca69fd88f49f2cf6bb401ba4c1fddc"
+    },
+    {
+      "file": "src/app/dashboard/education/teachers/page.tsx",
+      "sha256": "f840674a52d2ddb165d9650f91f46c65d3851708acd785f57cbb696d5108edf4"
+    },
+    {
+      "file": "src/app/dashboard/education/teachers/teacher-live-data.ts",
+      "sha256": "f1b37aab5aae33533dd233777465d7f94065b8bc6331b4ebec891bbc96ef0aa8"
+    },
+    {
+      "file": "src/app/dashboard/education/teachers/TeacherWorkspace.tsx",
+      "sha256": "5bc90ce8f1b196191c34b3bf5d1e870846ebbe589ce93452748a3206311887f9"
+    },
+    {
+      "file": "src/app/dashboard/education/teachers/[id]/page.tsx",
+      "sha256": "b57da5bacc2603b4ed4d5e358e6609a87dd2254deb8bd9a6bc6c799226510322"
+    },
+    {
+      "file": "src/app/dashboard/education/work-queue/page.tsx",
+      "sha256": "cc5700a6df60c0522287a743565e8d396e2ecaed4cdd68b15c8b5cd8b40ec28f"
+    },
+    {
+      "file": "src/products/bella-education/ai-skills/PreschoolAICapabilityPack.ts",
+      "sha256": "a28a1eaaf18c25bf64d084184a577f1ae0c0a2c20053824e8dbb39078fe18c43"
+    },
+    {
+      "file": "src/products/bella-education/analytics/domain/analytics-response.ts",
+      "sha256": "be44938b391f0df6f2168af5e76856529dea488b1a71945fd34ff34f38045beb"
+    },
+    {
+      "file": "src/products/bella-education/analytics/domain/preschool-analytics.types.ts",
+      "sha256": "eda132902e4b207ddcf70047547f2935a9f0323032b22688390d2193b255242c"
+    },
+    {
+      "file": "src/products/bella-education/analytics/events/preschool-analytics-events.ts",
+      "sha256": "2abbdf7c5f91447640d107b1306867bb6380a1b28b5fb3bdcee294384bda0453"
+    },
+    {
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "sha256": "a274478c81e132d89cddf8819f7adb014ac4ffd1c51408c32a0093957d64c3b8"
+    },
+    {
+      "file": "src/products/bella-education/analytics/services/preschool-analytics.service.ts",
+      "sha256": "8fcc925e54df8aea40c0b1b91f30849a111ba193519da89e119183e474bf8cc6"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.contract.ts",
+      "sha256": "4f407a278a12927bcc1d002c5c2a2e9060f04c7efb80c3ba9c71617f0cc6e4e2"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "sha256": "c95a205b663683b77eab2503ad89d784a67bb3ae61154b1a5764a78ce1ee644f"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/daily-care/save-care.input.ts",
+      "sha256": "7be39cf91450535890529e018768347f36fe92287ae5a4423e2ed381216a418a"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/health-profile/allergy-safety.contract.ts",
+      "sha256": "f2a07f4a6e27f85cd71c72c75ceca237b1538a3e988b81732d21beabfa79cfcd"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/health-profile/allergy-safety.service.ts",
+      "sha256": "a5a711201a6beacdca5ffaac404a1b4b05cac9f4fdfd44528f6e01c116fe52fe"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/incidents/incident-queue.repository.ts",
+      "sha256": "fccfbef75c98e03a807abc9769f2d262643adb883b15fc0de8dc4c3c5be592cf"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.contract.ts",
+      "sha256": "0f335c4220d8b1ca9ff1dcf812eb5bec67d597a10f0d0cd283c45d7b3538c145"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.service.ts",
+      "sha256": "cb4263be991fd8053f61831b5ecb61d5fd1140e6a6aa844080a2d052ab8f3fed"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/medication/medication-safety.contract.ts",
+      "sha256": "0301690a67c5af5250027b0fb359b9ca98ae6965c4687654dc8da5632595f3a0"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/medication/medication-safety.service.ts",
+      "sha256": "59b02ce06bb5e835ef3f6f3f4ec09f3b00576429dbc4810fb8bb1269bea397a9"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.contract.ts",
+      "sha256": "c5c9f948af94cbed87435d3e8cb0f4cbd32b89e3af99e6c0130f82a76a2a0d67"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+      "sha256": "23a09a49de3fe7ff826b788eb3b7a0140de472e2700d2c42d3fb389212b83fa9"
+    },
+    {
+      "file": "src/products/bella-education/facilities/bridges/facilities-projection.bridge.ts",
+      "sha256": "0ec82aec6b8de18dd44939800dc52ae9981e528bb8c16c84404378cf41ef1fd8"
+    },
+    {
+      "file": "src/products/bella-education/facilities/domain/facilities.types.ts",
+      "sha256": "2f0513defb93a9d4b5d0cfc1a15bc1fa1e8756d7c1c229fec9de2b7f36ae2d44"
+    },
+    {
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "sha256": "1fd2e7a87f60c566536b242d50a423a3edc7a95fe1c75e6cc830b692873193ed"
+    },
+    {
+      "file": "src/products/bella-education/facilities/services/facility-zone.service.ts",
+      "sha256": "0fb9d545c91af75986942e55e505d20f5b63984425939c1045b1af01cf103233"
+    },
+    {
+      "file": "src/products/bella-education/facilities/services/maintenance-job.service.ts",
+      "sha256": "e51d775ba29ef2fdf3d0bb0b5dc9c35616cfe6929590fd5ce59a75cf0d0a4330"
+    },
+    {
+      "file": "src/products/bella-education/facilities/services/safety-inspection.service.ts",
+      "sha256": "1d6b8009bb8f79017eff9fe3fbe0221061a837962c6ae0098ca6abd80237c4db"
+    },
+    {
+      "file": "src/products/bella-education/finance/domain/finance.types.ts",
+      "sha256": "84bda569eb1674a969f4cd9f81f9abb681ced8973b87c3ae8704e18fa3066408"
+    },
+    {
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "sha256": "8a9754e054ddba2e3e4ed180885011b872d6a1cdfa5bdbacf24ea275f0b8783c"
+    },
+    {
+      "file": "src/products/bella-education/finance/services/invoice-issuance.service.ts",
+      "sha256": "5f9451bd7534115850f79c24c016dd97b398739acb6fb24aa8b9f55d53c99a7e"
+    },
+    {
+      "file": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+      "sha256": "70efdbb2ac1cad4ca56777bf18d42764ebd706b006d04c21cf0470931875d5d3"
+    },
+    {
+      "file": "src/products/bella-education/finance/services/payment-reconciliation.service.ts",
+      "sha256": "6b9faab2ce5267e7b0da5c5aac307ba50826219e6128347522d1509d9808f6d3"
+    },
+    {
+      "file": "src/products/bella-education/finance/services/preschool-finance-authorization.service.ts",
+      "sha256": "09f94fb6076676764c51ec8dd757f9ec610ab0f9bccb521a7f815465230723d7"
+    },
+    {
+      "file": "src/products/bella-education/finance/services/preschool-finance-branch.contract.ts",
+      "sha256": "34dcb1731519f1f0816eeee1b1cb114ea2295cba5409d5859cc2e6687f79e338"
+    },
+    {
+      "file": "src/products/bella-education/finance/services/preschool-finance-payment-intent.ts",
+      "sha256": "41179389cd521f6f773b98606e95b40909fccce460722ba0907cf5bbc3c88cc8"
+    },
+    {
+      "file": "src/products/bella-education/finance/services/tuition-billing.service.ts",
+      "sha256": "156c36f07830d7deccdf2195ceff45134e0f44e69b1dbb2ffb443e06ab978ae0"
+    },
+    {
+      "file": "src/products/bella-education/finance/services/tuition-recognition.service.ts",
+      "sha256": "85f2e4cd5997ed79b4f50487078ed4c14bfa9e14d955e8df37643b9c63017816"
+    },
+    {
+      "file": "src/products/bella-education/finance/services/tuition-service-period-completion.service.ts",
+      "sha256": "ba8f5771277c83be28133f683cfafbd92f21ffe929860a227f2a752a69b4a860"
+    },
+    {
+      "file": "src/products/bella-education/index.ts",
+      "sha256": "40b82dcd4ac1c17f5aa4687b66a76ab37ebc96c8bbd603a9a1a0217d2e542900"
+    },
+    {
+      "file": "src/products/bella-education/learning-development/activity.service.ts",
+      "sha256": "a09d3dc8ce78aeccf2efb3b1c1dd381a415fd2dcb1c7f3e5b36c98e3d01997b3"
+    },
+    {
+      "file": "src/products/bella-education/learning-development/curriculum/curriculum.contract.ts",
+      "sha256": "86fa2e9d082e434d0825a3a62b460d18876b822884c6a522978279343ee6fd53"
+    },
+    {
+      "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+      "sha256": "f649f9ff324d428ad2c93f9740712b8b7428e7923c3755148a9cc12926e6b3a4"
+    },
+    {
+      "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+      "sha256": "0eb2cc6b74c789d1e1b616a6a2e1bd14f52fffa6a9ec28a9e08ef483e9292404"
+    },
+    {
+      "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+      "sha256": "879be89411582ee91035e9016f5a056e067500faac71b426bad60c4f98d9e90c"
+    },
+    {
+      "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+      "sha256": "d53bcf6abf6c1f72568265ce0af32ba756290c2e73541509aaeb2fd2f6cbb120"
+    },
+    {
+      "file": "src/products/bella-education/learning-development/next-steps.service.ts",
+      "sha256": "956ee1d864b62b6be85fab17c9bda14b466f76175a7b98796904272daadb5581"
+    },
+    {
+      "file": "src/products/bella-education/learning-development/observation.service.ts",
+      "sha256": "98b549d74752835da9a123bae6a4b085dc4671332ce16f5658070ae5c0b2a8eb"
+    },
+    {
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "sha256": "c1032f423eccf933df4767e26c90c22d289c1dc2adf7bc2715c401ea9fc4f699"
+    },
+    {
+      "file": "src/products/bella-education/manifest.ts",
+      "sha256": "0dec9c1228976b18da6e917564b14d33f3282ab1df6699e0883f0b4ef0d6eb40"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+      "sha256": "58697311a0266f1915872df2ae53083c766c4bf71a31c72371852ca6073fc42c"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/bridges/classroom-projection.bridge.ts",
+      "sha256": "5dd9ce2cf040c2f3dfe554361b67e8539803b637d115ec2ea7f365fcf8f8ee04"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/bridges/finance-projection.bridge.ts",
+      "sha256": "19e9c5e19ef0c68b43dea72b07712388a96e5437bb2c468d2be25bf9f4446da1"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/bridges/learning-projection.bridge.ts",
+      "sha256": "522adc33450d0202c2fdc3563134f5941bd6dc3ffaa9fdff12d7adde0e4084cb"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/domain/communication.types.ts",
+      "sha256": "83eb9b8730d79ad6d7dddf653ee26ffe206466143699e49108636772d985b56a"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/domain/request-review.ts",
+      "sha256": "808fce1c0f0968e76d6ddaece138fac799e5ad290f912e7fabe0ab3d012e565a"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/index.ts",
+      "sha256": "1882ef7027a4b39fa593e67e675946421000d50b5bdb004eeb51008f0aa4875c"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "sha256": "75f6e2dd53c5d8bf3c8266dfcd4d4aae10903d96b9e65d2ce1c87f5925701bde"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/repositories/request-review.repository.ts",
+      "sha256": "566c4ae3ee8005e634bc434967277def69c4d546ab9a85980734b368b9ebdd53"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/services/acknowledgement.service.ts",
+      "sha256": "259cee65bbeb30a559873fe798ace89e1efede1ea7637d16cb89f6e974929a92"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/services/communication-delivery.service.ts",
+      "sha256": "94883313f48cf4e4652bd2161ca6da41d221dcef020f68f443f301da47d55301"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/services/communication-exception.service.ts",
+      "sha256": "1271bbd9e2fea0ae9acc7778dc51c47c5ed4281c2fa186b482c7cd4501e0dfff"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/services/consent.service.ts",
+      "sha256": "e918dcd1f273283b7907c840c12a1bccad0d53aa46a22f6c94da9d3885a83ea7"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/services/parent-response.service.ts",
+      "sha256": "379067898f74d0064605a7d810862d1df3f721ce98e12b9807aec2e3e67d0d7a"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/services/request-review.service.ts",
+      "sha256": "b2f13ea2bd705e93a0ca6efd3e7cc1f676e8ff151d3ac9afcc26ee8563240537"
+    },
+    {
+      "file": "src/products/bella-education/parent-engagement/services/sent-snapshot.service.ts",
+      "sha256": "4d0cad3ddaf5002a763997b30f2e14a51a295fc87150a99392e053ed3af6d420"
+    },
+    {
+      "file": "src/products/bella-education/parent-portal/domain/parent-portal.types.ts",
+      "sha256": "3446be0952ca17c40a44d9e067923e8d754e29f1f3ae0a0865485c96a8369562"
+    },
+    {
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "sha256": "5210924d5a54a050fc796ea5e303afa02121418d0b638d7538a3602f48ad1538"
+    },
+    {
+      "file": "src/products/bella-education/parent-portal/services/preschool-parent-portal.service.ts",
+      "sha256": "d6e757e90df68d1d4c7429467621914dd9c345834640069e92a3cb6255f8e6c8"
+    },
+    {
+      "file": "src/products/bella-education/scheduling/bridges/scheduling-projection.bridge.ts",
+      "sha256": "df371efe9a05e4a315a51e89482c2055b14f041f46f9c9b348b5eb102b8762d1"
+    },
+    {
+      "file": "src/products/bella-education/scheduling/domain/scheduling.types.ts",
+      "sha256": "0ece9ac3ae8d65e9f4920efb6b8e8e791bff014b4c75eb690cf5f4bd910ff701"
+    },
+    {
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "sha256": "9c02fd637837d49e55d1197391df333a6a95a3b16de9e3e410067ca9e70bc938"
+    },
+    {
+      "file": "src/products/bella-education/scheduling/services/leave-substitution.service.ts",
+      "sha256": "06c0086711a2c1c4e99072e29889d24a13ddcc14d2430d9d3f24c7369ca0f7d8"
+    },
+    {
+      "file": "src/products/bella-education/scheduling/services/ratio-compliance.service.ts",
+      "sha256": "77d8a26ce6b910d9d4d47c99fe2bf7c2e7606c8c75db58ec3ca0d9f40bb6a16b"
+    },
+    {
+      "file": "src/products/bella-education/scheduling/services/staff-roster.service.ts",
+      "sha256": "dce7e5b7d5856d3271b185cf7def26c10c3e63e2a58c41c204ef6acadafbac01"
+    },
+    {
+      "file": "src/products/bella-education/security/education-security-guard.service.ts",
+      "sha256": "7778773585292ae2d65dc0503fa56d082d691f4df64693d8f8389454cf3dca64"
+    },
+    {
+      "file": "src/products/bella-education/services/assessment.service.ts",
+      "sha256": "bb2fda60d58128ef1743d148f644c6598b0a79012444b62ea4ca138a8d5a8ebb"
+    },
+    {
+      "file": "src/products/bella-education/services/attendance.service.ts",
+      "sha256": "eb907e59ef63a1d59233072b200bece5aa48fd4ed6cd5342fa44b4e0b5fa623b"
+    },
+    {
+      "file": "src/products/bella-education/services/course-catalog.service.ts",
+      "sha256": "333d4d46b8b3313d8368872eb0b8cb59009a5ad4aa741b4956ab21a51cf5729f"
+    },
+    {
+      "file": "src/products/bella-education/services/enrollment.service.ts",
+      "sha256": "8af0611a6742ba1d2020e9f87a6c3e3e3d8c6787d39047c80e07bd0e713c54fe"
+    },
+    {
+      "file": "src/products/bella-education/services/preschool-admission.service.ts",
+      "sha256": "94b685d4ca0fb19366ba28cdf6c15cbe2d679ad662d68de566eebd65d5f33b63"
+    },
+    {
+      "file": "src/products/bella-education/services/preschool-ai.service.ts",
+      "sha256": "c659b04485d27bce3cac45ef8d1fa3c63b39a32992de6ebd07fabafdae910b32"
+    },
+    {
+      "file": "src/products/bella-education/services/preschool-attendance-access.service.ts",
+      "sha256": "1e6870ccc9ace5a91d955db55b0b51f5ca80cf0692a92651a0de2f51e0cabff0"
+    },
+    {
+      "file": "src/products/bella-education/services/preschool-attendance-command.service.ts",
+      "sha256": "3fb0873a9534d91a7e9f28df8a562a2df0555f9158f80010c617c9384944d58e"
+    },
+    {
+      "file": "src/products/bella-education/services/preschool-chain.service.ts",
+      "sha256": "bc1db715c659cc1652f4c118a3d6ebd5ddf53eefb697dc5f3c89b979eb414abf"
+    },
+    {
+      "file": "src/products/bella-education/services/preschool-guardian-authorization.service.ts",
+      "sha256": "dde592ad8fd41f93e7cb2db2b6c60b98bad47dc2fcd09ec47f908d1eee25c109"
+    },
+    {
+      "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+      "sha256": "890cdf86165eee37c29a4bf6bca81f8047db10c61b08c55f6b78daa6e6ecbf5a"
+    },
+    {
+      "file": "src/products/bella-education/services/preschool-safe-pickup-handover.service.ts",
+      "sha256": "7d686066e05e354e324039ed9c52a186e12314da06cacf26282bd8d5a0482d5d"
+    },
+    {
+      "file": "src/products/bella-education/services/preschool-student-guardian-read.service.ts",
+      "sha256": "44ce2640cb844670c369b72dd95f47546f86b3786d2cdb9c581fe33d53278c96"
+    },
+    {
+      "file": "src/products/bella-education/services/preschool-teacher-attendance.service.ts",
+      "sha256": "8f6acb3af338c66d3750165c935c95aeb28fb84c50f92f503eddccf01ed683d9"
+    },
+    {
+      "file": "src/products/bella-education/services/preschool-teacher.service.ts",
+      "sha256": "9ec4cabb5be246a9f1a224c0d3d53edbfb8580adba813012ab40da7694329adf"
+    },
+    {
+      "file": "src/products/bella-education/work-queue/work-queue.service.ts",
+      "sha256": "d8ac9431445a5bc2c438b0474587b328d428b5506ab4e2264ed9a083e3c23693"
+    },
+    {
+      "file": "src/products/bella-education/work-queue/work-queue.types.ts",
+      "sha256": "2cc8ac34c012126549768d8ac3d0fad43b13c9e29651cbdfae73e05dbb8e43cb"
+    },
+    {
+      "file": "src/platform/education/assessment/assessment.aggregate.ts",
+      "sha256": "5de948701abff65315ca4ce9cd66f10923fc8af661ce158f1a510e6243adf6bd"
+    },
+    {
+      "file": "src/platform/education/assessment/assessment.repository.ts",
+      "sha256": "1c1ef1538bb33dad9b8578686e09e10ca5822b1f0897755c32a830606d1b1f7f"
+    },
+    {
+      "file": "src/platform/education/assessment/assessment.service.ts",
+      "sha256": "9e6908e59fe38204a71aaaf723c9bf4dd500bb46693316150c37ba883be08962"
+    },
+    {
+      "file": "src/platform/education/assessment/assessment.types.ts",
+      "sha256": "06f300394aebcde713d582a608fd3f1efa4207ccaff73285b1a5d13cf8955130"
+    },
+    {
+      "file": "src/platform/education/attendance/attendance.aggregate.ts",
+      "sha256": "b36217e4225abb3adafa0207063cb13ead66541dc80b4833a2aa21472c9cde4c"
+    },
+    {
+      "file": "src/platform/education/attendance/attendance.repository.ts",
+      "sha256": "cbaf7657547640a1ebd02861de1678773fc310b60eaf3df3a8507d57189214d7"
+    },
+    {
+      "file": "src/platform/education/attendance/attendance.service.ts",
+      "sha256": "a81b6677d067339799a018c1167e68e5dbf377ecdc4a43f75b93b1f470ce0e5c"
+    },
+    {
+      "file": "src/platform/education/contracts/assessment.contract.impl.ts",
+      "sha256": "485ce7f8a3df150665308e8cd0a861b2b72b9eededb0d087c3fd7eb41f1a2b9d"
+    },
+    {
+      "file": "src/platform/education/contracts/assessment.contract.ts",
+      "sha256": "3e48901613c05dd194fc51474f6d0807a4d5d171bd83971c638691c67045333f"
+    },
+    {
+      "file": "src/platform/education/contracts/attendance-command.contract.impl.ts",
+      "sha256": "6e81ceb4f2168f02fe74c79f3f976c379112c16001aeaa7d8abf9d6e302f7ae5"
+    },
+    {
+      "file": "src/platform/education/contracts/attendance-command.contract.ts",
+      "sha256": "dfe5ee4627655bd8ad0727da9888e48e70cf609dffc5f4a7d66e06ff7800487c"
+    },
+    {
+      "file": "src/platform/education/contracts/attendance.contract.impl.ts",
+      "sha256": "2d47cd90dd7b55e4a4ca9326489302bcedd8bf9b46e1f2365b715d202d88ba6c"
+    },
+    {
+      "file": "src/platform/education/contracts/attendance.contract.ts",
+      "sha256": "1411e492095dee5a37f648f16b2484aca78a18eb168d4b0cb144fc3e46a47872"
+    },
+    {
+      "file": "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts",
+      "sha256": "921800c63b464ebab74fb24ab7b752f7dd30ac4340ea6bd24744ccf2e3edbad1"
+    },
+    {
+      "file": "src/platform/education/contracts/canonical-course-catalog.contract.ts",
+      "sha256": "19a6df77f25ae5096a52c666edf1b26709ba5ff79939c782d4e158d6153cca41"
+    },
+    {
+      "file": "src/platform/education/contracts/course.contract.impl.ts",
+      "sha256": "e847f118b787a4680480237e77f02d9012686faff2ea5297c1a853b148e5e33b"
+    },
+    {
+      "file": "src/platform/education/contracts/course.contract.ts",
+      "sha256": "98d5dc231595786df855f47480de420bdffc63794b55bb02f2031f5c60a8be4d"
+    },
+    {
+      "file": "src/platform/education/contracts/enrollment-event-recovery.contract.impl.ts",
+      "sha256": "381f55663fe2c1a45cb6226a5aab51a2cee550d7ae8dca200e3ac8a9d5aaab98"
+    },
+    {
+      "file": "src/platform/education/contracts/enrollment-event-recovery.contract.ts",
+      "sha256": "0cef1e6a1616c27ab4e3bd8d12705dbcdf20b879cf82d3f61629a2667033079d"
+    },
+    {
+      "file": "src/platform/education/contracts/enrollment-recovery.contract.impl.ts",
+      "sha256": "bbc323254217e8bf39a940dfa8638599fa8aa12c507b1f9253b47f7aa8605c2a"
+    },
+    {
+      "file": "src/platform/education/contracts/enrollment-recovery.contract.ts",
+      "sha256": "f8a9bbce26f96b097156ab2d7774fd45a2e460feaa49e60128155220bff8084c"
+    },
+    {
+      "file": "src/platform/education/contracts/enrollment.contract.impl.ts",
+      "sha256": "2f6c2aa6dcbc252dec8a82c96410c27557e5cc067328ef1226be22a3c51063f0"
+    },
+    {
+      "file": "src/platform/education/contracts/enrollment.contract.ts",
+      "sha256": "a3a00d390cec54a8088d66d294e98266780a78b3dd35d0700f70f7d95b10223e"
+    },
+    {
+      "file": "src/platform/education/contracts/extension.contract.impl.ts",
+      "sha256": "5b3fb492ee730e61b76b62bfb1b47f53e0a31036667a95e4b9652c684c02d1a6"
+    },
+    {
+      "file": "src/platform/education/contracts/extension.contract.ts",
+      "sha256": "8dec84f6a1813a05e4398e36f9c5f836ca2e0b55e990f8e6bb749c01b7ef023e"
+    },
+    {
+      "file": "src/platform/education/contracts/policy-registry.contract.impl.ts",
+      "sha256": "fcb72cfb522ce22a5eecae059d04dc1483dcab75d9917870f156e1fc4beebc71"
+    },
+    {
+      "file": "src/platform/education/contracts/policy-registry.contract.ts",
+      "sha256": "be82f7720024cf9a9f846a2e0330350ecd55a84dc0c1d606f29419fcd61b2e22"
+    },
+    {
+      "file": "src/platform/education/contracts/preschool-operations.contract.impl.ts",
+      "sha256": "af883ff1b392221fa8943b9a1e44bc4ca176c9bfadfaabdfd9d11847cc05ca3d"
+    },
+    {
+      "file": "src/platform/education/contracts/preschool-operations.contract.ts",
+      "sha256": "7ea96a897450d9fdc1157c442952a78f5cf67a5f7766517066d0b780aa5c79ed"
+    },
+    {
+      "file": "src/platform/education/contracts/preschool-registry.contract.impl.ts",
+      "sha256": "192f716b768b4a69740311fc65a7ae9cd74bda98d13d52075a0a7fd4e333006d"
+    },
+    {
+      "file": "src/platform/education/contracts/preschool-registry.contract.ts",
+      "sha256": "92ae5d00364ab894cf49594e2b20ee8a9441534e5e221b040d428a98a1b86497"
+    },
+    {
+      "file": "src/platform/education/contracts/preschool-teacher.contract.impl.ts",
+      "sha256": "9fa5ccfebf74b4d9a935e92d76c2b8d84f51ca61480f9c3c33054340a9f5372a"
+    },
+    {
+      "file": "src/platform/education/contracts/student.contract.impl.ts",
+      "sha256": "8ff7289a51bf7c08ba70e368591b7f413f23c2139cd5e108f0613195eeac99f8"
+    },
+    {
+      "file": "src/platform/education/contracts/student.contract.ts",
+      "sha256": "7a133954ff57ce412505c7b61fa5c0920d89c713d61d4c58c345882697ce2cd3"
+    },
+    {
+      "file": "src/platform/education/contracts/teacher-assignment.contract.impl.ts",
+      "sha256": "41c5d2ed5e9136cc4a9a15b136edcb55cf319573bf0a02218606e08f0a5e5bf6"
+    },
+    {
+      "file": "src/platform/education/contracts/teacher-assignment.contract.ts",
+      "sha256": "c5787a96dd10b98f1caa77170766bc6f0c6fbea3d0fad65590fdf2aa54209c62"
+    },
+    {
+      "file": "src/platform/education/contracts/workflow-registry.contract.impl.ts",
+      "sha256": "194578b1f59ab5681efea336ae00b148fabeba2a0c30da1d848b78872b088709"
+    },
+    {
+      "file": "src/platform/education/contracts/workflow-registry.contract.ts",
+      "sha256": "deebeed7215835b4c474550e4ee454d61f2af9ec7f61e538da648f840f6c05f7"
+    },
+    {
+      "file": "src/platform/education/course/course.aggregate.ts",
+      "sha256": "b65038862ae3950c3274190e64b626ada8969e5eec789faa1050fcd61ce867fe"
+    },
+    {
+      "file": "src/platform/education/course/course.repository.ts",
+      "sha256": "e051bdd9eb44bad01169bd63ba778fb30718a47b97b57ba6770671c569ccf9dc"
+    },
+    {
+      "file": "src/platform/education/course/course.service.ts",
+      "sha256": "b154c50e1b7adc8c6d4272381425dfb2dfa168d2bf09b1e8c011f11b5cde3e3e"
+    },
+    {
+      "file": "src/platform/education/domain/course.entity.ts",
+      "sha256": "d754273146785c5b44da209da28558152ca6849cdf36924ffc67bf932b07314d"
+    },
+    {
+      "file": "src/platform/education/domain/enrollment.entity.ts",
+      "sha256": "8f973f1bdad970c6f3ccb138d6dc30aaf58847d493ad9348ab495431f56e67bb"
+    },
+    {
+      "file": "src/platform/education/domain/teacher-assignment.entity.ts",
+      "sha256": "f5a59bfcef20b414eaf72e4b21d90e89b9cfd1efd33bb891d2c47655060e7eaa"
+    },
+    {
+      "file": "src/platform/education/education-engine.registration.ts",
+      "sha256": "940aacf16addc5e7cc430475edb910ae11bf4543aea6386b9d401b8916a905dc"
+    },
+    {
+      "file": "src/platform/education/education-engine.service.ts",
+      "sha256": "5b7ecccf696e56664c3b44af646768228090b8cdc6a8f1b3e0b9050a618fb473"
+    },
+    {
+      "file": "src/platform/education/enrollment/enrollment.aggregate.ts",
+      "sha256": "6b42dacdcf765ddf96716bbd7af1bccaa55b4080dc15aec572a574ce34fde96f"
+    },
+    {
+      "file": "src/platform/education/enrollment/enrollment.repository.ts",
+      "sha256": "dbebc362f82283a21f436dd03b841ce33e7589e4a7d8b15c22135ba555ce3afb"
+    },
+    {
+      "file": "src/platform/education/enrollment/enrollment.service.ts",
+      "sha256": "d36380db4a82c3ca12c17013f236388aaec6c2b21f0c64b1a1214eaa5a752485"
+    },
+    {
+      "file": "src/platform/education/index.ts",
+      "sha256": "e343da369135eb49a5f2f9702215f8184e5a9e38e6f47daf677e3f2e5c6fe661"
+    },
+    {
+      "file": "src/platform/education/ports/rule-governance.port.ts",
+      "sha256": "c6f0f9de40129d0c20da0b18761f36b0c87b4def8fbcd0fbde99aeb126fe0134"
+    },
+    {
+      "file": "src/platform/education/repositories/education-repository.interface.ts",
+      "sha256": "af17cd6321d2d13820791dbb319c4a6727ad77663c29f65c88290f3477d27923"
+    },
+    {
+      "file": "src/platform/education/repositories/supabase-education.repository.ts",
+      "sha256": "f52af308a5f94bfcbccf9a16a12f43923803db6579e02120826cbff86aec59d8"
+    },
+    {
+      "file": "src/platform/education/shared-kernel/attendance-types.ts",
+      "sha256": "98d8f3b7469af9b63846e3add82785d0735f2e367d6254c711c2a15d04c0d988"
+    },
+    {
+      "file": "src/platform/education/shared-kernel/course-types.ts",
+      "sha256": "c9ce30ed4ba1bd16fc877a9f5c5ab46e1d703120cef881ffb9bf77ff8071668d"
+    },
+    {
+      "file": "src/platform/education/shared-kernel/enrollment-types.ts",
+      "sha256": "611a56f943e80be47fc72610b445e6c851e767a6c238c7d6d323f98449daf6dc"
+    },
+    {
+      "file": "src/platform/education/shared-kernel/types.ts",
+      "sha256": "e18d2de3d368841f8b50265729b254a573c0c7f0b2b434f59267da327b8e7c24"
+    },
+    {
+      "file": "src/platform/education/student/student.aggregate.ts",
+      "sha256": "a34a0259d99f99662ca5b6929cc4d9c71a5ce43d36b1b3d34933edc56f0c76b4"
+    },
+    {
+      "file": "src/platform/education/student/student.repository.ts",
+      "sha256": "df34ac79f92dc0bcd29dc9b0ece26710a71850fa1490e8a50e6a29d2cbff9336"
+    },
+    {
+      "file": "src/platform/education/student/student.service.ts",
+      "sha256": "5ff3084969ea08974c9e0e4aa8e5ada657a47944aff8b298dedcaafc5338ba8f"
+    },
+    {
+      "file": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "sha256": "eee26bbdf06c9645019f025cf1975c1b91b7e6cd7135ecc42abe4a0a643cc9d8"
+    },
+    {
+      "file": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "sha256": "042910c68760a0b6bb5b2ca93995b8761368c9d0fab73710977defb62dd1a176"
+    },
+    {
+      "file": "supabase/migrations/20260909000056_p61_parent_communication.sql",
+      "sha256": "897ee3798702a8da1873052f29281664f78b9a9f56a5a2b4077b907df8228944"
+    },
+    {
+      "file": "supabase/migrations/20260909000058_p71_preschool_finance.sql",
+      "sha256": "5149d34f04116f5836ca1e4b7406eba61908f6e77f94bfef558a8db740910481"
+    },
+    {
+      "file": "supabase/migrations/20260912000000_r3_education_identity_cutover.sql",
+      "sha256": "d45e99e83563ca72df14739e8c2f9921044c0b049f270c72fa21bc1cd6b7a42c"
+    },
+    {
+      "file": "supabase/migrations/20260912120000_add_branch_id_to_education_tables.sql",
+      "sha256": "0fc0c1d97ab4000c7eed27d7f85fa21f68dd5b4aadd0c00305789f2796527a3a"
+    },
+    {
+      "file": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "sha256": "95d00c9a1df775500386b86c571ae8dad1dbe58e77e415ca80701ebc23491b8c"
+    },
+    {
+      "file": "supabase/migrations/20260927000000_fix_edu_set_daily_attendance_column_ambiguity.sql",
+      "sha256": "fbe97d54e0014a9c01458a2b287ae845e05ec16f5743aae509c1792b86df6c3d"
+    },
+    {
+      "file": "supabase/migrations/20260927010000_preschool_guardian_pickup_authorizations.sql",
+      "sha256": "43a23ebd0bce1a9abfacd5d6faec459f7c7a1ede3525e1ed689be30c3828f4b7"
+    },
+    {
+      "file": "supabase/migrations/20260927030000_preschool_safe_pickup_handover_events.sql",
+      "sha256": "17d5ca4cf8b5265fb36e4e93f4c86ca5254701a1745d039c836fb99bda066a73"
+    },
+    {
+      "file": "supabase/migrations/20260927040000_preschool_daily_care_canonical_student_party.sql",
+      "sha256": "d3c0506255dac50257632f6a0ba5db0347e4b394cbd48baa444f20afd19f1bac"
+    },
+    {
+      "file": "supabase/migrations/20260927050000_preschool_parent_digest_canonical_student_party.sql",
+      "sha256": "eac9ac2a6f768edbb3ef9ca59605e7b6c2fb153b6ebe1927e0811f49906232d8"
+    },
+    {
+      "file": "supabase/migrations/20260927070000_preschool_finance_canonical_student_party.sql",
+      "sha256": "84595cc48589b1628955baaa0333ea4ad925cfdc850b077bf30203961c424944"
+    },
+    {
+      "file": "supabase/migrations/20260928000000_preschool_tuition_recognition_policy_foundation.sql",
+      "sha256": "526b2017ca302a6b8aaa73174b493644af2696dbb72dbdd8429af79dc3e1f0f3"
+    },
+    {
+      "file": "supabase/migrations/20261006010000_preschool_chain_assignments.sql",
+      "sha256": "8340ba62e9a3f3e896936cdb6932c6dd672d5b6179a5060c7b01cf65f2c68bb8"
+    },
+    {
+      "file": "supabase/migrations/20261015040000_align_platform_identity_hq_authority.sql",
+      "sha256": "a0a220144c7190b6f15c549ff681079337aa075b6669702febf8c1cb5a3d80ec"
+    },
+    {
+      "file": "supabase/migrations/20261019020000_preschool_admission_operations.sql",
+      "sha256": "1190223ba0182ef500eb11924bdc6e0088c716ac9aa37ec40f71779f4113388f"
+    },
+    {
+      "file": "supabase/migrations/20261019030000_preschool_chain_branch_security.sql",
+      "sha256": "e0f08a5b140f6f3ce8ab7301545f2cac957fea150c75e3d4f7ea559b957fa81f"
+    },
+    {
+      "file": "supabase/migrations/20261019040000_preschool_finance_atomic_reconciliation.sql",
+      "sha256": "f9bf231dc317e4bf7c96260d81886a9c1b4a128ff7dcd1e5ed8c0b7a61f6f974"
+    },
+    {
+      "file": "supabase/migrations/20261019050000_preschool_finance_branch_authorization.sql",
+      "sha256": "73147da6dd10c8bce9f902f274218aa6569405b20c7da7609c85ddcefaffbed1"
+    },
+    {
+      "file": "supabase/migrations/20261019060000_platform_current_actor_read_contract.sql",
+      "sha256": "decea85717ae036b8f7e2a80eb9b72e9b25f22696047a7e2d506dec4b790bdec"
+    },
+    {
+      "file": "supabase/migrations/20261020110000_p43_preschool_weekly_menu.sql",
+      "sha256": "4e4050e4747e1890d48e7a64af2143b5d3f183d1c3d54401732ab3c300e50b69"
+    },
+    {
+      "file": "supabase/migrations/20261022040000_preschool_finance_branch_surface.sql",
+      "sha256": "fdc560f332c3e06e9e24efae447dcfc42078e6bb1546d7521f5360616464b29a"
+    },
+    {
+      "file": "supabase/migrations/20261022120000_education_attendance_authenticated_tenant_guard.sql",
+      "sha256": "df2ca14d752743b7d1d8468b1593bf14055039296e67497413a22119630137e3"
+    },
+    {
+      "file": "supabase/migrations/20261023010000_education_enrollment_event_recovery.sql",
+      "sha256": "1d0c95f0a0ef2b7fb4af89b5040337f061d1d414d92cb46e9073aae359b8cf83"
+    },
+    {
+      "file": "supabase/migrations/20261023020000_education_scoped_attendance_command.sql",
+      "sha256": "380936d44acb1f13fa5f7be9b1ee15bb28975c0b8dfbaefbedcfd05203b0cf4e"
+    },
+    {
+      "file": "supabase/migrations/20261023030000_preschool_scoped_attendance_command.sql",
+      "sha256": "f29cc07c31a8cf1feb0f6f4bb11d78013e5c4179f2fc45fe94cc6ff4ef1673f4"
+    },
+    {
+      "file": "supabase/migrations/20261023120000_preschool_review_authority_and_overdue.sql",
+      "sha256": "b87ba9fbac8ac2f00cc57a8915eda730378f15146b0f9a16b19f8d4b055769f4"
+    },
+    {
+      "file": "supabase/migrations/20261024010000_preschool_handover_atomic_command.sql",
+      "sha256": "aeaa636669868e8d8065d923e407a7c1e4015f1b6fc56a362466bd674f6f0f37"
+    },
+    {
+      "file": "supabase/migrations/20261024020000_reconcile_education_attendance_callers.sql",
+      "sha256": "036b22765e3c632105cf47e290e527f452ce2eb0126a917bbd2c29feafc61724"
+    },
+    {
+      "file": "supabase/migrations/20261024073425_platform_current_actor_read_contract.sql",
+      "sha256": "d790935bd65bdb1c6243d17d7d564018df23aff57ca2ec935492aa4509213697"
+    },
+    {
+      "file": "supabase/migrations/20261025070000_preschool_canonical_course_create.sql",
+      "sha256": "ddcbdcf962fd80b5b4afeda84cecfed62ad6fd5896f18dc9150cb79da4e4f8d0"
+    },
+    {
+      "file": "supabase/migrations/20261025104453_reconcile_preschool_classroom_manual_sql_history.sql",
+      "sha256": "9176f79b60a690c9f67b29396a5524f77c369b51553bda10c87117e8169799ba"
+    },
+    {
+      "file": "supabase/migrations/20261026100000_scope_education_attendance_state_by_branch.sql",
+      "sha256": "580695fcfc0924385508235080a07a92cee63c04d03a4d71381fec4b74da92ac"
+    },
+    {
+      "file": "supabase/migrations/20261026130100_finalize_education_attendance_branch_read.sql",
+      "sha256": "215f04efe1e8659ca02ca201b83044e38ba72d9d997da10afebcc8fc6bba1a3c"
+    },
+    {
+      "file": "supabase/migrations/20261026152000_harden_education_attendance_access.sql",
+      "sha256": "19d9054803297a531394d1a5bcf5f99b06440caec2feca3a83491043345e3dde"
+    },
+    {
+      "file": "supabase/migrations/20261026183000_integrate_preschool_teacher_attendance.sql",
+      "sha256": "22635490ba2c972b3b67779e6163bde0b29b7ef662cab20f790483ad5797ae7f"
+    },
+    {
+      "file": "supabase/migrations/20261027010000_preschool_teacher_assignment_legacy_profile.sql",
+      "sha256": "35798e6f5bd27d26fd0cbb9cf72cd0c702b532accc5025461443b2b68c749d26"
+    },
+    {
+      "file": "supabase/migrations/20261027010100_preschool_teacher_confirmation_and_canonical_assignment.sql",
+      "sha256": "0e49168dfb7ef11c2479535ef3d6a0cc9a702ab4095188a7fc29ecba51d4379e"
+    },
+    {
+      "file": "supabase/migrations/20261027010200_preschool_teacher_termination_end_date_check.sql",
+      "sha256": "44dbd7369ebf963ae7855ceb853805f5d4edc2752d958c372c2ccb55f8c1d3f1"
+    },
+    {
+      "file": "supabase/migrations/20261027020000_platform_current_actor_tenant_presentation.sql",
+      "sha256": "c79387f36ac5798a37c0ed5c7b042997f88f639b53fbae3b22ce863ab8f7e113"
+    },
+    {
+      "file": "supabase/migrations/20261030100000_preschool_admin_teacher_360_profile_management.sql",
+      "sha256": "b3db954d88173600761acc54f36758b536b7e309d02a3c8949daa28148cc05c6"
+    },
+    {
+      "file": "supabase/migrations/20261030220000_preschool_school_announcements.sql",
+      "sha256": "6eb1d8bdc6779b7203abe1e7a1b6a937cf31e47669b277954a60517a456b46b7"
+    },
+    {
+      "file": "supabase/migrations/20261031090000_fix_edu_announcements_rls_and_portal_read.sql",
+      "sha256": "509eaba22e84c17f2f1c790bd5c4c9286b94ddd51134b15cb573294623044849"
+    },
+    {
+      "file": "supabase/migrations/20261031143000_preschool_care_rpc_and_rls.sql",
+      "sha256": "2d8ae95df6180aa766ff553ec0c34c0295e58bbc82117bc6ab9db84015ca3d70"
+    },
+    {
+      "file": "supabase/migrations/20261031153000_preschool_weekly_menu_rls_enhancement.sql",
+      "sha256": "c07076c92235c0783226d26f3b909e106c00bddc35560ae8065a20650f7f9f4c"
+    },
+    {
+      "file": "supabase/migrations/20261031163000_preschool_curriculum_and_lesson_plans.sql",
+      "sha256": "3b13a0760609572027148581312dfc498d9acf8cb150f040b47dfd162059bbfa"
+    },
+    {
+      "file": "docs/governance/BELLA_AI_CODING_CONSTITUTION.md",
+      "sha256": "69061c4dcff203460c976b6d9867bd03d40a00284d34198a5499dcecc12c93f2"
+    },
+    {
+      "file": "docs/governance/OPERATIONAL_RULES.md",
+      "sha256": "52eb65f0516764fbac5b90b39a2c300a5deaaa99f4ad1e03b9386e8d582efd55"
+    },
+    {
+      "file": "docs/governance/BELLA_BMAD_ORCHESTRATION.md",
+      "sha256": "4cb2be5454708bdf050003c8976aaf5da628d82004d2ddd0c2662c27db7c01c1"
+    },
+    {
+      "file": "docs/governance/OPERATIONAL_READINESS_SOP.md",
+      "sha256": "19e6117dec5109ecd535624480dc7f57b184500fda8bf0900b9368e4da61e778"
+    },
+    {
+      "file": "docs/architecture/EDUCATION_VERTICAL_CODING_CONSTITUTION.md",
+      "sha256": "d222fe899d83aa0d3fe716be41b11936e309a3ad3006b519036dd30b6f2de375"
+    },
+    {
+      "file": "docs/products/bella-preschool/AUTHORIZATION_CONTRACT.md",
+      "sha256": "f64604663eebf589f95df37ad521c33a1e34e6b4d044e1ccdf729d0df8a63810"
+    },
+    {
+      "file": "src/lib/supabase-server.ts",
+      "sha256": "8fef7f39e911ba4bf0f243c493eaa08a719bed4388db93ce49f601360b5b8bf9"
+    },
+    {
+      "file": "src/services/user-actions.ts",
+      "sha256": "04260b520f990ebcd953028b977fa71445652c20f1885e98d3f21291b79e53c8"
+    },
+    {
+      "file": "src/proxy.ts",
+      "sha256": "5c09aadcb96c96446aba125ba9b5dea87c67de3dc474adf7bbf8dacc67307935"
+    }
+  ]
+}

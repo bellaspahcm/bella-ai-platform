@@ -51,3 +51,7 @@ e4d495f885b0dee3b40dffa27e43e30679ba931b:docs/audits/preschool-full-audit-202610
 e4d495f885b0dee3b40dffa27e43e30679ba931b:docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/browser-results-2026-10-21T04-14-20-695Z.json:generic-api-key:2694
 e4d495f885b0dee3b40dffa27e43e30679ba931b:docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/browser-results-2026-10-21T04-17-34-437Z.json:generic-api-key:254
 e4d495f885b0dee3b40dffa27e43e30679ba931b:docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/browser-results-2026-10-21T04-17-34-437Z.json:generic-api-key:2741
+
+# PR #455: SHA-256 file integrity hash in audit verification manifest (not a credential).
+# Exact historical finding only; no path-wide or rule-wide suppression.
+fc434c2df861b9f9a38a607db66447c0768a76c2:docs/audits/preschool-full-audit-20261020/batch2b/final-verification.json:generic-api-key:21

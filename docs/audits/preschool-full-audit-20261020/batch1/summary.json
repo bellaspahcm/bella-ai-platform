@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-10-20T16:03:56.188Z",
+  "batch": 1,
+  "status": "EVIDENCE_COMPLETE_AWAITING_REMEDIATION_APPROVAL",
+  "productionRelationship": "PROVEN_CURRENT_PRODUCTION_CONFIG_AND_LIVE_RUNTIME",
+  "productionAlias": "https://bella-spa-erp.vercel.app",
+  "deploymentId": "dpl_9FQrTej4gajN95v6MwLJ31f3pUTQ",
+  "productionGitSha": "f973dd7e56542aa7847b98c2a4236da86f1eabc3",
+  "probedSupabase": "https://lvnvkpyxtuilhrabtlwv.supabase.co",
+  "productionRef": "lvnvkpyxtuilhrabtlwv",
+  "e2eRef": "bmnbqbcdbuklhopfbopv",
+  "catalog": {
+    "result": "PASS_READ_ONLY_INSPECTION",
+    "transport": "Supabase CLI linked query / authorized Management API session",
+    "executionRole": "postgres",
+    "transactionReadOnly": "on",
+    "tables": 86,
+    "policies": 110
+  },
+  "studentsRootPolicy": "tenant_isolation_students: PERMISSIVE ALL TO PUBLIC USING(true), with direct anon ACL",
+  "openReadTables": 32,
+  "e2eMissingReviewedTables": 31,
+  "anonymousDbAccess": "FAIL",
+  "anonymousProductionCourses": "FAIL: GET200 without session",
+  "ddlDmlExecuted": false,
+  "proposalExecuted": false,
+  "selectedCatalogUnchanged": true,
+  "authenticatedMutationDbReadback": "BLOCKED",
+  "businessSemantics": "PARTIALLY_NOT_PROVEN",
+  "fullE2e": "NOT_PROVEN",
+  "goLive": "NOT_PROVEN",
+  "batch2": "NOT_AUTHORIZED_NOT_STARTED"
+}

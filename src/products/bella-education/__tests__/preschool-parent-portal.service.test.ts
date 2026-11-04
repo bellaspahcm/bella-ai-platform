@@ -370,6 +370,24 @@ describe('PreschoolParentPortalService', () => {
       );
     });
 
+    it('authorizes the linked child but rejects another existing child in the same tenant', async () => {
+      const otherChildId = '10998eec-5c3d-4010-9b9b-4ca458336889';
+      fake.db.party_parties.push({ id: otherChildId, tenant_id: TENANT_ID, deleted_at: null, display_name: 'Synthetic other child' });
+      const linkedToken = PreschoolParentPortalService.generatePortalToken({
+        tenantId: TENANT_ID, guardianPartyId: GUARDIAN_PARTY_ID, studentPartyId: STUDENT_PARTY_ID,
+      });
+      await expect(service.authorizePortalToken(linkedToken)).resolves.toMatchObject({
+        guardianPartyId: GUARDIAN_PARTY_ID, studentPartyId: STUDENT_PARTY_ID,
+      });
+      const otherToken = PreschoolParentPortalService.generatePortalToken({
+        tenantId: TENANT_ID, guardianPartyId: GUARDIAN_PARTY_ID, studentPartyId: otherChildId,
+      });
+      await expect(service.authorizePortalToken(otherToken)).rejects.toMatchObject({
+        status: 401, code: 'GUARDIAN_NOT_AUTHORIZED',
+      });
+      expect(fake.db.party_relationships).toHaveLength(1);
+    });
+
     it('does not fabricate timetable, daily-care, menu, or tuition data when canonical rows are absent', async () => {
       const token = PreschoolParentPortalService.generatePortalToken({
         tenantId: TENANT_ID,

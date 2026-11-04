@@ -63,6 +63,7 @@ import {
   Baby,
   Heart,
   Utensils,
+  BookOpenCheck,
   Award,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -95,6 +96,8 @@ type MenuLink = {
   icon: LucideIcon;
   label: string;
   href: string;
+  /** Optional badge text shown next to the label (e.g. 'Chưa mở', 'Mới') */
+  badge?: string;
   type?: never;
 };
 
@@ -431,9 +434,12 @@ const bellaEducationMenuItems: SidebarMenuItem[] = [
   { icon: BookOpen, label: 'Quản lý lớp học', href: '/dashboard/education/courses' },
   { icon: UserCheck, label: 'Quản lý giáo viên', href: '/dashboard/education/teachers' },
   { icon: Heart, label: 'Chăm sóc & Nuôi dưỡng', href: '/dashboard/education/care' },
-  { icon: GraduationCap, label: 'Học tập & Hoạt động', href: '/dashboard/education/grades' },
+  { icon: Utensils, label: 'Thực đơn & Dinh dưỡng', href: '/dashboard/education/nutrition' },
+  { icon: BookOpenCheck, label: 'Giáo trình & Giáo án', href: '/dashboard/education/curriculum' },
+  { icon: GraduationCap, label: 'Học tập & Hoạt động', href: '/dashboard/education/grades', badge: 'Chưa mở' },
   { icon: MessageSquare, label: 'Truyền thông', href: '/dashboard/education/communication' },
   { icon: CircleDollarSign, label: 'Tài chính', href: '/dashboard/education/finance' },
+  { icon: CircleDollarSign, label: 'Chương trình phí', href: '/dashboard/education/fee-program' },
   { icon: Building2, label: 'Cơ sở vật chất', href: '/dashboard/education/facilities' },
   { icon: BarChart3, label: 'Báo cáo thống kê', href: '/dashboard/education/reports' },
   { icon: Settings, label: 'Cài đặt', href: '/dashboard/settings' },
@@ -493,6 +499,7 @@ const LUCIDE_ICONS_MAP: Record<string, LucideIcon> = {
   Baby,
   Heart,
   Utensils,
+  BookOpenCheck,
   Award,
 };
 
@@ -638,8 +645,18 @@ export function Sidebar() {
   });
 
   const filteredMenuItems = moduleAwareMenuItems.filter((item) => {
-    if (isMenuHeader(item) || item.href !== '/dashboard/education/branches') return true;
-    return user?.role?.toLowerCase() === 'admin';
+    if (isMenuHeader(item)) return true;
+    const role = user?.role?.toLowerCase();
+    if (item.href === '/dashboard/education/branches') {
+      return role === 'admin';
+    }
+    if (item.href === '/dashboard/education/finance') {
+      return role === 'admin' || role === 'accountant';
+    }
+    if (item.href === '/dashboard/education/fee-program') {
+      return role === 'admin' || role === 'super_admin';
+    }
+    return true;
   });
 
   // KTV gets a personal income shortcut instead
@@ -1027,7 +1044,14 @@ export function Sidebar() {
                       : (isBeautySpaShell || isIndustrialCleaningShell || isBellaAutoShell || isBellaHealthcareShell)
                       ? (isActive ? "font-extrabold text-[#042f2e]" : (isBellaAutoShell || isBellaHealthcareShell) ? "font-semibold text-slate-100 group-hover:text-white" : "font-semibold text-inherit group-hover:text-white")
                       : (isActive ? "font-extrabold text-primary dark:text-[#F3F5F7]" : "font-semibold")
-                  )}>{item.label}{isPreschool && process.env.NODE_ENV !== 'development' && item.href === '/dashboard/education/grades' && <span className="ml-1 text-[10px] opacity-70"> · Chưa mở</span>}</span>
+                  )}>{item.label}</span>
+
+                  {/* Badge for menu items (e.g. 'Chưa mở') */}
+                  {item.badge && (
+                    <span className="ml-auto shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-200/80 dark:bg-slate-700/80 text-slate-500 dark:text-slate-400 leading-none">
+                      {item.badge}
+                    </span>
+                  )}
 
                   {/* Active Left Vertical Accent Bar for Preschool Shell */}
                   {isActive && isBellaEducationShell && (

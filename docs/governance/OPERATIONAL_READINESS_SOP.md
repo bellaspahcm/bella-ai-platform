@@ -40,7 +40,7 @@ Can a real user complete the business workflow without false success?
 
 Both are required for a product to be trusted, but they are not the same. A module can pass unit tests and still fail operational readiness. A UI can render and still be operationally false if it does not call the canonical backend or persist real state.
 
-Operational audit is read-only until a proven blocker receives explicit implementation authority.
+Operational audit is read-only. If the user has already authorized completion or repair of the selected workflow, record the observation, then enter the authorized implementation phase without asking for the same approval again. An audit-only request grants no mutation authority. In either case, Product, security, migration and Production authority remain scoped under the Constitution.
 
 ## Status Semantics
 
@@ -75,7 +75,7 @@ NOT_PROVEN
   -> GO_LIVE
 ```
 
-Do not jump from one state to a higher state unless evidence for every required intermediate state exists in the current scope. A proof run can prove logic without proving adoption. Adoption approval can authorize a product to consume a capability, but it does not authorize implementation side effects unless the implementation authority is explicit. `GO_LIVE_READY` is readiness evidence for a human go-live decision; it is not the go-live decision itself.
+These labels distinguish claims; they are not a mandatory sequence of reports, proof runs or approval requests. Use existing evidence and authority for each claim relevant to the goal. A proof run can prove logic without proving adoption; adoption does not authorize out-of-scope mutations. `GO_LIVE_READY` is readiness evidence for a human go-live decision, not that decision itself. Apply the Constitution's evidence reuse rules instead of repeating still-valid proofs to move through labels.
 
 If another governance artifact uses a narrower state machine, map it to these semantics instead of creating a duplicate state machine.
 
@@ -87,7 +87,7 @@ When a product is preparing for operation, audit by real business workflow, not 
 
 ### Rule 2: Read-Only First
 
-Operational readiness audit must not modify code, schema, data, fixtures, configuration, tests, or documentation. Mutation requires a separate approved implementation task.
+The observation phase must not repair code, schema, data, fixtures, configuration or tests while measuring the pre-fix state. Record findings/evidence in the existing task record. Mutation requires implementation authority; when that authority already covers the fix, transition explicitly to implementation in the same task. A second task, report or approval is not required merely to make the transition.
 
 ### Rule 3: Evidence Only
 
@@ -140,11 +140,11 @@ Each operational workflow must identify one accountable product owner for readin
 
 ### Rule 8: Decision Boundary
 
-Operational audit may identify blockers, gaps, and deferred work. It does not authorize implementation. Discovery stops at the decision boundary until explicit approval is granted.
+Operational audit may identify blockers, gaps, and deferred work; the finding itself grants no implementation authority. Stop only dependent actions needing missing authority or a material business/safety decision. Apply existing goal authority to in-scope fixes and continue independent authorized work. An incomplete unrelated audit does not prevent Product delivery.
 
 ### Rule 9: Audit Must Not Mutate
 
-Audits must not repair the system while measuring it. Any mutation during audit invalidates the audit unless it is explicitly authorized as a separate implementation phase.
+Keep pre-fix observations separate from post-fix verification. An authorized fix starts an implementation phase; it does not retroactively invalidate truthful pre-fix evidence or turn it into post-fix proof. An unrecorded mutation leaves affected observations unreliable and requires refreshing those observations only.
 
 ### Rule 10: False Success Is A Blocker
 
@@ -156,11 +156,11 @@ Do not preserve legacy identity, data, or workflow semantics merely to keep old 
 
 ### Rule 12: Minimal Fix After Proven Blocker
 
-When a workflow is `BLOCKED`, the next implementation task must target the proven root cause only. Do not convert operational readiness into broad cleanup, refactor, redesign, or architecture normalization.
+When a workflow is `BLOCKED`, the authorized implementation phase must target the proven root cause only. Reuse the current task when its scope already covers the repair. Do not convert operational readiness into broad cleanup, refactor, redesign, or architecture normalization.
 
 ### Rule 13: Verify, Seal, Stop
 
-After a minimal fix, rerun the exact workflow evidence chain, record the result, seal the checkpoint, and stop. Do not continue into adjacent workflows without a new decision.
+After a minimal fix, verify the changed links and affected end-to-end behavior, reuse still-valid proof for unchanged links, and seal the scoped result. Continue to the next workflow already included in the approved goal. Stop when that goal is met or a dependent action reaches a real authority, business or safety boundary; do not request a new decision for each already-authorized flow.
 
 ## Finance Integration Evidence
 
@@ -338,13 +338,15 @@ This example is not a product-specific checklist. It is a pattern for constructi
 
 Stop only the affected audit step or dependent action when:
 
-- a blocker requires code, schema, data, fixture, test, configuration, CI, or documentation mutation;
+- a necessary mutation is outside existing implementation/operation authority;
 - the canonical contract is unclear;
 - ownership is unclear;
 - the workflow requires a missing capability;
-- tenant isolation or permission behavior is unproven;
+- a dependent mutation cannot be performed safely because tenant isolation or permission behavior is unresolved;
 - continuing would broaden scope beyond the selected workflow;
-- the audit would need to mutate the system to continue.
+- an audit-only task would need to mutate the system to continue.
+
+Missing evidence alone is `NOT_PROVEN`; gather it through a permitted route and continue safe independent work. A failed BDGF login or unavailable Test DB does not itself prove a Product blocker. Use the Constitution's environment selection and authorized direct route without bypassing a safety or permission failure.
 
 Record the exact obstacle and continue independent, authorized read-only steps in the selected workflow under [Autonomous Execution](OPERATIONAL_RULES.md). Request only the missing decision or access; do not ask again for valid implementation authority already granted. An authorized repair remains a separate implementation phase, with fresh audit evidence afterward. Missing evidence remains `NOT_PROVEN` and does not by itself stop the entire audit or prove a product defect.
 
@@ -358,7 +360,7 @@ Operational readiness closure requires:
 - no audit mutations;
 - blockers tied to root cause evidence;
 - deferred items explicitly named;
-- implementation authority requested only for proven blockers;
-- final decision recorded before moving to the next workflow.
+- existing implementation authority reused; a new decision requested only for a material gap in scope, safety or business semantics;
+- scoped result recorded before moving to the next workflow within the approved goal.
 
 Operational readiness is not a claim that the whole product is finished. It is a bounded, evidence-backed statement about a selected real business workflow.

@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-10-20T20:46:53.032Z",
+  "result": "PASS",
+  "exactExpectedCore": true,
+  "allOutsideCatalogHashesPreserved": true,
+  "allPoliciesHelpersTriggersColumnsConstraintsIndexesUnchanged": true,
+  "allOtherStoredIdentityReferencesUnchanged": true,
+  "incomingWriterReferences": 0,
+  "clientUsersMutationPrivileges": true,
+  "clientColumnMutationPrivileges": true,
+  "writerAllowedRoles": [
+    {
+      "signature": "create_onboarding_user(text,text,text)",
+      "roles": [
+        "bella_migration_executor",
+        "postgres",
+        "service_role",
+        "supabase_admin"
+      ]
+    },
+    {
+      "signature": "onboard_tenant(text,text,text,text,uuid,text,text)",
+      "roles": [
+        "bella_migration_executor",
+        "postgres",
+        "service_role",
+        "supabase_admin"
+      ]
+    }
+  ],
+  "otherRelations": 2673,
+  "businessRowContentsSaved": false
+}

@@ -1,0 +1,53 @@
+{
+  "checkedAt": "2026-10-20T21:19:42.647Z",
+  "deploymentId": "dpl_ESwcX2gQJ8eWiWmCgMTyvp1g1B2G",
+  "source": "9dd287ce8b9d5128dc638fc554ccfb5d9a9d8e33",
+  "environment": "Vercel preview built from exact Education PR head; no Supabase Auth JWT/production writes",
+  "existingVercelAutomationAccess": true,
+  "protectionConfigurationChanged": false,
+  "result": "PASS",
+  "tests": [
+    {
+      "name": "anonymousList",
+      "status": 401,
+      "errorCode": "COURSE_UNAUTHENTICATED",
+      "bodyIsApplicationDenial": true,
+      "returnedClassroomCount": 0,
+      "cacheControl": "private, no-store",
+      "redirectTarget": null,
+      "result": "PASS"
+    },
+    {
+      "name": "forgedList",
+      "status": 401,
+      "errorCode": "COURSE_UNAUTHENTICATED",
+      "bodyIsApplicationDenial": true,
+      "returnedClassroomCount": 0,
+      "cacheControl": "private, no-store",
+      "redirectTarget": null,
+      "result": "PASS"
+    },
+    {
+      "name": "anonymousDetail",
+      "status": 401,
+      "errorCode": "COURSE_UNAUTHENTICATED",
+      "bodyIsApplicationDenial": true,
+      "returnedClassroomCount": 0,
+      "cacheControl": "private, no-store",
+      "redirectTarget": null,
+      "result": "PASS"
+    },
+    {
+      "name": "forgedDetail",
+      "status": 401,
+      "errorCode": "COURSE_UNAUTHENTICATED",
+      "bodyIsApplicationDenial": true,
+      "returnedClassroomCount": 0,
+      "cacheControl": "private, no-store",
+      "redirectTarget": null,
+      "result": "PASS"
+    }
+  ],
+  "businessRowContentsSaved": false,
+  "realAuthenticatedWorkflow": "NOT_PROVEN"
+}

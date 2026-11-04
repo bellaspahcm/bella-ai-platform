@@ -1,0 +1,7 @@
+
+> node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile .cache/tsbuildinfo/education.tsbuildinfo
+src/app/api/education/courses/request-context.ts(33,53): error TS2339: Property 'status' does not exist on type 'CurrentUser'.
+TypeScript failed and no diagnostic baseline exists for scope "education".
+Add a reviewed baseline to .github/ci/tsc-diagnostic-baselines.json or fix the diagnostics.
+
+COMMAND_EXIT_CODE=1

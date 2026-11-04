@@ -1,0 +1,1151 @@
+{
+  "checkedAt": "2026-10-20T21:56:50.876Z",
+  "project": "lvnvkpyxtuilhrabtlwv",
+  "scope": "Exact approved32 direct relations and exec_sql SELECT1 privilege probe",
+  "productionBusinessMutation": "NOT_PERFORMED",
+  "anonymousUserJwt": false,
+  "secretsSaved": false,
+  "businessRowContentsSaved": false,
+  "reads": [
+    {
+      "table": "edu_comm_acknowledgements",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_acknowledgements",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_acknowledgements",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_consent_responses",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_consent_responses",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_consent_responses",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_deliveries",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_deliveries",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_deliveries",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_delivery_attempts",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_delivery_attempts",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_delivery_attempts",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_exceptions",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_exceptions",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_exceptions",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_notices",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_notices",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_notices",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_responses",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_responses",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_responses",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_sent_snapshots",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_sent_snapshots",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_sent_snapshots",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_threads",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_threads",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_threads",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_assets",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_assets",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_assets",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_facilities",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_facilities",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_facilities",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_inspection_logs",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_inspection_logs",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_inspection_logs",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_inspection_schedules",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_inspection_schedules",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_inspection_schedules",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_maintenance_jobs",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_maintenance_jobs",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_maintenance_jobs",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_out_of_service_logs",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_out_of_service_logs",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_out_of_service_logs",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_zones",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_zones",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_zones",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_billing_periods",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_billing_periods",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_billing_periods",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_fee_structures",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_fee_structures",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_fee_structures",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_invoice_line_items",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_invoice_line_items",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_invoice_line_items",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_invoices",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_invoices",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_invoices",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_payments",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_payments",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_payments",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_receipts",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_receipts",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_receipts",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_reconciliation_ledger",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_reconciliation_ledger",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_reconciliation_ledger",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_student_discount_profiles",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_student_discount_profiles",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_student_discount_profiles",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_compliance_snapshots",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_compliance_snapshots",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_compliance_snapshots",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_leave_requests",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_leave_requests",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_leave_requests",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_ratio_policies",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_ratio_policies",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_ratio_policies",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_shift_assignments",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_shift_assignments",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_shift_assignments",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_shift_templates",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_shift_templates",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_shift_templates",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_staff_availability",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_staff_availability",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_staff_availability",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_substitutions",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_substitutions",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_substitutions",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "students",
+      "variant": "none",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "students",
+      "variant": "target",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "students",
+      "variant": "other",
+      "status": 401,
+      "code": "42501",
+      "denied": true,
+      "ok": false,
+      "returnedRowCount": 0
+    }
+  ],
+  "serviceReads": [
+    {
+      "table": "edu_comm_acknowledgements",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_consent_responses",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_deliveries",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_delivery_attempts",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_exceptions",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_notices",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_responses",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_sent_snapshots",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_comm_threads",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_assets",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_facilities",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_inspection_logs",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_inspection_schedules",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_maintenance_jobs",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_out_of_service_logs",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fac_zones",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_billing_periods",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_fee_structures",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_invoice_line_items",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_invoices",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_payments",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_receipts",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_reconciliation_ledger",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_fin_student_discount_profiles",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_compliance_snapshots",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_leave_requests",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_ratio_policies",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_shift_assignments",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_shift_templates",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_staff_availability",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "edu_sched_substitutions",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    },
+    {
+      "table": "students",
+      "status": 200,
+      "code": null,
+      "denied": false,
+      "ok": true,
+      "returnedRowCount": 0
+    }
+  ],
+  "anonymousRpc": {
+    "status": 401,
+    "code": "42501",
+    "denied": true,
+    "ok": false,
+    "returnedRowCount": 0
+  },
+  "maintenanceRpc": {
+    "status": 204,
+    "code": null,
+    "denied": false,
+    "ok": true,
+    "returnedRowCount": 0
+  },
+  "anonymousDenied": 96,
+  "anonymousRequests": 96,
+  "serviceAllowed": 32,
+  "result": "PASS"
+}

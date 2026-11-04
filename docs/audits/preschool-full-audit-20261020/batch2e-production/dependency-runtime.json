@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-10-20T22:10:33.2965025Z",
+  "npmCiExitCode": 0,
+  "installedPackages": 1403,
+  "lockfileNext": "16.3.8",
+  "oldSharedTargetPreserved": true,
+  "links": [
+    {
+      "previousTarget": "D:\\Antigravity\\Projects\\BELLA SPA ERP\\node_modules",
+      "target": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-care-authorization-20261021\\BELLA SPA ERP\\node_modules",
+      "type": "Junction",
+      "workspace": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-courses-auth-20261021\\BELLA SPA ERP",
+      "nextVersion": "16.3.8"
+    },
+    {
+      "previousTarget": "D:\\Antigravity\\Projects\\BELLA SPA ERP\\node_modules",
+      "target": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-care-authorization-20261021\\BELLA SPA ERP\\node_modules",
+      "type": "Junction",
+      "workspace": "C:\\Users\\DELL\\.codex\\worktrees\\shared-identity-containment-20261021\\BELLA SPA ERP",
+      "nextVersion": "16.3.8"
+    }
+  ],
+  "cleanupRequirement": "Do not archive or remove Care dependencies while other worktree junctions refer to this target"
+}

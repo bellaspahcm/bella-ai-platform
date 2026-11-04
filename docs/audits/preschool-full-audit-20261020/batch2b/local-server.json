@@ -1,0 +1,8 @@
+{
+  "startedAt": "2026-10-20T20:21:35.138Z",
+  "pid": 10180,
+  "port": 3137,
+  "cwd": "D:\\Antigravity\\Projects\\BELLA SPA ERP",
+  "supabaseEnvironment": "Process scoped offline localhost + synthetic keys",
+  "command": "next dev --webpack -H 127.0.0.1 -p3137"
+}

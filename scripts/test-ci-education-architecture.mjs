@@ -1,4 +1,8 @@
 import assert from 'node:assert/strict';
+import { mkdtemp, mkdir, writeFile, unlink, rmdir } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { scanViolations } from './ci-run-education-architecture.mjs';
 
 function compareBaseline(baseline, current) {
   const added = [];
@@ -46,3 +50,45 @@ const reduced = compareBaseline(reviewed, {});
 assert.equal(reduced.status, 'ALLOW');
 assert.equal(reduced.reduced.length, 1);
 console.log('PASS EDUCATION ARCH DEBT REDUCTION = ALLOW');
+
+const fixtureRoot = await mkdtemp(path.join(os.tmpdir(), 'bella-fee-guard-'));
+const adapterDir = path.join(fixtureRoot, 'fee-program');
+const adapter = path.join(adapterDir, 'fee-program.persistence.ts');
+const other = path.join(fixtureRoot, 'service.ts');
+try {
+  await mkdir(adapterDir);
+  const rpc = "client.rpc('preschool_publish_fee_program_version', {})";
+  await writeFile(adapter, `export function run(client: Client) { return ${rpc}; }`);
+  let result = await scanViolations(fixtureRoot);
+  assert.deepEqual(result.directDatabaseAccess, {});
+  for (const invalid of [
+    "client.rpc('other_rpc', {})",
+    "client.rpc(name, {})",
+    "client['rpc']('preschool_publish_fee_program_version', {})",
+    "Reflect.get(client, 'rpc')('preschool_publish_fee_program_version', {})",
+    "client.rpc('preschool_publish_fee_program_version', {}); client.rpc('other_rpc', {})",
+  ]) {
+    await writeFile(adapter, `export function run(client: Client, name: string) { return ${invalid}; }`);
+    result = await scanViolations(fixtureRoot);
+    assert.ok(Object.keys(result.directDatabaseAccess).length > 0, invalid);
+  }
+  await writeFile(adapter, `export function run(client: Client) { return ${rpc}; }`);
+  await writeFile(other, `client.rpc('preschool_publish_fee_program_version', {});\nclient.from('edu_students');`);
+  result = await scanViolations(fixtureRoot);
+  assert.equal(Object.values(result.directDatabaseAccess).reduce((a, b) => a + b, 0), 2);
+  for (const invalid of [
+    "client['rpc']('preschool_publish_fee_program_version', {})",
+    "client.rpc(\n  'preschool_publish_fee_program_version', {})",
+    "const rpcName = 'preschool_publish_fee_program_version'; client.rpc(rpcName, {})",
+  ]) {
+    await writeFile(other, invalid);
+    result = await scanViolations(fixtureRoot);
+    assert.ok(Object.keys(result.directDatabaseAccess).length > 0, invalid);
+  }
+  console.log('PASS EDUCATION SCANNER: exact adapter/RPC allowed; other paths, RPCs, dynamic and bracket calls blocked');
+} finally {
+  await unlink(adapter).catch(() => {});
+  await unlink(other).catch(() => {});
+  await rmdir(adapterDir).catch(() => {});
+  await rmdir(fixtureRoot);
+}

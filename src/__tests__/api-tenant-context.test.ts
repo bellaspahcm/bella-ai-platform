@@ -4,7 +4,13 @@ const mockRpc = jest.fn();
 const mockTenantSettings = jest.fn();
 const mockFrom = jest.fn(() => { throw new Error('Unexpected direct table read'); });
 
-jest.mock('next/headers', () => ({ cookies: jest.fn(async () => ({ getAll: () => [], set: jest.fn() })) }));
+jest.mock('next/headers', () => ({ 
+  cookies: jest.fn(async () => ({ 
+    getAll: () => [], 
+    get: () => undefined,  // Ensure no mock_user_email cookie for anonymous tests
+    set: jest.fn() 
+  })) 
+}));
 jest.mock('@/services/tenant-actions', () => ({ getTenantSettings: () => mockTenantSettings() }));
 jest.mock('@supabase/ssr', () => ({
   createServerClient: jest.fn(() => ({ auth: { getUser: mockGetUser }, rpc: mockRpc, from: mockFrom })),
@@ -57,8 +63,13 @@ describe('GET /api/tenant/context', () => {
 
   it('returns401 before profile/configuration when anonymous', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
-    expect((await GET(request())).status).toBe(401);
+    const response = await GET(request());
+    expect(response.status).toBe(401);
     expect(mockRpc).not.toHaveBeenCalled();
+    expect(mockTenantSettings).not.toHaveBeenCalled();
+    const body = await response.json();
+    expect(body).toHaveProperty('error');
+    expect(body.error).toContain('Unauthorized');
   });
 
   it('does not fabricate a tenant for anonymous development requests or mock headers', async () => {

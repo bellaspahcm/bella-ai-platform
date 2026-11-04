@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-10-20T22:36:06.0368206Z",
+  "headSha": "30134055d1ff5b846584e57833816f076034cdea",
+  "runId": 39502767036,
+  "jobId": 118909644134,
+  "status": "completed",
+  "conclusion": "success",
+  "evidence": "Read-only gh run view --json databaseId,headSha,status,conclusion,url,jobs, native exit0",
+  "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39502767036",
+  "applicability": "Earlier merged main only; no proof for new unpushed source"
+}

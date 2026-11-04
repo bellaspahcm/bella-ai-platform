@@ -1,0 +1,42 @@
+{
+  "checkedAt": "2026-10-20T22:52:00.847Z",
+  "project": "prj_Rgncynqz8ptznREGggMxPfjwoikW",
+  "source": "b85722f6eab1aedc3d9bd977bd3deee19e5684e5",
+  "branch": "codex/preschool-authorization-matrix-20261021",
+  "productionMutation": "NOT_PERFORMED",
+  "deploymentInitiated": false,
+  "protectionConfigurationChanged": false,
+  "realSupabaseUserSession": false,
+  "businessRowContentsSaved": false,
+  "commands": [
+    {
+      "route": "/v6/deployments?projectId=prj_Rgncynqz8ptznREGggMxPfjwoikW&limit=20",
+      "method": "GET",
+      "exitCode": 0
+    },
+    {
+      "route": "/v13/deployments/dpl_CxwkgfbVR889YBdj26dfqvmmsb79",
+      "method": "GET",
+      "exitCode": 0
+    },
+    {
+      "route": "/v9/projects/prj_Rgncynqz8ptznREGggMxPfjwoikW",
+      "method": "GET",
+      "exitCode": 0
+    }
+  ],
+  "result": "NOT_PROVEN",
+  "deployment": {
+    "id": "dpl_CxwkgfbVR889YBdj26dfqvmmsb79",
+    "source": "b85722f6eab1aedc3d9bd977bd3deee19e5684e5",
+    "url": "https://bella-spa-jmpejjuhb-bella-spa-s-projects.vercel.app",
+    "readyState": "BUILDING",
+    "target": "preview",
+    "errorCode": null
+  },
+  "production": {
+    "id": "dpl_G4DUXNTkNq8sEk2q7p6FRDydhsom",
+    "source": "30134055d1ff5b846584e57833816f076034cdea"
+  },
+  "errorCode": "PREVIEW_NOT_READY"
+}

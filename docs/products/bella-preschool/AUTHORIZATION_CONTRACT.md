@@ -69,7 +69,7 @@ Announcements là bảng tin chung theo tenant, không phải tin nhắn riêng.
 - API thuốc ngừng hỗ trợ:410 `PRESCHOOL_MEDICATION_DISABLED` cho mọi POST, trước đọc payload/DB/service. Giữ lịch sử dữ liệu.
 - Response chứa dữ liệu/quyền riêng tư phải `private, no-store`.
 
-Tests phải có allowed actor; role bị cấm; active/inactive user/tenant; cùng Auth session đổi tenant/branch/course/student/guardian; duplicate selector; bulk có một resource trái quyền; relationship hết hạn; thiếu mapping/policy; lỗi RLS; bảo đảm không side effect trước authorize và không partial write. Cần real Auth + isolated fixtures + independent DB read-back để chứng minh runtime. Unit mock, source gate, preview hay merge không thay thế Real DB/RLS/Browser/production proof.
+Tests phải có allowed actor; role bị cấm; active/inactive user/tenant; cùng Auth session đổi tenant/branch/course/student/guardian; duplicate selector; bulk có một resource trái quyền; relationship hết hạn; thiếu mapping/policy; lỗi RLS; bảo đảm không side effect trước authorize và không partial write. Cần real Auth + isolated fixtures + independent DB read-back để chứng minh runtime. Isolated fixtures là dữ liệu kiểm thử được khoanh phạm vi, tránh ảnh hưởng người dùng/chạy đồng thời và có cleanup trong môi trường được phép; không mặc định yêu cầu dựng disposable Test DB hay replay toàn bộ migration. Chọn kiểm tra bị tác động và tái sử dụng bằng chứng còn hiệu lực theo [quy trình hoàn thiện Preschool](DELIVERY_WORKFLOW.md). Unit mock, source gate, preview hay merge không thay thế Real DB/RLS/Browser/production proof.
 
 ## 7. Dependency chưa được cấp quyền sửa
 

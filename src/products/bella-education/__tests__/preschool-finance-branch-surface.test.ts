@@ -16,6 +16,29 @@ describe('Product public branch surface fails closed', () => {
     rpc.mockResolvedValue({ data: null, error: { code: '42501', message: 'denied' } });
     await expect(new PreschoolFinanceRepository(client).readBranchState('tenant-a', 'actor-a', 'branch-a')).rejects.toMatchObject({ code: '42501' });
   });
+  it('fails closed when the branch read RPC is unavailable instead of reading tenant tables', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: 'PGRST202', message: 'Could not find the function' } });
+    await expect(new PreschoolFinanceRepository(client).readBranchState('tenant-a', 'actor-a', 'branch-a'))
+      .rejects.toMatchObject({ code: 'PGRST202' });
+  });
+  it('composes ALL only from branches returned by the authorized RPC', async () => {
+    const branch = { id: 'branch-a', name: 'A', code: null };
+    const rpcData = (selectedBranchId: string | null) => ({
+      branches: [branch], selectedBranchId,
+      students: selectedBranchId ? [{ enrollmentId: 'enrollment-a', courseId: 'course-a', studentPartyId: 'party-a',
+        studentId: 'student-a', studentCode: 'S-01', displayName: 'Student A' }] : [],
+      billingPeriods: [], invoices: [], payments: [], exceptions: [],
+    });
+    rpc.mockImplementation(async (_name: string, args: { p_branch_id?: string }) => ({
+      data: rpcData(args.p_branch_id ?? null), error: null,
+    }));
+    const result = await new PreschoolFinanceRepository(client).readBranchState('tenant-a', 'actor-a', 'ALL');
+    expect(rpc).toHaveBeenCalledTimes(2);
+    expect(result.selectedBranchId).toBe('ALL');
+    expect(result.branches).toEqual([branch]);
+    expect(result.students.map(student => student.enrollmentId)).toEqual(['enrollment-a']);
+    expect(result.branchBreakdowns).toEqual([expect.objectContaining({ branchId: 'branch-a', studentCount: 1 })]);
+  });
   it('rejects malformed canonical student mapping instead of fabricating identity', async () => {
     rpc.mockResolvedValue({ data: { branches: [], students: [{ enrollmentId: 'e', courseId: 'c', studentPartyId: 'p', studentId: null }],
       billingPeriods: [], invoices: [], payments: [], exceptions: [] }, error: null });
@@ -24,6 +47,11 @@ describe('Product public branch surface fails closed', () => {
   it('cannot execute a branch command without explicit server context', async () => {
     await expect(new PreschoolFinanceRepository(client).branchCommand('resolveException', {})).rejects.toThrow('Explicit Finance branch');
     expect(rpc).not.toHaveBeenCalled();
+  });
+  it('does not return synthetic success when a Finance command RPC is missing', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: 'PGRST202', message: 'Could not find the function' } });
+    const repo = new PreschoolFinanceRepository(client, { tenantId: 'tenant-a', actorId: 'actor-a', branchId: 'branch-a' });
+    await expect(repo.branchCommand('resolveException', { exceptionId: 'exception-a' })).rejects.toMatchObject({ code: 'PGRST202' });
   });
   it('does not treat an invoice read failure as not found in branch publication', async () => {
     const query = { select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(),

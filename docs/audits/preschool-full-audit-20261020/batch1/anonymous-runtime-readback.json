@@ -1,0 +1,39 @@
+{
+  "checkedAt": "2026-10-20T16:03:56.065Z",
+  "endpoint": "https://lvnvkpyxtuilhrabtlwv.supabase.co",
+  "publicKeyRole": "anon",
+  "projectRef": "lvnvkpyxtuilhrabtlwv",
+  "userJwt": false,
+  "cookies": false,
+  "method": "GET only",
+  "reads": [
+    {
+      "table": "students",
+      "status": 206,
+      "contentRange": "0-0/186",
+      "sampleRowCount": 1,
+      "sampleMatchesTargetTenant": true
+    },
+    {
+      "table": "edu_fin_invoices",
+      "status": 206,
+      "contentRange": "0-0/28",
+      "sampleRowCount": 1,
+      "sampleMatchesTargetTenant": true
+    },
+    {
+      "table": "edu_fac_assets",
+      "status": 206,
+      "contentRange": "0-0/7",
+      "sampleRowCount": 1,
+      "sampleMatchesTargetTenant": true
+    },
+    {
+      "table": "edu_courses",
+      "status": 401,
+      "contentRange": null,
+      "errorCode": "42501"
+    }
+  ],
+  "valuesSaved": "Only counts/status/boolean; no returned tenant_id values or business fields"
+}

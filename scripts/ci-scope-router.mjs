@@ -135,6 +135,7 @@ const SECURITY_SCRIPT_PATTERN = /^scripts\/(audit-production|check-secret-leaks|
 const BELLA_AUTO_REAL_DB_SURFACE_PATTERN = /^(src\/modules\/bella-auto\/services\/|scripts\/verify-automove-.*\.ts$)/;
 const MANUFACTURING_REAL_DB_SURFACE_PATTERN = /^(src\/platform\/manufacturing\/|src\/app\/api\/manufacturing\/)/;
 const REAL_DB_TEST_CONFIG_PATTERN = /^jest\.real-db\.(config|setup)\.ts$/;
+const PRESCHOOL_PROFILE_ACCEPTANCE_CONTROL_PATTERN = /^scripts\/ci\/preschool-browser-profile\/accept\.ps1$/;
 const REAL_DB_TEST_FILE_PATTERN = /^(src\/__tests__\/bella-auto-phase5-experience\.test\.ts|src\/__tests__\/beauty-v2-(commission-branch|finance-branch|go-live-payroll-commission)-real-db\.test\.ts|src\/__tests__\/e2e-(order-lifecycle-real|refund-full|accounting-gl-verification|payroll-month-close)\.test\.ts|src\/app\/api\/english-center\/__tests__\/post-rc-real-db-validation\.test\.ts|src\/__tests__\/haircut-f3-debt-real-db-diagnostic\.test\.ts|src\/platform\/logistics\/warehouse\/__tests__\/stock-(out-production-consumption|in-production-order)-real-db\.test\.ts|src\/platform\/manufacturing\/__tests__\/manufacturing-(slice1|full-chain)-real-db\.test\.ts|src\/products\/beauty-spa-v2\/__tests__\/beauty-spa-v2-real-db\.test\.ts|src\/products\/bella-education\/__tests__\/preschool-chain-real-db\.test\.ts|src\/products\/bella-hospitality\/__tests__\/(tenant-profile|housekeeping|maintenance)-real-db\.test\.ts|e2e\/tests\/38-hospitality-hotel-core-chain-browser-e2e\.spec\.ts|e2e\/tests\/41-manufacturing-operational-readiness\.spec\.ts)$/;
 
 function normalize(file) {
@@ -222,6 +223,7 @@ export function classifyFiles(files) {
   let hasManufacturingRealDbSurface = false;
   let hasRealDbTestConfig = false;
   let hasRealDbTestFile = false;
+  let hasPreschoolProfileAcceptanceControl = false;
 
   for (const file of normalizedFiles) {
     hasCode ||= CODE_PATTERN.test(file);
@@ -241,6 +243,7 @@ export function classifyFiles(files) {
     hasManufacturingRealDbSurface ||= MANUFACTURING_REAL_DB_SURFACE_PATTERN.test(file);
     hasRealDbTestConfig ||= REAL_DB_TEST_CONFIG_PATTERN.test(file);
     hasRealDbTestFile ||= REAL_DB_TEST_FILE_PATTERN.test(file);
+    hasPreschoolProfileAcceptanceControl ||= PRESCHOOL_PROFILE_ACCEPTANCE_CONTROL_PATTERN.test(file);
 
     for (const [key, scope] of Object.entries(PRODUCT_SCOPES)) {
       if (matchesAny(file, scope.patterns)) {
@@ -295,9 +298,9 @@ export function classifyFiles(files) {
   const needsTests = (hasCode || hasTest) && !docsOnly;
   const needsBuild = (hasCode || hasDependencies || scopeLevel === 'platform') && !hasMigration && !docsOnly;
   const needsArchitectureGuard = hasCode && !docsOnly;
-  const needsRealDbE2e = hasMigration || hasBellaAutoRealDbSurface || hasManufacturingRealDbSurface || hasRealDbTestConfig || hasRealDbTestFile || (scopeLevel === 'platform' && hasDbRuntimeSurface);
+  const needsRealDbE2e = hasMigration || hasBellaAutoRealDbSurface || hasManufacturingRealDbSurface || hasRealDbTestConfig || hasRealDbTestFile || hasPreschoolProfileAcceptanceControl || (scopeLevel === 'platform' && hasDbRuntimeSurface);
   const needsE2e = scopeLevel === 'platform' || products.size > 0 || hasDependencies;
-  const needsMigrationGates = hasMigration;
+  const needsMigrationGates = hasMigration || hasPreschoolProfileAcceptanceControl;
   const needsApiDocs = hasApiDocs;
   const needsDependencySecurityDeep = hasDependencies || hasSecuritySurface;
   const needsSecurityLightweight = sourceTouched || hasInfra;

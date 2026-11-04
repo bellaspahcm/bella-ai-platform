@@ -1,5 +1,7 @@
 'use client';
 
+import PreschoolSelect from '@/components/ui/PreschoolSelect';
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 type CourseOption = { id: string; tenantId: string; title: string; courseCode: string };
@@ -165,16 +167,28 @@ export function EnrollmentCreateForm({ course, onEnrolled, onSubmittingChange }:
         {candidates.status === 'ready' && candidates.value.length === 0 && <p role="status">Không tìm thấy học sinh đủ điều kiện.</p>}
         {candidates.status === 'ready' && candidates.value.length > 0 && <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Học sinh
-            <select disabled={submitting} className="mt-1 block w-full rounded-xl border border-slate-300 bg-white p-2 dark:border-slate-700 dark:bg-slate-950" value={studentPartyId} onChange={event => changeStudent(event.target.value)}>
+            <PreschoolSelect
+              aria-label="Học sinh"
+              disabled={submitting}
+              className="py-2 text-xs font-semibold"
+              value={studentPartyId}
+              onChange={event => changeStudent(event.target.value)}
+            >
               <option value="">Chọn học sinh</option>
               {candidates.value.map(candidate => <option key={candidate.studentPartyId} value={candidate.studentPartyId}>{candidate.studentLabel}</option>)}
-            </select>
+            </PreschoolSelect>
           </label>
           <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Người giám hộ
-            <select className="mt-1 block w-full rounded-xl border border-slate-300 bg-white p-2 dark:border-slate-700 dark:bg-slate-950" value={guardianPartyId} onChange={event => changeGuardian(event.target.value)} disabled={submitting || !selectedStudent || selectedStudent.guardians.length === 0}>
+            <PreschoolSelect
+              aria-label="Người giám hộ"
+              className="py-2 text-xs font-semibold"
+              value={guardianPartyId}
+              onChange={event => changeGuardian(event.target.value)}
+              disabled={submitting || !selectedStudent || selectedStudent.guardians.length === 0}
+            >
               <option value="">Chọn người giám hộ</option>
               {selectedStudent?.guardians.map(guardian => <option key={guardian.guardianPartyId} value={guardian.guardianPartyId}>{guardian.guardianLabel}</option>)}
-            </select>
+            </PreschoolSelect>
           </label>
         </div>}
         {candidates.status === 'ready' && selectedStudent?.guardians.length === 0 && <p role="status">Học sinh này chưa có người giám hộ hợp lệ để ghi danh.</p>}

@@ -219,4 +219,40 @@ describe('Communication commands and tenant bulletin', () => {
     expect(screen.getByRole('button', { name: 'Tạo link Portal Phụ huynh' })).toBeDisabled();
   });
 
+  it('renders cross-module student context banner and links when student query param is provided', async () => {
+    mockSearch = 'student=HS0001';
+    await renderWorkspace();
+    expect(screen.getByText(/Đang mở sổ liên lạc điện tử:/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Xem Hồ Sơ 360°' })).toHaveAttribute('href', '/dashboard/education/enrollments/HS0001');
+    expect(screen.getByRole('link', { name: 'Học Tập & Hoạt Động' })).toHaveAttribute('href', '/dashboard/education/grades?student=HS0001');
+    expect(screen.getByRole('link', { name: 'Chăm Sóc & Nuôi Dưỡng' })).toHaveAttribute('href', '/dashboard/education/care?student=HS0001');
+    expect(screen.getByRole('link', { name: 'Điểm Danh & Đón Trả' })).toHaveAttribute('href', '/dashboard/education/attendance?student=HS0001');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Xem tất cả' }));
+    expect(screen.queryByText(/Đang mở sổ liên lạc điện tử:/)).not.toBeInTheDocument();
+  });
+
+  it('switches between detail subtabs (Thông tin, Nhật ký, Liên quan) and displays cross-module navigation', async () => {
+    await renderWorkspace();
+
+    // 1. Info tab
+    fireEvent.click(screen.getByRole('button', { name: 'Thông tin' }));
+    expect(screen.getByText(/Mã học sinh:/)).toBeInTheDocument();
+    expect(screen.getByText(/Điều hướng nghiệp vụ liên quan:/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Hồ Sơ 360° Phát Triển Trẻ/ })).toHaveAttribute('href', '/dashboard/education/enrollments/HS0001');
+
+    // 2. Logs tab
+    fireEvent.click(screen.getByRole('button', { name: 'Nhật ký' }));
+    expect(screen.getByText('Dặn dò gần nhất từ phụ huynh')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Mở Trung Tâm Chăm Sóc & Nuôi Dưỡng/ })).toHaveAttribute('href', '/dashboard/education/care?student=HS0001');
+
+    // 3. Related tab
+    fireEvent.click(screen.getByRole('button', { name: 'Liên quan' }));
+    expect(screen.getByText(/Dữ liệu đa phân hệ liên thông của học sinh/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Học Tập & Hoạt Động NAEYC/ })).toHaveAttribute('href', '/dashboard/education/grades?student=HS0001');
+
+    // Return to chat
+    fireEvent.click(screen.getByRole('button', { name: 'Trao đổi' }));
+    expect(screen.getByPlaceholderText('Nhập tin nhắn phản hồi...')).toBeInTheDocument();
+  });
 });

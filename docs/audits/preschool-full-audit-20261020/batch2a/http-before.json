@@ -1,0 +1,241 @@
+{
+  "checkedAt": "2026-10-20T16:23:51.581Z",
+  "phase": "before",
+  "project": "lvnvkpyxtuilhrabtlwv",
+  "session": "anon public key only, no user JWT or cookies",
+  "reads": [
+    {
+      "table": "edu_comm_acknowledgements",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_comm_consent_responses",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_comm_deliveries",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_comm_delivery_attempts",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_comm_exceptions",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_comm_notices",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_comm_responses",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_comm_sent_snapshots",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_comm_threads",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fac_assets",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fac_facilities",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fac_inspection_logs",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fac_inspection_schedules",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fac_maintenance_jobs",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fac_out_of_service_logs",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fac_zones",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fin_billing_periods",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fin_fee_structures",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fin_invoice_line_items",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fin_invoices",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fin_payments",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fin_receipts",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fin_reconciliation_ledger",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_fin_student_discount_profiles",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_sched_compliance_snapshots",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_sched_leave_requests",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_sched_ratio_policies",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_sched_shift_assignments",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_sched_shift_templates",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_sched_staff_availability",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "edu_sched_substitutions",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    },
+    {
+      "table": "students",
+      "variant": "none",
+      "status": 200,
+      "returnedRowCount": 1,
+      "denied": false
+    }
+  ],
+  "directTablesVerified": 32,
+  "allDirectReadsDenied": false,
+  "coursesApi": {
+    "status": 200,
+    "classrooms": 8,
+    "returnsClassrooms": true,
+    "pathClassification": "Known service-role server API path, not direct anon table privileges; Batch2B"
+  },
+  "businessRowValuesSaved": false
+}

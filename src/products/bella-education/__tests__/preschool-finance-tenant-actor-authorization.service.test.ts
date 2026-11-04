@@ -31,6 +31,19 @@ describe('Preschool Finance tenant and actor authorization', () => {
       actorId: 'admin-user',
       role: 'admin',
       educationRole: 'PRINCIPAL',
+      isSuperAdmin: false,
+    });
+  });
+
+  it('allows super_admin role as server-derived finance principal with isSuperAdmin flag', () => {
+    const actor = resolvePreschoolFinanceActor({ id: 'super-admin-user', tenant_id: tenantId, role: 'super_admin' }, 'modify-invoice');
+
+    expect(actor).toEqual({
+      tenantId,
+      actorId: 'super-admin-user',
+      role: 'super_admin',
+      educationRole: 'PRINCIPAL',
+      isSuperAdmin: true,
     });
   });
 
@@ -42,6 +55,7 @@ describe('Preschool Finance tenant and actor authorization', () => {
       actorId: 'accountant-user',
       role: 'accountant',
       educationRole: 'ACCOUNTANT',
+      isSuperAdmin: false,
     });
   });
 

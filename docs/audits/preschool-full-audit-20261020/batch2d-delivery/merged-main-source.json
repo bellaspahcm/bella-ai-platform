@@ -1,0 +1,88 @@
+{
+  "checkedAt": "2026-10-20T21:46:31.1647050Z",
+  "main": "30134055d1ff5b846584e57833816f076034cdea",
+  "verifiedSourceFiles": 11,
+  "allSealedSourceBlobsPreserved": true,
+  "source": [
+    {
+      "expectedBlob": "d808dd8b77a819bb183699f75c1573dc68e786b9",
+      "exitCode": 0,
+      "path": "src/services/user-actions.ts",
+      "identical": true,
+      "mainBlob": "d808dd8b77a819bb183699f75c1573dc68e786b9"
+    },
+    {
+      "expectedBlob": "7277524b4e78b6b8f350197afae99cb3e9945df7",
+      "exitCode": 0,
+      "path": "src/services/onboarding-actions.ts",
+      "identical": true,
+      "mainBlob": "7277524b4e78b6b8f350197afae99cb3e9945df7"
+    },
+    {
+      "expectedBlob": "e58baf86296ba9a9445ef1095bd38305ce12f0c5",
+      "exitCode": 0,
+      "path": "src/__tests__/user-actions.test.ts",
+      "identical": true,
+      "mainBlob": "e58baf86296ba9a9445ef1095bd38305ce12f0c5"
+    },
+    {
+      "expectedBlob": "526dae7087870cf096caac3b3200896d7ec050c2",
+      "exitCode": 0,
+      "path": "src/__tests__/onboarding.test.ts",
+      "identical": true,
+      "mainBlob": "526dae7087870cf096caac3b3200896d7ec050c2"
+    },
+    {
+      "expectedBlob": "11a4630bb0cf45b3c3baea8b3286c38c0bbe6425",
+      "exitCode": 0,
+      "path": "supabase/migrations/20261021030000_restrict_exec_sql_client_execution.sql",
+      "identical": true,
+      "mainBlob": "11a4630bb0cf45b3c3baea8b3286c38c0bbe6425"
+    },
+    {
+      "expectedBlob": "480dc47d8f6e88ac326fca66a012ae6d6a337b8b",
+      "exitCode": 0,
+      "path": "supabase/migrations/20261021050000_contain_shared_identity_client_writes.sql",
+      "identical": true,
+      "mainBlob": "480dc47d8f6e88ac326fca66a012ae6d6a337b8b"
+    },
+    {
+      "expectedBlob": "67c5eb7db50f217eff7094e6af54a762851bb556",
+      "exitCode": 0,
+      "path": "src/app/api/education/courses/route.ts",
+      "identical": true,
+      "mainBlob": "67c5eb7db50f217eff7094e6af54a762851bb556"
+    },
+    {
+      "expectedBlob": "cf4ed022652c2b2adc24fd05d4c138eb494a740f",
+      "exitCode": 0,
+      "path": "src/app/api/education/courses/[id]/route.ts",
+      "identical": true,
+      "mainBlob": "cf4ed022652c2b2adc24fd05d4c138eb494a740f"
+    },
+    {
+      "expectedBlob": "f904187629b54dbc211472403f6c0a5d38b0b269",
+      "exitCode": 0,
+      "path": "src/app/api/education/courses/request-context.ts",
+      "identical": true,
+      "mainBlob": "f904187629b54dbc211472403f6c0a5d38b0b269"
+    },
+    {
+      "expectedBlob": "827b42d30f701779526a541419c88e02eb968163",
+      "exitCode": 0,
+      "path": "src/app/api/education/courses/__tests__/route.test.ts",
+      "identical": true,
+      "mainBlob": "827b42d30f701779526a541419c88e02eb968163"
+    },
+    {
+      "expectedBlob": "d7f669dc29c707234a0e5908f5ea61aa2385e241",
+      "exitCode": 0,
+      "path": "src/app/api/education/courses/__tests__/access.test.ts",
+      "identical": true,
+      "mainBlob": "d7f669dc29c707234a0e5908f5ea61aa2385e241"
+    }
+  ],
+  "mergedBy": "bellaspahcm",
+  "agentMergePerformed": false,
+  "sourceReleaseInitiatedByAgent": false
+}

@@ -1,0 +1,965 @@
+{
+  "incomplete": true,
+  "reads": [
+    {
+      "table": "edu_comm_acknowledgements",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_acknowledgements",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_acknowledgements",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_consent_responses",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_consent_responses",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_consent_responses",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_deliveries",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_deliveries",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_deliveries",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_delivery_attempts",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_delivery_attempts",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_delivery_attempts",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_exceptions",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_exceptions",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_exceptions",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_notices",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_notices",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_notices",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_responses",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_responses",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_responses",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_sent_snapshots",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_sent_snapshots",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_sent_snapshots",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_threads",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_threads",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_comm_threads",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_assets",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_assets",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_assets",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_facilities",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_facilities",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_facilities",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_inspection_logs",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_inspection_logs",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_inspection_logs",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_inspection_schedules",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_inspection_schedules",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_inspection_schedules",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_maintenance_jobs",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_maintenance_jobs",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_maintenance_jobs",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_out_of_service_logs",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_out_of_service_logs",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_out_of_service_logs",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_zones",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_zones",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fac_zones",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_billing_periods",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_billing_periods",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_billing_periods",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_fee_structures",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_fee_structures",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_fee_structures",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_invoice_line_items",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_invoice_line_items",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_invoice_line_items",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_invoices",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_invoices",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_invoices",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_payments",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_payments",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_payments",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_receipts",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_receipts",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_receipts",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_reconciliation_ledger",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_reconciliation_ledger",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_reconciliation_ledger",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_student_discount_profiles",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_student_discount_profiles",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_fin_student_discount_profiles",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_compliance_snapshots",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_compliance_snapshots",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_compliance_snapshots",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_leave_requests",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_leave_requests",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_leave_requests",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_ratio_policies",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_ratio_policies",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_ratio_policies",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_shift_assignments",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_shift_assignments",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_shift_assignments",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_shift_templates",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_shift_templates",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_shift_templates",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_staff_availability",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_staff_availability",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_staff_availability",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_substitutions",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_substitutions",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "edu_sched_substitutions",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "students",
+      "variant": "none",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "students",
+      "variant": "own-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    },
+    {
+      "table": "students",
+      "variant": "other-tenant",
+      "status": 401,
+      "errorCode": "42501",
+      "returnedRowCount": 0,
+      "denied": true,
+      "ok": false,
+      "void": false
+    }
+  ]
+}

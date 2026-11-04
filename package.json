@@ -144,7 +144,7 @@
     "ci:tsc-baseline:test": "node scripts/test-ci-tsc-diagnostics.mjs",
     "ci:education-architecture:test": "node scripts/test-ci-education-architecture.mjs",
     "ci:education-conformance:test": "node scripts/test-ci-education-conformance.mjs",
-    "education:architecture:ci": "node scripts/ci-run-education-architecture.mjs",
+    "education:architecture:ci": "npm run ci:education-architecture:test && node scripts/ci-run-education-architecture.mjs",
     "education:conformance:ci": "node scripts/ci-run-education-conformance.mjs",
     "typecheck:changed": "node scripts/ci-run-typecheck.mjs changed",
     "typecheck:affected": "node scripts/ci-run-typecheck.mjs affected",
@@ -234,7 +234,7 @@
   },
   "overrides": {
     "@modelcontextprotocol/sdk": "^1.31.0",
-    "follow-redirects": "1.16.1",
+    "follow-redirects": "1.16.2",
     "postcss": "^8.5.28",
     "proxy-addr": "^2.0.8",
     "sharp": "^0.35.5",

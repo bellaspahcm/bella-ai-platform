@@ -1,0 +1,10 @@
+{
+  "checkedAt": "2026-10-20T20:56:42.563Z",
+  "workspace": "C:/Users/DELL/.codex/worktrees/preschool-courses-auth-20261021/BELLA SPA ERP",
+  "branch": "codex/preschool-courses-auth-20261021",
+  "modules": "Read-only reuse through junction; no dependency install or credential copy",
+  "hookPath": ".husky/_",
+  "huskyInstallExitCode": 0,
+  "hookWrapperPresent": true,
+  "sharedModuleDeletion": false
+}

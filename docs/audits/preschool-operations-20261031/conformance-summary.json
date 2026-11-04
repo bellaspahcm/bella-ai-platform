@@ -1,0 +1,21 @@
+{
+  "started": "2026-10-31T12:11:52.057Z",
+  "finished": "2026-10-31T12:12:02.032Z",
+  "exitCode": 0,
+  "signal": null,
+  "sourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+  "command": "node docs/audits/preschool-operations-20261031/audit-local.cjs --run --conformance",
+  "environment": "Local Jest; synthetic Supabase configuration; external/Real DB suites excluded",
+  "selectedTests": 3,
+  "numTotalTestSuites": 3,
+  "numPassedTestSuites": 3,
+  "numFailedTestSuites": 0,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 23,
+  "numPassedTests": 23,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "success": true,
+  "failures": []
+}

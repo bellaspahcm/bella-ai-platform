@@ -1,0 +1,16 @@
+{
+  "run": 39497323306,
+  "attempt": 1,
+  "job": 118889330813,
+  "artifact": 12299455628,
+  "jobConclusion": "FAILURE",
+  "nativeRunnerExitCode": 1,
+  "status": "NOT_PROVEN",
+  "sha": "9b4ec3c3f2f044ad2dae5ffc6d9693afdf626179",
+  "project": "bmnbqbcdbuklhopfbopv",
+  "productionMutation": "NOT_PERFORMED",
+  "observedBookingHttpStatus": 500,
+  "requiredBookingHttpStatus": 200,
+  "cause": "NOT_PROVEN",
+  "sourceArtifactSha256": "a12bcc6f872383a3724fe26f45090d10bfa38f310c907514c48285aff2ea5b35"
+}

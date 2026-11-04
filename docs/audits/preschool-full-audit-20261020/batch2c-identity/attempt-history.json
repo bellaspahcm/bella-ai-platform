@@ -1,0 +1,46 @@
+{
+  "scope": "Local verification attempts only; no production mutation before the separately recorded guarded execution",
+  "attempts": [
+    {
+      "command": "node rehearse.cjs",
+      "nativeExitCode": null,
+      "wrapperExitCode": 0,
+      "result": "FAIL",
+      "reason": "Native exit was obscured by subsequent Get-Content; retained rehearsal-attempt1.log shows assertion. Temporary table FK rejected with42P16 before REFERENCES ACL check.",
+      "resolution": "Use permanent synthetic probe schemas for REFERENCES denial; preserve original attempt."
+    },
+    {
+      "command": "node rehearse.cjs preschool_users_acl_rehearsal_v2",
+      "nativeExitCode": 1,
+      "result": "FAIL",
+      "reason": "Unknown column grant was removed by table REVOKE instead of migration aborting.",
+      "resolution": "Add pre-abort for any nonempty users column ACL; independent inherited-role finding also fixed."
+    },
+    {
+      "command": "node rehearse.cjs preschool_users_acl_rehearsal_v3",
+      "nativeExitCode": 0,
+      "result": "PASS",
+      "testsPassed": 20,
+      "log": "preschool_users_acl_rehearsal_v3.log"
+    },
+    {
+      "command": "Local-only first READ ONLY role verification prototype",
+      "nativeExitCode": 1,
+      "result": "FAIL",
+      "reason": "READ ONLY rejects ordinary DML25006 before proving ACL denial.",
+      "resolution": "Use EXPLAIN without ANALYZE for six DML privilege checks and actual read-only-safe calls for four denied RPC invocations; local then production exit0."
+    },
+    {
+      "command": "node finalize.cjs (first)",
+      "nativeExitCode": 1,
+      "result": "FAIL",
+      "reason": "Typecheck generated untracked zero-byte .cache/tsbuildinfo/education.diagnostics.txt outside reviewed source allowlist.",
+      "resolution": "Verified workspace paths and moved this generated diagnostic into this evidence folder; final seal exit0."
+    },
+    {
+      "command": "node finalize.cjs (after diagnostic capture)",
+      "nativeExitCode": 0,
+      "result": "PASS_FOR_EVIDENCE_INTEGRITY"
+    }
+  ]
+}

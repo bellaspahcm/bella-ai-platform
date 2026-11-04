@@ -11,6 +11,18 @@ function assertIncludes(actual, expected, message) {
 
 const cases = [
   {
+    name: 'RUN disposable Preschool DB and migration gates when its acceptance control changes',
+    files: ['scripts/ci/preschool-browser-profile/accept.ps1'],
+    expect(result) {
+      assert.equal(result.scope_status, 'ALLOW');
+      assert.equal(result.scope_level, 'infra_only');
+      assert.equal(result.needs_real_db_e2e, true);
+      assert.equal(result.needs_migration_gates, true);
+      assert.equal(result.needs_build, false);
+      assert.equal(result.needs_tests, false);
+    },
+  },
+  {
     name: 'ALLOW product-only English Center change',
     files: ['src/products/bella-english-center/services/enrollment.service.ts'],
     expect(result) {

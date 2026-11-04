@@ -49,8 +49,24 @@ function unavailable(): never {
   throw new Student360ReadError('STUDENT_PROFILE_UNAVAILABLE', 503);
 }
 
+function normalizeStudentCode(identifier: string): string {
+  const stuMatch = /^STU-0*([1-9]\d*)$/i.exec(identifier);
+  if (stuMatch) {
+    const num = stuMatch[1].padStart(4, '0');
+    return `HS${num}`;
+  }
+  const hsYearMatch = /^HS-\d{4}-0*([1-9]\d*)$/i.exec(identifier);
+  if (hsYearMatch) {
+    const num = hsYearMatch[1].padStart(4, '0');
+    return `HS${num}`;
+  }
+  return identifier;
+}
+
 function matchesStudent(student: PreschoolRegistryStudent, identifier: string): boolean {
   if (student.studentCode === identifier) return true;
+  const normalized = normalizeStudentCode(identifier);
+  if (student.studentCode === normalized) return true;
   if (!isRegistryUuid(identifier.toLowerCase())) return false;
   const uuid = identifier.toLowerCase();
   return student.id === uuid || student.partyId === uuid

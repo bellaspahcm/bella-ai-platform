@@ -97,6 +97,10 @@ export function UserProvider({ children, presentationContext }: {
   );
 }
 
+export function useOptionalUser() {
+  return useContext(UserContext) ?? null;
+}
+
 export function useUser() {
   const context = useContext(UserContext);
   if (context === undefined) {

@@ -1,0 +1,386 @@
+{
+  "checkedAt": "2026-10-20T22:54:36.691Z",
+  "project": "prj_Rgncynqz8ptznREGggMxPfjwoikW",
+  "source": "b85722f6eab1aedc3d9bd977bd3deee19e5684e5",
+  "branch": "codex/preschool-authorization-matrix-20261021",
+  "productionMutation": "NOT_PERFORMED",
+  "deploymentInitiated": false,
+  "protectionConfigurationChanged": false,
+  "realSupabaseUserSession": false,
+  "businessRowContentsSaved": false,
+  "commands": [
+    {
+      "route": "/v6/deployments?projectId=prj_Rgncynqz8ptznREGggMxPfjwoikW&limit=20",
+      "method": "GET",
+      "exitCode": 0
+    },
+    {
+      "route": "/v13/deployments/dpl_CxwkgfbVR889YBdj26dfqvmmsb79",
+      "method": "GET",
+      "exitCode": 0
+    },
+    {
+      "route": "/v9/projects/prj_Rgncynqz8ptznREGggMxPfjwoikW",
+      "method": "GET",
+      "exitCode": 0
+    },
+    {
+      "route": "/v13/deployments/dpl_CxwkgfbVR889YBdj26dfqvmmsb79",
+      "method": "GET",
+      "exitCode": 0
+    },
+    {
+      "route": "/v9/projects/prj_Rgncynqz8ptznREGggMxPfjwoikW",
+      "method": "GET",
+      "exitCode": 0
+    }
+  ],
+  "result": "PASS",
+  "deployment": {
+    "id": "dpl_CxwkgfbVR889YBdj26dfqvmmsb79",
+    "source": "b85722f6eab1aedc3d9bd977bd3deee19e5684e5",
+    "url": "https://bella-spa-jmpejjuhb-bella-spa-s-projects.vercel.app",
+    "readyState": "READY",
+    "target": "preview",
+    "errorCode": null
+  },
+  "production": {
+    "id": "dpl_G4DUXNTkNq8sEk2q7p6FRDydhsom",
+    "source": "30134055d1ff5b846584e57833816f076034cdea"
+  },
+  "existingVercelAutomationAccess": true,
+  "tests": [
+    {
+      "method": "POST",
+      "resource": "/api/education/ai/copilot",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/ai/copilot",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/care/medication",
+      "spoof": false,
+      "status": 410,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "message",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/care/medication",
+      "spoof": true,
+      "status": 410,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "message",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/care/bulk",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/care/bulk",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/care/bulk",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/care/bulk",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/portal/token",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/portal/token",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/portal/invalid",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/portal/invalid",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/portal/invalid/chat",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/portal/invalid/chat",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/portal/invalid/copilot",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/portal/invalid/copilot",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/announcements",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/announcements",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/courses",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/courses",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/courses/00000000-0000-4000-8000-000000000099",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/courses/00000000-0000-4000-8000-000000000099",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    }
+  ],
+  "previewSourceStable": true,
+  "productionTargetUnchangedDuringProbes": true
+}

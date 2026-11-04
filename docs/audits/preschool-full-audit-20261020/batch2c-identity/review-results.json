@@ -1,0 +1,44 @@
+{
+  "checkedAt": "2026-10-20T20:45:25.161Z",
+  "openFindings": 0,
+  "productionArtifactSha256": "629ea0f719081a9f8195ccecb8d683d9f0c37b53dc96467168e31270ff3f4f1b",
+  "reviewers": [
+    {
+      "agent": "acceptance_review",
+      "result": "CLOSED",
+      "finding": "Execution-time dependency drift: frozen approved outside catalog guard before revokes; local late-view rejection passed"
+    },
+    {
+      "agent": "identity_edge_review",
+      "result": "CLOSED",
+      "finding": "All nonmaintenance nonsuperuser inherited writer execution checked; unknown column ACL pre-abort"
+    },
+    {
+      "agent": "identity_blind_review",
+      "result": "CLOSED",
+      "finding": "Incoming RPC references scanned by name and pg_depend; live empty; unknown future functions rejected by frozen outside guard"
+    }
+  ],
+  "files": [
+    {
+      "path": "src/services/user-actions.ts",
+      "sha256": "91d9c9d37a9aa9999c99246aac843207eed22fc2268e2ef82bb8c51b4ce18f3a"
+    },
+    {
+      "path": "src/services/onboarding-actions.ts",
+      "sha256": "24d26a654315ae4f9a0da9857bc5a70357ce6e10a001001559eca23b5fe4890f"
+    },
+    {
+      "path": "src/__tests__/user-actions.test.ts",
+      "sha256": "bfa9faa8a92e59fb2ff201cfaa939953bb0e13931b114849b904b07f41e7f6b9"
+    },
+    {
+      "path": "src/__tests__/onboarding.test.ts",
+      "sha256": "8382c0b678f65be69c0b65633b7142a9ce4dbc3e5a1bab89ad8cdb0efe05b40b"
+    },
+    {
+      "path": "supabase/migrations/20261021050000_contain_shared_identity_client_writes.sql",
+      "sha256": "1bba114a86db0d0a7fa79b5a6f0fd6af8a26d8d02125387f2403851b0604110f"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process');const d=__dirname,[input,output]=process.argv.slice(2);if(!input||!output||!input.endsWith('.sql')||!output.endsWith('.json'))throw Error('SQL input / JSON output required');
+const cli=path.join(process.env.APPDATA,'npm/node_modules/supabase/dist/supabase.js'),start=new Date().toISOString();
+const r=cp.spawnSync(process.execPath,[cli,'db','query','--linked','--project-ref','lvnvkpyxtuilhrabtlwv','--file',path.join(d,input),'--output','json'],{encoding:'utf8',timeout:60000,maxBuffer:16000000});
+const scrub=s=>(s||'').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[REDACTED_JWT]');
+fs.writeFileSync(path.join(d,output),scrub(r.stdout));fs.writeFileSync(path.join(d,output.replace('.json','-command.json')),JSON.stringify({startedAt:start,finishedAt:new Date().toISOString(),target:'lvnvkpyxtuilhrabtlwv',sqlFile:input,exitCode:r.status,errorCode:r.error?.code||null,stderr:scrub(r.stderr)},null,2)+'\n');
+if(r.status!==0){console.error(scrub(r.stderr).slice(0,500));process.exitCode=1;}else{JSON.parse(r.stdout);console.log(JSON.stringify({target:'lvnvkpyxtuilhrabtlwv',sqlFile:input,exitCode:r.status,evidenceFile:output}));}

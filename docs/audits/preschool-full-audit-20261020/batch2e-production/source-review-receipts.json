@@ -1,0 +1,65 @@
+[
+  {
+    "group": "care",
+    "role": "blind",
+    "agent": "care_blind_final",
+    "conclusion": "No actionable introduced defect",
+    "details": "Completed second pass with diff-only evidence. Explicit holds intentional. No writes/tests/remote/project access; runtime unverified."
+  },
+  {
+    "group": "care",
+    "role": "acceptance",
+    "agent": "care_acceptance_final",
+    "conclusion": "No actionable introduced defect",
+    "details": "Checked approved scope against live source, identity/Product binding, duplicate selectors, branch projection, active enrollment/mixed bulk, same-session propagation, health gating/preservation. Intentional teacher/history/policy holds. Tests inspected not run; no writes/credentials/remote; real Auth/RLS/atomicity/TOCTOU/browser/production NOT_PROVEN."
+  },
+  {
+    "group": "care",
+    "role": "edge",
+    "agent": "care_edge_final",
+    "conclusion": "No actionable introduced defect",
+    "details": "Empty findings after source/provenance/path validation using auth client/profile, DailyCareService, Enrollment public producer and directly used schema. Explicit holds intentional. No tests/writes/credentials/remote; runtime RLS NOT_PROVEN."
+  },
+  {
+    "group": "portal",
+    "role": "blind",
+    "agent": "portal_blind_final",
+    "conclusion": "No actionable introduced defect",
+    "details": "Diff-only two passes. Issuance dependency hold explicit; pre-existing behavior excluded. No tests/edits/remote or runtime RLS proof."
+  },
+  {
+    "group": "announcements",
+    "role": "blind",
+    "agent": "announcements_blind_final",
+    "conclusion": "No actionable introduced defect",
+    "details": "Diff-only re-analysis; explicit broadcast hold intentional. No edits/tests/project history/remote; no runtime/security/release PASS."
+  },
+  {
+    "group": "portal",
+    "role": "edge",
+    "agent": "portal_edge_final",
+    "conclusion": "No actionable introduced defect",
+    "details": "Empty findings. Checked signature/shape/expiry, configured secret precedence/errors, current school-date relationship bounds, tenant/product/Parties/deletion, directed guardian types, dependency fail-closed, before-side-effect authorization and parent action restriction. Intentional issuance hold/legacy compatibility; pre-existing payload/thread defaults excluded. No tests/edits/credentials/remote; runtime RLS unverified."
+  },
+  {
+    "group": "portal",
+    "role": "acceptance",
+    "agent": "portal_acceptance_final",
+    "conclusion": "No actionable introduced defect",
+    "details": "Compared patch/current source, SPEC, owner matrix, schema and Phase3/4 Copilot authority. Verified issuer hold, new-generation-only24h limit and preserved legacy expiry, live directed guardian/date/Parties and parent question-only action. Pre-existing payload/thread fallbacks excluded. No tests/edits/credentials/remote; real Auth/RLS/DB/browser/TOCTOU/production/release NOT_PROVEN."
+  },
+  {
+    "group": "announcements",
+    "role": "acceptance",
+    "agent": "announcements_acceptance_final",
+    "conclusion": "No actionable introduced defect",
+    "details": "Auth-first active same-subject profile, normalized exact admin, foreign duplicate selectors, live Preschool tenant and sanitized private/no-store responses. Explicit503 before parsing/recipient/client/thread/notice/delivery. Read-only, no tests/writes/credentials/remote; real Auth/RLS/DB/browser/deployment/release NOT_PROVEN."
+  },
+  {
+    "group": "announcements",
+    "role": "edge",
+    "agent": "announcements_edge_final",
+    "conclusion": "No actionable introduced defect",
+    "details": "Empty findings. Traced auth/profile/live-role, query aliases/duplicates and header mismatch, tenant/Product/status/dependency errors, malformed/override body and mutation branches. Explicit hold precedes body/thread/notice side effects. Direct auth/type dependencies only, no SPEC/other reviewers/tests/edits/credentials/remote; live RLS/release unproven."
+  }
+]

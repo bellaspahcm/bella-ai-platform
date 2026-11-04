@@ -1,0 +1,44 @@
+{
+  "checkedAt": "2026-10-20T21:46:58.487Z",
+  "project": "prj_Rgncynqz8ptznREGggMxPfjwoikW",
+  "expectedSource": "30134055d1ff5b846584e57833816f076034cdea",
+  "productionMutation": "NOT_PERFORMED",
+  "deploymentInitiated": false,
+  "protectionConfigurationChanged": false,
+  "authCredentialsUsed": false,
+  "businessRowContentsSaved": false,
+  "result": "NOT_PROVEN",
+  "commands": [
+    {
+      "route": "/v9/projects/prj_Rgncynqz8ptznREGggMxPfjwoikW",
+      "method": "GET",
+      "exitCode": 0
+    },
+    {
+      "route": "/v13/deployments/dpl_G4DUXNTkNq8sEk2q7p6FRDydhsom",
+      "method": "GET",
+      "exitCode": 0
+    },
+    {
+      "route": "/v6/deployments?projectId=prj_Rgncynqz8ptznREGggMxPfjwoikW&limit=15",
+      "method": "GET",
+      "exitCode": 0
+    }
+  ],
+  "production": {
+    "id": "dpl_G4DUXNTkNq8sEk2q7p6FRDydhsom",
+    "source": "30134055d1ff5b846584e57833816f076034cdea",
+    "readyState": "QUEUED",
+    "target": "production",
+    "canonicalAliasAssigned": false
+  },
+  "candidateDeployments": [
+    {
+      "id": "dpl_G4DUXNTkNq8sEk2q7p6FRDydhsom",
+      "source": "30134055d1ff5b846584e57833816f076034cdea",
+      "readyState": "QUEUED",
+      "target": "production"
+    }
+  ],
+  "reason": "EXPECTED_SOURCE_NOT_YET_PROVEN_ON_CANONICAL_PRODUCTION_ALIAS"
+}

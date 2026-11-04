@@ -9,7 +9,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '@/types/database.types';
 import type { PreschoolFinanceAtomicDatabase } from '@/types/preschool-finance-atomic.database.types';
 import type { PreschoolFinanceBranchDatabase } from '@/types/preschool-finance-branch.database.types';
-import { FINANCE_BRANCH_COMMAND_RPC, FINANCE_BRANCH_READ_RPC, type FinanceBranchContext, type FinanceBranchOption, type FinanceBranchStudent } from '../services/preschool-finance-branch.contract';
+import { FINANCE_BRANCH_COMMAND_RPC, FINANCE_BRANCH_READ_RPC, type FinanceBranchContext, type FinanceBranchOption, type FinanceBranchStudent, type FinanceBranchBreakdown } from '../services/preschool-finance-branch.contract';
 import {
   FeeStructure,
   BillingPeriod,
@@ -127,17 +127,90 @@ export class PreschoolFinanceRepository {
   ) {}
 
   async readBranchState(tenantId: string, actorId: string, branchId: string | null) {
+    if (branchId !== 'ALL') return this.readBranchStateFromRpc(tenantId, actorId, branchId);
+
+    // The cross-chain view is composed only from branch states independently
+    // authorized by the canonical RPC. A directory error or a missing RPC is
+    // unavailable; it never falls through to tenant-wide table reads.
+    const directory = await this.readBranchStateFromRpc(tenantId, actorId, null);
+    const branchStates = await Promise.all(directory.branches.map(branch =>
+      this.readBranchStateFromRpc(tenantId, actorId, branch.id),
+    ));
+    const flattenUnique = <T extends { id: string }>(rows: readonly T[]): T[] => {
+      const byId = new Map<string, T>();
+      for (const row of rows) {
+        if (byId.has(row.id)) throw new Error('FINANCE_CANONICAL_CONFLICT: Duplicate branch-owned Finance record.');
+        byId.set(row.id, row);
+      }
+      return [...byId.values()];
+    };
+    const studentsByEnrollment = new Map<string, FinanceBranchStudent>();
+    for (const state of branchStates) {
+      for (const student of state.students) {
+        if (studentsByEnrollment.has(student.enrollmentId)) {
+          throw new Error('FINANCE_CANONICAL_CONFLICT: Enrollment resolved to multiple Finance branches.');
+        }
+        studentsByEnrollment.set(student.enrollmentId, student);
+      }
+    }
+    const invoices = flattenUnique(branchStates.flatMap(state => state.invoices));
+    const payments = flattenUnique(branchStates.flatMap(state => state.payments));
+    const billingPeriods = flattenUnique(branchStates.flatMap(state => state.billingPeriods));
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+    const branchBreakdowns: FinanceBranchBreakdown[] = branchStates.map((state, index) => {
+      const branch = directory.branches[index];
+      if (!branch) throw new Error('FINANCE_CANONICAL_CONFLICT: Branch RPC result does not match its directory.');
+      const totalGross = state.invoices.reduce((sum, invoice) => sum + invoice.grossAmount, 0);
+      const totalPaid = state.invoices.reduce((sum, invoice) => sum + invoice.paidAmount, 0);
+      const totalDebt = state.invoices.reduce((sum, invoice) => sum + Math.max(invoice.outstandingAmount, 0), 0);
+      return {
+        branchId: branch.id,
+        branchName: branch.name,
+        branchCode: branch.code,
+        studentCount: new Set(state.students.map(student => student.studentPartyId)).size,
+        invoiceCount: state.invoices.length,
+        totalGross,
+        totalPaid,
+        totalDebt,
+        collectionRate: totalGross > 0 ? Math.round((totalPaid / totalGross) * 1000) / 10 : 0,
+        overdueCount: state.invoices.filter(invoice => invoice.outstandingAmount > 0 && invoice.dueDate < today).length,
+      };
+    });
+
+    return {
+      ...directory,
+      selectedBranchId: 'ALL',
+      students: [...studentsByEnrollment.values()],
+      completionAvailable: false,
+      billingPeriods,
+      invoices,
+      payments,
+      exceptions: [],
+      servicePeriodCompletions: [] as TuitionServicePeriodCompletion[],
+      branchBreakdowns,
+    };
+  }
+
+  private async readBranchStateFromRpc(tenantId: string, actorId: string, branchId: string | null) {
     const client = this.client as unknown as SupabaseClient<PreschoolFinanceBranchDatabase>;
     const { data, error } = await client.rpc(FINANCE_BRANCH_READ_RPC, {
       p_tenant_id: tenantId, p_actor_id: actorId, ...(branchId ? { p_branch_id: branchId } : {}),
     });
-    if (error) throw new FinanceAtomicDatabaseError(error.message, error.code);
+    if (error || !data) {
+      throw new FinanceAtomicDatabaseError(
+        error?.message ?? 'Canonical Preschool Finance branch read returned no data.',
+        error?.code ?? 'PGRST202',
+      );
+    }
+
     const result = readObject(data);
     const array = (key: string): DbRow[] => {
       if (!Array.isArray(result[key])) throw new Error('FINANCE_CANONICAL_CONFLICT: Expected branch collection.');
       return result[key].map(readObject);
     };
-    const branches: FinanceBranchOption[] = array('branches').map((row) => ({ id: readString(row, 'id'), name: readString(row, 'name'), code: readOptionalString(row, 'code') ?? null }));
+    const branches: FinanceBranchOption[] = array('branches').map((row) => ({
+      id: readString(row, 'id'), name: readString(row, 'name'), code: readOptionalString(row, 'code') ?? null,
+    }));
     const students: FinanceBranchStudent[] = array('students').map((row) => ({
       enrollmentId: readString(row, 'enrollmentId'), courseId: readString(row, 'courseId'),
       studentPartyId: readString(row, 'studentPartyId'), studentId: readString(row, 'studentId'),
@@ -146,12 +219,12 @@ export class PreschoolFinanceRepository {
     return {
       branches, selectedBranchId: readOptionalString(result, 'selectedBranchId') ?? null,
       actorId, tenantId, students, completionAvailable: false,
-      billingPeriods: array('billingPeriods').map(this.mapBillingPeriod),
-      invoices: array('invoices').map(this.mapInvoice), payments: array('payments').map(this.mapPayment),
+      billingPeriods: array('billingPeriods').map((row) => this.mapBillingPeriod(row)),
+      invoices: array('invoices').map((row) => this.mapInvoice(row)),
+      payments: array('payments').map((row) => this.mapPayment(row)),
       exceptions: array('exceptions'), servicePeriodCompletions: [] as TuitionServicePeriodCompletion[],
     };
   }
-
   async branchCommand(action: string, payload: Record<string, unknown>): Promise<unknown> {
     if (!this.branchContext?.branchId) throw new Error('AUTH_ROLE_PERMISSION_ERROR: Explicit Finance branch context required.');
     const client = this.client as unknown as SupabaseClient<PreschoolFinanceBranchDatabase>;
@@ -159,7 +232,12 @@ export class PreschoolFinanceRepository {
       p_tenant_id: this.branchContext.tenantId, p_actor_id: this.branchContext.actorId,
       p_branch_id: this.branchContext.branchId, p_action: action, p_payload: toJson(payload),
     });
-    if (error) throw new FinanceAtomicDatabaseError(error.message, error.code);
+    if (error || data === null || data === undefined) {
+      throw new FinanceAtomicDatabaseError(
+        error?.message ?? 'Canonical Preschool Finance command returned no data.',
+        error?.code ?? 'PGRST202',
+      );
+    }
     return data;
   }
 

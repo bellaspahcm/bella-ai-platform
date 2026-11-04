@@ -1,0 +1,10 @@
+{
+  "checkedAt": "2026-10-20T20:56:41.315Z",
+  "workspace": "C:/Users/DELL/.codex/worktrees/shared-identity-containment-20261021/BELLA SPA ERP",
+  "branch": "codex/shared-identity-containment-20261021",
+  "modules": "Read-only reuse through junction; no dependency install or credential copy",
+  "hookPath": ".husky/_",
+  "huskyInstallExitCode": 0,
+  "hookWrapperPresent": true,
+  "sharedModuleDeletion": false
+}

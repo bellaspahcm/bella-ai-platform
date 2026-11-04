@@ -1,0 +1,7 @@
+🔒 Architecture Guard — Git Pre-Commit Hook
+   Checking staged files for frozen kernel modifications...
+
+   ✅ Checked 23 staged file(s)
+   ✅ No frozen files modified
+   ✅ Commit allowed
+

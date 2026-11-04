@@ -1,0 +1,301 @@
+src/app/dashboard/education\work-queue\page.tsx:60:    fetch(`/api/education/work-queue?view=${view}&status=${status}&page=${page}`, { cache: 'no-store', signal: controller.signal })
+src/app/dashboard/education\work-queue\page.tsx:82:      const response = await fetch('/api/education/work-queue', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+src/app/dashboard/education\care\page.tsx:467:  const [toastMessage, setToastMessage] = useState<string | null>(null);
+src/app/dashboard/education\care\page.tsx:500:      const response = await fetch('/api/education/courses', { cache: 'no-store' });
+src/app/dashboard/education\care\page.tsx:537:      const res = await fetch(
+src/app/dashboard/education\care\page.tsx:549:      const attRes = await fetch(
+src/app/dashboard/education\care\page.tsx:593:  const recordedPct = totalCount > 0 ? Math.round((recordedCount / totalCount) * 100) : 0;
+src/app/dashboard/education\care\page.tsx:594:  const attendancePct = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
+src/app/dashboard/education\care\page.tsx:595:  const mealPct = totalCount > 0 ? Math.round((roster.filter((s) => s.mealStatus === 'good').length / totalCount) * 100) : 0;
+src/app/dashboard/education\care\page.tsx:596:  const napPct = totalCount > 0 ? Math.round((roster.filter((s) => s.napStatus === 'good').length / totalCount) * 100) : 0;
+src/app/dashboard/education\care\page.tsx:597:  const healthPct = totalCount > 0 ? Math.round((roster.filter((s) => s.healthStatus === 'good').length / totalCount) * 100) : 0;
+src/app/dashboard/education\care\page.tsx:598:  const hygienePct = totalCount > 0 ? Math.round((roster.filter((s) => s.hygieneStatus === 'good').length / totalCount) * 100) : 0;
+src/app/dashboard/education\care\page.tsx:617:  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / PAGE_SIZE));
+src/app/dashboard/education\care\page.tsx:618:  const clampedPage = Math.min(currentPage, totalPages);
+src/app/dashboard/education\care\page.tsx:651:    const timer = setTimeout(() => setToastMessage(null), 3500);
+src/app/dashboard/education\care\page.tsx:820:        await fetch('/api/education/care/bulk', {
+src/app/dashboard/education\care\page.tsx:862:      setToastMessage(`Đã lưu nhật ký chăm sóc cho bé ${editingStudent.name} vào cơ sở dữ liệu!`);
+src/app/dashboard/education\care\page.tsx:927:        await fetch('/api/education/care/bulk', {
+src/app/dashboard/education\care\page.tsx:960:      setToastMessage(`Đã lưu chăm sóc nhanh cho ${targetIds.length} trẻ vào cơ sở dữ liệu!`);
+src/app/dashboard/education\care\page.tsx:1461:            Hiển thị {Math.min(pagedStudents.length, PAGE_SIZE)} / {filteredStudents.length} trẻ
+src/app/dashboard/education\care\page.tsx:1470:                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+src/app/dashboard/education\care\page.tsx:1497:                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+src/app/dashboard/education\care\page.tsx:2080:            onClick={() => setToastMessage(null)}
+src/app/dashboard/education\courses\[id]\page.tsx:116:  const [toast, setToast] = useState<string | null>(null);
+src/app/dashboard/education\courses\[id]\page.tsx:122:      const res = await fetch(`/api/education/courses/${classId}`);
+src/app/dashboard/education\courses\[id]\page.tsx:142:      const res = await fetch(`/api/education/courses/${classId}/teachers`, {
+src/app/dashboard/education\courses\[id]\page.tsx:159:      setToast(data.message || 'Phân công giáo viên thành công!');
+src/app/dashboard/education\courses\[id]\page.tsx:162:      setTimeout(() => setToast(null), 4000);
+src/app/dashboard/education\courses\[id]\page.tsx:173:      const res = await fetch(`/api/education/courses/${classId}/teachers?assignmentId=${assignmentId}`, {
+src/app/dashboard/education\courses\[id]\page.tsx:178:        setToast('Đã chấm dứt phân công giáo viên');
+src/app/dashboard/education\courses\[id]\page.tsx:180:        setTimeout(() => setToast(null), 4000);
+src/app/dashboard/education\courses\[id]\page.tsx:189:  const percent = Math.min(100, Math.round((workspace.currentStudents / workspace.maxStudents) * 100));
+src/app/dashboard/education\grades\page.tsx:1649:  const evaluatedPercentage = Math.round((evaluatedChildrenCount / totalChildrenCount) * 100); // 83%
+src/app/dashboard/education\grades\page.tsx:1650:  const unEvaluatedPercentage = Math.round((unEvaluatedChildrenCount / totalChildrenCount) * 100); // 17%
+src/app/dashboard/education\grades\page.tsx:1655:  const mamA1Pct = Math.round((mamA1Evaluated / mamA1Total) * 100); // 75%
+src/app/dashboard/education\grades\page.tsx:1659:  const choiB1Pct = Math.floor((choiB1Evaluated / choiB1Total) * 100); // 90%
+src/app/dashboard/education\grades\page.tsx:1697:  const totalPages = Math.ceil(filteredStudents.length / PAGE_SIZE) || 1;
+src/app/dashboard/education\grades\page.tsx:2477:                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+src/app/dashboard/education\grades\page.tsx:2505:                    onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+src/app/dashboard/education\courses\page.tsx:323:  const [toastMessage, setToastMessage] = useState<string | null>(null);
+src/app/dashboard/education\courses\page.tsx:363:      const res = await fetch('/api/education/courses');
+src/app/dashboard/education\courses\page.tsx:453:      const res = await fetch('/api/education/courses', {
+src/app/dashboard/education\courses\page.tsx:474:      setToastMessage(data.message || 'Tạo và mở lớp học thành công!');
+src/app/dashboard/education\courses\page.tsx:478:      setTimeout(() => setToastMessage(null), 4000);
+src/app/dashboard/education\courses\page.tsx:494:  const totalStudents = useMemo(() => classList.reduce((acc, c) => acc + c.students, 0), [classList]);
+src/app/dashboard/education\courses\page.tsx:495:  const totalMax = useMemo(() => Math.max(1, classList.reduce((acc, c) => acc + c.maxStudents, 0)), [classList]);
+src/app/dashboard/education\courses\page.tsx:496:  const totalAvailableSeats = useMemo(() => classList.reduce((acc, c) => acc + Math.max(0, c.maxStudents - c.students), 0), [classList]);
+src/app/dashboard/education\courses\page.tsx:497:  const fillRatePercent = Math.round((totalStudents / totalMax) * 100);
+src/app/dashboard/education\courses\page.tsx:696:                style={{ width: isLoading ? '0%' : `${Math.min(100, fillRatePercent)}%` }} 
+src/app/dashboard/education\courses\page.tsx:790:          const percent = Math.min(100, Math.round((cls.students / cls.maxStudents) * 100));
+src/app/dashboard/education\courses\page.tsx:791:          const overflowStudents = Math.max(0, cls.students - 4);
+src/app/dashboard/education\attendance\page.tsx:236:  const attendanceTotalPages = Math.max(1, Math.ceil(filteredRoster.length / attendancePageSize));
+src/app/dashboard/education\attendance\page.tsx:237:  const validAttendancePage = Math.min(attendancePage, attendanceTotalPages);
+src/app/dashboard/education\attendance\page.tsx:252:  const handoverTotalPages = Math.max(1, Math.ceil(handoverEligibleRoster.length / handoverPageSize));
+src/app/dashboard/education\attendance\page.tsx:253:  const validHandoverPage = Math.min(handoverPage, handoverTotalPages);
+src/app/dashboard/education\attendance\page.tsx:260:    return currentRoster.reduce(
+src/app/dashboard/education\attendance\page.tsx:288:        const response = await fetch('/api/education/courses', { cache: 'no-store' });
+src/app/dashboard/education\attendance\page.tsx:324:      const response = await fetch(`/api/education/attendance?${params.toString()}`, { cache: 'no-store' });
+src/app/dashboard/education\attendance\page.tsx:357:      const response = await fetch('/api/education/attendance', {
+src/app/dashboard/education\attendance\page.tsx:396:      const response = await fetch('/api/education/attendance/handover', {
+src/app/dashboard/education\attendance\page.tsx:578:                ? Math.round((totalStudents / classroom.maxStudents) * 100)
+src/app/dashboard/education\attendance\page.tsx:1017:  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+src/app/dashboard/education\attendance\page.tsx:1018:  const safePage = Math.min(Math.max(1, currentPage), totalPages);
+src/app/dashboard/education\attendance\page.tsx:1020:  const endItem = Math.min(safePage * pageSize, totalItems);
+src/app/dashboard/education\page.tsx:157:        document.cookie = 'mock_user_email=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+src/app/dashboard/education\page.tsx:182:        const res = await fetch(`/api/education/analytics?date=${selectedDateStr}`, { cache: 'no-store' });
+src/app/dashboard/education\page.tsx:200:    ? dashboardData.enrollment.classroomUtilization.reduce((sum, c) => sum + c.currentEnrollment, 0)
+src/app/dashboard/education\page.tsx:205:  const attendanceRate = dashboardData?.attendance?.presentVsEnrolledRate ?? (totalKidsCount > 0 ? Math.round((presentCount / totalKidsCount) * 100) : 0);
+src/app/dashboard/education\page.tsx:320:    const pNhaTre = Math.round((nhaTre / total) * 100);
+src/app/dashboard/education\page.tsx:321:    const pMam = Math.round((mam / total) * 100);
+src/app/dashboard/education\page.tsx:322:    const pChoi = Math.round((choi / total) * 100);
+src/app/dashboard/education\page.tsx:323:    const pLa = Math.max(0, 100 - pNhaTre - pMam - pChoi);
+src/app/dashboard/education\page.tsx:482:      const res = await fetch('/api/education/ai/copilot', {
+src/app/dashboard/education\page.tsx:489:          absentCount: Math.max(0, (totalKidsCount || 100) - (presentCount || totalKidsCount || 95)),
+src/app/dashboard/education\page.tsx:526:      const res = await fetch('/api/education/ai/copilot', {
+src/app/dashboard/education\page.tsx:560:      const res = await fetch('/api/education/ai/copilot', {
+src/app/dashboard/education\page.tsx:1468:                  const heightPercentage = Math.round((item.count / 40) * 100);
+src/app/dashboard/education\page.tsx:1695:                  const heightPercentage = Math.round((item.value / 400) * 100);
+src/app/dashboard/education\parent-inbox\page.tsx:123:      const response = await fetch(`/api/education/parent-daily?date=${encodeURIComponent(targetDay)}`, {
+src/app/dashboard/education\teachers\[id]\page.tsx:534:  const [toastMessage, setToastMessage] = useState<string | null>(null);
+src/app/dashboard/education\teachers\[id]\page.tsx:544:    const timer = setTimeout(() => setToastMessage(null), 4000);
+src/app/dashboard/education\teachers\[id]\page.tsx:652:              <span>{Math.round((teacher.workloadHours / teacher.maxWorkloadHours) * 100)}% tải</span>
+src/app/dashboard/education\teachers\[id]\page.tsx:659:                style={{ width: `${Math.min(100, (teacher.workloadHours / teacher.maxWorkloadHours) * 100)}%` }}
+src/app/dashboard/education\teachers\[id]\page.tsx:967:            onClick={() => setToastMessage(null)}
+src/app/dashboard/education\teachers\[id]\page.tsx:1013:                const workloadHours = Math.min(45, Math.max(0, Number(fd.get('workloadHours')) || teacher.workloadHours));
+src/app/dashboard/education\teachers\[id]\page.tsx:1039:                setToastMessage(`Đã cập nhật thành công hồ sơ của ${name}!`);
+src/app/dashboard/education\my-class\page.tsx:642:    const attendanceRate = totalEnrolled > 0 ? Math.round(((presentCount + lateCount) / totalEnrolled) * 100) : 0;
+src/app/dashboard/education\my-class\page.tsx:643:    const capacityRate = Math.round((totalEnrolled / currentTeacher.maxCapacity) * 100);
+src/app/dashboard/education\my-class\page.tsx:761:      const res = await fetch('/api/education/ai/copilot', {
+src/app/dashboard/education\my-class\page.tsx:793:      const res = await fetch('/api/education/ai/copilot', {
+src/app/dashboard/education\my-class\page.tsx:841:      const res = await fetch('/api/education/ai/copilot', {
+src/app/dashboard/education\my-class\page.tsx:890:      const res = await fetch('/api/education/ai/copilot', {
+src/app/dashboard/education\communication\page.tsx:720:      const res = await fetch('/api/education/ai/copilot', {
+src/app/dashboard/education\communication\page.tsx:745:            confidence: `Độ tin cậy ${Math.round(classification.confidence * 100)}% (AI Copilot Realtime)`,
+src/app/dashboard/education\communication\page.tsx:811:      const res = await fetch('/api/education/portal/token', {
+src/app/dashboard/education\communication\page.tsx:1145:                ? Math.round((notice.read_count / notice.total_recipients) * 100)
+src/app/dashboard/education\communication\page.tsx:1354:                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+src/app/dashboard/education\communication\page.tsx:1378:                onClick={() => setCurrentPage((p) => Math.min(4, p + 1))}
+src/app/dashboard/education\scheduling\page.tsx:51:const DEFAULT_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+src/app/dashboard/education\scheduling\page.tsx:52:const DEFAULT_MANAGER_ID = '00000000-0000-0000-0000-000000000003';
+src/app/dashboard/education\scheduling\page.tsx:53:const DEFAULT_TEACHER1_ID = '00000000-0000-0000-0000-000000000081';
+src/app/dashboard/education\scheduling\page.tsx:54:const DEFAULT_TEACHER2_ID = '00000000-0000-0000-0000-000000000082';
+src/app/dashboard/education\scheduling\page.tsx:55:const DEFAULT_CAREGIVER1_ID = '00000000-0000-0000-0000-000000000083';
+src/app/dashboard/education\scheduling\page.tsx:56:const DEFAULT_CLASSROOM_ID = '00000000-0000-0000-0000-000000000091';
+src/app/dashboard/education\scheduling\page.tsx:79:  const [actionMessage, setActionMessage] = useState<string | null>(null);
+src/app/dashboard/education\scheduling\page.tsx:91:  const [selectedClassroom, setSelectedClassroom] = useState<string>(DEFAULT_CLASSROOM_ID);
+src/app/dashboard/education\scheduling\page.tsx:92:  const [leaveStaffId, setLeaveStaffId] = useState<string>(DEFAULT_TEACHER1_ID);
+src/app/dashboard/education\scheduling\page.tsx:96:  const [substituteStaffId, setSubstituteStaffId] = useState<string>(DEFAULT_TEACHER2_ID);
+src/app/dashboard/education\scheduling\page.tsx:112:      const templates = await repo.listShiftTemplates(DEFAULT_TENANT_ID);
+src/app/dashboard/education\scheduling\page.tsx:116:      const list = await repo.listShiftAssignments(DEFAULT_TENANT_ID, {
+src/app/dashboard/education\scheduling\page.tsx:123:      const snap = await repo.getLatestComplianceSnapshot(DEFAULT_TENANT_ID, selectedClassroom, selectedDate);
+src/app/dashboard/education\scheduling\page.tsx:134:        .eq('tenant_id', DEFAULT_TENANT_ID)
+src/app/dashboard/education\scheduling\page.tsx:142:        .eq('tenant_id', DEFAULT_TENANT_ID)
+src/app/dashboard/education\scheduling\page.tsx:147:      const excs = await exceptionService.getStaffWorkQueueExceptions(DEFAULT_TENANT_ID);
+src/app/dashboard/education\scheduling\page.tsx:163:    setActionMessage(null);
+src/app/dashboard/education\scheduling\page.tsx:165:      // 0. Clean up previous test seed data for DEFAULT_TENANT_ID for clean isolated state
+src/app/dashboard/education\scheduling\page.tsx:169:        .eq('tenant_id', DEFAULT_TENANT_ID);
+src/app/dashboard/education\scheduling\page.tsx:174:        .eq('tenant_id', DEFAULT_TENANT_ID);
+src/app/dashboard/education\scheduling\page.tsx:179:        .eq('tenant_id', DEFAULT_TENANT_ID);
+src/app/dashboard/education\scheduling\page.tsx:184:        .eq('tenant_id', DEFAULT_TENANT_ID);
+src/app/dashboard/education\scheduling\page.tsx:188:        tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\scheduling\page.tsx:198:          tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\scheduling\page.tsx:209:        tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\scheduling\page.tsx:212:        staffPartyId: DEFAULT_TEACHER1_ID,
+src/app/dashboard/education\scheduling\page.tsx:218:        tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\scheduling\page.tsx:221:        staffPartyId: DEFAULT_TEACHER2_ID,
+src/app/dashboard/education\scheduling\page.tsx:228:        tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\scheduling\page.tsx:236:      setActionMessage('✅ Đã khởi tạo Ca Sáng & Phân công Giáo viên thành công!');
+src/app/dashboard/education\scheduling\page.tsx:239:      setActionMessage(`❌ Lỗi khởi tạo ca: ${getErrorMessage(err)}`);
+src/app/dashboard/education\scheduling\page.tsx:248:    setActionMessage(null);
+src/app/dashboard/education\scheduling\page.tsx:251:        tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\scheduling\page.tsx:258:      setActionMessage(`✅ Đã gửi Đơn xin nghỉ phép #${leave.id.slice(0, 8)} (PENDING)!`);
+src/app/dashboard/education\scheduling\page.tsx:261:      setActionMessage(`❌ Lỗi gửi đơn nghỉ: ${getErrorMessage(err)}`);
+src/app/dashboard/education\scheduling\page.tsx:270:    setActionMessage(null);
+src/app/dashboard/education\scheduling\page.tsx:273:        tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\scheduling\page.tsx:275:        approvedByPartyId: DEFAULT_MANAGER_ID,
+src/app/dashboard/education\scheduling\page.tsx:280:        setActionMessage(`⚠️ Đã duyệt nghỉ phép! Phát hiện Thiếu Nhân sự ➔ Đã leo thang Cảnh báo SLA sang Exception Work Queue!`);
+src/app/dashboard/education\scheduling\page.tsx:282:        setActionMessage(`✅ Đã duyệt đơn nghỉ phép #${leaveId.slice(0, 8)} thành công!`);
+src/app/dashboard/education\scheduling\page.tsx:286:      setActionMessage(`❌ Lỗi duyệt nghỉ phép: ${getErrorMessage(err)}`);
+src/app/dashboard/education\scheduling\page.tsx:295:    setActionMessage(null);
+src/app/dashboard/education\scheduling\page.tsx:303:        tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\scheduling\page.tsx:307:        assignedByPartyId: DEFAULT_MANAGER_ID,
+src/app/dashboard/education\scheduling\page.tsx:311:      setActionMessage(`✅ Đã phân công Giáo viên dạy thay thành công! Tỷ lệ nhân sự đã trở lại COMPLIANT!`);
+src/app/dashboard/education\scheduling\page.tsx:314:      setActionMessage(`❌ Lỗi phân công dạy thay: ${getErrorMessage(err)}`);
+src/app/dashboard/education\scheduling\page.tsx:323:    setActionMessage(null);
+src/app/dashboard/education\scheduling\page.tsx:326:        tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\scheduling\page.tsx:328:        resolvedBy: DEFAULT_MANAGER_ID,
+src/app/dashboard/education\scheduling\page.tsx:332:      setActionMessage(`ℹ️ Đã đóng Exception trong Work Queue! (Lưu ý: Tỷ lệ tuân thủ P8 chỉ COMPLIANT khi có giáo viên dạy thay thật)`);
+src/app/dashboard/education\scheduling\page.tsx:335:      setActionMessage(`❌ Lỗi xử lý Exception: ${getErrorMessage(err)}`);
+src/app/dashboard/education\scheduling\page.tsx:387:            <button onClick={() => setActionMessage(null)} className="text-xs opacity-70 hover:opacity-100">Đóng</button>
+src/app/dashboard/education\scheduling\page.tsx:594:                  <option value={DEFAULT_TEACHER1_ID}>Giáo viên 1 (Teacher Lead 1)</option>
+src/app/dashboard/education\scheduling\page.tsx:595:                  <option value={DEFAULT_TEACHER2_ID}>Giáo viên 2 (Teacher Lead 2)</option>
+src/app/dashboard/education\scheduling\page.tsx:596:                  <option value={DEFAULT_CAREGIVER1_ID}>Bảo mẫu 1 (Caregiver 1)</option>
+src/app/dashboard/education\scheduling\page.tsx:699:                                <option value={DEFAULT_TEACHER2_ID}>Giáo viên 2 (Teacher 2)</option>
+src/app/dashboard/education\scheduling\page.tsx:700:                                <option value={DEFAULT_CAREGIVER1_ID}>Bảo mẫu 1 (Caregiver 1)</option>
+src/app/dashboard/education\finance\page.tsx:10: * - Zero hardcoded mock numbers (no 245tr, 280 HĐ, or static lists).
+src/app/dashboard/education\finance\page.tsx:231:  if (Math.abs(amount) >= 1_000_000) {
+src/app/dashboard/education\finance\page.tsx:243:  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+src/app/dashboard/education\finance\page.tsx:244:  return Math.max(0, diffDays);
+src/app/dashboard/education\finance\page.tsx:266:  const [actionMessage, setActionMessage] = useState<string | null>(null);
+src/app/dashboard/education\finance\page.tsx:344:      const response = await fetch('/api/education/finance', { cache: 'no-store' });
+src/app/dashboard/education\finance\page.tsx:380:    const response = await fetch('/api/education/finance', {
+src/app/dashboard/education\finance\page.tsx:401:      setActionMessage('Vui lòng chọn học sinh hợp lệ trong danh sách đã tải.');
+src/app/dashboard/education\finance\page.tsx:406:      setActionMessage('Chưa có kỳ thu học phí ACTIVE hợp lệ. Vui lòng cấu hình kỳ thu trước khi lập hóa đơn.');
+src/app/dashboard/education\finance\page.tsx:416:      setActionMessage(
+src/app/dashboard/education\finance\page.tsx:422:      setActionMessage(`Lỗi lập hóa đơn: ${err instanceof Error ? err.message : 'Lỗi không xác định'}`);
+src/app/dashboard/education\finance\page.tsx:433:      setActionMessage(`Đã phát hành hóa đơn ${result.invoice.invoiceNumber} (DRAFT ➔ ISSUED).`);
+src/app/dashboard/education\finance\page.tsx:436:      setActionMessage(`Lỗi phát hành: ${err instanceof Error ? err.message : 'Lỗi không xác định'}`);
+src/app/dashboard/education\finance\page.tsx:449:      setActionMessage('Không có hóa đơn nháp nào trong số các mục đã chọn.');
+src/app/dashboard/education\finance\page.tsx:459:      setActionMessage(`Đã phát hành thành công ${successCount} hóa đơn nháp.`);
+src/app/dashboard/education\finance\page.tsx:463:      setActionMessage(`Đã phát hành ${successCount} hóa đơn. Gặp lỗi: ${err instanceof Error ? err.message : 'Lỗi phát hành'}`);
+src/app/dashboard/education\finance\page.tsx:474:      setActionMessage(
+src/app/dashboard/education\finance\page.tsx:481:      setActionMessage(`Lỗi gửi thông báo: ${err instanceof Error ? err.message : 'Lỗi không xác định'}`);
+src/app/dashboard/education\finance\page.tsx:490:      setActionMessage('Chưa có kỳ thu học phí ACTIVE hợp lệ để xác nhận hoàn thành dịch vụ.');
+src/app/dashboard/education\finance\page.tsx:499:      setActionMessage(
+src/app/dashboard/education\finance\page.tsx:506:      setActionMessage(
+src/app/dashboard/education\finance\page.tsx:518:      setActionMessage(
+src/app/dashboard/education\finance\page.tsx:523:      setActionMessage(`Lỗi quét quá hạn: ${err instanceof Error ? err.message : 'Lỗi không xác định'}`);
+src/app/dashboard/education\finance\page.tsx:543:      setActionMessage('Vui lòng chọn hóa đơn cần thanh toán.');
+src/app/dashboard/education\finance\page.tsx:548:      setActionMessage('Số tiền thanh toán phải lớn hơn 0.');
+src/app/dashboard/education\finance\page.tsx:558:      setActionMessage(
+src/app/dashboard/education\finance\page.tsx:565:      setActionMessage(`Lỗi thanh toán: ${err instanceof Error ? err.message : 'Lỗi không xác định'}`);
+src/app/dashboard/education\finance\page.tsx:579:      setActionMessage(`Đã xử lý & đóng ngoại lệ ${exceptionModalItem.id} thành công.`);
+src/app/dashboard/education\finance\page.tsx:584:      setActionMessage(`Lỗi xử lý ngoại lệ: ${err instanceof Error ? err.message : 'Lỗi không xác định'}`);
+src/app/dashboard/education\finance\page.tsx:593:      setActionMessage('Vui lòng chọn đúng học sinh và kỳ thu trong danh sách đã tải.');
+src/app/dashboard/education\finance\page.tsx:687:    return nonVoidInvoices.reduce((sum, inv) => sum + inv.netAmount, 0);
+src/app/dashboard/education\finance\page.tsx:691:    return nonVoidInvoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0);
+src/app/dashboard/education\finance\page.tsx:695:    return nonVoidInvoices.reduce((sum, inv) => sum + (inv.outstandingAmount || 0), 0);
+src/app/dashboard/education\finance\page.tsx:698:  const collectionPercent = totalInvoiced > 0 ? Math.round((totalPaid / totalInvoiced) * 100) : 0;
+src/app/dashboard/education\finance\page.tsx:699:  const remainingPercent = totalInvoiced > 0 ? Math.round((totalOutstanding / totalInvoiced) * 100) : 0;
+src/app/dashboard/education\finance\page.tsx:758:        percent: Math.round(percent),
+src/app/dashboard/education\finance\page.tsx:778:        const collected = periodInvoices.reduce((acc, cur) => acc + (cur.paidAmount || 0), 0) / 1_000_000;
+src/app/dashboard/education\finance\page.tsx:779:        const remaining = periodInvoices.reduce((acc, cur) => acc + (cur.outstandingAmount || 0), 0) / 1_000_000;
+src/app/dashboard/education\finance\page.tsx:810:      const percent = totalOutstanding > 0 ? Math.round((val.amount / totalOutstanding) * 100) : 0;
+src/app/dashboard/education\finance\page.tsx:893:      setActionMessage('Không có hóa đơn để xuất file.');
+src/app/dashboard/education\finance\page.tsx:935:    setActionMessage('Đã tải xuống file CSV danh sách hóa đơn thành công.');
+src/app/dashboard/education\finance\page.tsx:1007:            onClick={() => setActionMessage(null)}
+src/app/dashboard/education\finance\page.tsx:1402:                      const maxTotal = Math.max(...dynamicMonthlyChart.map((d) => d.total), 1);
+src/app/dashboard/education\finance\page.tsx:1492:                      Đã thanh toán <span className="font-bold text-slate-900 dark:text-white">{statusCounts.paid} ({statusCounts.total > 0 ? Math.round((statusCounts.paid / statusCounts.total) * 100) : 0}%)</span>
+src/app/dashboard/education\finance\page.tsx:1498:                      Một phần <span className="font-bold text-slate-900 dark:text-white">{statusCounts.partial} ({statusCounts.total > 0 ? Math.round((statusCounts.partial / statusCounts.total) * 100) : 0}%)</span>
+src/app/dashboard/education\finance\page.tsx:1504:                      Chưa thanh toán <span className="font-bold text-slate-900 dark:text-white">{statusCounts.unpaid} ({statusCounts.total > 0 ? Math.round((statusCounts.unpaid / statusCounts.total) * 100) : 0}%)</span>
+src/app/dashboard/education\finance\page.tsx:1510:                      Bản nháp <span className="font-bold text-slate-900 dark:text-white">{statusCounts.draft} ({statusCounts.total > 0 ? Math.round((statusCounts.draft / statusCounts.total) * 100) : 0}%)</span>
+src/app/dashboard/education\finance\page.tsx:2063:                          style={{ width: `${Math.min(item.percent, 100)}%` }}
+src/app/dashboard/education\finance\page.tsx:2815:                      const pInvoiced = periodInvoices.reduce((acc, cur) => acc + cur.netAmount, 0);
+src/app/dashboard/education\finance\page.tsx:2816:                      const pPaid = periodInvoices.reduce((acc, cur) => acc + (cur.paidAmount || 0), 0);
+src/app/dashboard/education\finance\page.tsx:2817:                      const pDebt = periodInvoices.reduce((acc, cur) => acc + (cur.outstandingAmount || 0), 0);
+src/app/dashboard/education\finance\page.tsx:2818:                      const rate = pInvoiced > 0 ? Math.round((pPaid / pInvoiced) * 100) : 0;
+src/app/dashboard/education\teachers\page.tsx:400:            style={{ width: `${Math.min(100, teacher.loadPercent)}%` }}
+src/app/dashboard/education\teachers\page.tsx:557:  const [toastMessage, setToastMessage] = useState<string | null>(null);
+src/app/dashboard/education\teachers\page.tsx:564:    const timer = setTimeout(() => setToastMessage(null), 4000);
+src/app/dashboard/education\teachers\page.tsx:639:            onClick={() => setToastMessage(null)}
+src/app/dashboard/education\teachers\page.tsx:969:                  style={{ width: `${Math.min(100, selectedTeacherForProfile.loadPercent)}%` }}
+src/app/dashboard/education\teachers\page.tsx:1083:                const workloadHours = Math.min(45, Math.max(0, Number(formData.get('workloadHours')) || 30));
+src/app/dashboard/education\teachers\page.tsx:1093:                const loadPercent = Math.min(100, Math.round((workloadHours / 40) * 100));
+src/app/dashboard/education\teachers\page.tsx:1127:                setToastMessage(`Đã thêm thành công hồ sơ giáo viên: ${name}!`);
+src/app/dashboard/education\teachers\page.tsx:1337:                setToastMessage(`Đã cập nhật phân công giảng dạy cho ${selectedTeacherForAssign.name}!`);
+src/app/dashboard/education\facilities\page.tsx:89:const DEFAULT_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+src/app/dashboard/education\facilities\page.tsx:90:const DEFAULT_INSPECTOR_ID = '00000000-0000-0000-0000-000000000071';
+src/app/dashboard/education\facilities\page.tsx:112:const INITIAL_DEMO_ASSETS: readonly AssetTableItem[] = [
+src/app/dashboard/education\facilities\page.tsx:187:  const [actionMessage, setActionMessage] = useState<string | null>(null);
+src/app/dashboard/education\facilities\page.tsx:224:      const facs = await facRepo.listFacilities(DEFAULT_TENANT_ID);
+src/app/dashboard/education\facilities\page.tsx:228:      const zList = await facRepo.listZones(DEFAULT_TENANT_ID);
+src/app/dashboard/education\facilities\page.tsx:232:      const aList = await facRepo.listAssets(DEFAULT_TENANT_ID);
+src/app/dashboard/education\facilities\page.tsx:237:        const iList = await facRepo.listInspectionLogs(DEFAULT_TENANT_ID, zList[0].id);
+src/app/dashboard/education\facilities\page.tsx:240:        const avail = await zoneService.getZoneAvailability(DEFAULT_TENANT_ID, zList[0].id);
+src/app/dashboard/education\facilities\page.tsx:243:        const jobs = await facRepo.listMaintenanceJobs(DEFAULT_TENANT_ID, zList[0].id);
+src/app/dashboard/education\facilities\page.tsx:252:      const excs = await exceptionService.getStaffWorkQueueExceptions(DEFAULT_TENANT_ID);
+src/app/dashboard/education\facilities\page.tsx:268:    setActionMessage(null);
+src/app/dashboard/education\facilities\page.tsx:270:      await supabase.from('edu_fac_maintenance_jobs').delete().eq('tenant_id', DEFAULT_TENANT_ID);
+src/app/dashboard/education\facilities\page.tsx:271:      await supabase.from('edu_fac_inspection_logs').delete().eq('tenant_id', DEFAULT_TENANT_ID);
+src/app/dashboard/education\facilities\page.tsx:272:      await supabase.from('edu_fac_out_of_service_logs').delete().eq('tenant_id', DEFAULT_TENANT_ID);
+src/app/dashboard/education\facilities\page.tsx:273:      await supabase.from('edu_comm_exceptions').delete().eq('tenant_id', DEFAULT_TENANT_ID);
+src/app/dashboard/education\facilities\page.tsx:275:      let facList = await facRepo.listFacilities(DEFAULT_TENANT_ID);
+src/app/dashboard/education\facilities\page.tsx:279:          tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\facilities\page.tsx:286:      let zList = await facRepo.listZones(DEFAULT_TENANT_ID);
+src/app/dashboard/education\facilities\page.tsx:290:          tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\facilities\page.tsx:299:        await facRepo.updateZoneStatus(DEFAULT_TENANT_ID, zone.id, 'OPERATIONAL', 'ZONE');
+src/app/dashboard/education\facilities\page.tsx:302:      let aList = await facRepo.listAssets(DEFAULT_TENANT_ID);
+src/app/dashboard/education\facilities\page.tsx:306:          tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\facilities\page.tsx:316:        await facRepo.updateAssetStatus(DEFAULT_TENANT_ID, asset.id, 'OPERATIONAL', 'ZONE', new Date().toISOString());
+src/app/dashboard/education\facilities\page.tsx:319:      setActionMessage('✅ Đã khởi tạo Cơ sở vật chất, Khu vui chơi ngoài trời & Thiết bị mẫu thành công!');
+src/app/dashboard/education\facilities\page.tsx:324:      setActionMessage(`❌ Lỗi khởi tạo cơ sở vật chất: ${extractErrorMessage(errorObj)}`);
+src/app/dashboard/education\facilities\page.tsx:333:    setActionMessage(null);
+src/app/dashboard/education\facilities\page.tsx:340:      const refreshedAssets = await facRepo.listAssets(DEFAULT_TENANT_ID);
+src/app/dashboard/education\facilities\page.tsx:341:      const refreshedZones = await facRepo.listZones(DEFAULT_TENANT_ID);
+src/app/dashboard/education\facilities\page.tsx:350:        tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\facilities\page.tsx:353:        inspectorPartyId: DEFAULT_INSPECTOR_ID,
+src/app/dashboard/education\facilities\page.tsx:364:        tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\facilities\page.tsx:369:        reportedByPartyId: DEFAULT_INSPECTOR_ID,
+src/app/dashboard/education\facilities\page.tsx:372:      setActionMessage('⚠️ Phát hiện Sự cố An toàn Critical! Thiết bị & Khu vui chơi đã bị OUT OF SERVICE ➔ Cảnh báo SAFETY_DEFECT đã gửi sang Exception Work Queue!');
+src/app/dashboard/education\facilities\page.tsx:377:      setActionMessage(`❌ Lỗi báo cáo sự cố an toàn: ${extractErrorMessage(errorObj)}`);
+src/app/dashboard/education\facilities\page.tsx:386:      setActionMessage('⚠️ Không có Work Order bảo trì nào đang hoạt động!');
+src/app/dashboard/education\facilities\page.tsx:390:    setActionMessage(null);
+src/app/dashboard/education\facilities\page.tsx:394:        DEFAULT_TENANT_ID,
+src/app/dashboard/education\facilities\page.tsx:401:      await zoneService.markUnderInspection(DEFAULT_TENANT_ID, entityType, entityId);
+src/app/dashboard/education\facilities\page.tsx:403:      setActionMessage('🛠️ Đã hoàn thành Work Order bảo trì! Trạng thái chuyển sang UNDER_INSPECTION ➔ Cần Kiểm định An toàn trước khi đưa vào vận hành!');
+src/app/dashboard/education\facilities\page.tsx:408:      setActionMessage(`❌ Lỗi hoàn thành bảo trì: ${extractErrorMessage(errorObj)}`);
+src/app/dashboard/education\facilities\page.tsx:418:    setActionMessage(null);
+src/app/dashboard/education\facilities\page.tsx:424:        tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\facilities\page.tsx:427:        inspectorPartyId: DEFAULT_INSPECTOR_ID,
+src/app/dashboard/education\facilities\page.tsx:436:      setActionMessage('✅ Kiểm định An toàn ĐẠT CHUẨN (PASS)! Thiết bị & Khu vui chơi đã KHÔI PHỤC trạng thái OPERATIONAL!');
+src/app/dashboard/education\facilities\page.tsx:441:      setActionMessage(`❌ Lỗi tái kiểm định an toàn: ${extractErrorMessage(errorObj)}`);
+src/app/dashboard/education\facilities\page.tsx:450:    setActionMessage(null);
+src/app/dashboard/education\facilities\page.tsx:453:        tenantId: DEFAULT_TENANT_ID,
+src/app/dashboard/education\facilities\page.tsx:455:        resolvedBy: DEFAULT_INSPECTOR_ID,
+src/app/dashboard/education\facilities\page.tsx:459:      setActionMessage('ℹ️ Đã đóng Exception trong Work Queue! (Lưu ý: Luật An Toàn — Thiết bị VẪN GIỮ trạng thái OUT_OF_SERVICE cho đến khi hoàn thành sửa chữa & kiểm định lại!)');
+src/app/dashboard/education\facilities\page.tsx:463:      setActionMessage(`❌ Lỗi xử lý Exception: ${extractErrorMessage(errorObj)}`);
+src/app/dashboard/education\facilities\page.tsx:473:    const list: AssetTableItem[] = [...INITIAL_DEMO_ASSETS];
+src/app/dashboard/education\facilities\page.tsx:658:              onClick={() => setActionMessage(null)}
+src/app/dashboard/education\facilities\page.tsx:1471:                    onClick={() => setActionMessage('📥 Đang tải: Biểu mẫu báo cáo sự cố an toàn.pdf')}
+src/app/dashboard/education\facilities\page.tsx:1490:                    onClick={() => setActionMessage('📥 Đang tải: Biểu mẫu yêu cầu bảo trì.docx')}
+src/app/dashboard/education\facilities\page.tsx:1509:                    onClick={() => setActionMessage('📥 Đang tải: Danh mục kiểm định định kỳ.xlsx')}
+src/app/dashboard/education\facilities\page.tsx:1768:                  setActionMessage(`✅ Đã thêm tài sản &quot;${newAssetName || 'Tài sản mới'}&quot; vào danh mục thành công!`);
+src/app/dashboard/education\enrollments\page.tsx:551:  return `${Math.max(age, 0)} tuổi`;
+src/app/dashboard/education\enrollments\page.tsx:616:  const [toastMessage, setToastMessage] = useState<string | null>(null);
+src/app/dashboard/education\enrollments\page.tsx:634:    const timer = setTimeout(() => setToastMessage(null), 3500);
+src/app/dashboard/education\enrollments\page.tsx:645:        const response = await fetch('/api/education/enrollments', { method: 'GET' });
+src/app/dashboard/education\enrollments\page.tsx:693:          // Keep current state on error, don't overwrite with stale mock data
+src/app/dashboard/education\enrollments\page.tsx:717:          fetch('/api/education/courses'),
+src/app/dashboard/education\enrollments\page.tsx:718:          fetch('/api/education/branches'),
+src/app/dashboard/education\enrollments\page.tsx:811:  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / pageSize));
+src/app/dashboard/education\enrollments\page.tsx:812:  const boundedPage = Math.min(currentPage, totalPages);
+src/app/dashboard/education\enrollments\page.tsx:889:      const response = await fetch('/api/education/enrollments', {
+src/app/dashboard/education\enrollments\page.tsx:921:      setToastMessage(`Đã tạo thành công hồ sơ ${data.student.studentCode} cho bé ${data.student.childName}`);
+src/app/dashboard/education\enrollments\page.tsx:955:    setToastMessage('Đã tải xuống danh sách học sinh (CSV)');
+src/app/dashboard/education\enrollments\page.tsx:1511:                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+src/app/dashboard/education\enrollments\page.tsx:1537:                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+src/app/dashboard/education\enrollments\page.tsx:1633:                onClick={() => setToastMessage('Tính năng nhập file Excel/CSV sẵn sàng trong cấu hình phòng đào tạo')}
+src/app/dashboard/education\enrollments\page.tsx:1735:                onClick={() => setToastMessage('Đã gửi thông báo nhắc hoàn thiện hồ sơ tới phụ huynh của 5 bé')}
+src/app/dashboard/education\enrollments\page.tsx:1787:              onClick={() => setToastMessage('Danh sách sinh nhật tháng này đã được gửi cho phòng chăm sóc & dinh dưỡng')}
+src/app/dashboard/education\enrollments\[id]\page.tsx:739:    setToastMessage(`Đã gửi lời nhắn đến phụ huynh bé thành công!`);
+src/app/dashboard/education\enrollments\[id]\page.tsx:746:  const [toastMessage, setToastMessage] = useState<string | null>(null);
+src/app/dashboard/education\enrollments\[id]\page.tsx:767:    const timer = setTimeout(() => setToastMessage(null), 3500);
+src/app/dashboard/education\enrollments\[id]\page.tsx:785:    setToastMessage(`Đã cập nhật và lưu hồ sơ bé ${editForm.name} thành công!`);
+src/app/dashboard/education\enrollments\[id]\page.tsx:1949:                onClick={() => setToastMessage(`Đã xuất phiếu thu học phí bé ${stu.name} ra file PDF!`)}
+src/app/dashboard/education\enrollments\[id]\page.tsx:2053:                onClick={() => setToastMessage(`Đang tải biên lai học phí điện tử của bé ${stu.name}...`)}
+src/app/dashboard/education\reports\page.tsx:134:  const boundedPct = Math.min(100, Math.max(0, isNaN(pct) ? 0 : pct));
+src/app/dashboard/education\reports\page.tsx:146:  const full = Math.floor(score);
+src/app/dashboard/education\reports\page.tsx:257:  function barH(val: number) { return Math.max(0, (val / MAX_VAL) * chartH); }
+src/app/dashboard/education\reports\page.tsx:328:        const res = await fetch(`/api/education/analytics?date=${encodeURIComponent(selectedDate)}`);
+src/app/dashboard/education\reports\page.tsx:393:  const financePct = invoicedGross > 0 ? Math.round((reconciledCollected / invoicedGross) * 100) : 0;

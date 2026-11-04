@@ -1,0 +1,10 @@
+{
+  "originalBranch": "feat/education-curriculum-lesson-plans",
+  "originalRevision": "a2772b9f4ecfc06e33323ba81fa035c753ddea41",
+  "currentBranch": "main",
+  "currentRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+  "originalTree": "9fcffb0c22c83d2ed3acbd94939e790e2ede12b4",
+  "currentTree": "9fcffb0c22c83d2ed3acbd94939e790e2ede12b4",
+  "trackedDiffExitCode": 0,
+  "meaning": "Checkout changed externally during the audit; identical Git trees allow reuse of source-bound local evidence. No commit/checkout/push/merge was performed by this audit."
+}

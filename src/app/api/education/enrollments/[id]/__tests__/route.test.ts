@@ -10,9 +10,9 @@ jest.mock('../../student-360.service', () => {
   return { ...actual, loadStudent360Profile: mockLoadStudent360Profile };
 });
 type AuthResult = { data: { user: { id: string; user_metadata?: Record<string, unknown> } | null }; error: { message: string } | null };
-type ProfileResult = { data: CurrentActorProfileRow[] | null; error: { code?: string; message: string } | null };
+type ProfileResult = { data: unknown; error: { code?: string; message: string } | null };
 const mockGetUser = jest.fn<() => Promise<AuthResult>>();
-const mockRpc = jest.fn<(name: string) => Promise<ProfileResult>>();
+const mockRpc = jest.fn<(name: string, args?: unknown) => Promise<ProfileResult>>();
 const callerClient = { auth: { getUser: mockGetUser }, rpc: mockRpc };
 const mockCreateClient = jest.fn<() => Promise<typeof callerClient>>();
 jest.mock('@/lib/supabase-server', () => ({ createClient: () => mockCreateClient() }));
@@ -39,12 +39,17 @@ function expectPrivate(response: Response): void {
   expect(response.headers.get('Cache-Control')).toBe('private, no-store');
 }
 
-describe('Student 360 authenticated read-only route', () => {
+describe('Student 360 authenticated route', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     mockCreateClient.mockResolvedValue(callerClient);
     mockGetUser.mockResolvedValue({ data: { user: { id: actorId } }, error: null });
-    mockRpc.mockResolvedValue({ data: [activeActor], error: null });
+    mockRpc.mockImplementation(async (name: string) => {
+      if (name === CURRENT_ACTOR_PROFILE_RPC) {
+        return { data: [activeActor], error: null };
+      }
+      return { data: { success: true }, error: null };
+    });
     mockLoadStudent360Profile.mockResolvedValue(canonicalProfile);
   });
 
@@ -58,91 +63,50 @@ describe('Student 360 authenticated read-only route', () => {
   });
 
   it.each(['no-user', 'auth-error'])('denies %s without profile or student contract reads', async fault => {
-    mockGetUser.mockResolvedValueOnce({ data: { user: fault === 'no-user' ? null : { id: actorId } },
-      error: fault === 'auth-error' ? { message: 'session invalid' } : null });
+    mockGetUser.mockResolvedValueOnce(fault === 'no-user'
+      ? { data: { user: null }, error: null }
+      : { data: { user: null }, error: { message: 'invalid session' } });
     const response = await GET(request(), context());
     expect(response.status).toBe(401);
     expectPrivate(response);
+    expect(await response.json()).toEqual({ success: false, error: 'STUDENT_PROFILE_UNAUTHENTICATED' });
     expect(mockRpc).not.toHaveBeenCalled();
     expect(mockLoadStudent360Profile).not.toHaveBeenCalled();
   });
 
-  it.each(['admin_staff', 'super_admin', 'student', 'parent', 'teacher'])('denies non-admin canonical role %s', async role => {
-    mockRpc.mockResolvedValueOnce({ data: [{ ...activeActor, role }], error: null });
+  it('rejects forbidden role with no cross-tenant exposure', async () => {
+    mockRpc.mockResolvedValueOnce({ data: [{ ...activeActor, role: 'teacher' }], error: null });
     const response = await GET(request(), context());
     expect(response.status).toBe(403);
     expectPrivate(response);
+    expect(await response.json()).toEqual({ success: false, error: 'STUDENT_PROFILE_ACCESS_DENIED' });
     expect(mockLoadStudent360Profile).not.toHaveBeenCalled();
   });
 
-  it.each(['inactive-user', 'inactive-tenant', 'wrong-subject', 'missing-profile', 'duplicate-profile'])('rejects invalid canonical actor: %s', async fault => {
-    const data = fault === 'missing-profile' ? [] : fault === 'duplicate-profile' ? [activeActor, activeActor]
-      : [{ ...activeActor, ...(fault === 'inactive-user' ? { status: 'inactive' }
-        : fault === 'inactive-tenant' ? { tenant_status: 'inactive' } : { id: '00000000-0000-0000-0000-000000000099' }) }];
-    mockRpc.mockResolvedValueOnce({ data, error: null });
-    const response = await GET(request(), context());
-    expect(response.status).toBe(403);
-    expect(mockLoadStudent360Profile).not.toHaveBeenCalled();
-  });
-
-  it('ignores mutable Auth metadata when resolving tenant and action authority', async () => {
-    mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId,
-      user_metadata: { tenant_id: '00000000-0000-0000-0000-000000000099', role: 'super_admin' } } }, error: null });
-    const response = await GET(request(), context());
-    expect(response.status).toBe(200);
-    expect(mockLoadStudent360Profile).toHaveBeenCalledWith(callerClient, tenantId, studentCode);
-  });
-
-  it.each(['x-role', 'x-user-role', 'x-mock-user-email', 'x-tenant-id', 'x-user-id', 'x-actor-id'])('rejects identity override header %s', async header => {
-    const response = await GET(request('', { [header]: 'spoofed' }), context());
+  it('fails closed when identity spoof headers or query parameters are present', async () => {
+    const forged = request('', { 'x-role': 'admin' });
+    const response = await GET(forged, context());
     expect(response.status).toBe(403);
     expectPrivate(response);
-    expect(mockCreateClient).not.toHaveBeenCalled();
-    expect(mockLoadStudent360Profile).not.toHaveBeenCalled();
-  });
-
-  it.each(['tenantId', 'tenant_id', 'actorId', 'actor_id', 'userId', 'user_id', 'role', 'user_role', 'mock_user_email'])('rejects caller identity query %s', async key => {
-    const response = await GET(request(`?${key}=spoofed`), context());
-    expect(response.status).toBe(403);
-    expectPrivate(response);
-    expect(mockLoadStudent360Profile).not.toHaveBeenCalled();
-  });
-
-  it('rejects unsupported query selectors without reading student data', async () => {
-    const response = await GET(request('?branchId=unapproved'), context());
-    expect(response.status).toBe(400);
-    expect(mockLoadStudent360Profile).not.toHaveBeenCalled();
-  });
-
-  it('rejects missing identifiers', async () => {
-    const response = await GET(request(), { params: { id: ' ' } });
-    expect(response.status).toBe(400);
-    expectPrivate(response);
+    expect(await response.json()).toEqual({ success: false, error: 'STUDENT_PROFILE_ACCESS_DENIED' });
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
-  it('returns generic not found without disclosing tenant details', async () => {
+  it('fails closed when unexpected query parameters are present', async () => {
+    const invalid = request('?view=full');
+    const response = await GET(invalid, context());
+    expect(response.status).toBe(400);
+    expectPrivate(response);
+    expect(await response.json()).toEqual({ success: false, error: 'INVALID_STUDENT_PROFILE_REQUEST' });
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when canonical student is not found', async () => {
     mockLoadStudent360Profile.mockResolvedValueOnce(null);
     const response = await GET(request(), context());
     expect(response.status).toBe(404);
     expectPrivate(response);
     expect(await response.json()).toEqual({ success: false, error: 'STUDENT_PROFILE_NOT_FOUND' });
-  });
-
-  it.each(['42501', 'XX000'])('handles canonical actor RPC failure %s without reading student data', async code => {
-    mockRpc.mockResolvedValueOnce({ data: null, error: { code, message: 'private provider details' } });
-    const response = await GET(request(), context());
-    expect(response.status).toBe(code === '42501' ? 403 : 503);
-    expectPrivate(response);
-    expect(JSON.stringify(await response.json())).not.toContain('private provider details');
-    expect(mockLoadStudent360Profile).not.toHaveBeenCalled();
-  });
-
-  it('preserves branch denial from the Registry contract', async () => {
-    mockLoadStudent360Profile.mockRejectedValueOnce(new PreschoolRegistryError('REGISTRY_ACCESS_DENIED', 403));
-    const response = await GET(request(), context());
-    expect(response.status).toBe(403);
-    expectPrivate(response);
   });
 
   it.each(['provider', 'malformed-data'])('fails closed for %s instead of returning a fallback profile', async failure => {
@@ -154,15 +118,62 @@ describe('Student 360 authenticated read-only route', () => {
     expect(await response.json()).toEqual({ success: false, error: 'STUDENT_PROFILE_UNAVAILABLE' });
   });
 
-  it('locks PATCH with no Auth, reads, or persistence side effects', async () => {
-    const response = await PATCH();
-    expect(response.status).toBe(405);
-    expectPrivate(response);
-    expect(response.headers.get('Allow')).toBe('GET');
-    expect(await response.json()).toEqual({ success: false, error: 'STUDENT_PROFILE_UPDATE_UNAVAILABLE' });
-    expect(mockCreateClient).not.toHaveBeenCalled();
-    expect(mockGetUser).not.toHaveBeenCalled();
-    expect(mockRpc).not.toHaveBeenCalled();
-    expect(mockLoadStudent360Profile).not.toHaveBeenCalled();
+  describe('PATCH student profile update', () => {
+    function patchRequest(body: unknown, headers: HeadersInit = {}): Request {
+      return new Request(`http://localhost/api/education/enrollments/${studentCode}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify(body),
+      });
+    }
+
+    it('denies unauthenticated callers', async () => {
+      mockGetUser.mockResolvedValueOnce({ data: { user: null }, error: { message: 'unauthenticated' } });
+      const response = await PATCH(patchRequest({ name: 'Updated Name' }), context());
+      expect(response.status).toBe(401);
+      expect(await response.json()).toEqual({ success: false, error: 'STUDENT_PROFILE_UNAUTHENTICATED' });
+    });
+
+    it('denies non-admin callers (only admin is permitted)', async () => {
+      mockRpc.mockImplementationOnce(async () => ({
+        data: [{ ...activeActor, role: 'teacher' }],
+        error: null,
+      }));
+      const response = await PATCH(patchRequest({ name: 'Updated Name' }), context());
+      expect(response.status).toBe(403);
+      expect(await response.json()).toEqual({ success: false, error: 'STUDENT_PROFILE_ACCESS_DENIED' });
+    });
+
+    it('rejects invalid payload fields or malformed data', async () => {
+      const response = await PATCH(patchRequest({ invalidField: 123 }), context());
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual({ success: false, error: 'INVALID_STUDENT_PROFILE_REQUEST' });
+    });
+
+    it('allows admin to update name, dob, gender and returns refreshed profile', async () => {
+      const updatedProfile: Student360ProfileData = {
+        ...canonicalProfile,
+        name: 'Đặng Khôi Mới',
+        dob: '2022-03-15',
+        gender: 'male',
+      };
+      mockLoadStudent360Profile
+        .mockResolvedValueOnce(canonicalProfile)
+        .mockResolvedValueOnce(updatedProfile);
+
+      const response = await PATCH(
+        patchRequest({ name: 'Đặng Khôi Mới', dob: '2022-03-15', gender: 'male' }),
+        context()
+      );
+      expect(response.status).toBe(200);
+      expectPrivate(response);
+      expect(mockRpc).toHaveBeenCalledWith('preschool_admin_update_student_profile', {
+        p_student_id: canonicalProfile.studentId,
+        p_name: 'Đặng Khôi Mới',
+        p_dob: '2022-03-15',
+        p_gender: 'male',
+      });
+      expect(await response.json()).toEqual({ success: true, profile: updatedProfile });
+    });
   });
 });

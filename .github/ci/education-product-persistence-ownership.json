@@ -1,0 +1,6 @@
+{
+  "product": "bella_preschool",
+  "adapter": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.persistence.ts",
+  "rpc": "preschool_save_weekly_menu",
+  "tables": ["public.edu_weekly_menus", "public.edu_weekly_menu_days"]
+}
