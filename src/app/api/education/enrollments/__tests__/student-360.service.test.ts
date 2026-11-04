@@ -55,7 +55,7 @@ describe('Student 360 caller-authorized public contract composition', () => {
     mockHistory.mockRejectedValue(new Error('attendance unavailable'));
     expect(await loadStudent360Identity(callerClient, tenantId, student().id)).toEqual(student());
     expect(PreschoolRegistryContractImpl).toHaveBeenCalledWith(callerClient);
-    expect(AttendanceContractImpl).not.toHaveBeenCalled();
+    expect(PreschoolStudentAttendanceHistoryContractImpl).not.toHaveBeenCalled();
     expect(mockHistory).not.toHaveBeenCalled();
   });
 
