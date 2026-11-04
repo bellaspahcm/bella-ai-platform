@@ -41,7 +41,7 @@ test('fixed SQL proves public and Storage operations inside a rollback boundary'
   assert.match(sql, /lock_timeout='5s'/);
   assert.doesNotMatch(sql, /ALTER.*OWNER|GRANT .* TO postgres|CREATE ROLE|SET ROLE/i);
   const failed = buildRehearsalSql('DO $$ BEGIN NULL; END $$;', true);
-  assert.match(failed, /RAISE EXCEPTION 'BDGF_REHEARSAL_EXPECTED_ROLLBACK'/);
+  assert.match(failed, /RAISE EXCEPTION USING ERRCODE='ZB002', MESSAGE='BDGF_REHEARSAL_EXPECTED_ROLLBACK'/);
   assert.doesNotMatch(failed, /EXCEPTION WHEN (OTHERS|SQLSTATE 'P0001')/);
   assert.throws(() => buildRehearsalSql('$catalog_delta$'), /delimiter/);
 });

@@ -150,7 +150,7 @@ BEGIN
        OR NOT EXISTS(select 1 from storage.buckets where id='${PROBE_BUCKET}' and not public) THEN
       RAISE EXCEPTION 'Owner DDL/DML read-back failed';
     END IF;
-    ${fail ? "RAISE EXCEPTION 'BDGF_REHEARSAL_EXPECTED_ROLLBACK';" : "RAISE EXCEPTION USING ERRCODE='ZB001', MESSAGE='BDGF_REHEARSAL_ROLLBACK';"}
+    ${fail ? "RAISE EXCEPTION USING ERRCODE='ZB002', MESSAGE='BDGF_REHEARSAL_EXPECTED_ROLLBACK';" : "RAISE EXCEPTION USING ERRCODE='ZB001', MESSAGE='BDGF_REHEARSAL_ROLLBACK';"}
   EXCEPTION WHEN SQLSTATE 'ZB001' THEN NULL;
   END;
   ${securitySnapshot} INTO after_state;
@@ -240,7 +240,7 @@ export async function rehearseOwnerDdl() {
       });
       const operation = () => executeMigrationWithAuthorization({ approval_id: approval.approval_id,
         migration_content: sql, target_environment: 'dev', target_schema: null, executor_identity: 'postgres' });
-      if (fail) await assert.rejects(operation, error => error.failed === true && error.message.includes('BDGF_REHEARSAL_EXPECTED_ROLLBACK'));
+      if (fail) await assert.rejects(operation, error => error.failed === true && error.details?.code === 'ZB002');
       else assert.equal((await operation()).status, 'SUCCESS');
       const tokens = await db.query('select nonce,status,used_at from public.bella_gate_tokens where approval_id=$1', [approval.approval_id]);
       assert.equal(tokens.rowCount, 1); assert.equal(tokens.rows[0].status, 'used'); assert.ok(tokens.rows[0].used_at);

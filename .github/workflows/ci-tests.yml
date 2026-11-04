@@ -222,10 +222,17 @@ jobs:
         id: preschool-profile
         env:
           BASE_REF: ${{ steps.migration-base.outputs.base }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
         shell: bash
         run: |
-          changed="$(git diff --name-only "$BASE_REF...HEAD" -- supabase/migrations)"
-          acceptance_control_changed="$(git diff --name-only "$BASE_REF...HEAD" -- scripts/ci/preschool-browser-profile/accept.ps1)"
+          candidate_ref="${PR_HEAD_SHA:-HEAD}"
+          if ! printf '%s' "$candidate_ref" | grep -Eq '^(HEAD|[0-9a-f]{40})$'; then
+            echo 'PRESCHOOL_PROFILE_CANDIDATE_REVISION_INVALID' >&2
+            exit 1
+          fi
+          git rev-parse --verify "$candidate_ref^{commit}" > /dev/null
+          changed="$(git diff --name-only "$BASE_REF...$candidate_ref" -- supabase/migrations)"
+          acceptance_control_changed="$(git diff --name-only "$BASE_REF...$candidate_ref" -- scripts/ci/preschool-browser-profile/accept.ps1)"
           teacher_profile_migration=false
           unexpected_migration=false
           profile_migrations="$(node -e '
