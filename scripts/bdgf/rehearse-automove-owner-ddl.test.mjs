@@ -41,7 +41,7 @@ test('fixed SQL proves public and Storage operations inside a rollback boundary'
   assert.match(sql, /lock_timeout='5s'/);
   assert.doesNotMatch(sql, /ALTER.*OWNER|GRANT .* TO postgres|CREATE ROLE|SET ROLE/i);
   const failed = buildRehearsalSql('DO $$ BEGIN NULL; END $$;', true);
-  assert.match(failed, /RAISE EXCEPTION 'BDGF_REHEARSAL_EXPECTED_ROLLBACK'/);
+  assert.match(failed, /RAISE EXCEPTION USING ERRCODE='ZB002', MESSAGE='BDGF_REHEARSAL_EXPECTED_ROLLBACK'/);
   assert.doesNotMatch(failed, /EXCEPTION WHEN (OTHERS|SQLSTATE 'P0001')/);
   assert.throws(() => buildRehearsalSql('$catalog_delta$'), /delimiter/);
 });
@@ -54,6 +54,18 @@ test('owner authority is real Actions metadata, never a local injected role', ()
   assert.match(source, /createApprovalRecord\(db/);
   assert.match(source, /executeMigrationWithAuthorization\(/);
   assert.doesNotMatch(source, /GITHUB_ACTIONS\s*=|ownerAuthority:|approverRole:\s*'admin'/);
+});
+
+test('E2E governance bootstrap provides an append-only audit dependency with no client grants', () => {
+  const source = readFileSync(new URL('rehearse-automove-owner-ddl.mjs', import.meta.url), 'utf8');
+  assert.match(source, /CREATE TABLE public\.bella_execution_audit\s*\(/i);
+  assert.match(source, /ALTER TABLE public\.bella_execution_audit ENABLE ROW LEVEL SECURITY/i);
+  assert.match(source, /REVOKE ALL ON public\.bella_execution_audit FROM PUBLIC,anon,authenticated/i);
+  assert.match(source, /CREATE TRIGGER bdgf_rehearsal_prevent_audit_update/i);
+  assert.match(source, /CREATE TRIGGER bdgf_rehearsal_prevent_audit_delete/i);
+  assert.match(source, /else if \(!state\.audit\)/);
+  assert.match(source, /assert\.equal\(rows\.length, 3\)/);
+  assert.match(source, /triggerState\.trigger_names/);
 });
 
 test('workflow uses exact same-repository PR SHA and E2E secrets only', () => {

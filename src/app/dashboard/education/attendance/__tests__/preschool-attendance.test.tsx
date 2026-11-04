@@ -83,8 +83,11 @@ it('retains legacy only after the server identifies an unsupported Product', asy
   catalogReply = reply({ success: false, error: 'COURSE_CATALOG_UNSUPPORTED_PRODUCT' }, 403); renderPage();
   expect(await screen.findByText('Legacy Product')).toBeVisible(); expect(gets).toHaveLength(0);
 });
-it('loads only caller-assigned classes from the attendance API when the catalog denies teacher access', async () => {
-  catalogReply = reply({ success: false, error: 'COURSE_ACCESS_DENIED' }, 403);
+it.each([
+  { status: 403, error: 'COURSE_ACCESS_DENIED', description: 'catalog denies teacher access' },
+  { status: 503, error: 'COURSE_CATALOG_UNAVAILABLE', description: 'catalog is unavailable' },
+])('loads only authorized classes from attendance API when the $description', async ({ status, error }) => {
+  catalogReply = reply({ success: false, error }, status);
   await start();
   expect(classRequests).toHaveLength(1);
   expect(new URL(classRequests[0]).searchParams.get('date')).toBe(today());

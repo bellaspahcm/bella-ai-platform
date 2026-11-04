@@ -122,9 +122,30 @@ describe('Preschool Enrollment v1 API', () => {
     const { EducationPreschoolEnrollmentError } = await import('@/platform/education/contracts/enrollment.contract');
     mockEnrollStudent.mockRejectedValue(new EducationPreschoolEnrollmentError(code));
     const response = await POST(jsonRequest(body));
-    expect(response.status).toBe(code === 'DENIED' ? 403 : code === 'INVALID_REQUEST' ? 400 : 503);
+    expect(response.status).toBe(code === 'DENIED' ? 403 : code === 'INVALID_REQUEST' ? 400 : code === 'CONFLICT' ? 409 : 503);
     expect(response.headers.get('cache-control')).toBe('private, no-store');
-    expect(JSON.stringify(await response.json())).not.toContain('42501');
+    const responseBody = await response.json();
+    expect(JSON.stringify(responseBody)).not.toContain('42501');
+    if (code === 'CONFLICT') expect(responseBody).toEqual({ success: false, error: 'ENROLLMENT_CONFLICT' });
+  });
+
+  it('maps a serialized Education conflict across a module boundary to HTTP 409', async () => {
+    mockEnrollStudent.mockRejectedValue(Object.assign(new Error('EDUCATION_PRESCHOOL_ENROLLMENT_CONFLICT'), {
+      name: 'EducationPreschoolEnrollmentError', code: 'CONFLICT',
+    }));
+    const response = await POST(jsonRequest(body));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({ success: false, error: 'ENROLLMENT_CONFLICT' });
+  });
+
+  it('preserves authorized-course rejection across a module boundary', async () => {
+    mockAuthorizeCourse.mockRejectedValue(Object.assign(new Error('ATTENDANCE_COURSE_ACCESS_DENIED'), {
+      name: 'AttendanceAccessError', status: 403, code: 'ATTENDANCE_COURSE_ACCESS_DENIED',
+    }));
+    const response = await POST(jsonRequest(body));
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ success: false, error: 'ATTENDANCE_COURSE_ACCESS_DENIED' });
+    expect(mockEnrollStudent).not.toHaveBeenCalled();
   });
 
   it.each([{ ...body, student_party_id: studentPartyId }, { ...body, request_id: requestId }, { ...body, override: true }, { ...body, requestId: 'invalid' }])('rejects invalid/duplicate selectors with zero side effects: %j', async payload => {

@@ -1,4 +1,4 @@
-import type { ICanonicalCourseCatalogContract } from '@/platform/education/contracts/canonical-course-catalog.contract';
+import type { ICanonicalPreschoolAdminCourseReadContract } from '@/platform/education/contracts/canonical-course-catalog.contract';
 import type {
   IPreschoolTeacherContract, PreschoolTeacherContext,
 } from '@/platform/education/contracts/teacher-assignment.contract';
@@ -12,7 +12,7 @@ export class PreschoolTeacherProductService {
   constructor(
     private readonly teachers: IPreschoolTeacherContract,
     private readonly branchCourses: BranchCourseAssignments,
-    private readonly catalog: ICanonicalCourseCatalogContract,
+    private readonly catalog: ICanonicalPreschoolAdminCourseReadContract,
   ) {}
 
   private assertCapability(): void {
@@ -25,7 +25,7 @@ export class PreschoolTeacherProductService {
     this.assertCapability();
     const [mappings, courses] = await Promise.all([
       this.branchCourses.listCourseAssignments(context.tenantId, context.actorId, context.branchId),
-      this.catalog.listCourses(context.tenantId),
+      this.catalog.listPreschoolAdminCourses(context.tenantId),
     ]);
     const byId = new Map(courses.map(course => [course.id, course]));
     if (mappings.some(mapping => mapping.tenant_id !== context.tenantId

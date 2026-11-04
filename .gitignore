@@ -96,3 +96,6 @@ supabase_token_*.txt
 /supabase/candidates/
 /.local-fee-ui-e2e/
 
+
+/.cache/
+

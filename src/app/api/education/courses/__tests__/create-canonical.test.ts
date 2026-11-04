@@ -8,10 +8,10 @@ const id = '00000000-0000-4000-8000-000000000005';
 const actor: CurrentActorProfileRow = { id: actorId, tenant_id: tenantId, email: 'synthetic@example.invalid', full_name: null, avatar_url: null, role: 'admin', status: 'active', tenant_status: 'active' };
 const mockAuth = jest.fn<() => Promise<{ data: { user: { id: string } | null }; error: { message: string } | null }>>();
 const mockProfile = jest.fn<() => Promise<{ data: CurrentActorProfileRow[] | null; error: { message: string; code?: string } | null }>>();
-const mockTenant = jest.fn<() => Promise<{ data: { id: string; product_key: string; status: string }; error: null }>>();
+const mockTenantPresentation = jest.fn<() => Promise<{ data: unknown; error: { code: string; message: string } | null }>>();
+const mockActorRpc = jest.fn<(name: string) => Promise<{ data: unknown; error: { code: string; message: string } | null }>>();
 const mockRpc = jest.fn<(...args: unknown[]) => Promise<{ data: unknown; error: { code: string; message: string } | null }>>();
-const mockFrom = jest.fn(() => ({ select: () => ({ eq: () => ({ maybeSingle: mockTenant }) }) }));
-const mockCreateClient = jest.fn(() => ({ auth: { getUser: mockAuth }, rpc: mockProfile, from: mockFrom }));
+const mockCreateClient = jest.fn(() => ({ auth: { getUser: mockAuth }, rpc: mockActorRpc }));
 const mockPrivileged = jest.fn(() => ({ rpc: mockRpc }));
 const mockAdminKey = jest.fn<() => string | undefined>();
 jest.mock('@/lib/supabase-server', () => ({ createClient: mockCreateClient }));
@@ -40,14 +40,16 @@ beforeEach(() => {
   jest.clearAllMocks(); mockAdminKey.mockReturnValue('synthetic-service-key');
   mockAuth.mockResolvedValue({ data: { user: { id: actorId } }, error: null });
   mockProfile.mockResolvedValue({ data: [actor], error: null });
-  mockTenant.mockResolvedValue({ data: { id: tenantId, product_key: 'bella_preschool', status: 'active' }, error: null });
+  mockTenantPresentation.mockResolvedValue({ data: [{ tenant_id: tenantId, tenant_status: 'active', name: 'Synthetic Preschool', product_key: 'bella_preschool', enabled_modules: {}, brand_theme: {}, logo_url: null }], error: null });
+  mockActorRpc.mockImplementation((name) => name === 'platform_current_actor_profile' ? mockProfile() : mockTenantPresentation());
   mockRpc.mockResolvedValue({ data: identity, error: null });
 });
 describe('approved canonical class POST boundary', () => {
   it('authenticates caller before service writer and passes only live actor/tenant', async () => {
     const response = await POST(request());
     expect(response.status).toBe(201); expect(await response.json()).toEqual({ success: true, course: identity });
-    expect(mockProfile).toHaveBeenCalledWith('platform_current_actor_profile');
+    expect(mockActorRpc).toHaveBeenNthCalledWith(1, 'platform_current_actor_profile');
+    expect(mockActorRpc).toHaveBeenNthCalledWith(2, 'platform_current_actor_tenant_presentation');
     expect(mockRpc).toHaveBeenCalledWith('edu_create_preschool_course', expect.objectContaining({ p_tenant_id: tenantId, p_actor_id: actorId, p_operation_key: operationKey, p_branch_id: branchId, p_course_code: 'SYN-01', p_title: 'Synthetic class' }));
     expect(response.headers.get('Cache-Control')).toBe('private, no-store');
   });
@@ -60,7 +62,9 @@ describe('approved canonical class POST boundary', () => {
     expect(mockCreateClient).not.toHaveBeenCalled(); expect(mockPrivileged).not.toHaveBeenCalled();
   });
   it('denies a revoked live actor before creating the trusted writer', async () => {
-    mockProfile.mockResolvedValue({ data: null, error: { code: '42501', message: 'private identity denial' } });
+    mockActorRpc.mockImplementation((name) => name === 'platform_current_actor_profile'
+      ? Promise.resolve({ data: null, error: { code: '42501', message: 'private identity denial' } })
+      : mockTenantPresentation());
     const response = await POST(request());
     expect(response.status).toBe(403);
     expect(await response.json()).toEqual({ success: false, error: 'CANONICAL_COURSE_ACCESS_DENIED' });
@@ -88,8 +92,16 @@ describe('approved canonical class POST boundary', () => {
     expect((await POST(request())).status).toBe(403); expect(mockPrivileged).not.toHaveBeenCalled();
   });
   it('denies other Product', async () => {
-    mockTenant.mockResolvedValue({ data: { id: tenantId, product_key: 'bella_english_center', status: 'active' }, error: null });
+    mockTenantPresentation.mockResolvedValue({ data: [{ tenant_id: tenantId, tenant_status: 'active', name: 'Synthetic Preschool', product_key: 'bella_english_center', enabled_modules: {}, brand_theme: {}, logo_url: null }], error: null });
     expect((await POST(request())).status).toBe(403); expect(mockPrivileged).not.toHaveBeenCalled();
+  });
+  it('does not read tenants directly and fails closed when the existing tenant presentation is unavailable', async () => {
+    mockActorRpc.mockImplementation((name) => name === 'platform_current_actor_profile' ? mockProfile()
+      : Promise.resolve({ data: null, error: { code: '42501', message: 'private tenant denial' } }));
+    const response = await POST(request());
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ success: false, error: 'CANONICAL_COURSE_ACCESS_DENIED' });
+    expect(mockPrivileged).not.toHaveBeenCalled();
   });
   it.each([null, [], {}, { ...body, tenantId }, { ...body, actorId }, { ...body, branchId: 'bad' }, { ...body, operationKey: 'bad' }, { ...body, code: '' }, { ...body, title: 'x'.repeat(201) }])('rejects malformed/forged body before privileged dependencies %#', async value => {
     expect((await POST(request(value))).status).toBe(400); expect(mockPrivileged).not.toHaveBeenCalled(); expect(mockRpc).not.toHaveBeenCalled();

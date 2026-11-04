@@ -14,13 +14,13 @@ const mockHistory = jest.fn<IEducationAttendanceContract['getAttendanceHistory']
 jest.mock('@/platform/education/contracts/preschool-registry.contract.impl', () => ({
   PreschoolRegistryContractImpl: jest.fn().mockImplementation(() => ({ read: mockRegistryRead })),
 }));
-jest.mock('@/platform/education/contracts/attendance.contract.impl', () => ({
-  AttendanceContractImpl: jest.fn().mockImplementation(() => ({ getAttendanceHistory: mockHistory })),
+jest.mock('@/platform/education/contracts/preschool-student-attendance-history.contract.impl', () => ({
+  PreschoolStudentAttendanceHistoryContractImpl: jest.fn().mockImplementation(() => ({ getAuthorizedHistory: mockHistory })),
 }));
 
 const { loadStudent360Profile } = require('../student-360.service') as typeof import('../student-360.service');
 const { PreschoolRegistryContractImpl } = require('@/platform/education/contracts/preschool-registry.contract.impl') as typeof import('@/platform/education/contracts/preschool-registry.contract.impl');
-const { AttendanceContractImpl } = require('@/platform/education/contracts/attendance.contract.impl') as typeof import('@/platform/education/contracts/attendance.contract.impl');
+const { PreschoolStudentAttendanceHistoryContractImpl } = require('@/platform/education/contracts/preschool-student-attendance-history.contract.impl') as typeof import('@/platform/education/contracts/preschool-student-attendance-history.contract.impl');
 const tenantId = 'ed100000-0000-0000-0000-000000000001';
 const callerClient = Object.freeze({ callerScoped: true }) as unknown as SupabaseClient<Database>;
 const uuid = (group: number, index: number) => `${group.toString(16).padStart(8, '0')}-0000-4000-8000-${index.toString(16).padStart(12, '0')}`;
@@ -58,7 +58,7 @@ describe('Student 360 caller-authorized public contract composition', () => {
         partyId: student().partyId, name: student().name, dob: student().dob, gender: student().gender,
         enrollments: student().enrollments, attendance: { present: 0, absent: 0, excused: 0, totalRecords: 0, records: [] } });
       expect(PreschoolRegistryContractImpl).toHaveBeenCalledWith(callerClient);
-      expect(AttendanceContractImpl).toHaveBeenCalledWith(callerClient);
+      expect(PreschoolStudentAttendanceHistoryContractImpl).toHaveBeenCalledWith(callerClient);
       expect(mockHistory).toHaveBeenCalledWith(tenantId, student().enrollments[0].id);
       expect(Object.keys(profile ?? {}).sort()).toEqual(['attendance', 'dob', 'enrollments', 'gender', 'id', 'name', 'partyId', 'studentId']);
     },
@@ -80,7 +80,7 @@ describe('Student 360 caller-authorized public contract composition', () => {
   it('returns not found only after a complete authorized empty registry', async () => {
     mockRegistryRead.mockResolvedValueOnce(page([]));
     expect(await loadStudent360Profile(callerClient, tenantId, student().id)).toBeNull();
-    expect(AttendanceContractImpl).not.toHaveBeenCalled();
+    expect(PreschoolStudentAttendanceHistoryContractImpl).not.toHaveBeenCalled();
   });
 
   it('preserves canonical null identity fields and pending enrollment', async () => {

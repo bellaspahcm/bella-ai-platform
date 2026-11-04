@@ -7,7 +7,7 @@ import {
   type PreschoolRegistryEnrollment,
   type PreschoolRegistryStudent,
 } from '@/platform/education/contracts/preschool-registry.contract';
-import { AttendanceContractImpl } from '@/platform/education/contracts/attendance.contract.impl';
+import { PreschoolStudentAttendanceHistoryContractImpl } from '@/platform/education/contracts/preschool-student-attendance-history.contract.impl';
 import type { EducationAttendanceDTO } from '@/platform/education/contracts/attendance.contract';
 
 const PAGE_SIZE = 50;
@@ -143,12 +143,12 @@ export async function loadStudent360Profile(
   if (!complete) unavailable();
   if (!student) return null;
 
-  const attendance = new AttendanceContractImpl(client);
+  const attendance = new PreschoolStudentAttendanceHistoryContractImpl(client);
   const records: Student360AttendanceRecord[] = [];
   const seenEvents = new Set<string>();
   const counts = { present: 0, absent: 0, excused: 0 };
   for (const enrollment of student.enrollments) {
-    const history = await attendance.getAttendanceHistory(tenantId, enrollment.id);
+    const history = await attendance.getAuthorizedHistory(tenantId, enrollment.id);
     if (!Array.isArray(history)) unavailable();
     if (history.length >= ATTENDANCE_HISTORY_ROW_CAP) unavailable();
     for (const event of history) {

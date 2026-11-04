@@ -1,0 +1,66 @@
+{
+  "acr": "ACR-2026-024-preschool-admin-course-read",
+  "adr": "ADR-029-preschool-admin-course-read",
+  "authority": "Direct user approval on 2026-10-28: Duyệt local/disposable",
+  "status": "APPROVED_LOCAL_DISPOSABLE_IMPLEMENTATION",
+  "automatedEnforcement": false,
+  "globalEducationState": "FROZEN",
+  "priorUnlock": "SCOPED_UNLOCK.json remains closed and is not reused",
+  "exactPaths": [
+    "src/platform/education/contracts/preschool-admin-branch-catalog.contract.ts",
+    "src/platform/education/contracts/preschool-admin-branch-catalog.contract.impl.ts",
+    "src/platform/education/contracts/__tests__/preschool-admin-branch-catalog.contract.test.ts",
+    "supabase/migrations/20261028150000_preschool_admin_branch_catalog_read.sql"
+  ],
+  "supportingPaths": [
+    "src/app/api/education/analytics/route.ts",
+    "src/app/api/education/analytics/__tests__/route.test.ts",
+    "docs/architecture/acr/ACR-2026-024-preschool-admin-course-read.md",
+    "docs/architecture/adr/ADR-029-preschool-admin-course-read.md"
+  ],
+  "initialState": {
+    "newExactPaths": "ABSENT",
+    "src/app/api/education/analytics/route.ts": "F68351D81633F502C2789E4459732487CA49385E2DCD2090B02534C188D7B599",
+    "src/app/api/education/analytics/__tests__/route.test.ts": "7793925DCB37D9079DE9B8028BFF844CA7676E9170CD92A20ABF11CF5589615D"
+  },
+  "allowedOperations": [
+    "ADD_NARROW_ACTIVE_PRESCHOOL_ADMIN_BRANCH_READ_RPC_AND_EDUCATION_CONTRACT",
+    "PRESERVE_NO_DIRECT_SELECT_ON_USERS_OR_ORG_UNITS",
+    "APPLY_AND_VERIFY_ON_DISPOSABLE_PROFILE_bella-preschool-95c70855_ONLY",
+    "UPDATE_ANALYTICS_API_TO_USE_APPROVED_CONTRACT"
+  ],
+  "allowedDatabaseTarget": "bella-preschool-95c70855",
+  "sharedDatabaseAuthorized": false,
+  "productionAuthorized": false,
+  "uiChangesAuthorized": false,
+  "commitPushMergeDeployAuthorized": false,
+  "globalManifestOrGuardChangesAllowed": false,
+  "implementationWindowOpen": false,
+  "implementationStatus": "VERIFIED_LOCAL_DISPOSABLE",
+  "closedAt": "2026-10-28",
+  "finalSha256": {
+    "src/platform/education/contracts/preschool-admin-branch-catalog.contract.ts": "7B23496B2970BFF5F15AB31505A80C71497AD368BE2D038EFF567FD46302E2CA",
+    "src/platform/education/contracts/preschool-admin-branch-catalog.contract.impl.ts": "EAB91BAF5DEB76068F1F006019C07EB2F0B73F528D998921ABA1E618CD37B96C",
+    "src/platform/education/contracts/__tests__/preschool-admin-branch-catalog.contract.test.ts": "965244EB5A3086D63B7028CD6D4F11F6C517B8CBE2814304B2551CB91D0215EC",
+    "supabase/migrations/20261028150000_preschool_admin_branch_catalog_read.sql": "1F825C1F02F47D7909B428D77150DC1F5FEFFFF209CA0B90DCD9FB0AA445B2FA"
+  },
+  "verification": {
+    "focusedTests": "10/10 PASS across 2 suites",
+    "educationArchitecture": "4/4 PASS",
+    "typeCheck": "PASS",
+    "eslint": "PASS",
+    "gitDiffCheck": "PASS",
+    "disposableDatabase": "PASS; migration applied only to bella-preschool-95c70855; no migration ledger row inserted",
+    "jwt": "PASS; synthetic active admin allowed, anon and service_role denied; direct table reads remain denied",
+    "browserReceipt": "C:/Users/DELL/AppData/Local/Bella/Preschool/DisposableProfiles/bella-preschool-95c70855/admin-dashboard-analytics-receipt.json",
+    "browserReceiptSha256": "8C2DB6C1F8FCEAD0D3D4305929A4D84050C0DA7B49A4A42DC129DBE570F804E9",
+    "localRuntime": "HTTP 200 at http://127.0.0.1:3217/dashboard/education"
+  },
+  "limitations": [
+    "No shared database or Production changes",
+    "No UI source changes",
+    "No commit, push, merge, or deploy",
+    "Full Education reseal and Preschool Go-Live remain unproven"
+  ],
+  "reseal": "BOUNDED_LOCAL_ONLY; FULL_EDUCATION_RESEAL_HELD"
+}

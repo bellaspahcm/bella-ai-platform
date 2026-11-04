@@ -4,6 +4,50 @@
   "status": "SCOPED_DISPOSABLE_PROFILE",
   "scope": "local/E2E only; schema bootstrap and acceptance preparation",
   "sourceRevisionRequired": null,
+  "approvedRuntimeOverlays": [
+    {
+      "path": "src/lib/auth/post-login-redirect.ts",
+      "sha256": "7b21394940e7813e7f8ca0bbeb371d78ad33ce64b6f0e8c2354dfa1f17f23b22",
+      "reason": "Required by the current login route in the isolated browser acceptance app."
+    },
+    {
+      "path": "src/platform/education/contracts/preschool-admin-branch-catalog.contract.ts",
+      "sha256": "7b23496b2970bff5f15ab31505a80c71497ad368be2d038eff567fd46302e2ca",
+      "reason": "Required by the current Preschool attendance authorization path."
+    },
+    {
+      "path": "src/platform/education/contracts/preschool-admin-branch-catalog.contract.impl.ts",
+      "sha256": "eab91baf5deb76068f1f006019c07eb2f0b73f528d998921aba1e618cd37b96c",
+      "reason": "Required by the current Preschool attendance authorization path."
+    },
+    {
+      "path": "src/platform/education/contracts/preschool-student-attendance-history.contract.ts",
+      "sha256": "dfcab44ac26024bd887ec41920a1ab170028f39c6f1c8b1f7f0777e7e67154cd",
+      "reason": "Required to resolve imports from the modified student profile service overlaid into the isolated app; not exercised by the attendance acceptance."
+    },
+    {
+      "path": "src/platform/education/contracts/preschool-student-attendance-history.contract.impl.ts",
+      "sha256": "0b814934fc377f03639a90c83cee3e50345b39ba6fc3e23b19ea82bf79e20f78",
+      "reason": "Required to resolve imports from the modified student profile service overlaid into the isolated app; not exercised by the attendance acceptance."
+    },
+    {
+      "path": "src/app/api/education/enrollments/route.ts",
+      "sha256": "d819489e002b32cfcdb69191379f02f944b6caad8afb440ce4423b25c37b0acb",
+      "reason": "Carries the existing enrollment contract conflict to HTTP 409 for the disposable admission acceptance."
+    },
+    {
+      "path": "src/platform/education/contracts/enrollment.contract.impl.ts",
+      "sha256": "dfefe1c97c4be4561bdf08f763ee36590ac7e05407b55c69130542a7a8c186cb",
+      "reason": "Uses the existing Platform self-profile RPC instead of a direct public.users read."
+    }
+  ],
+  "approvedTestOverlays": [
+    {
+      "path": "src/products/bella-education/__tests__/preschool-admission-real-db.test.ts",
+      "sha256": "3e5fba280df8a33c9a80f3581cc1c2a545e4b0e8fee432dc5ba8edaf061ac6b7",
+      "reason": "Uses the profile-reported loopback API/database ports while refusing any non-loopback or mismatched test target."
+    }
+  ],
   "notAFullReplay": true,
   "isolation": {
     "derivedFrom": "scripts/ci/preschool-t1-fixture.sh",
@@ -119,6 +163,12 @@
       "sha256": "0dee7a5cf8c8d327380ff638c600871674dfa767b275f7a02d65f50288591314"
     },
     {
+      "profileVersion": "20260909000052",
+      "source": "supabase/migrations/20260909000052_p42_daily_care_operations.sql",
+      "sha256": "edad559754e3ad55bd4d3a844a802089535978528da9dbfce43cb16326234ec3",
+      "dependencyReason": "Creates the isolated Daily Care tables required by the canonical student-party projection and the authorization/save migration below."
+    },
+    {
       "profileVersion": "20260912000001",
       "source": "scripts/ci/preschool-browser-profile/20260912000001_preschool_student_party_id_schema_projection.sql",
       "sha256": "a72c5e4940ab5ed22c7f9435882d104e3d088eb97c6e882e9b8e04c3521d57f7",
@@ -171,6 +221,18 @@
       "sha256": "1e0c2f73be37c8ce5d0ba3291e3126ab53afb3b5f77b7c1929f28f73232e16c4"
     },
     {
+      "profileVersion": "20260927030000",
+      "source": "supabase/migrations/20260927030000_preschool_safe_pickup_handover_events.sql",
+      "sha256": "0e9075391723954e4c30dad48e18b7e2458f5f9d6aea381500af3663db09abc2",
+      "dependencyReason": "The existing Preschool attendance read route loads safe-pickup handover history for the authorized roster; this canonical migration creates its source table and RLS policy for the disposable profile only."
+    },
+    {
+      "profileVersion": "20260927040000",
+      "source": "supabase/migrations/20260927040000_preschool_daily_care_canonical_student_party.sql",
+      "sha256": "65edc03c2f3d1267b791221823fc91a602d0298418ea8e2db6f9bebea265b6b4",
+      "dependencyReason": "Adds canonical Student Party identity to Daily Care records; required by the authenticated Daily Care boundary."
+    },
+    {
       "profileVersion": "20261006010000",
       "source": "supabase/migrations/20261006010000_preschool_chain_assignments.sql",
       "sha256": "1ec3626f746fd10b3e7a343fa2be128ac5ea6406e68274e4422d7b6414cf501a"
@@ -205,6 +267,12 @@
       "source": "supabase/migrations/20261019060000_platform_current_actor_read_contract.sql",
       "sha256": "e390ba5769768c532915d55eb931351088feec8563693a453827e18bca2daf20",
       "dependencyReason": "The selected Auth-Party migration resolves the signed-in caller through this Platform-owned contract; replay it byte-for-byte after its org-unit access dependency."
+    },
+    {
+      "profileVersion": "20261023030000",
+      "source": "supabase/migrations/20261023030000_preschool_scoped_attendance_command.sql",
+      "sha256": "8fc2d1944bdb6861a0a3b73c8755005e2b4d42c9aba1ef79cc34cedae5201913",
+      "dependencyReason": "The existing Education public attendance-command contract calls this Preschool RPC; the disposable profile must replay its canonical definition and service-role-only grant before testing admin writes."
     },
     {
       "profileVersion": "20261023040000",
@@ -284,8 +352,86 @@
       "profileVersion": "20261027020000",
       "source": "supabase/migrations/20261027020000_platform_current_actor_tenant_presentation.sql",
       "sha256": "44971a66d6de39bd5e18431ef6564d8bf1d1ef3aa449f8ffb1de08a21b3925f2"
+    },
+    {
+      "profileVersion": "20261028130000",
+      "source": "supabase/migrations/20261028130000_preschool_student_registry_rpc.sql",
+      "sha256": "86ce05c99d17cc1b4e27207feda5d0a026433e3b6f8332248a8335d965f4b30f",
+      "reason": "Student 360 requires the previously approved branch-scoped Registry RPC to resolve the selected student before rendering the guardian panel."
+    },
+    {
+      "profileVersion": "20261028140000",
+      "source": "supabase/migrations/20261028140000_preschool_admin_course_catalog_read.sql",
+      "sha256": "24cc30646290185c8fcbe28cd389a722cbb3925185e1c030a0b7dbd5dbd8133f",
+      "dependencyReason": "The admin Attendance request-context uses the existing admin-only course catalog contract; grants no direct edu_courses SELECT."
+    },
+    {
+      "profileVersion": "20261028150000",
+      "source": "supabase/migrations/20261028150000_preschool_admin_branch_catalog_read.sql",
+      "sha256": "1f825c1f02f47d7909b428d77150dc1f5feffff209ca0b90dcd9fb0aa445b2fa",
+      "dependencyReason": "The admin Attendance request-context uses the existing caller-scoped authorized-branch catalog; grants no direct org_units/users SELECT."
+    },
+    {
+      "profileVersion": "20261028160000",
+      "source": "supabase/migrations/20261028160000_preschool_admin_student_attendance_history.sql",
+      "sha256": "b61ae809fa71ff51a2d98b08e7b0e89ea0c30ef91def87c93a13d96ed5735dea",
+      "dependencyReason": "The existing Student 360 page reads branch-scoped attendance history before rendering its canonical guardian panel; this migration is applied only in the disposable profile."
+    },
+    {
+      "profileVersion": "20261028170000",
+      "source": "supabase/migrations/20261028170000_preschool_g1_guardians_read.sql",
+      "sha256": "713c143a18fa6c3b0933b9a3294fd4192d8b0d5009d640bca7e8a64f7ad9eb8a",
+      "dependencyReason": "Existing G1 read contract; requires an active Preschool admin, authorized branch access and an exact enrollment-to-course-to-branch binding. No direct table grants are added."
+    },
+    {
+      "profileVersion": "20261028180000",
+      "source": "supabase/migrations/20261028180000_preschool_daily_care_authorization_and_save.sql",
+      "sha256": "9fb05dd6caeb13e6af5b3ad7a07c68eec7e878160c0e494ae23e326894488cbb",
+      "dependencyReason": "Enforces current-actor tenant, active-enrollment, branch and teacher authorization for Daily Care reads and saves; validated by the disposable profile's real-JWT DB checks."
+    },
+    {
+      "profileVersion": "20261029100000",
+      "source": "supabase/migrations/20261029100000_preschool_single_active_class_enrollment.sql",
+      "sha256": "39f15ca867b159b935f389beda676f83dac4392e5230368c53d4adf180069491",
+      "dependencyReason": "Implements the existing authenticated Preschool enrollment contract and enforces one active/pending class per student for Preschool tenants, including direct database writes."
     }
   ],
+  "admissionProfile": {
+    "profileId": "preschool-admission-disposable-v1",
+    "scope": "local/E2E only; Preschool admission workflow",
+    "bootstrapVerifier": "scripts/ci/preschool-browser-profile/verify-admission-bootstrap.sql",
+    "profileMigrations": [
+      {
+        "profileVersion": "20260926002000",
+        "source": "supabase/migrations/20260926002000_r3_student_create_side_nullable_person_id.sql",
+        "sha256": "3bc44d2a2b49c88bf766e376f60786753b86d78b3ce4f189f76eadc0800d2482",
+        "dependencyReason": "Canonical R3 migration permits new Party-backed students to omit legacy persons/person_id while preserving nullable compatibility for existing rows; the admission DB path creates students with party_id only."
+      },
+      {
+        "profileVersion": "20261019010000",
+        "source": "supabase/migrations/20261019010000_party_registration_receipts.sql",
+        "sha256": "42ed57648a39376aaca3c934ea3f7de096f02dddd9e43806b3c49a230578662e",
+        "dependencyReason": "Admission creates child and guardian identities through the existing Platform Party receipt contract."
+      },
+      {
+        "profileVersion": "20261019020000",
+        "source": "supabase/migrations/20261019020000_preschool_admission_operations.sql",
+        "sha256": "35c093bac233c58cc84740d5e79f219d612b2c259d4f0dda2a8aacef86fcd5fb",
+        "dependencyReason": "Admission uses the existing immutable-operation table, idempotency sequence and service-only open RPC."
+      },
+      {
+        "profileVersion": "20261023120002",
+        "source": "scripts/ci/preschool-browser-profile/20261023120002_preschool_admission_open_projection.sql",
+        "sha256": "bfb58a5af44d009ba2dc529a75183849f46b5ffcd4280fe32c38e66990bb63ec",
+        "sourceMigration": "supabase/migrations/20261023120000_preschool_review_authority_and_overdue.sql",
+        "sourceMigrationSha256": "70b5f9fe174d5449e0911689b79202721b44fac6b020f91cbc765a1182ebaac2",
+        "sourceFunction": "public.preschool_open_admission(uuid,uuid,uuid,jsonb)",
+        "sourceFunctionSha256": "bec6979b23b551d0725b250888604acff82451750de6488b643522cb6ead428e",
+        "profileOnly": true,
+        "dependencyReason": "Only the current source-defined admission authorization function is projected from the mixed admission/pickup/Finance migration; unrelated functions remain excluded."
+      }
+    ]
+  },
   "explicitExclusions": [
     {
       "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
