@@ -35,20 +35,24 @@ BEGIN
     ) <> 2 THEN
         RAISE EXCEPTION 'F1 owner/security/ACL baseline differs from the approved disposable snapshot';
     END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_catalog.pg_index AS idx
+        JOIN pg_catalog.pg_class AS index_class ON index_class.oid = idx.indexrelid
+        JOIN pg_catalog.pg_namespace AS index_namespace ON index_namespace.oid = index_class.relnamespace
+        WHERE index_namespace.nspname = 'public'
+          AND index_class.relname = 'uq_finance_outbox_f2_v2_semantic_identity'
+          AND idx.indrelid = 'public.finance_outbox_events'::regclass
+          AND idx.indisunique
+          AND idx.indisvalid
+          AND idx.indisready
+    ) THEN
+        RAISE EXCEPTION 'F2 bridge requires a valid semantic identity index from its online pre-migration'
+            USING ERRCODE = 'F2044';
+    END IF;
 END;
 $preflight$;
-
-CREATE UNIQUE INDEX uq_finance_outbox_f2_v2_semantic_identity
-    ON public.finance_outbox_events (
-        tenant_id,
-        event_type,
-        ((payload::jsonb ->> 'transaction_id'))
-    )
-    WHERE event_type IN (
-        'finance.transaction.posted.v2',
-        'finance.transaction.reversed.v2'
-    )
-      AND event_id IS NOT NULL;
 
 CREATE FUNCTION public.finance_f2_emit_v2_from_f1_v1()
 RETURNS trigger

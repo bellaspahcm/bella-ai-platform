@@ -50,7 +50,8 @@ for (const item of cases) {
     if (item.manifestMode === 'type') manifestData.tables = 'public.edu_weekly_menus';
     if (item.manifestMode !== 'missing') {
       const serialized = JSON.stringify(manifestData);
-      writeFileSync(manifest, item.manifestMode === 'duplicate' ? serialized.replace('{', '{"rpc":"other",') : serialized);
+      const duplicateManifest = '{"rpc":"other",' + serialized.slice(1);
+      writeFileSync(manifest, item.manifestMode === 'duplicate' ? duplicateManifest : serialized);
     }
     const result = spawnSync(process.execPath, [scanner], {
       cwd: fixture, encoding: 'utf8',

@@ -143,6 +143,7 @@ F1 function definitions, owner, `SECURITY DEFINER`, ACL, effective `EXECUTE`, an
 | Minimal F2 dependency closure | `PASS` — existing migrations `20260816000000`, `20260816005000`, `20260816010000`, `20260816021000`, `20260816022000`, and `20260816040000` applied atomically on this disposable DB; legacy `20260816020000_finance_ledger_emit_v2_events.sql` intentionally excluded because it changes the F1 v1 event path |
 | F1 catalog before/after | `PASS` — full definition/body fingerprints, owner, `SECURITY DEFINER`, `proconfig`, ACL, and effective `EXECUTE` match before/after; the two frozen RPCs remain byte-identical at the catalog fingerprint level |
 | F2 bridge migration | `PASS` — `20261103100000_finance_f2_v1_v2_compatibility_bridge.sql` applied atomically to the verified disposable DB |
+| PR #479 online-index split | `PENDING` — the existing outbox index is now a separate `CREATE UNIQUE INDEX CONCURRENTLY` migration; re-seal only after the revised migration path passes Real DB E2E |
 | Worker shared-command test | `PASS` |
 | DB integration checks | `PASS` — 5/5 tests: worker routing, canonical v1→v2 projection, tenant mismatch, idempotent replay/concurrency, reversal lineage/fail-closed, rollback, and restricted command execution |
 | Bridge command boundary | `PASS` — owner `postgres`, `SECURITY DEFINER`, fixed `search_path=pg_catalog, public`; `EXECUTE` only for `service_role`; `anon` and `authenticated` denied |

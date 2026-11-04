@@ -19,11 +19,34 @@ function docker(args, input) {
   return r.stdout.trim();
 }
 function sql(input) { return docker(['exec', '-i', container, 'psql', '-U', 'postgres', '-d', 'postgres', '-X', '-v', 'ON_ERROR_STOP=1', '-t', '-A'], input); }
+function isLocalTcpPortOpen(port) {
+  return new Promise(resolve => {
+    let settled = false;
+    const socket = net.createConnection({ host: '127.0.0.1', port });
+    const finish = open => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      socket.destroy();
+      resolve(open);
+    };
+    const timer = setTimeout(() => finish(false), 1000);
+    socket.once('connect', () => finish(true));
+    socket.once('error', () => finish(false));
+  });
+}
+function localProbeTarget(url) {
+  const target = new URL(url);
+  if (!['localhost', '127.0.0.1', '::1', '[::1]'].includes(target.hostname)) {
+    throw new Error('NON_LOCAL_PROBE_TARGET');
+  }
+  return target;
+}
 function probeWebSocket(url) {
   return new Promise(resolve => {
     let settled = false;
     const finish = value => { if (!settled) { settled = true; clearTimeout(timer); resolve(value); } };
-    const target = new URL(url);
+    const target = localProbeTarget(url);
     const socket = new WebSocket(url, { origin: `http://${target.host}` });
     const timer = setTimeout(() => { socket.terminate(); finish({ result: 'TIMEOUT' }); }, 3000);
     socket.once('open', () => { socket.close(); finish({ result: 'UPGRADED' }); });
@@ -37,7 +60,7 @@ function probeWebSocket(url) {
 }
 function probeRawHandshake(url) {
   return new Promise(resolve => {
-    const target = new URL(url);
+    const target = localProbeTarget(url);
     const socket = net.createConnection({ host: target.hostname, port: Number(target.port) });
     let data = Buffer.alloc(0);
     const timer = setTimeout(() => { socket.destroy(); resolve('TIMEOUT'); }, 2000);
@@ -74,7 +97,7 @@ async function main() {
   if (status.status !== 0) throw new Error('LOCAL_STATUS_FAILED');
   const cfg = JSON.parse(status.stdout);
   if (cfg.API_URL !== 'http://127.0.0.1:32314') throw new Error('LOCAL_API_MISMATCH');
-  const check = await fetch('http://127.0.0.1:3002', { signal: AbortSignal.timeout(1500) }).then(() => true).catch(() => false);
+  const check = await isLocalTcpPortOpen(3002);
   if (check) throw new Error('LOCAL_PORT_OCCUPIED');
   const admin = createClient(cfg.API_URL, cfg.SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
   const email = `f09-browser-${randomUUID()}@example.invalid`;
@@ -86,26 +109,31 @@ async function main() {
     if (created.error || !created.data.user) throw new Error('AUTH_CREATE_FAILED');
     userId = created.data.user.id;
     sql(`INSERT INTO public.users(id,email,full_name,role,status,tenant_id) VALUES ('${userId}','${email}','F09 browser fixture','admin','active','${tenant}');`);
-    const env = {};
+    const env = Object.create(null);
     for (const key of ['PATH','Path','SystemRoot','SYSTEMROOT','WINDIR','COMSPEC','PATHEXT','TEMP','TMP','USERPROFILE','APPDATA','LOCALAPPDATA']) if (process.env[key]) env[key] = process.env[key];
     for (const file of ['.env', '.env.local', '.env.development', '.env.development.local']) {
       if (existsSync(file)) for (const key of Object.keys(dotenv.parse(readFileSync(file)))) env[key] = '';
     }
-    Object.assign(env, { NODE_ENV: 'development', NEXT_TELEMETRY_DISABLED: '1', NEXT_PUBLIC_SUPABASE_URL: cfg.API_URL,
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: cfg.ANON_KEY, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: cfg.ANON_KEY,
-      SUPABASE_URL: cfg.API_URL, SUPABASE_SERVICE_ROLE_KEY: cfg.SERVICE_ROLE_KEY, SUPABASE_SECRET_KEY: cfg.SERVICE_ROLE_KEY });
+    env.NODE_ENV = 'development';
+    env.NEXT_TELEMETRY_DISABLED = '1';
+    env.NEXT_PUBLIC_SUPABASE_URL = cfg.API_URL;
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY = cfg.ANON_KEY;
+    env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = cfg.ANON_KEY;
+    env.SUPABASE_URL = cfg.API_URL;
+    env.SUPABASE_SERVICE_ROLE_KEY = cfg.SERVICE_ROLE_KEY;
+    env.SUPABASE_SECRET_KEY = cfg.SERVICE_ROLE_KEY;
     // Match the repository's `npm run dev` bundler selection; on this Next 16
     // version that means the default Turbopack HMR path, not forced Webpack.
     server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'dev', '-p', '3002'], { env, windowsHide: true, stdio: 'ignore' });
     const deadline = Date.now() + 120000;
     let ready = false;
     while (Date.now() < deadline && server.exitCode === null) {
-      ready = await fetch('http://127.0.0.1:3002/login', { signal: AbortSignal.timeout(10000) }).then(r => r.ok).catch(() => false);
+      ready = await isLocalTcpPortOpen(3002);
       if (ready) break;
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
     if (!ready) throw new Error('LOCAL_APP_NOT_READY');
-    console.log('PASS LOCAL_APP_READY');
+    console.log('PASS LOCAL_APP_LISTENING');
     browser = await chromium.launch({ headless: true, args: ['--no-proxy-server'] });
     const page = await browser.newPage({ baseURL: 'http://localhost:3002', locale: 'vi-VN' });
     const diagnostics = { csp: 0, scriptFailures: 0, pageErrors: 0, consoleErrorMessages: [], nextAssetStatuses: [], hmrCreated: 0, hmrHandshakeStatus: null, hmrFailure: null, hmrUrl: null };
@@ -134,7 +162,9 @@ async function main() {
       if (message.type() === 'error') diagnostics.consoleErrorMessages.push(message.text().replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, '[REDACTED_TOKEN]').replace(/(Bearer\s+)\S+/gi, '$1[REDACTED]').slice(0, 240));
     });
     page.on('requestfailed', request => { if (request.url().includes('/_next/')) diagnostics.scriptFailures++; });
-    await page.goto('/login', { waitUntil: 'domcontentloaded', timeout: 60000 });
+    const loginPageResponse = await page.goto('/login', { waitUntil: 'domcontentloaded', timeout: 60000 });
+    if (!loginPageResponse || loginPageResponse.status() >= 400) throw new Error('LOCAL_LOGIN_PAGE_FAILED');
+    console.log('PASS LOCAL_LOGIN_PAGE_READY');
     await page.waitForTimeout(5000);
     const dom = await page.evaluate(() => {
       const nodes = [...document.querySelectorAll('*')];
@@ -165,7 +195,6 @@ async function main() {
       console.log('LOGIN_DIAGNOSTICS ' + JSON.stringify({
         invalidCredentials: /invalid login credentials/i.test(body),
         missingConfig: /Supabase chưa được cấu hình/i.test(body),
-        mfa: /mã xác minh|2 lớp/i.test(body),
         failedFetch: /failed to fetch|network request failed/i.test(body),
       }));
       throw new Error('BROWSER_LOGIN_NOT_COMPLETED');
