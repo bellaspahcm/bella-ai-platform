@@ -55,3 +55,12 @@ e4d495f885b0dee3b40dffa27e43e30679ba931b:docs/audits/preschool-full-audit-202610
 # PR #455: SHA-256 file integrity hash in audit verification manifest (not a credential).
 # Exact historical finding only; no path-wide or rule-wide suppression.
 fc434c2df861b9f9a38a607db66447c0768a76c2:docs/audits/preschool-full-audit-20261020/batch2b/final-verification.json:generic-api-key:21
+
+# PR #483: verified randomUUID teacher identity link record IDs, not authentication URLs or credentials.
+# Exact historical findings only; no rule, path, or whole-commit suppression.
+b202bf0cb0cb4e24e63ef219e236656f5d09dd6e:docs/audits/preschool-main-20261101/attendance-attempt1-acceptance-receipt.json:generic-api-key:361
+b202bf0cb0cb4e24e63ef219e236656f5d09dd6e:docs/audits/preschool-main-20261101/attendance-attempt1-receipt.json:generic-api-key:602
+b202bf0cb0cb4e24e63ef219e236656f5d09dd6e:docs/audits/preschool-main-20261101/attendance-attempt2-acceptance-receipt.json:generic-api-key:374
+b202bf0cb0cb4e63ef219e236656f5d09dd6e:docs/audits/preschool-main-20261101/attendance-attempt2-receipt.json:generic-api-key:615
+b202bf0cb0cb4e63ef219e236656f5d09dd6e:docs/audits/preschool-main-20261101/attendance-attempt3-acceptance-receipt.json:generic-api-key:392
+b202bf0cb0cb4e63ef219e236656f5d09dd6e:docs/audits/preschool-main-20261101/attendance-attempt3-receipt.json:generic-api-key:633

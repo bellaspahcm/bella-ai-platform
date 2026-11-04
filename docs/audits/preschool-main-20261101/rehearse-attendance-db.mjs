@@ -113,7 +113,7 @@ async function main(){
     courseA: randomUUID(), courseB: randomUUID(), courseC: randomUUID(),
     enrollmentA: randomUUID(), enrollmentB: randomUUID(), enrollmentC: randomUUID(),
     requestA: randomUUID(), requestB: randomUUID(), requestC: randomUUID(),
-    authLink: randomUUID(), identityManagerGrant: randomUUID(), teacherConfirmation: randomUUID(), teacherAssignment: randomUUID(),
+    teacherIdentityLinkId: randomUUID(), identityManagerGrant: randomUUID(), teacherConfirmation: randomUUID(), teacherAssignment: randomUUID(),
   };
   ids.adminA = await createAuthUser(emails.adminA, passwords.adminA);
   ids.adminB = await createAuthUser(emails.adminB, passwords.adminB);
@@ -182,14 +182,14 @@ async function main(){
   assert(adminA.userId === ids.adminA && adminB.userId === ids.adminB, 'FIXTURE_ADMIN_AUTH_PROFILES_MATCH');
 
   const managerReceipt = await requiredRpc(adminAClient, 'party_confirm_auth_link', {
-    p_operation_key: ids.authLink,
+    p_operation_key: ids.teacherIdentityLinkId,
     p_auth_user_id: ids.teacher,
     p_party_id: ids.teacherParty,
     p_valid_from: new Date(Date.now() - 60_000).toISOString(),
     p_valid_until: null,
     p_attestation: 'Synthetic administrator confirmed the teacher identity for isolated E2E.',
   });
-  assert(managerReceipt?.id === ids.authLink && managerReceipt?.partyId === ids.teacherParty, 'AUTH_PARTY_PUBLIC_CONFIRM_CONTRACT');
+  assert(managerReceipt?.id === ids.teacherIdentityLinkId && managerReceipt?.partyId === ids.teacherParty, 'AUTH_PARTY_PUBLIC_CONFIRM_CONTRACT');
 
   for (const [tenantId, actorId, branchId, courseId, enrollmentId, requestId] of [
     [ids.tenantA, ids.adminA, ids.branchA, ids.courseA, ids.enrollmentA, ids.requestA],

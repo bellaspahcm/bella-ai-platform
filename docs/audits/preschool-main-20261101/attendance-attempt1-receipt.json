@@ -599,7 +599,7 @@
       "requestA": "65ea5105-7697-49d8-97c6-997bf8699e0e",
       "requestB": "c0ee820b-fccc-4390-b7c3-c5b3bb1cddb9",
       "requestC": "a66f1423-d0e6-463e-8814-3a4fc47cfbcf",
-      "authLink": "03c16f08-d26a-47af-9af8-051fbf84bc2c",
+      "teacherIdentityLinkId": "03c16f08-d26a-47af-9af8-051fbf84bc2c",
       "identityManagerGrant": "df065d78-ad03-4c49-b427-1983d71aa712",
       "teacherConfirmation": "0f0aa7d1-085d-4e6f-b315-35761d72729d",
       "teacherAssignment": "7802ca88-c217-4458-9009-c8a085c719b7"
