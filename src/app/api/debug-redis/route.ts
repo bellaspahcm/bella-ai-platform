@@ -6,6 +6,7 @@
 
 import { getCache, setCache, deleteCache } from '@/lib/redis-cache';
 import { NextResponse } from 'next/server';
+import { randomUUID } from 'node:crypto';
 
 export async function GET() {
   if (process.env.NODE_ENV === 'production') {
@@ -15,7 +16,7 @@ export async function GET() {
   const testValue = {
     timestamp: new Date().toISOString(),
     message: 'Redis cache is working!',
-    random: Math.random(),
+    random: randomUUID(),
   };
 
   try {

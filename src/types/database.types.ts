@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type Database = {
+type DatabaseBase = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
@@ -34393,6 +34393,10 @@ export type Database = {
         Args: { p_course_id: string; p_student_party_id: string; p_guardian_party_id: string; p_request_id: string }
         Returns: Json
       }
+      edu_preschool_activate_pending_enrollment: {
+        Args: { p_enrollment_id: string; p_tenant_id: string }
+        Returns: Json
+      }
       preschool_portal_issuer_context: {
         Args: { p_course_id: string; p_student_party_id: string; p_guardian_party_id?: string }
         Returns: Json
@@ -34411,6 +34415,10 @@ export type Database = {
       }
       preschool_portal_school_announcements_read: {
         Args: { p_tenant_id: string }
+        Returns: Json
+      }
+      preschool_publish_fee_program_version: {
+        Args: { p_program_version_id: string }
         Returns: Json
       }
       edu_enroll_student_v3: {
@@ -34628,6 +34636,52 @@ export type Database = {
           p_tenant_id: string
         }
         Returns: string
+      }
+      finance_authenticated_add_invoice_line: {
+        Args: {
+          p_description: string
+          p_invoice_id: string
+          p_quantity: number
+          p_revenue_account_code: string
+          p_service_id: string
+          p_tax_rate: number
+          p_tenant_id: string
+          p_unit_price_minor: number
+        }
+        Returns: string
+      }
+      finance_authenticated_allocate_payment: {
+        Args: {
+          p_allocated_amount_minor: number
+          p_cash_movement_id: string
+          p_exchange_rate: number
+          p_invoice_id: string
+          p_rate_source: string
+          p_rate_timestamp: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
+      finance_authenticated_create_draft_invoice: {
+        Args: {
+          p_currency: string
+          p_customer_id: string
+          p_due_date: string
+          p_invoice_number: string
+          p_issue_date: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
+      finance_authenticated_finalize_invoice: {
+        Args: {
+          p_idempotency_key: string
+          p_invoice_id: string
+          p_lines_jsonb: Json
+          p_request_hash: string
+          p_tenant_id: string
+        }
+        Returns: Json
       }
       finance_ap_facts_as_of: {
         Args: {
@@ -34858,6 +34912,10 @@ export type Database = {
           p_legs: Json
           p_tenant_id: string
         }
+        Returns: Json
+      }
+      finance_f2_project_v2_event: {
+        Args: { p_event_id: string; p_tenant_id: string }
         Returns: Json
       }
       finance_internal_quarantine_cash_event: {
@@ -36378,6 +36436,75 @@ export type Database = {
     CompositeTypes: {
       [_ in never]: never
     }
+  }
+}
+
+type FeeProgramTable<Row, Insert, Update, Relationships extends readonly unknown[] = []> = {
+  Row: Row
+  Insert: Insert
+  Update: Update
+  Relationships: Relationships
+}
+
+type PreschoolFeeProgramTables = {
+  preschool_fixed_fee_types: FeeProgramTable<
+    { id: string; tenant_id: string; code: string; display_name: string; status: "ACTIVE" | "INACTIVE"; created_by: string; created_at: string },
+    { id?: string; tenant_id: string; code: string; display_name: string; status?: "ACTIVE" | "INACTIVE"; created_by?: string; created_at?: string },
+    { id?: string; tenant_id?: string; code?: string; display_name?: string; status?: "ACTIVE" | "INACTIVE"; created_by?: string; created_at?: string },
+    [{ foreignKeyName: "preschool_fixed_fee_types_tenant_id_fkey"; columns: ["tenant_id"]; isOneToOne: false; referencedRelation: "tenants"; referencedColumns: ["id"] }]
+  >
+  preschool_fee_programs: FeeProgramTable<
+    { id: string; tenant_id: string; display_name: string; status: "ACTIVE" | "ARCHIVED"; created_by: string; created_at: string },
+    { id?: string; tenant_id: string; display_name: string; status?: "ACTIVE" | "ARCHIVED"; created_by?: string; created_at?: string },
+    { id?: string; tenant_id?: string; display_name?: string; status?: "ACTIVE" | "ARCHIVED"; created_by?: string; created_at?: string },
+    [{ foreignKeyName: "preschool_fee_programs_tenant_id_fkey"; columns: ["tenant_id"]; isOneToOne: false; referencedRelation: "tenants"; referencedColumns: ["id"] }]
+  >
+  preschool_fee_items: FeeProgramTable<
+    { id: string; tenant_id: string; display_name: string; created_by: string; created_at: string },
+    { id?: string; tenant_id: string; display_name: string; created_by?: string; created_at?: string },
+    { id?: string; tenant_id?: string; display_name?: string; created_by?: string; created_at?: string },
+    [{ foreignKeyName: "preschool_fee_items_tenant_id_fkey"; columns: ["tenant_id"]; isOneToOne: false; referencedRelation: "tenants"; referencedColumns: ["id"] }]
+  >
+  preschool_billing_period_policy_versions: FeeProgramTable<
+    { id: string; tenant_id: string; policy_definition: Json; status: "DRAFT" | "PUBLISHED"; created_by: string; created_at: string; published_by: string | null; published_at: string | null },
+    { id?: string; tenant_id: string; policy_definition?: Json; status?: "DRAFT" | "PUBLISHED"; created_by?: string; created_at?: string; published_by?: string | null; published_at?: string | null },
+    { id?: string; tenant_id?: string; policy_definition?: Json; status?: "DRAFT" | "PUBLISHED"; created_by?: string; created_at?: string; published_by?: string | null; published_at?: string | null },
+    [{ foreignKeyName: "preschool_billing_period_policy_versions_tenant_id_fkey"; columns: ["tenant_id"]; isOneToOne: false; referencedRelation: "tenants"; referencedColumns: ["id"] }]
+  >
+  preschool_fee_item_versions: FeeProgramTable<
+    { id: string; tenant_id: string; fee_item_id: string; fee_type_code: string; amount: number | null; currency: string | null; unit_basis: Json; billing_basis: Json; effective_applicability: Json; status: "DRAFT" | "PUBLISHED"; created_by: string; created_at: string; published_by: string | null; published_at: string | null; fee_item_name_snapshot: string | null; fee_type_name_snapshot: string | null },
+    { id?: string; tenant_id: string; fee_item_id: string; fee_type_code: string; amount?: number | null; currency?: string | null; unit_basis?: Json; billing_basis?: Json; effective_applicability?: Json; status?: "DRAFT" | "PUBLISHED"; created_by?: string; created_at?: string; published_by?: string | null; published_at?: string | null },
+    { id?: string; tenant_id?: string; fee_item_id?: string; fee_type_code?: string; amount?: number | null; currency?: string | null; unit_basis?: Json; billing_basis?: Json; effective_applicability?: Json; status?: "DRAFT" | "PUBLISHED"; created_by?: string; created_at?: string; published_by?: string | null; published_at?: string | null },
+    [
+      { foreignKeyName: "preschool_fee_item_versions_tenant_id_fkey"; columns: ["tenant_id"]; isOneToOne: false; referencedRelation: "tenants"; referencedColumns: ["id"] },
+      { foreignKeyName: "preschool_fee_item_versions_tenant_id_fee_item_id_fkey"; columns: ["tenant_id", "fee_item_id"]; isOneToOne: false; referencedRelation: "preschool_fee_items"; referencedColumns: ["tenant_id", "id"] }
+    ]
+  >
+  preschool_fee_program_versions: FeeProgramTable<
+    { id: string; tenant_id: string; fee_program_id: string; billing_period_policy_version_id: string | null; applicability: Json; effective_applicability: Json; status: "DRAFT" | "PUBLISHED"; created_by: string; created_at: string; published_by: string | null; published_at: string | null },
+    { id?: string; tenant_id: string; fee_program_id: string; billing_period_policy_version_id?: string | null; applicability?: Json; effective_applicability?: Json; status?: "DRAFT" | "PUBLISHED"; created_by?: string; created_at?: string; published_by?: string | null; published_at?: string | null },
+    { id?: string; tenant_id?: string; fee_program_id?: string; billing_period_policy_version_id?: string | null; applicability?: Json; effective_applicability?: Json; status?: "DRAFT" | "PUBLISHED"; created_by?: string; created_at?: string; published_by?: string | null; published_at?: string | null },
+    [
+      { foreignKeyName: "preschool_fee_program_versions_tenant_id_fkey"; columns: ["tenant_id"]; isOneToOne: false; referencedRelation: "tenants"; referencedColumns: ["id"] },
+      { foreignKeyName: "preschool_fee_program_versions_tenant_id_fee_program_id_fkey"; columns: ["tenant_id", "fee_program_id"]; isOneToOne: false; referencedRelation: "preschool_fee_programs"; referencedColumns: ["tenant_id", "id"] },
+      { foreignKeyName: "preschool_fee_program_versions_tenant_id_billing_period_policy_version_id_fkey"; columns: ["tenant_id", "billing_period_policy_version_id"]; isOneToOne: false; referencedRelation: "preschool_billing_period_policy_versions"; referencedColumns: ["tenant_id", "id"] }
+    ]
+  >
+  preschool_fee_program_version_items: FeeProgramTable<
+    { tenant_id: string; program_version_id: string; fee_item_version_id: string; created_by: string; created_at: string },
+    { tenant_id: string; program_version_id: string; fee_item_version_id: string; created_by?: string; created_at?: string },
+    { tenant_id?: string; program_version_id?: string; fee_item_version_id?: string; created_by?: string; created_at?: string },
+    [
+      { foreignKeyName: "preschool_fee_program_version_items_tenant_id_fkey"; columns: ["tenant_id"]; isOneToOne: false; referencedRelation: "tenants"; referencedColumns: ["id"] },
+      { foreignKeyName: "preschool_fee_program_version_items_tenant_id_program_version_id_fkey"; columns: ["tenant_id", "program_version_id"]; isOneToOne: false; referencedRelation: "preschool_fee_program_versions"; referencedColumns: ["tenant_id", "id"] },
+      { foreignKeyName: "preschool_fee_program_version_items_tenant_id_fee_item_version_id_fkey"; columns: ["tenant_id", "fee_item_version_id"]; isOneToOne: false; referencedRelation: "preschool_fee_item_versions"; referencedColumns: ["tenant_id", "id"] }
+    ]
+  >
+}
+
+export type Database = Omit<DatabaseBase, "public"> & {
+  public: Omit<DatabaseBase["public"], "Tables"> & {
+    Tables: DatabaseBase["public"]["Tables"] & PreschoolFeeProgramTables
   }
 }
 

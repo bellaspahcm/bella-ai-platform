@@ -1,0 +1,53 @@
+{
+  "acr": "ACR-2026-024-preschool-admin-course-read",
+  "adr": "ADR-029-preschool-admin-course-read",
+  "status": "CLOSED_PASS_BOUNDED_LOCAL",
+  "approvedAt": "2026-10-28",
+  "approvalSource": "Direct user reply: Duyệt mở khóa cục bộ, after approving the scoped behavior that active Preschool admins may read all classes in their own tenant.",
+  "baseCommit": "bf1ac7030eb740c7c8b59e8e4c4321f53acded04",
+  "branch": "codex/preschool-admission-disposable-runner-20261028",
+  "exactPaths": [
+    "src/platform/education/contracts/canonical-course-catalog.contract.ts",
+    "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts",
+    "supabase/migrations/20261028140000_preschool_admin_course_catalog_read.sql"
+  ],
+  "exactSha256AtUnlock": {
+    "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts": "1ddaa06906255105f5a176832ea1e11f54b30e32c05b521b2a66545b61671569",
+    "supabase/migrations/20261028140000_preschool_admin_course_catalog_read.sql": "24cc30646290185c8fcbe28cd389a722cbb3925185e1c030a0b7dbd5dbd8133f",
+    "src/platform/education/contracts/canonical-course-catalog.contract.ts": "84bfddc6a35f6f65409b08fc3562ae1c38845caea006dc501e219d3fa024a2dc"
+  },
+  "allowedOperations": [
+    "VERIFY_EXISTING_CANDIDATE",
+    "MAKE_MINIMAL_FIX_WITHIN_EXACT_PATHS_IF_VERIFICATION_PROVES_REQUIRED",
+    "APPLY_AND_VERIFY_ON_DISPOSABLE_PROFILE_bella-preschool-95c70855_ONLY"
+  ],
+  "supportingTestPath": "src/platform/education/contracts/__tests__/preschool-admin-course-catalog.contract.test.ts",
+  "forbidden": [
+    "shared database",
+    "Production",
+    "global Education manifest/guard/baseline",
+    "commit",
+    "push",
+    "merge",
+    "deploy",
+    "unrelated UI changes"
+  ],
+  "implementationWindowClosed": true,
+  "reseal": "SCOPED_UNLOCK_CLOSED_PASS_BOUNDED_LOCAL; FULL_EDUCATION_RESEAL_HELD; no global manifest, guard, or baseline changes",
+  "closedAt": "2026-10-28",
+  "finalSha256": {
+    "src/platform/education/contracts/canonical-course-catalog.contract.ts": "84bfddc6a35f6f65409b08fc3562ae1c38845caea006dc501e219d3fa024a2dc",
+    "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts": "1ddaa06906255105f5a176832ea1e11f54b30e32c05b521b2a66545b61671569",
+    "supabase/migrations/20261028140000_preschool_admin_course_catalog_read.sql": "24cc30646290185c8fcbe28cd389a722cbb3925185e1c030a0b7dbd5dbd8133f"
+  },
+  "verification": {
+    "focusedJest": "PASS 86/86 across 3 suites",
+    "educationArchitecture": "PASS 4/4",
+    "eslint": "PASS",
+    "disposableDatabaseAclRls": "PASS; authenticated EXECUTE only; no authenticated direct SELECT; RLS enabled",
+    "browserReceiptSha256": "B2DDD11F819C7038351463D5E7425900DDFE4926016FDC8F129B44682F217200",
+    "browserReceipt": "PASS login/catalog/tenant scope/2 class cards/reload; 0 errors; source hashes match",
+    "migrationLedger": "No version row found; no history was fabricated",
+    "productionOrSharedDatabase": "UNCHANGED"
+  }
+}

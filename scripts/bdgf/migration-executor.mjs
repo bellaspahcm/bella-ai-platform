@@ -27,6 +27,7 @@ import dotenv from 'dotenv';
 import pg from 'pg';
 import { createBdgfDatabaseConfig } from './database-connection.mjs';
 import { assertExecutionIdentity } from './execution-identity.mjs';
+import { auditMigrationEvent } from './audit-event.mjs';
 
 const { Client } = pg;
 dotenv.config();
@@ -57,12 +58,6 @@ class ExecutionFailedError extends Error {
 // ============================================================================
 // AUDIT HELPER
 // ============================================================================
-
-async function auditEvent(event, data, db) {
-  // TODO: Implement proper audit using bella_execution_audit schema
-  // For now, skip audit in tests to focus on core execution flow
-  return;
-}
 
 // ============================================================================
 // MIGRATION EXECUTOR — SECURITY BOUNDARY
@@ -161,6 +156,23 @@ export async function executeMigration(params) {
     await db.connect();
     await assertExecutionIdentity(db, executionContext.executor_identity);
     console.log('   ✅ Connected to database for validation');
+
+    const verifiedAuditContext = {
+      token_id: token.token_id || null,
+      approval_id: token.payload.approval_id,
+      migration_id: token.payload.migration_id,
+      migration_hash,
+      target_environment: executionContext.target_environment,
+      target_schema: executionContext.target_schema,
+      executor_identity: executionContext.executor_identity,
+      created_by: executionContext.executor_identity
+    };
+    const writeAudit = (event, fields = {}) => auditMigrationEvent(db, {
+      ...verifiedAuditContext,
+      event,
+      gate_decision: 'PASS',
+      ...fields
+    });
     
     // Validate token
     const validation = await validateGateToken(token, executionContext, db);
@@ -173,13 +185,21 @@ export async function executeMigration(params) {
       }
       console.log('');
       
-      // Audit the block
-      await auditEvent('EXECUTION_BLOCKED', {
-        reason: 'TOKEN_INVALID',
-        validation_reason: validation.reason,
-        token_nonce: token.payload.nonce?.substring(0, 16) + '...',
-        migration_hash: migration_hash.substring(0, 16) + '...'
-      }, db);
+      await auditMigrationEvent(db, {
+        ...verifiedAuditContext,
+        token_id: null,
+        approval_id: null,
+        migration_id: `blocked_${migration_hash.slice(0, 24)}`,
+        event: 'EXECUTION_BLOCKED',
+        gate_decision: 'BLOCK',
+        block_reason: 'TOKEN_INVALID',
+        execution_result: 'not_attempted',
+        execution_duration_ms: Date.now() - startTime,
+        transaction_committed: false,
+        metadata: { token_validation_reason: validation.reason },
+        executor_identity: executionContext.executor_identity,
+        created_by: executionContext.executor_identity
+      });
       
       throw new ExecutionBlockedError(
         'INVALID_TOKEN',
@@ -203,12 +223,14 @@ export async function executeMigration(params) {
       console.log(`   Reason: ${consumption.reason}`);
       console.log('');
       
-      // Audit the block
-      await auditEvent('EXECUTION_BLOCKED', {
-        reason: 'TOKEN_CONSUMPTION_FAILED',
-        consumption_reason: consumption.reason,
-        token_nonce: token.payload.nonce?.substring(0, 16) + '...'
-      }, db);
+      await writeAudit('EXECUTION_BLOCKED', {
+        gate_decision: 'BLOCK',
+        block_reason: 'TOKEN_CONSUMPTION_FAILED',
+        execution_result: 'not_attempted',
+        execution_duration_ms: Date.now() - startTime,
+        transaction_committed: false,
+        metadata: { block_reason: consumption.reason }
+      });
       
       throw new ExecutionBlockedError(
         'TOKEN_ALREADY_USED',
@@ -232,12 +254,11 @@ export async function executeMigration(params) {
     console.log('╚════════════════════════════════════════════════════════════╝\n');
     
     // Audit execution start
-    await auditEvent('EXECUTION_STARTED', {
+    await writeAudit('EXECUTION_STARTED', {
       token_id: consumption.token_id,
-      migration_hash,
-      target_environment: executionContext.target_environment,
-      target_schema: executionContext.target_schema
-    }, db);
+      execution_duration_ms: Date.now() - startTime,
+      transaction_committed: false
+    });
     
     console.log('📝 Executing migration DDL...');
     console.log('   Content preview:', migration_content.substring(0, 100) + '...');
@@ -249,56 +270,75 @@ export async function executeMigration(params) {
       await db.query('BEGIN');
       result = await db.query(migration_content);
       await db.query('COMMIT');
-      
-      console.log('✅ Migration executed successfully');
-      console.log(`   Rows affected: ${result.rowCount || 0}`);
-      console.log('');
-      
-      // Audit success
-      await auditEvent('EXECUTION_SUCCEEDED', {
-        token_id: consumption.token_id,
-        rows_affected: result.rowCount || 0,
-        execution_time_ms: Date.now() - startTime
-      }, db);
-      
-      return {
-        status: 'SUCCESS',
-        token_id: consumption.token_id,
-        rows_affected: result.rowCount || 0,
-        execution_time_ms: Date.now() - startTime,
-        migration_hash
-      };
-      
     } catch (executionError) {
       // Rollback on failure (if transactional)
+      let rollbackSucceeded = false;
       try {
         await db.query('ROLLBACK');
+        rollbackSucceeded = true;
         console.log('🔄 Transaction rolled back');
-      } catch (rollbackError) {
+      } catch {
         console.log('⚠️  Rollback failed (DDL may not be transactional)');
       }
       
       console.log('❌ Migration execution failed');
-      console.log(`   Error: ${executionError.message}`);
+      console.log(`   Error code: ${executionError.code || 'UNKNOWN'}`);
       console.log('');
       
       // Audit failure
-      await auditEvent('EXECUTION_FAILED', {
-        token_id: consumption.token_id,
-        error: executionError.message,
-        error_code: executionError.code,
-        execution_time_ms: Date.now() - startTime
-      }, db);
+      try {
+        await writeAudit('EXECUTION_FAILED', {
+          execution_result: 'failed',
+          execution_error: `Migration execution failed (${executionError.code || 'UNKNOWN'}).`,
+          execution_duration_ms: Date.now() - startTime,
+          transaction_committed: null,
+          metadata: {
+            failure_code: executionError.code || 'UNKNOWN',
+            rollback_attempted: true,
+            rollback_succeeded: rollbackSucceeded
+          }
+        });
+      } catch {
+        throw new ExecutionFailedError(
+          'Migration failed and its failure audit could not be recorded; reconcile using the start audit before another execution.',
+          { code: executionError.code, token_id: consumption.token_id, audit_recorded: false }
+        );
+      }
       
       throw new ExecutionFailedError(
-        `Migration execution failed: ${executionError.message}`,
+        `Migration execution failed (${executionError.code || 'UNKNOWN'}).`,
         {
-          error: executionError.message,
           code: executionError.code,
           token_id: consumption.token_id
         }
       );
     }
+
+    console.log('✅ Migration executed successfully');
+    console.log(`   Rows affected: ${result.rowCount || 0}`);
+    console.log('');
+
+    try {
+      await writeAudit('EXECUTION_SUCCEEDED', {
+        execution_result: 'success',
+        execution_duration_ms: Date.now() - startTime,
+        transaction_committed: true,
+        metadata: { rows_affected: result.rowCount || 0 }
+      });
+    } catch {
+      throw new ExecutionFailedError(
+        'Migration committed, but its success audit could not be recorded; stop and reconcile before another execution.',
+        { code: 'SUCCESS_AUDIT_MISSING', token_id: consumption.token_id, migration_committed: true, audit_recorded: false }
+      );
+    }
+
+    return {
+      status: 'SUCCESS',
+      token_id: consumption.token_id,
+      rows_affected: result.rowCount || 0,
+      execution_time_ms: Date.now() - startTime,
+      migration_hash
+    };
     
   } finally {
     await db.end();

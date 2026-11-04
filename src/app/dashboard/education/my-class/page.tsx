@@ -21,6 +21,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import PreschoolSelect from '@/components/ui/PreschoolSelect';
 import {
   Users,
@@ -676,17 +677,8 @@ export default function HomeroomTeacherWorkspacePage() {
   }, [chatMessages, activeChatStudentId]);
 
   // Handlers for Attendance
-  const handleToggleAttendance = (studentId: string, newStatus: AttendanceStatus) => {
-    setStudents((prev) =>
-      prev.map((s) => {
-        if (s.id !== studentId) return s;
-        return {
-          ...s,
-          attendance: newStatus,
-          arrivalTime: newStatus === 'PRESENT' || newStatus === 'LATE' ? s.arrivalTime || '07:45' : undefined,
-        };
-      })
-    );
+  const handleToggleAttendance = (_studentId: string, _newStatus: AttendanceStatus) => {
+    toast.error('Điểm danh chưa được kết nối với hồ sơ và API chính thức. Không có dữ liệu nào được lưu.');
   };
 
   const handleUpdateTemperature = (studentId: string, tempValue: number) => {
@@ -705,51 +697,20 @@ export default function HomeroomTeacherWorkspacePage() {
   };
 
   const handleBulkMarkAllPresent = () => {
-    setStudents((prev) =>
-      prev.map((s) => ({
-        ...s,
-        attendance: 'PRESENT',
-        arrivalTime: s.arrivalTime || '07:40',
-      }))
-    );
+    toast.error('Điểm danh hàng loạt chưa được kết nối với API chính thức. Không có dữ liệu nào được lưu.');
   };
 
   // Handover Execution
   const handleExecuteHandover = () => {
     if (!confirmHandoverStudent) return;
-    const nowStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-
-    setStudents((prev) =>
-      prev.map((s) => {
-        if (s.id !== confirmHandoverStudent.id) return s;
-        return {
-          ...s,
-          isHandedOver: true,
-          handedOverAt: nowStr,
-          handedOverTo: selectedGuardianToHandover || 'Phụ huynh chính',
-        };
-      })
-    );
-    setConfirmHandoverStudent(null);
-    setSelectedGuardianToHandover('');
-    setHandoverNote('');
+    toast.error('Bàn giao chưa được xác thực và ghi qua API chính thức. Không có trẻ nào được đánh dấu đã bàn giao.');
   };
 
   // Send Chat Message
   const handleSendChatMessage = (textToSend?: string) => {
     const text = (textToSend || inputChatText).trim();
     if (!text) return;
-
-    const newMsg: TeacherChatMessage = {
-      id: `chat-${Date.now()}`,
-      sender: 'TEACHER',
-      studentId: activeChatStudentId,
-      text,
-      timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setChatMessages((prev) => [...prev, newMsg]);
-    setInputChatText('');
+    toast.error('Tin nhắn chưa được kết nối với dịch vụ hội thoại được cấp quyền. Không có tin nhắn nào được gửi.');
   };
 
   // ── AI COPILOT HANDLERS ──────────────────────────────────────────────────

@@ -131,6 +131,7 @@ export interface PreschoolWeeklyMenuDayDTO {
 
 export interface PreschoolWeeklyMenuDTO {
   menuId: string;
+  updatedAt?: string;
   weekNumber: number;
   year: number;
   startDate: string;

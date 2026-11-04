@@ -93,4 +93,9 @@ supabase_token_*.txt
 
 # Git worktrees
 /.worktrees/
+/supabase/candidates/
+/.local-fee-ui-e2e/
+
+
+/.cache/
 

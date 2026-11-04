@@ -4,9 +4,15 @@ param(
   [ValidateSet('Prepare', 'Status', 'Cleanup')]
   [string] $Action,
 
+  [ValidateSet('TeacherAttendance', 'Admission', 'GuardianRead')]
+  [string] $AcceptanceType = 'TeacherAttendance',
+
   [string] $RunDirectory,
 
-  [string] $SourceRevision
+  [string] $SourceRevision,
+
+  [ValidateRange(0, 65529)]
+  [int] $PortBase = 0
 )
 
 $ErrorActionPreference = 'Stop'
@@ -15,6 +21,19 @@ $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $profileDirectory '..\..\..'
 $manifestPath = Join-Path $profileDirectory 'manifest.json'
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 $manifestHash = (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+$activeProfileId = if ($AcceptanceType -eq 'Admission') { [string] $manifest.admissionProfile.profileId } else { [string] $manifest.profileId }
+$activeProfileMigrations = @($manifest.profileMigrations)
+$acceptanceVerifier = Join-Path $profileDirectory 'verify-bootstrap.sql'
+if ($AcceptanceType -eq 'Admission') {
+  if (!$manifest.admissionProfile -or !$manifest.admissionProfile.profileMigrations) { throw 'ADMISSION_PROFILE_NOT_CONFIGURED' }
+  # The full canonical admission migration creates this table; the base
+  # teacher profile uses a narrow table-only projection for its own dependency.
+  $activeProfileMigrations = @($activeProfileMigrations | Where-Object { $_.profileVersion -ne '20261019020001' })
+  $activeProfileMigrations = @($activeProfileMigrations + @($manifest.admissionProfile.profileMigrations) | Sort-Object { [string] $_.profileVersion })
+  $acceptanceVerifier = Join-Path $repositoryRoot ([string] $manifest.admissionProfile.bootstrapVerifier)
+  if (!$acceptanceVerifier.StartsWith($repositoryRoot, [StringComparison]::OrdinalIgnoreCase)) { throw 'ADMISSION_VERIFIER_PATH_INVALID' }
+  if ($PortBase -eq 0) { $PortBase = 55421 }
+}
 $resolvedSourceRevision = $null
 
 function Get-ProfileRunDirectory([string] $Path) {
@@ -34,8 +53,9 @@ function Read-OwnerIntent([string] $Path) {
     throw 'PROFILE_MANIFEST_SNAPSHOT_MISMATCH'
   }
   $snapshot = Get-Content -LiteralPath $snapshotPath -Raw | ConvertFrom-Json
-  if ($intent.profileId -ne $manifest.profileId -or $intent.repositoryRoot -ne $repositoryRoot -or
-      $snapshot.profileId -ne $intent.profileId -or $intent.createdBeforeStart -ne $true -or
+  $snapshotProfileId = if ($AcceptanceType -eq 'Admission') { [string] $snapshot.admissionProfile.profileId } else { [string] $snapshot.profileId }
+  if ($intent.profileId -ne $activeProfileId -or $intent.acceptanceType -ne $AcceptanceType -or $intent.repositoryRoot -ne $repositoryRoot -or
+      $snapshotProfileId -ne $intent.profileId -or $intent.createdBeforeStart -ne $true -or
       $intent.projectId -notmatch '^bella-preschool-[a-f0-9]{8}$') {
     throw 'PROFILE_OWNERSHIP_MARKER_MISMATCH'
   }
@@ -58,6 +78,7 @@ function Write-SafeProcessLog([string] $Path, [object[]] $Output) {
   $text = ($Output | ForEach-Object { [string] $_ }) -join [Environment]::NewLine
   $text = [regex]::Replace($text, '(?i)(sb_(?:publishable|secret)_[A-Za-z0-9_-]{12,})', '[REDACTED_KEY]')
   $text = [regex]::Replace($text, '(?i)(eyJ[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{8,})', '[REDACTED_JWT]')
+  $text = [regex]::Replace($text, '(?i)postgres(?:ql)?://[^"\s]+', '[REDACTED_DATABASE_URL]')
   $text = [regex]::Replace($text, '(?i)("(?:ANON_KEY|SERVICE_ROLE_KEY|JWT_SECRET|POSTGRES_PASSWORD|SUPABASE_DB_PASSWORD)"\s*:\s*")[^"]*(")', '$1[REDACTED]$2')
   $text = [regex]::Replace($text, '(?im)(ANON_KEY|SERVICE_ROLE_KEY|JWT_SECRET|POSTGRES_PASSWORD)(\s*[:=]\s*)\S+', '$1$2[REDACTED]')
   [IO.File]::WriteAllText($Path, $text + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
@@ -106,6 +127,13 @@ function Get-FreePortBase {
   throw 'PROFILE_NO_FREE_PORT_RANGE'
 }
 
+function Assert-PortRangeFree([int] $BasePort) {
+  if ($BasePort -lt 1024 -or $BasePort -gt 65529) { throw 'PROFILE_PORT_RANGE_INVALID' }
+  $ports = @(($BasePort - 1), $BasePort, ($BasePort + 1), ($BasePort + 2), ($BasePort + 3), ($BasePort + 4), ($BasePort + 5))
+  $busy = @($ports | Where-Object { !(Test-PortFree $_) })
+  if ($busy.Count -gt 0) { throw "PROFILE_PORT_RANGE_IN_USE:$($busy -join ',')" }
+}
+
 function Assert-ManifestAndSources {
   $head = (& git -C $repositoryRoot rev-parse HEAD).Trim()
   $expectedRevision = if (![string]::IsNullOrWhiteSpace($SourceRevision)) {
@@ -118,13 +146,13 @@ function Assert-ManifestAndSources {
     throw 'PROFILE_SOURCE_REVISION_MISMATCH'
   }
   $script:resolvedSourceRevision = $head
-  $versions = @($manifest.profileMigrations | ForEach-Object { [string] $_.profileVersion })
+  $versions = @($activeProfileMigrations | ForEach-Object { [string] $_.profileVersion })
   if (($versions | Select-Object -Unique).Count -ne $versions.Count) { throw 'PROFILE_MIGRATION_VERSION_DUPLICATE' }
   $sortedVersions = @($versions | Sort-Object)
   if ([string]::Join(',', $versions) -ne [string]::Join(',', $sortedVersions)) {
     throw 'PROFILE_MIGRATION_VERSIONS_NOT_ORDERED'
   }
-  foreach ($entry in $manifest.profileMigrations) {
+  foreach ($entry in $activeProfileMigrations) {
     $source = [IO.Path]::GetFullPath((Join-Path $repositoryRoot ([string] $entry.source)))
     if (!$source.StartsWith($repositoryRoot, [StringComparison]::OrdinalIgnoreCase) -or !(Test-Path -LiteralPath $source -PathType Leaf)) {
       throw "PROFILE_MIGRATION_SOURCE_MISSING:$($entry.source)"
@@ -169,6 +197,25 @@ function Assert-ManifestAndSources {
         if (!$sourceText.Contains($fragment)) { throw "RULE_DOMAIN_SOURCE_FRAGMENT_NOT_FOUND:$fragment" }
       }
     }
+    if ($entry.sourceFunction) {
+      $sourcePath = Join-Path $repositoryRoot ([string] $entry.sourceMigration)
+      if ((Get-CanonicalSourceSha256 $sourcePath) -ne [string] $entry.sourceMigrationSha256) {
+        throw 'ADMISSION_FUNCTION_SOURCE_MIGRATION_HASH_MISMATCH'
+      }
+      $sourceText = [IO.File]::ReadAllText($sourcePath)
+      $projectionText = [IO.File]::ReadAllText($source)
+      $functionPattern = '(?s)CREATE OR REPLACE FUNCTION public\.preschool_open_admission\(.*?\r?\n\$\$;'
+      $sourceFunction = [regex]::Match($sourceText, $functionPattern)
+      $projectedFunction = [regex]::Match($projectionText, $functionPattern)
+      if (!$sourceFunction.Success -or !$projectedFunction.Success) { throw 'ADMISSION_FUNCTION_SOURCE_OR_PROJECTION_MISSING' }
+      $sourceFunctionBytes = [Text.UTF8Encoding]::new($false).GetBytes($sourceFunction.Value.Replace("`r`n", "`n").Replace("`r", "`n"))
+      $sourceFunctionSha = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($sourceFunctionBytes)).ToLowerInvariant()
+      $sourceFunctionText = $sourceFunction.Value.Replace("`r`n", "`n").Replace("`r", "`n")
+      $projectedFunctionText = $projectedFunction.Value.Replace("`r`n", "`n").Replace("`r", "`n")
+      if ($sourceFunctionSha -ne [string] $entry.sourceFunctionSha256 -or $sourceFunctionText -cne $projectedFunctionText) {
+        throw 'ADMISSION_FUNCTION_PROJECTION_NOT_SOURCE_EXACT'
+      }
+    }
   }
 }
 
@@ -209,7 +256,8 @@ if ($Action -eq 'Prepare') {
 
   $shortId = [Guid]::NewGuid().ToString('N').Substring(0, 8)
   $projectId = "bella-preschool-$shortId"
-  $portBase = Get-FreePortBase
+  $portBase = if ($PortBase -gt 0) { $PortBase } else { Get-FreePortBase }
+  Assert-PortRangeFree $portBase
   $parent = if (![string]::IsNullOrWhiteSpace($env:RUNNER_TEMP)) {
     Join-Path $env:RUNNER_TEMP 'bella-preschool-disposable-profiles'
   } else {
@@ -222,7 +270,8 @@ if ($Action -eq 'Prepare') {
   New-Item -ItemType Directory -Path $runDirectory -Force | Out-Null
 
   $intent = [ordered]@{
-    profileId = [string] $manifest.profileId
+    profileId = $activeProfileId
+    acceptanceType = $AcceptanceType
     runId = $projectId
     projectId = $projectId
     repositoryRoot = $repositoryRoot
@@ -268,7 +317,7 @@ if ($Action -eq 'Prepare') {
     $migrationsDirectory = Join-Path $runDirectory 'supabase\migrations'
     New-Item -ItemType Directory -Path $migrationsDirectory | Out-Null
     $copied = @()
-    foreach ($entry in $manifest.profileMigrations) {
+    foreach ($entry in $activeProfileMigrations) {
       $source = [IO.Path]::GetFullPath((Join-Path $repositoryRoot ([string] $entry.source)))
       $sourceName = [IO.Path]::GetFileName([string] $entry.source)
       if ($sourceName -match '^\d+_(.+\.sql)$') { $suffix = $Matches[1] } else { throw "PROFILE_SOURCE_FILENAME_INVALID:$sourceName" }
@@ -300,17 +349,32 @@ if ($Action -eq 'Prepare') {
     $applied = @($ledger | ForEach-Object { ([string] $_).Trim() } | Where-Object { $_ -match '^\d+$' })
     if ([string]::Join(',', $applied) -ne [string]::Join(',', $copied)) { throw 'PROFILE_MIGRATION_LEDGER_DOES_NOT_MATCH_ALLOWLIST' }
 
-    $verifyPath = Join-Path $profileDirectory 'verify-bootstrap.sql'
-    $containerVerify = '/tmp/preschool-profile-verify.sql'
-    & docker cp $verifyPath "${containerId}:$containerVerify" *> $null
-    if ($LASTEXITCODE -ne 0) { throw 'PROFILE_VERIFIER_COPY_FAILED' }
-    $verifyOutput = @(& docker exec $containerId psql -X -v ON_ERROR_STOP=1 -U postgres -d postgres -f $containerVerify 2>&1)
-    $verifyExit = $LASTEXITCODE
+    [string[]] $verifyPaths = @()
+    if ($AcceptanceType -eq 'Admission') {
+      $verifyPaths += (Join-Path $profileDirectory 'verify-bootstrap.sql')
+      $verifyPaths += $acceptanceVerifier
+    } else {
+      $verifyPaths += (Join-Path $profileDirectory 'verify-bootstrap.sql')
+    }
+    $verifyOutput = @()
+    $verifyExit = 0
+    for ($verifyIndex = 0; $verifyIndex -lt $verifyPaths.Count; $verifyIndex++) {
+      $verifySource = [IO.Path]::GetFullPath([string] $verifyPaths[$verifyIndex])
+      $verifySql = [IO.File]::ReadAllText($verifySource)
+      $oneVerifyOutput = @($verifySql | & docker exec -i $containerId psql -X -v ON_ERROR_STOP=1 -U postgres -d postgres -f - 2>&1)
+      $oneVerifyExit = $LASTEXITCODE
+      $verifyOutput += $oneVerifyOutput
+      if ($oneVerifyExit -ne 0) { $verifyExit = $oneVerifyExit; break }
+    }
     Write-SafeProcessLog (Join-Path $runDirectory 'schema-verification.log') $verifyOutput
     if ($verifyExit -ne 0 -or !($verifyOutput -match 'PRESCHOOL_PROFILE_SCHEMA_ACL_RLS_PASS')) { throw 'PROFILE_SCHEMA_ACCEPTANCE_FAILED' }
+    if ($AcceptanceType -eq 'Admission' -and !($verifyOutput -match 'PRESCHOOL_ADMISSION_PROFILE_SCHEMA_ACL_RLS_PASS')) {
+      throw 'ADMISSION_PROFILE_SCHEMA_ACCEPTANCE_FAILED'
+    }
 
     $receipt = [ordered]@{
-      profileId = [string] $manifest.profileId
+      profileId = $activeProfileId
+      acceptanceType = $AcceptanceType
       manifestSha256 = $manifestHash
       sourceRevision = [string] $resolvedSourceRevision
       projectId = $projectId
@@ -318,7 +382,7 @@ if ($Action -eq 'Prepare') {
       databasePort = $portBase + 1
       databaseContainerId = $containerId
       profileMigrationVersionsApplied = $applied
-      migrationSourceHashes = @($manifest.profileMigrations | ForEach-Object { [ordered]@{ source = $_.source; sha256 = $_.sha256 } })
+      migrationSourceHashes = @($activeProfileMigrations | ForEach-Object { [ordered]@{ profileVersion = $_.profileVersion; source = $_.source; sha256 = $_.sha256 } })
       schemaAcceptance = 'PASS'
       schemaAcceptanceOutput = 'PRESCHOOL_PROFILE_SCHEMA_ACL_RLS_PASS'
       realJwt = 'NOT_RUN'
@@ -338,7 +402,8 @@ if ($Action -eq 'Prepare') {
     $failure = $_.Exception.Message
     $safeFailure = [regex]::Replace($failure, '(?i)(sb_(?:publishable|secret)_[A-Za-z0-9_-]{12,}|eyJ[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{8,})', '[REDACTED_SECRET]')
     [ordered]@{
-      profileId = [string] $manifest.profileId
+      profileId = $activeProfileId
+      acceptanceType = $AcceptanceType
       manifestSha256 = $manifestHash
       sourceRevision = [string] $resolvedSourceRevision
       projectId = $projectId

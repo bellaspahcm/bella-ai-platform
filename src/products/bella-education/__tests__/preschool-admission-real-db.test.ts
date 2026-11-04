@@ -30,11 +30,43 @@ interface Proof {
   cases: Array<Record<string, unknown>>;
 }
 
+function assertIsolatedProfileUrls(apiUrl: string, databaseUrl: string) {
+  let api: URL;
+  let database: URL;
+  try {
+    api = new URL(apiUrl);
+    database = new URL(databaseUrl);
+  } catch {
+    throw new Error('REFUSE_NON_ISOLATED_TARGET');
+  }
+  const loopbackHosts = new Set(['127.0.0.1', 'localhost', '::1']);
+  if (api.protocol !== 'http:' || !loopbackHosts.has(api.hostname)
+    || !['postgres:', 'postgresql:'].includes(database.protocol)
+    || !loopbackHosts.has(database.hostname) || !Number.isInteger(Number(api.port))
+    || Number(database.port) !== Number(api.port) + 1) {
+    throw new Error('REFUSE_NON_ISOLATED_TARGET');
+  }
+}
+
 function dbClient() {
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL !== 'http://127.0.0.1:55421' || !process.env.SUPABASE_SERVICE_ROLE_KEY
-    || process.env.SUPABASE_SERVICE_ROLE_KEY === 'mock-service-role-key') throw new Error('REFUSE_NON_ISOLATED_TARGET');
-  return createClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY,
+  const apiUrl = process.env.BELLA_PROFILE_API_URL;
+  const databaseUrl = process.env.BELLA_PROFILE_DB_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!apiUrl || !databaseUrl || !serviceRoleKey
+    || process.env.NEXT_PUBLIC_SUPABASE_URL !== apiUrl || process.env.SUPABASE_URL !== apiUrl
+    || serviceRoleKey !== process.env.BELLA_PROFILE_SERVICE_ROLE_KEY || serviceRoleKey === 'mock-service-role-key') {
+    throw new Error('REFUSE_NON_ISOLATED_TARGET');
+  }
+  assertIsolatedProfileUrls(apiUrl, databaseUrl);
+  return createClient<Database>(apiUrl, serviceRoleKey,
     { auth: { persistSession: false, autoRefreshToken: false } });
+}
+
+function isolatedTargetLabel() {
+  const apiUrl = process.env.BELLA_PROFILE_API_URL;
+  const databaseUrl = process.env.BELLA_PROFILE_DB_URL;
+  if (!apiUrl || !databaseUrl) throw new Error('REFUSE_NON_ISOLATED_TARGET');
+  return `${new URL(apiUrl).host}/${new URL(databaseUrl).port} isolated Non-Production`;
 }
 function noError(error: { message: string } | null, action: string) {
   if (error) throw new Error(`${action}: ${error.message}`);
@@ -99,7 +131,7 @@ suite('Preschool durable admission actual isolated DB', () => {
       const branchId = randomUUID(); const courseId = randomUUID();
       noError((await db.from('org_units').insert({ id: branchId, tenant_id: tenantId, unit_type: 'branch', name: 'Controlled branch', is_active: true })).error, 'branch');
       noError((await db.from('edu_courses').insert({ id: courseId, tenant_id: tenantId, course_code: `CONTROLLED-${randomUUID()}`, title: 'Controlled admission course', status: 'active', max_students: 100, current_enrollment: 0, prerequisite_course_codes: [] })).error, 'course fixture');
-      const proof: Proof = { target: '127.0.0.1:55421/55422 isolated Non-Production', baseline: process.env.PRESCHOOL_PROOF_SHA ?? 'UNKNOWN',
+      const proof: Proof = { target: isolatedTargetLabel(), baseline: process.env.PRESCHOOL_PROOF_SHA ?? 'UNKNOWN',
         commitPid: process.pid, tenantId, actorId, otherActorId, branchId, courseId, restartOperationKey: '', restartChildId: '', cases: [] };
       async function snapshot() {
         const result: Record<string, unknown> = {};
@@ -121,8 +153,10 @@ suite('Preschool durable admission actual isolated DB', () => {
 
       const databaseUrl = process.env.PRESCHOOL_PROOF_DB_URL;
       if (!databaseUrl) throw new Error('Missing isolated DB connection for controlled receipt fault');
-      const target = new URL(databaseUrl);
-      if (target.hostname !== '127.0.0.1' || target.port !== '55422') throw new Error('REFUSE_NON_ISOLATED_RECEIPT_FAULT');
+      const profileDatabaseUrl = process.env.BELLA_PROFILE_DB_URL;
+      const profileApiUrl = process.env.BELLA_PROFILE_API_URL;
+      if (databaseUrl !== profileDatabaseUrl || !profileApiUrl) throw new Error('REFUSE_NON_ISOLATED_RECEIPT_FAULT');
+      assertIsolatedProfileUrls(profileApiUrl, databaseUrl);
       const observer = new PostgresClient({ connectionString: databaseUrl });
       await observer.connect();
       const faultKey = `proof-${randomUUID()}`;

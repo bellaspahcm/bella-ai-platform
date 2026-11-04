@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase-server';
 import { getLocalDateString as vietnamSchoolDay } from '@bella/shared';
 import { CanonicalCourseCatalogContractImpl } from '@/platform/education/contracts/canonical-course-catalog.contract.impl';
 import { EnrollmentContractImpl } from '@/platform/education/contracts/enrollment.contract.impl';
+import { PreschoolAdminBranchCatalogContractImpl } from '@/platform/education/contracts/preschool-admin-branch-catalog.contract.impl';
 import type { CourseDailyAttendanceRosterItem } from '@/platform/education/contracts/attendance.contract';
 import { PreschoolTeacherAttendanceService } from '@/products/bella-education/services/preschool-teacher-attendance.service';
 import { getCurrentUser } from '@/services/user-actions';
@@ -120,12 +121,15 @@ export async function authorizeAttendanceCourse(
     assertAttendanceSelectors(request, context, { courseId, branchId: course.branchId, date: day }, body);
     return;
   }
-  const catalog = await new CanonicalCourseCatalogContractImpl(context.client).listCourses(context.tenantId);
+  const courseCatalog = new CanonicalCourseCatalogContractImpl(context.client);
+  const catalog = context.productKey === 'bella_preschool' && context.actorRole === 'admin'
+    ? await courseCatalog.listPreschoolAdminCourses(context.tenantId)
+    : await courseCatalog.listCourses(context.tenantId);
   const course = catalog.find(item => item.id === courseId && item.tenantId === context.tenantId);
   if (!course) throw new AttendanceAccessError(403, 'ATTENDANCE_COURSE_ACCESS_DENIED');
   if (context.productKey !== 'bella_preschool') return;
   if (course.status !== 'active') throw new AttendanceAccessError(403, 'ATTENDANCE_COURSE_ACCESS_DENIED');
-  const { client, tenantId, actorId } = context;
+  const { client, tenantId } = context;
   const assignment = await client.from('preschool_chain_course_branch_assignments')
     .select('tenant_id, course_id, branch_id', { count: 'exact' }).eq('tenant_id', tenantId).eq('course_id', courseId);
   if (assignment.error || !Array.isArray(assignment.data) || assignment.count !== 1 || assignment.data.length !== 1) {
@@ -136,20 +140,13 @@ export async function authorizeAttendanceCourse(
     throw new AttendanceAccessError(403, 'ATTENDANCE_BRANCH_ACCESS_DENIED');
   }
   assertAttendanceSelectors(request, context, { courseId, branchId: target.branch_id, date: day }, body);
-  const branch = await client.from('org_units').select('id, tenant_id, unit_type, is_active')
-    .eq('tenant_id', tenantId).eq('id', target.branch_id).maybeSingle();
-  if (branch.error) throw new AttendanceAccessError(503, 'ATTENDANCE_BRANCH_SCOPE_UNAVAILABLE');
-  if (!branch.data || branch.data.id !== target.branch_id || branch.data.tenant_id !== tenantId
-    || branch.data.unit_type !== 'branch' || branch.data.is_active !== true) {
-    throw new AttendanceAccessError(403, 'ATTENDANCE_BRANCH_ACCESS_DENIED');
-  }
-  const access = await client.from('user_org_unit_access').select('user_id, tenant_id, org_unit_id', { count: 'exact' })
-    .eq('tenant_id', tenantId).eq('user_id', actorId).eq('org_unit_id', target.branch_id);
-  if (access.error || !Array.isArray(access.data) || access.count !== access.data.length) {
+  let branches: Awaited<ReturnType<PreschoolAdminBranchCatalogContractImpl['listCurrentPreschoolAdminBranches']>>;
+  try {
+    branches = await new PreschoolAdminBranchCatalogContractImpl(client).listCurrentPreschoolAdminBranches();
+  } catch {
     throw new AttendanceAccessError(503, 'ATTENDANCE_BRANCH_SCOPE_UNAVAILABLE');
   }
-  if (!access.data.length || access.data.some(row => row.user_id !== actorId
-    || row.tenant_id !== tenantId || row.org_unit_id !== target.branch_id)) {
+  if (!branches.some(branch => branch.id === target.branch_id)) {
     throw new AttendanceAccessError(403, 'ATTENDANCE_BRANCH_ACCESS_DENIED');
   }
 }

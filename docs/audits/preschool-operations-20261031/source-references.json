@@ -1,0 +1,406 @@
+{
+  "src/app/api/education/enrollments/confirm-admission/route.ts": [
+    {
+      "line": 17,
+      "text": "function createAdminClient(): SupabaseClient<Database> | null {"
+    },
+    {
+      "line": 72,
+      "text": "const adminClient = createAdminClient() ?? client;"
+    },
+    {
+      "line": 89,
+      "text": "success: true,"
+    },
+    {
+      "line": 122,
+      "text": "const billingPeriodId = activePeriod?.id ?? 'ed100000-d001-0000-0000-000000000001';"
+    },
+    {
+      "line": 147,
+      "text": "const remaining = Number(existingInvoice.outstanding_amount) || Number(existingInvoice.net_amount) || 5700000;"
+    },
+    {
+      "line": 183,
+      "text": "const totalFee = 5700000;"
+    },
+    {
+      "line": 265,
+      "text": "const { error: activateError } = await adminClient"
+    },
+    {
+      "line": 274,
+      "text": "if (activateError) {"
+    },
+    {
+      "line": 298,
+      "text": "success: true,"
+    }
+  ],
+  "src/app/api/education/grades/route.ts": [
+    {
+      "line": 87,
+      "text": "const adminClient = createAdminClient();"
+    },
+    {
+      "line": 178,
+      "text": "if (s === 'achieved' || s === 'dat' || s === 'completed') return 'dat';"
+    },
+    {
+      "line": 182,
+      "text": "return 'dat';"
+    },
+    {
+      "line": 322,
+      "text": "physical: scores.physical ?? 'dat',"
+    },
+    {
+      "line": 337,
+      "text": "month: monthParam ?? '2026-09',"
+    },
+    {
+      "line": 412,
+      "text": "const adminClient = createAdminClient();"
+    },
+    {
+      "line": 416,
+      "text": "let insertedObservationId = `obs-${Date.now()}`;"
+    },
+    {
+      "line": 430,
+      "text": "insertedObservationId = obsInsert.data.id;"
+    },
+    {
+      "line": 434,
+      "text": "observation_id: insertedObservationId,"
+    },
+    {
+      "line": 445,
+      "text": "id: insertedObservationId,"
+    },
+    {
+      "line": 467,
+      "text": "if (action === 'issue_award') {"
+    },
+    {
+      "line": 478,
+      "text": "id: `award-${Date.now()}`,"
+    }
+  ],
+  "src/app/api/education/communication/threads/route.ts": [
+    {
+      "line": 25,
+      "text": "export async function GET(request: Request): Promise<NextResponse> {"
+    },
+    {
+      "line": 41,
+      "text": ".from('edu_comm_threads')"
+    }
+  ],
+  "src/app/api/education/communication/messages/route.ts": [
+    {
+      "line": 39,
+      "text": "const role = profile.role?.trim().toLowerCase();"
+    },
+    {
+      "line": 68,
+      "text": "let effectiveThreadId = threadId;"
+    },
+    {
+      "line": 69,
+      "text": "if (!effectiveThreadId || !UUID_PATTERN.test(effectiveThreadId)) {"
+    },
+    {
+      "line": 79,
+      "text": "effectiveThreadId = existingThread.id;"
+    },
+    {
+      "line": 84,
+      "text": "guardian_party_id: user.id, // placeholder until guardian relationship resolved"
+    },
+    {
+      "line": 91,
+      "text": "effectiveThreadId = created.id;"
+    },
+    {
+      "line": 100,
+      "text": "thread_id: effectiveThreadId,"
+    },
+    {
+      "line": 101,
+      "text": "sender_party_id: user.id,"
+    },
+    {
+      "line": 111,
+      "text": ".eq('id', effectiveThreadId)"
+    },
+    {
+      "line": 118,
+      "text": "threadId: effectiveThreadId,"
+    }
+  ],
+  "src/app/api/education/curriculum/route.ts": [
+    {
+      "line": 24,
+      "text": "function createOperationClient(): SupabaseClient<Database> | null {"
+    },
+    {
+      "line": 131,
+      "text": "if (role !== 'admin' && role !== 'admin_staff' && role !== 'teacher') {"
+    },
+    {
+      "line": 156,
+      "text": "const result = await service.saveLessonPlan(tenantId, user.id, lessonData);"
+    },
+    {
+      "line": 183,
+      "text": "if (role !== 'admin' && role !== 'admin_staff' && role !== 'teacher') {"
+    }
+  ],
+  "src/app/api/education/nutrition/weekly-menu/route.ts": [
+    {
+      "line": 25,
+      "text": "function createOperationClient(): SupabaseClient<Database> | null {"
+    },
+    {
+      "line": 125,
+      "text": "includeDrafts: true,"
+    },
+    {
+      "line": 148,
+      "text": "if (role !== 'admin' && role !== 'admin_staff' && role !== 'teacher') {"
+    }
+  ],
+  "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts": [
+    {
+      "line": 124,
+      "text": "includeDrafts?: boolean;"
+    },
+    {
+      "line": 145,
+      "text": "if (!options?.includeDrafts) {"
+    },
+    {
+      "line": 169,
+      "text": "caloriesKcal: d.calories_kcal ?? 680,"
+    },
+    {
+      "line": 320,
+      "text": "if (menuId) {"
+    },
+    {
+      "line": 362,
+      "text": "const { error: daysErr } = await this.supabase"
+    },
+    {
+      "line": 364,
+      "text": ".upsert(daysRows, { onConflict: 'tenant_id,menu_id,day_of_week' });"
+    },
+    {
+      "line": 366,
+      "text": "if (daysErr) {"
+    },
+    {
+      "line": 367,
+      "text": "return { success: false, menuId, error: `DAYS_UPSERT_FAILED: ${daysErr.message}` };"
+    }
+  ],
+  "src/products/bella-education/learning-development/curriculum/curriculum.service.ts": [
+    {
+      "line": 61,
+      "text": "readonly approved_by: string | null;"
+    },
+    {
+      "line": 172,
+      "text": "if (input.id) {"
+    },
+    {
+      "line": 180,
+      "text": "return { success: true, id: input.id, message: 'Cập nhật khung giáo trình thành công.' };"
+    },
+    {
+      "line": 288,
+      "text": "approved_by: input.status === 'APPROVED' ? actorId : null,"
+    },
+    {
+      "line": 292,
+      "text": "if (input.id) {"
+    },
+    {
+      "line": 300,
+      "text": "return { success: true, id: input.id, message: 'Cập nhật giáo án thành công.' };"
+    }
+  ],
+  "src/products/bella-education/finance/repositories/preschool-finance.repository.ts": [
+    {
+      "line": 130,
+      "text": "if (branchId === 'ALL') {"
+    },
+    {
+      "line": 158,
+      "text": "if (error && error.code !== 'PGRST202' && !error.message?.includes('Could not find the function')) {"
+    },
+    {
+      "line": 338,
+      "text": "let scopedStudents = students;"
+    },
+    {
+      "line": 342,
+      "text": "if (targetBranchCourseIds.size > 0) {"
+    },
+    {
+      "line": 376,
+      "text": "if (error && error.code !== 'PGRST202' && !error.message?.includes('Could not find the function')) {"
+    }
+  ],
+  "src/app/api/education/finance/route.ts": [
+    {
+      "line": 17,
+      "text": "if (process.env.NODE_ENV === 'test') return null;"
+    },
+    {
+      "line": 118,
+      "text": "if (accessRows && accessRows.length > 0) {"
+    },
+    {
+      "line": 136,
+      "text": "if (accessRows && accessRows.length > 0) {"
+    },
+    {
+      "line": 173,
+      "text": "if (accessRows && accessRows.length > 0) {"
+    }
+  ],
+  "src/app/dashboard/education/scheduling/page.tsx": [
+    {
+      "line": 52,
+      "text": "const DEFAULT_TENANT_ID = '00000000-0000-0000-0000-000000000001';"
+    },
+    {
+      "line": 162,
+      "text": "const handleSeedShift = async () => {"
+    },
+    {
+      "line": 169,
+      "text": ".delete()"
+    },
+    {
+      "line": 174,
+      "text": ".delete()"
+    },
+    {
+      "line": 179,
+      "text": ".delete()"
+    },
+    {
+      "line": 184,
+      "text": ".delete()"
+    },
+    {
+      "line": 516,
+      "text": "onClick={handleSeedShift}"
+    }
+  ],
+  "src/app/dashboard/education/my-class/page.tsx": [
+    {
+      "line": 215,
+      "text": "const INITIAL_STUDENTS_ROSTER: readonly PreschoolStudent[] = ["
+    },
+    {
+      "line": 591,
+      "text": "const [students, setStudents] = useState<PreschoolStudent[]>([...INITIAL_STUDENTS_ROSTER]);"
+    },
+    {
+      "line": 679,
+      "text": "const handleToggleAttendance = (studentId: string, newStatus: AttendanceStatus) => {"
+    },
+    {
+      "line": 718,
+      "text": "const handleExecuteHandover = () => {"
+    },
+    {
+      "line": 739,
+      "text": "const handleSendChatMessage = (textToSend?: string) => {"
+    },
+    {
+      "line": 1460,
+      "text": "onClick={() => handleToggleAttendance(student.id, 'PRESENT')}"
+    },
+    {
+      "line": 1470,
+      "text": "onClick={() => handleToggleAttendance(student.id, 'LATE')}"
+    },
+    {
+      "line": 1480,
+      "text": "onClick={() => handleToggleAttendance(student.id, 'ABSENT')}"
+    },
+    {
+      "line": 2018,
+      "text": "onClick={() => handleSendChatMessage('Dạ hôm nay con ăn hết phần cơm và ngủ trưa rất ngoan ba mẹ nhé!')}"
+    },
+    {
+      "line": 2024,
+      "text": "onClick={() => handleSendChatMessage('Dạ cô đã cho bé uống thuốc đúng giờ và đo lại thân nhiệt cho con rồi ạ.')}"
+    },
+    {
+      "line": 2030,
+      "text": "onClick={() => handleSendChatMessage('Chiều nay ba mẹ đón bé nhớ mang thêm áo ấm dự phòng cho con nha.')}"
+    },
+    {
+      "line": 2045,
+      "text": "if (e.key === 'Enter') handleSendChatMessage();"
+    },
+    {
+      "line": 2050,
+      "text": "onClick={() => handleSendChatMessage()}"
+    },
+    {
+      "line": 2658,
+      "text": "onClick={handleExecuteHandover}"
+    }
+  ],
+  "src/app/api/education/enrollments/[id]/communications/route.ts": [
+    {
+      "line": 85,
+      "text": ".eq('student_id', resolvedParams.id)"
+    },
+    {
+      "line": 92,
+      "text": ".eq('student_id', resolvedParams.id)"
+    }
+  ],
+  "supabase/migrations/20261030220000_preschool_school_announcements.sql": [
+    {
+      "line": 116,
+      "text": "IF FOUND THEN"
+    },
+    {
+      "line": 136,
+      "text": "GRANT SELECT, INSERT ON public.edu_announcements TO authenticated;"
+    }
+  ],
+  "supabase/migrations/20261031090000_fix_edu_announcements_rls_and_portal_read.sql": [
+    {
+      "line": 19,
+      "text": "ON public.edu_announcements FOR ALL"
+    },
+    {
+      "line": 24,
+      "text": "WITH CHECK ("
+    }
+  ],
+  "src/products/bella-education/__tests__/bella-education-architecture.test.ts": [
+    {
+      "line": 16,
+      "text": "const BELLA_EDUCATION_ROOT = path.resolve(__dirname, '..');"
+    },
+    {
+      "line": 29,
+      "text": "} else if (file.endsWith('.ts') && !file.endsWith('.d.ts')) {"
+    },
+    {
+      "line": 88,
+      "text": "return !(stable in stableBaseline);"
+    }
+  ]
+}

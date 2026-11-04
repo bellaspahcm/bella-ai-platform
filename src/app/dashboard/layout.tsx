@@ -53,13 +53,15 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const isCourseCatalog = /^\/dashboard\/education\/courses(?:\/[^/]+)?\/?$/.test(pathname ?? '')
+  const usesTenantPresentation = pathname === '/dashboard'
+    || /^\/dashboard\/education\/courses(?:\/[^/]+)?\/?$/.test(pathname ?? '')
     || pathname === '/dashboard/education/attendance' || pathname === '/dashboard/education/care'
     || pathname === '/dashboard/education/enrollments'
     || pathname === '/dashboard/education/communication'
     || pathname === '/dashboard/education' || pathname === '/dashboard/education/reports'
     || pathname === '/dashboard/education/facilities'
     || pathname === '/dashboard/education/grades' || pathname === '/dashboard/education/finance'
+    || pathname === '/dashboard/education/fee-program'
     || /^\/dashboard\/education\/teachers(?:\/[^/]+)?$/.test(pathname ?? '')
     || /^\/dashboard\/education\/enrollments\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(pathname ?? '');
   const [presentationContext, setPresentationContext] = useState<{
@@ -80,7 +82,7 @@ export default function DashboardLayout({
     setIsAuthorized(null);
     async function checkAuth() {
       try {
-        if (isCourseCatalog) {
+        if (usesTenantPresentation) {
           const user = await getCurrentUser();
           const tenant = user ? await getTenantPresentation() : null;
           if (!active) return;
@@ -177,7 +179,7 @@ export default function DashboardLayout({
     }
     checkAuth();
     return () => { active = false; };
-  }, [router, isCourseCatalog]);
+  }, [router, usesTenantPresentation]);
 
   if (isSuspended) {
     return (

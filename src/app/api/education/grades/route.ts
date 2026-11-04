@@ -48,6 +48,12 @@ export async function GET(request: Request): Promise<NextResponse> {
     const branchIdParam = url.searchParams.get('branchId');
     const courseIdParam = url.searchParams.get('courseId') || url.searchParams.get('classId');
     const monthParam = url.searchParams.get('month');
+    const selectedMonth = monthParam ?? new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit',
+    }).format(new Date());
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(selectedMonth)) {
+      return failure('GRADES_INVALID_MONTH', 400);
+    }
 
     if (branchIdParam && !UUID_PATTERN.test(branchIdParam)) {
       return failure('GRADES_INVALID_BRANCH_ID', 400);
@@ -147,18 +153,20 @@ export async function GET(request: Request): Promise<NextResponse> {
     const observationsData = observationsRes.data ?? [];
 
     // 4. Fetch NAEYC domain scores from milestone_progress for all registry students
-    type DomainScore = 'dat' | 'tot' | 'theodoi' | 'canhotro';
+    type DomainScore = 'dat' | 'tot' | 'theodoi' | 'canhotro' | 'unknown';
     type DomainKey = 'physical' | 'cognitive' | 'language' | 'socialEmotional' | 'motor';
     type DomainScoreMap = Record<DomainKey, DomainScore>;
 
     const domainScoresByStudent = new Map<string, Partial<DomainScoreMap>>();
 
     if (registryStudents.length > 0) {
-      try {
-        const studentIds = registryStudents.map((s) => s.id);
-        const progressRes = await queryClient
-          .from('edu_dev_milestone_progress')
-          .select(`
+      const studentIds = registryStudents.map((s) => s.id);
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const monthStart = new Date(Date.UTC(year, month - 1, 1)).toISOString();
+      const nextMonthStart = new Date(Date.UTC(year, month, 1)).toISOString();
+      const progressRes = await queryClient
+        .from('edu_dev_milestone_progress')
+        .select(`
             student_id,
             status,
             milestone:edu_dev_milestones!edu_dev_milestone_progress_milestone_id_fkey(
@@ -166,56 +174,56 @@ export async function GET(request: Request): Promise<NextResponse> {
               edu_dev_framework_domains!edu_dev_milestones_framework_domain_id_fkey(code, name)
             )
           `)
-          .eq('tenant_id', actor.tenant_id)
-          .in('student_id', studentIds)
-          .order('interpreted_at', { ascending: false });
+        .eq('tenant_id', actor.tenant_id)
+        .in('student_id', studentIds)
+        .gte('interpreted_at', monthStart)
+        .lt('interpreted_at', nextMonthStart)
+        .order('interpreted_at', { ascending: false });
 
-        const progressRows = progressRes.data ?? [];
+      if (progressRes.error) return failure('GRADES_UNAVAILABLE', 503);
+      const progressRows = progressRes.data ?? [];
 
-        // Map DB status string → DomainScore
-        function toDomainScore(dbStatus: string): DomainScore {
-          const s = dbStatus.toLowerCase();
-          if (s === 'achieved' || s === 'dat' || s === 'completed') return 'dat';
-          if (s === 'good' || s === 'tot') return 'tot';
-          if (s === 'monitor' || s === 'theodoi' || s === 'monitoring') return 'theodoi';
-          if (s === 'needs_support' || s === 'canhotro' || s === 'support') return 'canhotro';
-          return 'dat';
+      // Map known stored labels only. An unrecognized value is never interpreted
+      // as achievement or fed into a completed student summary.
+      function toDomainScore(dbStatus: string): DomainScore | null {
+        const s = dbStatus.toLowerCase();
+        if (s === 'achieved' || s === 'dat' || s === 'completed') return 'dat';
+        if (s === 'good' || s === 'tot') return 'tot';
+        if (s === 'monitor' || s === 'theodoi' || s === 'monitoring') return 'theodoi';
+        if (s === 'needs_support' || s === 'canhotro' || s === 'support') return 'canhotro';
+        return null;
+      }
+
+      // Map domain name/code → DomainKey via keyword matching (NAEYC 5 domains)
+      function toDomainKey(code: string, name: string): DomainKey | null {
+        const combined = `${code} ${name}`.toLowerCase();
+        if (combined.match(/physical|the.chat|body|gross.motor.domain|health/)) return 'physical';
+        if (combined.match(/cognitive|nhan.thuc|cognitive|thinking|problem.solv/)) return 'cognitive';
+        if (combined.match(/language|ngon.ngu|literacy|communication|language.lit/)) return 'language';
+        if (combined.match(/social|tinh.cam|emotion|se-domain|social.emot/)) return 'socialEmotional';
+        if (combined.match(/motor|van.dong|fine.motor|movement|physical.motor/)) return 'motor';
+        return null;
+      }
+
+      for (const row of progressRows) {
+        if (!row.student_id || !row.status) continue;
+        const milestone = row.milestone as {
+          framework_domain_id: string;
+          edu_dev_framework_domains: { code: string; name: string } | null;
+        } | null;
+        if (!milestone?.edu_dev_framework_domains) continue;
+        const domain = milestone.edu_dev_framework_domains;
+        const domainKey = toDomainKey(domain.code, domain.name);
+        const score = toDomainScore(row.status);
+        if (!domainKey || !score) continue;
+        if (!domainScoresByStudent.has(row.student_id)) {
+          domainScoresByStudent.set(row.student_id, {});
         }
-
-        // Map domain name/code → DomainKey via keyword matching (NAEYC 5 domains)
-        function toDomainKey(code: string, name: string): DomainKey | null {
-          const combined = `${code} ${name}`.toLowerCase();
-          if (combined.match(/physical|the.chat|body|gross.motor.domain|health/)) return 'physical';
-          if (combined.match(/cognitive|nhan.thuc|cognitive|thinking|problem.solv/)) return 'cognitive';
-          if (combined.match(/language|ngon.ngu|literacy|communication|language.lit/)) return 'language';
-          if (combined.match(/social|tinh.cam|emotion|se-domain|social.emot/)) return 'socialEmotional';
-          if (combined.match(/motor|van.dong|fine.motor|movement|physical.motor/)) return 'motor';
-          // fallback by position in common NAEYC ordering
-          return null;
+        const existing = domainScoresByStudent.get(row.student_id)!;
+        // Only set if not already set (first row is latest due to order)
+        if (!existing[domainKey]) {
+          existing[domainKey] = score;
         }
-
-        for (const row of progressRows) {
-          if (!row.student_id || !row.status) continue;
-          const milestone = row.milestone as {
-            framework_domain_id: string;
-            edu_dev_framework_domains: { code: string; name: string } | null;
-          } | null;
-          if (!milestone?.edu_dev_framework_domains) continue;
-          const domain = milestone.edu_dev_framework_domains;
-          const domainKey = toDomainKey(domain.code, domain.name);
-          if (!domainKey) continue;
-          const score = toDomainScore(row.status);
-          if (!domainScoresByStudent.has(row.student_id)) {
-            domainScoresByStudent.set(row.student_id, {});
-          }
-          const existing = domainScoresByStudent.get(row.student_id)!;
-          // Only set if not already set (first row is latest due to order)
-          if (!existing[domainKey]) {
-            existing[domainKey] = score;
-          }
-        }
-      } catch {
-        // silent fallback — students will get default domain scores
       }
     }
 
@@ -280,6 +288,9 @@ export async function GET(request: Request): Promise<NextResponse> {
         return { status: 'attention', statusLabel: 'Cần chú ý', attentionReason: badDomains.join(', ') };
       }
       if (vals.some((v) => v === 'theodoi')) return { status: 'supplement', statusLabel: 'Cần theo dõi' };
+      if (vals.length < 5 || vals.some((v) => v === 'unknown')) {
+        return { status: 'supplement', statusLabel: 'Chưa đánh giá đầy đủ' };
+      }
       return { status: 'completed', statusLabel: 'Đã đầy đủ' };
     }
 
@@ -319,11 +330,11 @@ export async function GET(request: Request): Promise<NextResponse> {
         courseId: s.enrollments[0]?.courseId,
         avatarUrl: '',
         avatarFallbackBg: pickAvatarBg(s.name),
-        physical: scores.physical ?? 'dat',
-        cognitive: scores.cognitive ?? 'dat',
-        language: scores.language ?? 'dat',
-        socialEmotional: scores.socialEmotional ?? 'dat',
-        motor: scores.motor ?? 'dat',
+        physical: scores.physical ?? 'unknown',
+        cognitive: scores.cognitive ?? 'unknown',
+        language: scores.language ?? 'unknown',
+        socialEmotional: scores.socialEmotional ?? 'unknown',
+        motor: scores.motor ?? 'unknown',
         status,
         statusLabel,
         ...(attentionReason ? { attentionReason } : {}),
@@ -334,7 +345,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       {
         success: true,
         tenantId: actor.tenant_id,
-        month: monthParam ?? '2026-09',
+        month: selectedMonth,
         classrooms: courses,
         studentsCount: registryStudents.length,
         students: studentsResponse,
@@ -399,98 +410,20 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     if (action === 'save_observation') {
       const studentId = typeof payload.studentId === 'string' ? payload.studentId.trim() : '';
-      const domain = typeof payload.domain === 'string' ? payload.domain.trim() : 'Ngôn Ngữ & Giao Tiếp';
       const skill = typeof payload.skill === 'string' ? payload.skill.trim() : '';
-      const progression = typeof payload.progression === 'string' ? payload.progression.trim() : 'Đạt kỳ vọng';
-      const note = typeof payload.note === 'string' ? payload.note.trim() : '';
-      const photosCount = typeof payload.photosCount === 'number' && payload.photosCount >= 0 ? payload.photosCount : 0;
-
       if (!studentId || !skill) {
         return failure('GRADES_MISSING_REQUIRED_FIELDS', 400);
       }
-
-      const adminClient = createAdminClient();
-      const queryClient = adminClient ?? client;
-
-      // Try inserting into edu_dev_observations
-      let insertedObservationId = `obs-${Date.now()}`;
-      try {
-        const obsInsert = await queryClient
-          .from('edu_dev_observations')
-          .insert({
-            tenant_id: actor.tenant_id,
-            observer_id: userId,
-            observation_text: note ? `${skill} — ${note}` : skill,
-            status: 'RECORDED',
-          })
-          .select('id')
-          .maybeSingle();
-
-        if (obsInsert.data?.id) {
-          insertedObservationId = obsInsert.data.id;
-          if (UUID_PATTERN.test(studentId)) {
-            await queryClient.from('edu_dev_observation_students').insert({
-              tenant_id: actor.tenant_id,
-              observation_id: insertedObservationId,
-              student_id: studentId,
-              notes: `${domain}: ${progression}`,
-            });
-          }
-        }
-      } catch {
-        // Fallback for mock/test DB without breaking
-      }
-
-      const newRecord = {
-        id: insertedObservationId,
-        studentId,
-        domainName: domain,
-        milestoneCode: 'NAEYC-OBS',
-        progressionLevel: progression,
-        observationNote: note || skill,
-        photoCount: photosCount,
-        timestamp: 'Vừa xong',
-        observerTeacher: actor.full_name || 'Giáo viên Chủ Nhiệm',
-        consentStatus: 'PARENT_SHARED' as const,
-      };
-
-      return NextResponse.json(
-        {
-          success: true,
-          message: 'Lưu quan sát sư phạm thành công',
-          observation: newRecord,
-        },
-        { headers: PRIVATE_HEADERS },
-      );
+      return failure('GRADES_PERSISTENCE_UNAVAILABLE', 503);
     }
 
     if (action === 'issue_award') {
       const studentId = typeof payload.studentId === 'string' ? payload.studentId.trim() : '';
-      const category = typeof payload.category === 'string' ? payload.category.trim() : 'CHAM_NGOAN';
       const title = typeof payload.title === 'string' ? payload.title.trim() : 'Bé Chăm Ngoan';
-      const reason = typeof payload.reason === 'string' ? payload.reason.trim() : '';
-
       if (!studentId || !title) {
         return failure('GRADES_MISSING_REQUIRED_FIELDS', 400);
       }
-
-      const newAward = {
-        id: `award-${Date.now()}`,
-        studentId,
-        category,
-        title,
-        commendationReason: reason,
-        dateAwarded: new Date().toISOString().slice(0, 10),
-      };
-
-      return NextResponse.json(
-        {
-          success: true,
-          message: 'Trao thưởng khen ngợi thành công',
-          award: newAward,
-        },
-        { headers: PRIVATE_HEADERS },
-      );
+      return failure('GRADES_PERSISTENCE_UNAVAILABLE', 503);
     }
 
     return failure('GRADES_UNKNOWN_ACTION', 400);

@@ -301,3 +301,18 @@ Registry closeout: exact three-artifact implementation window CLOSED with `PASS_
 | `preschool-registry.contract.ts` | `8fddfb9db94f7e38b518060a15fd6eccf5d97076e043b26d68220be75de1ae8d` |
 | `preschool-registry.contract.impl.ts` | `b2a6f7c91904e6eca5ae5c8ecca5041c888a0e4bc3ace044d060881b54784b80` |
 | `__tests__/preschool-registry.contract.impl.test.ts` | `db8033e7b1568e80269142db0e052bd06b96350b8306065869636cdaf58389df` |
+
+## Owner-approved enrollment actor-profile authorization repair — 2026-10-29
+
+Owner approved reopening the exact local/disposable window for the two Education Kernel artifacts below. Disposable evidence at `bf1ac7030eb740c7c8b59e8e4c4321f53acded04` showed the authenticated enrollment request's direct `public.users` read failing with SQLSTATE `42501`, before the existing enrollment RPC could return its documented `23505` conflict. The existing `platform_current_actor_profile()` contract already supplies the required Auth-backed active actor, role, tenant and tenant status without widening table grants.
+
+Exact artifacts unlocked; pre-change SHA-256 values:
+
+| Path | SHA-256 before change |
+| --- | --- |
+| `src/platform/education/contracts/enrollment.contract.impl.ts` | `defaae850997110e984405519f4ca1de9e136d29c8fe4e4cb7890cfb0e63edea` |
+| `src/platform/education/contracts/__tests__/preschool-enrollment.contract.test.ts` | `6682ca44847a890745d97d189ca6d2c5597670328b177be27ec9a9bd6d835e6f` |
+
+The implementation may replace only the direct caller-profile table read with the existing Platform current-actor public RPC and reconciler, preserving active-admin, authenticated subject and tenant equality checks before the existing enrollment RPC. The existing mutation RPC, HTTP 409 contract and single-active-class migration remain unchanged. Supporting Product API, disposable manifest and E2E harness paths may carry this exact bounded acceptance; no additional Education Kernel artifact is unlocked.
+
+Local/disposable synthetic fixtures only. No new contract, migration, ACL/grant, UI, shared DB or Production change; no commit, push, merge or deploy. Focused contract/API tests and one fresh disposable Browser/JWT/DB run are required. Exact approval is recorded in `SCOPED_UNLOCK_ENROLLMENT_CONFLICT_20261029.json`; this window is OPEN until bounded verification and hash closeout are recorded. Full Education Kernel reseal remains HELD.

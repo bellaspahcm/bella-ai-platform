@@ -266,7 +266,7 @@ export async function collectHaircutF3ReceivablePayment(
       },
     });
     const service = new SemanticReceivableChargeService(
-      new SupabaseReceivableChargeGateway(adminClient),
+      new SupabaseReceivableChargeGateway(adminClient, 'service_role'),
     );
 
     const idempotencyKey = buildCollectionIdempotencyKey({

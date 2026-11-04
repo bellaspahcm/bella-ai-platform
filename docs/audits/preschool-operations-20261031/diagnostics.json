@@ -1,0 +1,25 @@
+{
+  "sourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+  "typecheck": {
+    "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --noEmit --incremental false --pretty false",
+    "exitCode": 0,
+    "log": "typecheck.log"
+  },
+  "securityFailures": [
+    {
+      "test": "preschool-containment.test.ts",
+      "classification": "ENVIRONMENT",
+      "observed": "connect EACCES on sandbox loopback HTTP",
+      "relabelledPass": false
+    },
+    {
+      "test": "current-actor-contract.test.ts:79",
+      "classification": "TEST_PORTABILITY / FIXTURE_FORMAT",
+      "CRLF": 55,
+      "rawContainsExpected": false,
+      "normalizedContainsExpected": true,
+      "relabelledPass": false
+    }
+  ],
+  "localDbBrowserEvidence": "NOT_RUN / NOT_PROVEN; no verified DB fixture target and operation authority selected for this audit"
+}

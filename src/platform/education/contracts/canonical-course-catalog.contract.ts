@@ -11,6 +11,17 @@ export interface ICanonicalCourseCatalogContract {
   listCourses(tenantId: string): Promise<readonly CanonicalCourseCatalogItem[]>;
 }
 
+/** Minimal administrator detail, returned only by the Preschool-scoped read RPC. */
+export interface CanonicalPreschoolAdminCourse extends CanonicalCourseCatalogItem {
+  readonly prerequisites: readonly string[];
+}
+
+/** Narrow Preschool-only read capability; does not replace the shared caller-scoped catalog contract. */
+export interface ICanonicalPreschoolAdminCourseReadContract {
+  listPreschoolAdminCourses(tenantId: string): Promise<readonly CanonicalCourseCatalogItem[]>;
+  getPreschoolAdminCourse(tenantId: string, courseId: string): Promise<CanonicalPreschoolAdminCourse | null>;
+}
+
 export interface CreateCanonicalCourseInput {
   readonly tenantId: string;
   readonly actorId: string;

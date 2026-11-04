@@ -119,8 +119,12 @@ function buildClient() {
   return new FakeSupabase({
     tenants: [{ id: tenantId, product_key: 'bella_school' }, { id: otherTenantId, product_key: 'bella_school' }],
     edu_courses: [
-      { id: courseId, tenant_id: tenantId, status: 'active' },
-      { id: otherCourseId, tenant_id: otherTenantId, status: 'active' },
+      { id: courseId, tenant_id: tenantId, course_code: 'COURSE-1', title: 'Course 1', status: 'active',
+        max_students: 20, current_enrollment: 1, prerequisite_course_codes: [],
+        created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-01T00:00:00.000Z' },
+      { id: otherCourseId, tenant_id: otherTenantId, course_code: 'COURSE-2', title: 'Course 2', status: 'active',
+        max_students: 20, current_enrollment: 1, prerequisite_course_codes: [],
+        created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-01T00:00:00.000Z' },
     ],
     edu_enrollments: [
       { id: 'enrollment-1', tenant_id: tenantId, course_id: courseId, student_party_id: studentPartyId, status: 'active' },

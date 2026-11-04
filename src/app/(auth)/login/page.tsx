@@ -4,6 +4,7 @@ import { useState, FormEvent } from 'react';
 import Image from 'next/image';
 import { Mail, Lock, Loader2, AlertTriangle, Shield, Smartphone } from 'lucide-react';
 import { validateDevelopmentLoginBypassEmail } from '@/services/dev-login-actions';
+import { resolveSafePostLoginPath } from '@/lib/auth/post-login-redirect';
 
 /**
  * Login Page - Bella Multi-Service ERP
@@ -26,6 +27,11 @@ export default function LoginPage() {
   const [mfaCode, setMfaCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const getPostLoginPath = () => resolveSafePostLoginPath(
+    new URLSearchParams(window.location.search).get('next'),
+    window.location.origin,
+  );
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,14 +57,14 @@ export default function LoginPage() {
             setLoading(false);
             return;
           }
-          window.location.href = '/dashboard';
+          window.location.href = getPostLoginPath();
           return;
         }
 
         const bypassResult = await validateDevelopmentLoginBypassEmail(email);
         if (bypassResult.ok) {
           document.cookie = `mock_user_email=${email}; path=/; max-age=31536000; SameSite=Lax`;
-          window.location.href = bypassResult.redirectTo || '/dashboard';
+          window.location.href = resolveSafePostLoginPath(bypassResult.redirectTo || getPostLoginPath(), window.location.origin);
           return;
         }
       }
@@ -67,7 +73,7 @@ export default function LoginPage() {
       if (signInError) { setError(signInError.message); setLoading(false); return; }
       const requiresMfa = await needsMfaChallenge();
       if (requiresMfa) { setStage('mfa'); setLoading(false); return; }
-      window.location.href = '/dashboard';
+      window.location.href = getPostLoginPath();
     } catch (err: unknown) {
       if (isMissingSupabasePublicEnvError(err)) {
         setError(MISSING_SUPABASE_PUBLIC_ENV_MESSAGE);
@@ -90,7 +96,7 @@ export default function LoginPage() {
       const { challengeAndVerify } = await import('@/lib/mfa');
       const result = await challengeAndVerify(mfaCode);
       if (!result.ok) { setError(result.error || 'Mã không đúng hoặc đã hết hạn.'); setLoading(false); return; }
-      window.location.href = '/dashboard';
+      window.location.href = getPostLoginPath();
     } catch (err: unknown) {
       console.error('[MFA Error]', err);
       setError(err instanceof Error ? err.message : 'Xác minh thất bại. Vui lòng thử lại.');

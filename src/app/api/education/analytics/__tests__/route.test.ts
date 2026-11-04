@@ -5,7 +5,10 @@ const mockAssertSelectors = jest.fn();
 const mockAssertDay = jest.fn();
 const mockRequireSchoolDay = jest.fn((value: unknown) => value);
 const mockListCourses = jest.fn();
+const mockListPreschoolAdminCourses = jest.fn();
+const mockListCurrentPreschoolAdminBranches = jest.fn();
 const mockGetCourseDailyAttendance = jest.fn();
+const mockAttendanceProductKeys: string[] = [];
 const mockAttendanceAccessError = class extends Error {
   constructor(readonly status: number, readonly code: string) { super(code); }
 };
@@ -18,10 +21,23 @@ jest.mock('../../attendance/request-context', () => ({
   AttendanceAccessError: mockAttendanceAccessError,
 }));
 jest.mock('@/platform/education/contracts/canonical-course-catalog.contract.impl', () => ({
-  CanonicalCourseCatalogContractImpl: class { listCourses = mockListCourses; },
+  CanonicalCourseCatalogContractImpl: class {
+    listCourses = mockListCourses;
+    listPreschoolAdminCourses = mockListPreschoolAdminCourses;
+  },
 }));
 jest.mock('@/platform/education/contracts/attendance.contract.impl', () => ({
-  AttendanceContractImpl: class { getCourseDailyAttendance = mockGetCourseDailyAttendance; },
+  AttendanceContractImpl: class {
+    constructor(_client: unknown, productKey: unknown) {
+      if (typeof productKey === 'string') mockAttendanceProductKeys.push(productKey);
+    }
+    getCourseDailyAttendance = mockGetCourseDailyAttendance;
+  },
+}));
+jest.mock('@/platform/education/contracts/preschool-admin-branch-catalog.contract.impl', () => ({
+  PreschoolAdminBranchCatalogContractImpl: class {
+    listCurrentPreschoolAdminBranches = mockListCurrentPreschoolAdminBranches;
+  },
 }));
 
 const { GET } = require('../route') as typeof import('../route');
@@ -49,16 +65,17 @@ const rosterItem = (enrollmentId: string, studentPartyId: string, status: 'prese
     createdAt: '2026-10-22T00:01:00.000Z', updatedAt: '2026-10-22T00:01:00.000Z' } : null,
 });
 function setBaseline(branches = [branchA]) {
-  tables.user_org_unit_access = branches.map(id => ({ user_id: actorId, tenant_id: tenantId, org_unit_id: id, relationship_id: `assignment-${id}` }));
-  tables.org_units = branches.map(id => ({ id, tenant_id: tenantId, unit_type: 'branch', name: `Branch ${id}`, is_active: true }));
+  mockListCurrentPreschoolAdminBranches.mockResolvedValue(branches.map(id => ({ id, name: `Branch ${id}` })));
   tables.preschool_chain_course_branch_assignments = [{ tenant_id: tenantId, course_id: courseA, branch_id: branchA }];
   mockResolveContext.mockResolvedValue(context);
   mockListCourses.mockResolvedValue([{ id: courseA, tenantId, courseCode: 'C-A', title: 'Course A', status: 'active' }]);
+  mockListPreschoolAdminCourses.mockResolvedValue([{ id: courseA, tenantId, courseCode: 'C-A', title: 'Course A', status: 'active' }]);
   mockGetCourseDailyAttendance.mockResolvedValue([rosterItem('enroll-1', 'party-1', 'present'), rosterItem('enroll-2', 'party-2', null)]);
 }
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockAttendanceProductKeys.splice(0, mockAttendanceProductKeys.length);
   for (const table of Object.keys(tables)) delete tables[table];
   for (const table of Object.keys(counts)) delete counts[table];
   for (const table of Object.keys(errors)) delete errors[table];
@@ -67,17 +84,13 @@ beforeEach(() => {
 });
 
 describe('/api/education/analytics branch scope', () => {
-  it('uses only explicit persisted branch relationships and fails closed for an implicit projection', async () => {
+  it('uses the current-caller Preschool branch contract instead of querying organization tables directly', async () => {
     const response = await GET(new Request('http://localhost/api/education/analytics?date=2026-10-22'));
     expect(response.status).toBe(200);
-    const accessQuery = mockFrom.mock.results.find((result, index) => mockFrom.mock.calls[index][0] === 'user_org_unit_access')?.value;
-    expect(accessQuery.not).toHaveBeenCalledWith('relationship_id', 'is', null);
-
-    tables.user_org_unit_access = [{ user_id: actorId, tenant_id: tenantId, org_unit_id: branchA, relationship_id: null }];
-    expect((await GET(new Request('http://localhost/api/education/analytics?date=2026-10-22'))).status).toBe(503);
-
-    tables.user_org_unit_access = [];
-    expect((await GET(new Request('http://localhost/api/education/analytics?date=2026-10-22'))).status).toBe(403);
+    expect(mockListCurrentPreschoolAdminBranches).toHaveBeenCalledTimes(1);
+    expect(mockFrom).not.toHaveBeenCalledWith('user_org_unit_access');
+    expect(mockFrom).not.toHaveBeenCalledWith('org_units');
+    expect(mockFrom).not.toHaveBeenCalledWith('users');
   });
 
   it('returns only assigned active course roster counts and leaves unsupported domains null', async () => {
@@ -92,6 +105,9 @@ describe('/api/education/analytics branch scope', () => {
       finance: { invoicedGrossTotal: null, reconciledCashCollected: null, outstandingBalanceTotal: null, overdueAccountsCount: null },
       commandCenter: { unmarkedAttendanceCount: 1, leaveRequestsCount: null },
     } });
+    expect(mockListPreschoolAdminCourses).toHaveBeenCalledWith(tenantId);
+    expect(mockListCourses).not.toHaveBeenCalled();
+    expect(mockAttendanceProductKeys).toContain('bella_preschool');
     expect(mockGetCourseDailyAttendance).toHaveBeenCalledWith({ tenantId, courseId: courseA, schoolDay: '2026-10-22' });
   });
 
@@ -112,12 +128,11 @@ describe('/api/education/analytics branch scope', () => {
   });
 
   it('fails closed when branch ACL or roster dependencies are incomplete', async () => {
-    counts.user_org_unit_access = 2;
+    mockListCurrentPreschoolAdminBranches.mockRejectedValueOnce(new Error('branch access unavailable'));
     const incompleteAcl = await GET(new Request('http://localhost/api/education/analytics?date=2026-10-22'));
     expect(incompleteAcl.status).toBe(503);
     expect(mockGetCourseDailyAttendance).not.toHaveBeenCalled();
 
-    delete counts.user_org_unit_access;
     mockGetCourseDailyAttendance.mockRejectedValueOnce(new Error('roster denied'));
     const failedRoster = await GET(new Request('http://localhost/api/education/analytics?date=2026-10-22'));
     expect(failedRoster.status).toBe(503);

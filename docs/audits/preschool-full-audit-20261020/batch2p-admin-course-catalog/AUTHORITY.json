@@ -1,0 +1,17 @@
+{
+  "capturedAt": "2026-10-28",
+  "source": "Direct user reply to the scoped local/disposable approval question in the current conversation",
+  "verbatimReply": "Duyệt, admin được xem mọi lớp trong tenant",
+  "followUpUnlockReply": "Duyệt mở khóa cục bộ",
+  "acr": "ACR-2026-024-preschool-admin-course-read",
+  "adr": "ADR-029-preschool-admin-course-read",
+  "approvedScope": [
+    "Active Preschool administrators may read all class identities in their own active tenant.",
+    "Use an authenticated caller-derived read RPC and the existing Education public-contract boundary.",
+    "Use only disposable profile bella-preschool-95c70855 for database execution and verification.",
+    "Open only the exact Education course-catalog contract artifacts and their focused contract test for this local capability."
+  ],
+  "sharedDatabaseAuthorized": false,
+  "productionAuthorized": false,
+  "commitPushMergeDeployAuthorized": false
+}

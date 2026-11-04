@@ -182,6 +182,8 @@ jobs:
 
   real-db-e2e:
     name: Real Database Business E2E
+    outputs:
+      preschool_profile_uses_disposable: ${{ steps.preschool-profile.outputs.use_disposable }}
     concurrency:
       group: bella-e2e-bmnbqbcdbuklhopfbopv
       cancel-in-progress: false
@@ -222,24 +224,39 @@ jobs:
         id: preschool-profile
         env:
           BASE_REF: ${{ steps.migration-base.outputs.base }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
         shell: bash
         run: |
-          changed="$(git diff --name-only "$BASE_REF...HEAD" -- supabase/migrations)"
-          acceptance_control_changed="$(git diff --name-only "$BASE_REF...HEAD" -- scripts/ci/preschool-browser-profile/accept.ps1)"
+          candidate_ref="${PR_HEAD_SHA:-HEAD}"
+          if ! printf '%s' "$candidate_ref" | grep -Eq '^(HEAD|[0-9a-f]{40})$'; then
+            echo 'PRESCHOOL_PROFILE_CANDIDATE_REVISION_INVALID' >&2
+            exit 1
+          fi
+          git rev-parse --verify "$candidate_ref^{commit}" > /dev/null
+          changed="$(git diff --name-only "$BASE_REF...$candidate_ref" -- supabase/migrations)"
+          acceptance_control_changed="$(git diff --name-only "$BASE_REF...$candidate_ref" -- scripts/ci/preschool-browser-profile/accept.ps1)"
           teacher_profile_migration=false
           unexpected_migration=false
+          profile_migrations="$(node -e '
+            const fs = require("node:fs");
+            const manifest = JSON.parse(fs.readFileSync("scripts/ci/preschool-browser-profile/manifest.json", "utf8"));
+            const entries = [...(manifest.profileMigrations ?? []), ...(manifest.admissionProfile?.profileMigrations ?? [])];
+            const sources = entries.map(entry => entry.source);
+            if (sources.length === 0 || sources.some(source => typeof source !== "string" || source.length === 0)) process.exit(1);
+            process.stdout.write(sources.join("\n"));
+          ')"
+          if [ -z "$profile_migrations" ]; then
+            echo 'PRESCHOOL_PROFILE_MANIFEST_SOURCE_LIST_EMPTY' >&2
+            exit 1
+          fi
           while IFS= read -r file; do
             [ -n "$file" ] || continue
-            case "$file" in
-              supabase/migrations/20261027010000_preschool_teacher_assignment_legacy_profile.sql|\
-              supabase/migrations/20261027010100_preschool_teacher_confirmation_and_canonical_assignment.sql|\
-              supabase/migrations/20261027010200_preschool_teacher_termination_end_date_check.sql|\
-              supabase/migrations/20261027010300_scope_attendance_state_with_authorized_helper.sql|\
-              supabase/migrations/20261027020000_platform_current_actor_tenant_presentation.sql)
-                teacher_profile_migration=true
-                ;;
-              *) unexpected_migration=true ;;
-            esac
+            if printf '%s\n' "$profile_migrations" | grep -Fqx -- "$file"; then
+              teacher_profile_migration=true
+            else
+              unexpected_migration=true
+              echo "Unlisted migration in PR: $file" >&2
+            fi
           done <<< "$changed"
 
           if { [ "$teacher_profile_migration" = true ] || [ -n "$acceptance_control_changed" ]; } && [ "$unexpected_migration" = true ]; then
@@ -425,11 +442,17 @@ jobs:
         run: npm run db:migration:zero-downtime -- --base "$BASE_REF"
 
       - name: Require database drift credentials
+        if: needs.real-db-e2e.outputs.preschool_profile_uses_disposable != 'true'
         env:
           SUPABASE_DB_URL: ${{ secrets.E2E_SUPABASE_DB_URL }}
         run: test -n "$SUPABASE_DB_URL"
 
+      - name: Use disposable Preschool migration evidence
+        if: needs.real-db-e2e.outputs.preschool_profile_uses_disposable == 'true'
+        run: echo 'Skipping shared E2E ledger comparison because the dependent Real Database Business E2E applied and verified this PR profile on its disposable database.'
+
       - name: Supabase migration drift (E2E baseline)
+        if: needs.real-db-e2e.outputs.preschool_profile_uses_disposable != 'true'
         env:
           BASE_REF: ${{ steps.migration-base.outputs.base }}
           SUPABASE_DB_URL: ${{ secrets.E2E_SUPABASE_DB_URL }}

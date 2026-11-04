@@ -55,6 +55,14 @@ describe('WeeklyMenuService', () => {
   });
 
   describe('getWeeklyMenu', () => {
+    it('surfaces denied reads rather than treating them as an empty menu', async () => {
+      const query = {
+        select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), neq: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn<() => Promise<unknown>>().mockResolvedValue({ data: null, error: { code: '42501' } }),
+      };
+      service = new WeeklyMenuService({ from: () => query } as never);
+      await expect(service.getWeeklyMenu(tenantId, { weekNumber: 44, year: 2026 })).rejects.toThrow('WEEKLY_MENU_READ_FAILED');
+    });
     it('returns parsed and sorted days when menu is found', async () => {
       const mockQueryBuilder = {
         select: jest.fn().mockReturnThis(),
@@ -155,81 +163,30 @@ describe('WeeklyMenuService', () => {
       expect(resBadWeek.error).toBe('INVALID_WEEK_NUMBER');
     });
 
-    it('inserts a new weekly menu and upserts day items', async () => {
-      const mockDaysUpsert = jest.fn<() => Promise<{ error: null }>>().mockResolvedValue({ error: null });
-      const mockInsertSingle = jest.fn<() => Promise<{ data: { id: string }; error: null }>>().mockResolvedValue({
-        data: { id: 'created-menu-uuid' },
-        error: null,
+    it('uses one atomic RPC and returns the persisted version', async () => {
+      const rpc = jest.fn<() => Promise<unknown>>().mockResolvedValue({
+        data: { menuId: 'menu-1', updatedAt: '2026-10-26T00:00:00Z' }, error: null,
       });
-
-      const mockFrom = jest.fn((table: string) => {
-        if (table === 'edu_weekly_menus') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            maybeSingle: jest.fn<() => Promise<{ data: null; error: null }>>().mockResolvedValue({ data: null, error: null }),
-            insert: jest.fn().mockReturnValue({
-              select: jest.fn().mockReturnValue({
-                single: mockInsertSingle,
-              }),
-            }),
-          };
-        }
-        if (table === 'edu_weekly_menu_days') {
-          return {
-            upsert: mockDaysUpsert,
-          };
-        }
-        return {};
-      });
-
-      mockSupabase = { from: mockFrom };
-      service = new WeeklyMenuService(mockSupabase as never);
-
+      service = new WeeklyMenuService({ rpc } as never);
       const result = await service.saveWeeklyMenu(tenantId, actorId, validInput);
-
-      expect(result.success).toBe(true);
-      expect(result.menuId).toBe('created-menu-uuid');
-      expect(mockDaysUpsert).toHaveBeenCalledTimes(1);
+      expect(result).toMatchObject({ success: true, menuId: 'menu-1', updatedAt: '2026-10-26T00:00:00Z' });
+      expect(rpc).toHaveBeenCalledTimes(1);
     });
 
-    it('does not report update success or write menu days when the tenant-scoped menu update matched no row', async () => {
-      const maybeSingle = jest.fn<() => Promise<{ data: { id: string } | null; error: null }>>()
-        .mockResolvedValueOnce({ data: { id: 'existing-menu' }, error: null })
-        .mockResolvedValueOnce({ data: null, error: null });
-      const menuQuery = {
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        maybeSingle,
-        update: jest.fn().mockReturnThis(),
-      };
-      const mockDaysUpsert = jest.fn();
-      const mockFrom = jest.fn((table: string) => table === 'edu_weekly_menus'
-        ? menuQuery
-        : { upsert: mockDaysUpsert });
-      service = new WeeklyMenuService({ from: mockFrom } as never);
-
-      const result = await service.saveWeeklyMenu(tenantId, actorId, validInput);
-      expect(result).toMatchObject({ success: false, menuId: '', error: 'MENU_NOT_FOUND' });
-      expect(menuQuery.update).toHaveBeenCalledTimes(1);
-      expect(mockDaysUpsert).not.toHaveBeenCalled();
+    it('rejects an update without its loaded version before any write', async () => {
+      const rpc = jest.fn();
+      service = new WeeklyMenuService({ rpc } as never);
+      const result = await service.saveWeeklyMenu(tenantId, actorId, { ...validInput, menuId: 'menu-1' });
+      expect(result).toMatchObject({ success: false, error: 'WEEKLY_MENU_VERSION_REQUIRED' });
+      expect(rpc).not.toHaveBeenCalled();
     });
 
-    it('preserves the existing success response and day payload when a menu row is updated', async () => {
-      const menuQuery = {
-        update: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), select: jest.fn().mockReturnThis(),
-        maybeSingle: jest.fn<() => Promise<{ data: { id: string }; error: null }>>()
-          .mockResolvedValue({ data: { id: 'existing-menu' }, error: null }),
-      };
-      const upsert = jest.fn<() => Promise<{ error: null }>>().mockResolvedValue({ error: null });
-      service = new WeeklyMenuService({ from: jest.fn((table: string) => table === 'edu_weekly_menus' ? menuQuery : { upsert }) } as never);
-      const result = await service.saveWeeklyMenu(tenantId, actorId, { ...validInput, menuId: 'existing-menu' });
-      expect(result).toEqual({ success: true, menuId: 'existing-menu', message: 'Thực đơn tuần đã được ban hành thành công.' });
-      expect(menuQuery.eq).toHaveBeenCalledWith('tenant_id', tenantId);
-      expect(upsert).toHaveBeenCalledWith([expect.objectContaining({
-        tenant_id: tenantId, menu_id: 'existing-menu', day_of_week: 'MON', meals_payload: validInput.days[0].mealsPayload,
-      })], { onConflict: 'tenant_id,menu_id,day_of_week' });
+    it('does not report success when the atomic RPC fails', async () => {
+      const rpc = jest.fn<() => Promise<unknown>>().mockResolvedValue({ data: null, error: { code: '42501' } });
+      service = new WeeklyMenuService({ rpc } as never);
+      const result = await service.saveWeeklyMenu(tenantId, actorId, validInput);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('WEEKLY_MENU_PERSISTENCE_FAILED');
     });
   });
 });
-

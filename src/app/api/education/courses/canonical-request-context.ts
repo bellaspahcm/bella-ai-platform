@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
-import { CURRENT_ACTOR_PROFILE_RPC, reconcileCurrentActorProfile } from '@/platform/security/current-actor.contract';
+import {
+  CURRENT_ACTOR_PROFILE_RPC,
+  CURRENT_ACTOR_TENANT_PRESENTATION_RPC,
+  reconcileCurrentActorProfile,
+  reconcileCurrentActorTenantPresentation,
+} from '@/platform/security/current-actor.contract';
 
 export const CANONICAL_COURSE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
@@ -42,13 +47,14 @@ export async function resolveCanonicalCourseContext(request: Request) {
       return { allowed: false as const, response: canonicalCourseFailure('CANONICAL_COURSE_ACCESS_DENIED', 403) };
     }
 
-    const tenantResult = await client.from('tenants').select('id,status,product_key')
-      .eq('id', actor.tenant_id).maybeSingle();
+    const tenantResult = await client.rpc(CURRENT_ACTOR_TENANT_PRESENTATION_RPC);
     if (tenantResult.error) {
-      return { allowed: false as const, response: canonicalCourseFailure('CANONICAL_COURSE_UNAVAILABLE', 503) };
+      return { allowed: false as const, response: tenantResult.error.code === '42501'
+        ? canonicalCourseFailure('CANONICAL_COURSE_ACCESS_DENIED', 403)
+        : canonicalCourseFailure('CANONICAL_COURSE_UNAVAILABLE', 503) };
     }
-    const tenant = tenantResult.data;
-    if (!tenant || tenant.id !== actor.tenant_id || tenant.status !== 'active') {
+    const tenant = reconcileCurrentActorTenantPresentation(actor.tenant_id, tenantResult.data);
+    if (!tenant) {
       return { allowed: false as const, response: canonicalCourseFailure('CANONICAL_COURSE_ACCESS_DENIED', 403) };
     }
     if (tenant.product_key !== 'bella_preschool') {

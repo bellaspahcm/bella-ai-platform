@@ -1,0 +1,46 @@
+{
+  "status": "APPROVED_LOCAL_DISPOSABLE_IMPLEMENTATION",
+  "authority": "User approved current-branch historical attendance access and this local/disposable Education contract on 2026-10-28",
+  "globalEducationState": "FROZEN",
+  "implementationWindowOpen": false,
+  "implementationStatus": "VERIFIED_LOCAL_DISPOSABLE_WITH_PROVENANCE_LIMIT",
+  "exactPaths": [
+    "src/platform/education/contracts/preschool-student-attendance-history.contract.ts",
+    "src/platform/education/contracts/preschool-student-attendance-history.contract.impl.ts",
+    "src/platform/education/contracts/__tests__/preschool-student-attendance-history.contract.test.ts",
+    "supabase/migrations/20261028160000_preschool_admin_student_attendance_history.sql"
+  ],
+  "supportingPaths": [
+    "src/app/api/education/enrollments/student-360.service.ts",
+    "src/app/api/education/enrollments/__tests__/student-360.service.test.ts"
+  ],
+  "allowedDatabaseTarget": "bella-preschool-95c70855",
+  "productionAuthorized": false,
+  "sharedDatabaseAuthorized": false,
+  "uiChangesAuthorized": false,
+  "commitPushMergeDeployAuthorized": false,
+  "globalManifestOrGuardChangesAllowed": false,
+  "finalSha256": {
+    "src/platform/education/contracts/preschool-student-attendance-history.contract.ts": "DFCAB44AC26024BD887EC41920A1AB170028F39C6F1C8B1F7F0777E7E67154CD",
+    "src/platform/education/contracts/preschool-student-attendance-history.contract.impl.ts": "0B814934FC377F03639A90C83CEE3E50345B39BA6FC3E23B19EA82BF79E20F78",
+    "src/platform/education/contracts/__tests__/preschool-student-attendance-history.contract.test.ts": "3EAF6995042962555458983B6AC1B2A87BF5CA1A91465AEED4871F9C7819CC68",
+    "supabase/migrations/20261028160000_preschool_admin_student_attendance_history.sql": "D84FDFFB6A834DCE84328554DF8B9E81193F383EF5C4820329F64761733DEEE5"
+  },
+  "verification": {
+    "focusedTests": "84/84 across 3 suites",
+    "typeCheck": "PASS",
+    "eslint": "PASS",
+    "educationArchitecture": "4/4 PASS",
+    "zeroDowntimeAnalysis": "PASS for this migration",
+    "jwt": "8/8 PASS plus admin-deactivation check; synthetic Auth and event fixtures removed",
+    "provenance": "3/3 PASS with synthetic timestamps; event before bindings or changed binding fails closed",
+    "browser": "Admin login, Registry child/class, Student 360 and attendance event PASS; guardian endpoint 503",
+    "browserReceiptSha256": "45FAACD7A741437633EEC24E196FB0C61AA4120F28EF9D7B4737A9E90DD7F571",
+    "jwtReceiptSha256": "24F740F094959FE9D605AAFA1717973C82236A60830A6E4BD872A195B6FFD8BA",
+    "provenanceReceiptSha256": "FDDD19A3B40C44A656366503562FC176157334EFF3177E115319614FD70F182F",
+    "deactivationReceiptSha256": "D23EC178F58809120EB90EEDA3757F609F2A96E76042CBCD228EDFA87FFF014B",
+    "ledger": "No version 20261028160000 inserted in disposable migration ledger",
+    "limitations": "No historical branch ID is stored on the event; the timestamp guard relies on binding updated_at accuracy and does not prove provenance of preexisting data or Production. Full Student 360 guardian data is unavailable."
+  },
+  "reseal": "BOUNDED_LOCAL_ONLY; FULL_EDUCATION_RESEAL_HELD"
+}

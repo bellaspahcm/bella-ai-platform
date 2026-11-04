@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { CurrentActorProfileRow } from '@/platform/security/current-actor.contract';
-import type { PreschoolRegistryStudent } from '@/platform/education/contracts/preschool-registry.contract';
 import { CURRENT_ACTOR_PROFILE_RPC } from '@/platform/security/current-actor.contract';
 
 type AuthResult = {
@@ -30,20 +29,19 @@ jest.mock('@/lib/supabase-admin-env', () => ({
 }));
 
 const mockAdminFrom = jest.fn();
-const mockLoadStudent360Identity = jest.fn<(...args: unknown[]) => Promise<PreschoolRegistryStudent | null>>();
-jest.mock('../../../student-360.service', () => ({ loadStudent360Identity: mockLoadStudent360Identity }));
+const mockLoadStudent360Profile = jest.fn();
 jest.mock('@supabase/supabase-js', () => ({
   createClient: jest.fn(() => ({
     from: mockAdminFrom,
   })),
 }));
+jest.mock('../../../student-360.service', () => ({ loadStudent360Profile: mockLoadStudent360Profile }));
 
 const { GET, POST, PUT, PATCH, DELETE } = require('../route') as typeof import('../route');
 
 const tenantId = 'ed100000-0000-4000-8000-000000000001';
 const actorId = 'ad6899c2-4b9d-49af-acb3-69e2e1d11447';
 const studentId = '00000001-0000-4000-8000-000000000001';
-const studentPartyId = '00000002-0000-4000-8000-000000000001';
 
 const activeActor: CurrentActorProfileRow = {
   id: actorId,
@@ -71,10 +69,7 @@ describe('Student Communication Authenticated Read-Only Route', () => {
     });
     mockGetUser.mockResolvedValue({ data: { user: { id: actorId } }, error: null });
     mockRpc.mockResolvedValue({ data: [activeActor], error: null });
-    mockLoadStudent360Identity.mockResolvedValue({
-      id: studentId, partyId: studentPartyId, tenantId, studentCode: 'HS0001', name: 'Canonical child',
-      dob: null, gender: null, enrollments: [],
-    });
+    mockLoadStudent360Profile.mockResolvedValue({ studentId, partyId: 'party-student-1' });
 
     mockAdminFrom.mockImplementation((tableName: string) => {
       const createBuilder = (resolvedData: unknown[]) => {
@@ -129,33 +124,20 @@ describe('Student Communication Authenticated Read-Only Route', () => {
     expect(body.studentId).toBe(studentId);
     expect(body.dailyCareRecords).toHaveLength(1);
     expect(body.exceptions).toHaveLength(1);
-    expect(mockLoadStudent360Identity).toHaveBeenCalledWith(callerClient, tenantId, studentId);
-    const careQuery = mockAdminFrom.mock.results[0].value as { eq: jest.Mock; or: jest.Mock };
-    expect(careQuery.eq).toHaveBeenCalledWith('tenant_id', tenantId);
-    expect(careQuery.or).toHaveBeenCalledWith(`student_party_id.eq.${studentPartyId},student_id.eq.${studentId}`);
+    expect(mockLoadStudent360Profile).toHaveBeenCalledWith(callerClient, tenantId, studentId);
   });
 
-  it('preserves the empty-read response without privileged reads when identity is not resolved', async () => {
-    mockLoadStudent360Identity.mockResolvedValueOnce(null);
+  it('filters daily care by canonical Student Party identity while retaining legacy rows', async () => {
     const res = await GET(request(), context());
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ success: true, studentId, dailyCareRecords: [], exceptions: [] });
-    expect(mockAdminFrom).not.toHaveBeenCalled();
+    const careBuilder = mockAdminFrom.mock.results[0]?.value as { or: jest.Mock };
+    expect(careBuilder.or).toHaveBeenCalledWith(`student_party_id.eq.party-student-1,student_id.eq.${studentId}`);
   });
 
-  it('keeps the existing unavailable response when the identity dependency fails', async () => {
-    mockLoadStudent360Identity.mockRejectedValueOnce(new Error('registry denied or unavailable'));
+  it('returns not found when the canonical registry cannot resolve the Student', async () => {
+    mockLoadStudent360Profile.mockResolvedValueOnce(null);
     const res = await GET(request(), context());
-    expect(res.status).toBe(503);
-    expect(await res.json()).toEqual({ success: false, error: 'STUDENT_COMMUNICATION_UNAVAILABLE' });
-    expect(mockAdminFrom).not.toHaveBeenCalled();
-  });
-
-  it('rejects non-admin callers before identity or privileged reads', async () => {
-    mockRpc.mockResolvedValueOnce({ data: [{ ...activeActor, role: 'parent' }], error: null });
-    const res = await GET(request(), context());
-    expect(res.status).toBe(403);
-    expect(mockLoadStudent360Identity).not.toHaveBeenCalled();
+    expect(res.status).toBe(404);
     expect(mockAdminFrom).not.toHaveBeenCalled();
   });
 

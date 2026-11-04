@@ -23,6 +23,12 @@ class DatabaseDouble {
   async query(sql, values = []) {
     const normalized = sql.replace(/\s+/g, ' ').trim();
     state.calls.push(normalized);
+    if (normalized.startsWith('INSERT INTO public.bella_execution_audit')) {
+      const event = JSON.parse(values[15]).event;
+      if (state.failAudit === event) throw new Error('synthetic audit sink unavailable');
+      state.auditRows.push(values);
+      return { rows: [{ audit_id: randomUUID() }], rowCount: 1 };
+    }
     if (normalized === 'SELECT current_user AS actor, session_user AS session_actor') {
       return { rows: [{ actor: state.actor, session_actor: state.actor }] };
     }
@@ -63,7 +69,8 @@ const { issueGateToken } = await import('./gate-token.mjs');
 beforeEach(() => {
   const id = randomUUID();
   state = { sql: 'CREATE TABLE bdgf_synthetic_fixture (id integer);', actor: 'bella_migration_executor',
-    executions: 0, calls: [], tokens: new Map(), failDdl: false };
+    executions: 0, calls: [], tokens: new Map(), failDdl: false, failAudit: null };
+  state.auditRows = [];
   state.approval = { approval_id: id, migration_id: id, migration_hash: computeHash(state.sql),
     approval_mode: 'separated', requester_id: 'synthetic-requester', approver_id: 'synthetic-approver',
     approver_role: 'admin', approved_at: new Date(), expires_at: new Date(Date.now() + 60000),
@@ -96,7 +103,12 @@ test('unit path: actual approval/token/executor functions commit only after boun
   assert.equal(result.execution.status, 'SUCCESS');
   assert.equal(state.executions, 1);
   assert.equal([...state.tokens.values()][0].status, 'used');
-  const transaction = state.calls.slice(state.calls.indexOf('BEGIN'));
+  assert.deepEqual(state.auditRows.map(values => JSON.parse(values[15]).event), [
+    'APPROVAL_VERIFIED', 'GATE_TOKEN_ISSUED', 'EXECUTION_STARTED', 'EXECUTION_SUCCEEDED'
+  ]);
+  assert.equal(state.auditRows.at(-1)[11], true);
+  const transaction = state.calls.slice(state.calls.indexOf('BEGIN'))
+    .filter(sql => ['BEGIN', state.sql, 'COMMIT', 'ROLLBACK'].includes(sql));
   assert.deepEqual(transaction, ['BEGIN', state.sql, 'COMMIT']);
 });
 
@@ -106,6 +118,7 @@ test('unit path: wrong real database principal cannot issue a token or execute',
     { code: 'EXECUTOR_DATABASE_IDENTITY_MISMATCH' });
   assert.equal(state.tokens.size, 0);
   assert.equal(state.executions, 0);
+  assert.equal(state.auditRows.length, 0);
   assert.ok(!state.calls.includes('BEGIN'));
 });
 
@@ -122,6 +135,8 @@ for (const [name, overrides, reason] of [
       error => error.code === 'INVALID_TOKEN' && error.details.validation.reason === reason);
     assert.equal([...state.tokens.values()][0].status, 'issued');
     assert.equal(state.executions, 0);
+    assert.equal(JSON.parse(state.auditRows[0][15]).event, 'EXECUTION_BLOCKED');
+    assert.equal(state.auditRows[0][6], 'BLOCK');
     assert.ok(!state.calls.includes('BEGIN'));
   });
 }
@@ -138,7 +153,32 @@ test('unit path: a consumed token cannot execute a second transaction', async ()
 test('unit path: DDL failure rolls back but does not resurrect the single-use token', async () => {
   const issued = await token();
   state.failDdl = true;
-  await assert.rejects(() => executeMigration({ token: issued, ...parameters() }), /synthetic DDL failure/);
-  assert.deepEqual(state.calls.slice(state.calls.indexOf('BEGIN')), ['BEGIN', state.sql, 'ROLLBACK']);
+  await assert.rejects(() => executeMigration({ token: issued, ...parameters() }), /Migration execution failed \(42501\)/);
+  const transaction = state.calls.slice(state.calls.indexOf('BEGIN'))
+    .filter(sql => ['BEGIN', state.sql, 'COMMIT', 'ROLLBACK'].includes(sql));
+  assert.deepEqual(transaction, ['BEGIN', state.sql, 'ROLLBACK']);
   assert.equal([...state.tokens.values()][0].status, 'used');
+  assert.deepEqual(state.auditRows.map(values => JSON.parse(values[15]).event), [
+    'EXECUTION_STARTED', 'EXECUTION_FAILED'
+  ]);
+  assert.equal(state.auditRows[1][11], null);
+  assert.equal(JSON.parse(state.auditRows[1][15]).rollback_succeeded, true);
+});
+
+test('unit path: missing start audit blocks before migration DDL', async () => {
+  const issued = await token();
+  state.failAudit = 'EXECUTION_STARTED';
+  await assert.rejects(() => executeMigration({ token: issued, ...parameters() }), /synthetic audit sink unavailable/);
+  assert.equal(state.executions, 0);
+  assert.ok(!state.calls.includes('BEGIN'));
+});
+
+test('unit path: missing success audit reports committed migration for reconciliation', async () => {
+  const issued = await token();
+  state.failAudit = 'EXECUTION_SUCCEEDED';
+  await assert.rejects(() => executeMigration({ token: issued, ...parameters() }),
+    /Migration committed, but its success audit could not be recorded/);
+  assert.equal(state.executions, 1);
+  assert.ok(state.calls.includes('COMMIT'));
+  assert.deepEqual(state.auditRows.map(values => JSON.parse(values[15]).event), ['EXECUTION_STARTED']);
 });

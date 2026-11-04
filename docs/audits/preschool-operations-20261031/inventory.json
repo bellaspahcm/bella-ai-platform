@@ -1,0 +1,1147 @@
+{
+  "sourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+  "branch": "main",
+  "scopeFiles": 406,
+  "pages": [
+    "src/app/dashboard/education/attendance/page.tsx",
+    "src/app/dashboard/education/branches/page.tsx",
+    "src/app/dashboard/education/care/page.tsx",
+    "src/app/dashboard/education/communication/page.tsx",
+    "src/app/dashboard/education/courses/page.tsx",
+    "src/app/dashboard/education/courses/[id]/page.tsx",
+    "src/app/dashboard/education/curriculum/page.tsx",
+    "src/app/dashboard/education/enrollments/page.tsx",
+    "src/app/dashboard/education/enrollments/[id]/page.tsx",
+    "src/app/dashboard/education/facilities/page.tsx",
+    "src/app/dashboard/education/finance/page.tsx",
+    "src/app/dashboard/education/grades/page.tsx",
+    "src/app/dashboard/education/learning/page.tsx",
+    "src/app/dashboard/education/my-class/page.tsx",
+    "src/app/dashboard/education/nutrition/page.tsx",
+    "src/app/dashboard/education/page.tsx",
+    "src/app/dashboard/education/parent-inbox/page.tsx",
+    "src/app/dashboard/education/reports/page.tsx",
+    "src/app/dashboard/education/scheduling/page.tsx",
+    "src/app/dashboard/education/teachers/page.tsx",
+    "src/app/dashboard/education/teachers/[id]/page.tsx",
+    "src/app/dashboard/education/work-queue/page.tsx"
+  ],
+  "routes": [
+    {
+      "file": "src/app/api/education/ai/copilot/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@/lib/supabase-server",
+        "@/services/user-actions",
+        "@/lib/business-rules/permissions",
+        "@/products/bella-education/services/preschool-ai.service"
+      ],
+      "tables": [
+        "tenants"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": false,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/analytics/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "imports": [
+        "next/server",
+        "@bella/shared",
+        "@/platform/education/contracts/canonical-course-catalog.contract.impl",
+        "@/platform/education/contracts/attendance.contract.impl",
+        "@/products/bella-education/analytics/domain/preschool-analytics.types",
+        "../attendance/request-context"
+      ],
+      "tables": [
+        "user_org_unit_access",
+        "org_units",
+        "preschool_chain_course_branch_assignments"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": false,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/announcements/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@/lib/supabase-server",
+        "@/services/user-actions"
+      ],
+      "tables": [],
+      "rpcs": [
+        "preschool_list_school_announcements",
+        "preschool_publish_school_announcement"
+      ],
+      "privilegedClientReference": false,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/attendance/courses/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@bella/shared",
+        "@/lib/supabase-admin-env",
+        "@/platform/education/contracts/attendance.contract.impl",
+        "@/platform/org-unit/trusted-actor-access.contract.impl",
+        "@/products/bella-education/services/preschool-attendance-access.service",
+        "@/products/bella-education/services/preschool-chain.service",
+        "@/types/database.types",
+        "../../courses/request-context",
+        "../../enrollments/admission-course-reader",
+        "@/products/bella-education/services/preschool-teacher-attendance.service",
+        "@/services/tenant-actions",
+        "../request-context"
+      ],
+      "tables": [],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/attendance/handover/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "imports": [
+        "@/products/bella-education/services/preschool-chain.service",
+        "next/server",
+        "@supabase/supabase-js",
+        "@/products/bella-education/services/preschool-safe-pickup-handover.service",
+        "@/products/bella-education/security/education-security-guard.service",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/services/user-actions",
+        "@/types/database.types"
+      ],
+      "tables": [],
+      "rpcs": [
+        "preschool_record_handover"
+      ],
+      "privilegedClientReference": true,
+      "privateCacheReference": false
+    },
+    {
+      "file": "src/app/api/education/attendance/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "imports": [
+        "@/products/bella-education/services/preschool-chain.service",
+        "@/products/bella-education/services/preschool-attendance-access.service",
+        "@/products/bella-education/services/preschool-attendance-command.service",
+        "@/products/bella-education/services/preschool-teacher-attendance.service",
+        "@/platform/education/contracts/attendance-command.contract",
+        "next/server",
+        "@supabase/supabase-js",
+        "@/platform/education/contracts/attendance.contract.impl",
+        "@/platform/education/contracts/attendance.contract",
+        "@/products/bella-education/services/attendance.service",
+        "@/products/bella-education/services/preschool-guardian-authorization.service",
+        "@/products/bella-education/services/preschool-safe-pickup-handover.service",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/types/database.types",
+        "./request-context"
+      ],
+      "tables": [],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/branches/manage/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/platform/org-unit",
+        "@/platform/security/current-actor.contract",
+        "@/products/bella-education/services/preschool-chain.service",
+        "@/types/database.types"
+      ],
+      "tables": [
+        "tenants"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": false,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/branches/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/services/user-actions",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/products/bella-education/services/preschool-chain.service",
+        "@/types/database.types"
+      ],
+      "tables": [],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": false
+    },
+    {
+      "file": "src/app/api/education/care/bulk/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@/products/bella-education/care-wellbeing/daily-care/daily-care.contract",
+        "@/products/bella-education/care-wellbeing/daily-care/save-care.input",
+        "./request-context"
+      ],
+      "tables": [
+        "edu_attendance_daily_state"
+      ],
+      "rpcs": [
+        "preschool_save_care_records"
+      ],
+      "privilegedClientReference": false,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/care/classes/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "imports": [
+        "next/server",
+        "@/platform/education/contracts/canonical-course-catalog.contract.impl",
+        "../bulk/request-context"
+      ],
+      "tables": [
+        "preschool_chain_course_branch_assignments",
+        "org_units",
+        "user_org_unit_access"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": false,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/care/digest/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/services/user-actions",
+        "@/products/bella-education/care-wellbeing/daily-care/daily-care.service",
+        "@/products/bella-education/services/preschool-parent-daily-experience.service",
+        "@/types/database.types"
+      ],
+      "tables": [
+        "users",
+        "edu_daily_parent_digests"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": false
+    },
+    {
+      "file": "src/app/api/education/care/medication/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "imports": [
+        "next/server"
+      ],
+      "tables": [],
+      "rpcs": [],
+      "privilegedClientReference": false,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/communication/messages/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/services/user-actions",
+        "@/products/bella-education/parent-engagement/repositories/parent-communication.repository",
+        "@/types/database.types"
+      ],
+      "tables": [
+        "edu_comm_threads"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/communication/threads/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/services/user-actions",
+        "@/types/database.types"
+      ],
+      "tables": [
+        "edu_comm_threads",
+        "edu_comm_responses",
+        "edu_comm_exceptions"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/courses/catalog/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE"
+      ],
+      "imports": [
+        "next/server",
+        "@/lib/supabase-server",
+        "@/platform/security/current-actor.contract",
+        "@/platform/education/contracts/canonical-course-catalog.contract.impl"
+      ],
+      "tables": [
+        "tenants"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": false,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/courses/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@bella/shared",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/platform/education/contracts/course.contract.impl",
+        "@/platform/education/contracts/canonical-course-catalog.contract.impl",
+        "@/platform/education/contracts/canonical-course-catalog.contract",
+        "@/platform/education/contracts/teacher-assignment.contract",
+        "@/platform/education/contracts/preschool-registry.contract.impl",
+        "@/platform/education/contracts/preschool-registry.contract",
+        "@/platform/education/contracts/preschool-teacher.contract.impl",
+        "@/products/bella-education/services/course-catalog.service",
+        "@/products/bella-education/services/preschool-chain.service",
+        "@/products/bella-education/services/preschool-teacher.service",
+        "@/platform/education/contracts/teacher-assignment.contract",
+        "@/types/database.types",
+        "./request-context",
+        "./canonical-request-context"
+      ],
+      "tables": [
+        "edu_courses",
+        "preschool_chain_course_branch_assignments",
+        "courses",
+        "edu_enrollments",
+        "edu_attendance_daily_state"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/courses/[id]/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "imports": [
+        "next/server",
+        "@/platform/education/contracts/teacher-assignment.contract.impl",
+        "@/platform/education/contracts/course.contract.impl",
+        "../request-context"
+      ],
+      "tables": [
+        "courses",
+        "party_parties",
+        "edu_enrollments",
+        "students"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": false,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/courses/[id]/teachers/route.ts",
+      "methods": [
+        "POST",
+        "DELETE"
+      ],
+      "imports": [
+        "next/server"
+      ],
+      "tables": [],
+      "rpcs": [],
+      "privilegedClientReference": false,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/curriculum/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/services/user-actions",
+        "@/types/database.types",
+        "@/products/bella-education/learning-development/curriculum/curriculum.service",
+        "@/products/bella-education/learning-development/curriculum/curriculum.contract"
+      ],
+      "tables": [],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/enrollments/confirm-admission/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/platform/security/current-actor.contract",
+        "@/types/database.types"
+      ],
+      "tables": [
+        "edu_enrollments",
+        "students",
+        "edu_fin_billing_periods",
+        "edu_fin_invoices",
+        "edu_fin_payments",
+        "edu_fin_invoice_line_items",
+        "edu_courses"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/enrollments/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@bella/shared",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/types/database.types",
+        "@/platform/education/contracts/enrollment.contract.impl",
+        "@/platform/education/contracts/enrollment.contract",
+        "@/platform/education/contracts/student.contract.impl",
+        "@/platform/education/contracts/student.contract",
+        "@/products/bella-education/services/preschool-guardian-authorization.service",
+        "@/services/user-actions",
+        "@/products/bella-education/services/preschool-admission.service",
+        "./admission-course-reader",
+        "@/products/bella-education/services/preschool-chain.service",
+        "@/types/preschool-durable.database.types",
+        "../attendance/request-context"
+      ],
+      "tables": [
+        "edu_enrollments",
+        "party_parties",
+        "students",
+        "edu_courses",
+        "preschool_admission_operations"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/communications/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/platform/security/current-actor.contract",
+        "@/types/database.types"
+      ],
+      "tables": [
+        "edu_daily_care_records",
+        "edu_comm_exceptions"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/development/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/platform/security/current-actor.contract",
+        "@/types/database.types"
+      ],
+      "tables": [
+        "students",
+        "edu_enrollments",
+        "edu_assessments",
+        "edu_dev_milestone_progress"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/finance-summary/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/platform/security/current-actor.contract",
+        "@/types/database.types"
+      ],
+      "tables": [
+        "students",
+        "edu_fin_invoices"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/guardians/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE"
+      ],
+      "imports": [
+        "next/server",
+        "@/lib/supabase-server",
+        "@/lib/supabase-public-env",
+        "@/platform/security/current-actor.contract",
+        "@/products/bella-education/services/preschool-student-guardian-read.service"
+      ],
+      "tables": [],
+      "rpcs": [],
+      "privilegedClientReference": false,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/health/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/platform/security/current-actor.contract",
+        "@/types/database.types"
+      ],
+      "tables": [
+        "edu_child_allergies",
+        "edu_medication_authorizations",
+        "edu_health_incidents"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/route.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "imports": [
+        "next/server",
+        "@/lib/supabase-server",
+        "@/platform/security/current-actor.contract",
+        "@/platform/education/contracts/preschool-registry.contract",
+        "../student-360.service"
+      ],
+      "tables": [],
+      "rpcs": [
+        "preschool_admin_update_student_profile"
+      ],
+      "privilegedClientReference": false,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/finance/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/services/user-actions",
+        "@/types/database.types",
+        "@/products/bella-education/finance/repositories/preschool-finance.repository",
+        "@/products/bella-education/finance/services/tuition-billing.service",
+        "@/products/bella-education/finance/services/invoice-issuance.service",
+        "@/products/bella-education/finance/services/payment-reconciliation.service",
+        "@/products/bella-education/finance/domain/finance.types",
+        "@/products/bella-education/finance/services/preschool-finance-authorization.service"
+      ],
+      "tables": [
+        "tenants",
+        "user_org_unit_access"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/grades/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/platform/security/current-actor.contract",
+        "@/platform/education/contracts/canonical-course-catalog.contract.impl",
+        "@/platform/education/contracts/preschool-registry.contract.impl",
+        "@/types/database.types"
+      ],
+      "tables": [
+        "edu_courses",
+        "edu_dev_observations",
+        "edu_dev_milestone_progress",
+        "edu_dev_observation_students"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/nutrition/weekly-menu/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/services/user-actions",
+        "@/types/database.types",
+        "@/products/bella-education/care-wellbeing/nutrition/weekly-menu.service",
+        "@/products/bella-education/care-wellbeing/nutrition/weekly-menu.contract"
+      ],
+      "tables": [],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/parent-daily/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "imports": [
+        "next/server"
+      ],
+      "tables": [],
+      "rpcs": [],
+      "privilegedClientReference": false,
+      "privateCacheReference": false
+    },
+    {
+      "file": "src/app/api/education/portal/token/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@/lib/supabase-server",
+        "@/services/user-actions",
+        "@/products/bella-education/parent-portal/domain/parent-portal.types",
+        "@/products/bella-education/parent-portal/services/preschool-parent-portal.service"
+      ],
+      "tables": [
+        "tenants"
+      ],
+      "rpcs": [
+        "preschool_portal_issuer_context"
+      ],
+      "privilegedClientReference": false,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/attendance/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-admin-env",
+        "@/lib/supabase-server",
+        "@/types/database.types",
+        "@/products/bella-education/parent-portal/services/preschool-parent-portal.service",
+        "@/products/bella-education/parent-portal/domain/parent-portal.types"
+      ],
+      "tables": [
+        "edu_enrollments",
+        "edu_attendance_daily_state",
+        "edu_attendance"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/care/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-admin-env",
+        "@/lib/supabase-server",
+        "@/types/database.types",
+        "@/products/bella-education/parent-portal/services/preschool-parent-portal.service",
+        "@/products/bella-education/parent-portal/domain/parent-portal.types"
+      ],
+      "tables": [
+        "edu_enrollments",
+        "edu_daily_care_records",
+        "edu_daily_care_sessions"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/chat/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-admin-env",
+        "@/lib/supabase-server",
+        "@/types/database.types",
+        "@/products/bella-education/parent-portal/services/preschool-parent-portal.service"
+      ],
+      "tables": [],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/copilot/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/products/bella-education/parent-portal/services/preschool-parent-portal.service",
+        "@/products/bella-education/services/preschool-ai.service",
+        "@/products/bella-education/services/preschool-ai.service"
+      ],
+      "tables": [],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-admin-env",
+        "@/lib/supabase-server",
+        "@/types/database.types",
+        "@/products/bella-education/parent-portal/services/preschool-parent-portal.service",
+        "@/products/bella-education/parent-portal/domain/parent-portal.types"
+      ],
+      "tables": [],
+      "rpcs": [
+        "preschool_portal_daily_read",
+        "preschool_portal_school_announcements_read"
+      ],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/tuition/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-admin-env",
+        "@/lib/supabase-server",
+        "@/types/database.types",
+        "@/products/bella-education/parent-portal/services/preschool-parent-portal.service",
+        "@/products/bella-education/parent-portal/domain/parent-portal.types"
+      ],
+      "tables": [
+        "edu_fin_invoices",
+        "tenants"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/student-registry/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "imports": [
+        "next/server",
+        "@/lib/supabase-server",
+        "@/platform/security/current-actor.contract",
+        "@/platform/education/contracts/preschool-registry.contract.impl",
+        "@/platform/education/contracts/preschool-registry.contract"
+      ],
+      "tables": [],
+      "rpcs": [],
+      "privilegedClientReference": false,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/teachers/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-admin-env",
+        "@/platform/education/contracts/canonical-course-catalog.contract.impl",
+        "@/platform/education/contracts/teacher-assignment.contract",
+        "@/platform/education/contracts/preschool-teacher.contract.impl",
+        "@/products/bella-education/services/preschool-chain.service",
+        "@/products/bella-education/services/preschool-teacher.service",
+        "@/types/database.types",
+        "./request-context"
+      ],
+      "tables": [],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/teachers/[id]/route.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-admin-env",
+        "@/types/database.types",
+        "../request-context",
+        "../teacher-360.service"
+      ],
+      "tables": [],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": true
+    },
+    {
+      "file": "src/app/api/education/work-queue/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "imports": [
+        "next/server",
+        "@supabase/supabase-js",
+        "@/lib/supabase-server",
+        "@/lib/supabase-admin-env",
+        "@/services/user-actions",
+        "@/types/database.types",
+        "@/products/bella-education/security/education-security-guard.service",
+        "@/products/bella-education/care-wellbeing/incidents/incident-safety.service",
+        "@/products/bella-education/work-queue/work-queue.service",
+        "@/products/bella-education/work-queue/work-queue.types",
+        "./request-review.persistence",
+        "./incident-queue.persistence",
+        "./identity.persistence"
+      ],
+      "tables": [
+        "tenants"
+      ],
+      "rpcs": [],
+      "privilegedClientReference": true,
+      "privateCacheReference": false
+    }
+  ],
+  "selectedLocalTests": [
+    "src/app/api/education/ai/copilot/__tests__/access.test.ts",
+    "src/app/api/education/analytics/__tests__/route.test.ts",
+    "src/app/api/education/announcements/__tests__/access.test.ts",
+    "src/app/api/education/attendance/courses/__tests__/route.test.ts",
+    "src/app/api/education/attendance/handover/__tests__/route.test.ts",
+    "src/app/api/education/attendance/__tests__/route.test.ts",
+    "src/app/api/education/attendance/__tests__/teacher-context.test.ts",
+    "src/app/api/education/branches/__tests__/route.test.ts",
+    "src/app/api/education/care/bulk/__tests__/access.test.ts",
+    "src/app/api/education/care/classes/__tests__/access.test.ts",
+    "src/app/api/education/care/classes/__tests__/catalog-contract.test.ts",
+    "src/app/api/education/care/medication/__tests__/route.test.ts",
+    "src/app/api/education/courses/catalog/__tests__/route.test.ts",
+    "src/app/api/education/courses/[id]/teachers/__tests__/route.test.ts",
+    "src/app/api/education/courses/[id]/__tests__/route.test.ts",
+    "src/app/api/education/courses/__tests__/access.test.ts",
+    "src/app/api/education/courses/__tests__/catalog-route.test.ts",
+    "src/app/api/education/courses/__tests__/create-canonical.test.ts",
+    "src/app/api/education/courses/__tests__/request-context.test.ts",
+    "src/app/api/education/courses/__tests__/route.test.ts",
+    "src/app/api/education/curriculum/__tests__/route.test.ts",
+    "src/app/api/education/enrollments/confirm-admission/__tests__/route.test.ts",
+    "src/app/api/education/enrollments/[id]/communications/__tests__/route.test.ts",
+    "src/app/api/education/enrollments/[id]/development/__tests__/route.test.ts",
+    "src/app/api/education/enrollments/[id]/finance-summary/__tests__/route.test.ts",
+    "src/app/api/education/enrollments/[id]/guardians/__tests__/route.test.ts",
+    "src/app/api/education/enrollments/[id]/health/__tests__/route.test.ts",
+    "src/app/api/education/enrollments/[id]/__tests__/route.test.ts",
+    "src/app/api/education/enrollments/__tests__/candidate-route.test.ts",
+    "src/app/api/education/enrollments/__tests__/route.test.ts",
+    "src/app/api/education/enrollments/__tests__/student-360.service.test.ts",
+    "src/app/api/education/finance/__tests__/mvp-hold.test.ts",
+    "src/app/api/education/finance/__tests__/route.test.ts",
+    "src/app/api/education/grades/__tests__/route.test.ts",
+    "src/app/api/education/nutrition/weekly-menu/__tests__/route.test.ts",
+    "src/app/api/education/parent-daily/__tests__/route.test.ts",
+    "src/app/api/education/portal/token/__tests__/access.test.ts",
+    "src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts",
+    "src/app/api/education/portal/[token]/care/__tests__/route.test.ts",
+    "src/app/api/education/portal/[token]/tuition/__tests__/route.test.ts",
+    "src/app/api/education/portal/__tests__/access.test.ts",
+    "src/app/api/education/student-registry/__tests__/route.test.ts",
+    "src/app/api/education/teachers/[id]/__tests__/route.test.ts",
+    "src/app/api/education/teachers/__tests__/route.test.ts",
+    "src/app/api/education/work-queue/__tests__/route.test.ts",
+    "src/app/dashboard/education/attendance/__tests__/page.test.tsx",
+    "src/app/dashboard/education/attendance/__tests__/preschool-attendance.test.tsx",
+    "src/app/dashboard/education/care/__tests__/care-save.test.ts",
+    "src/app/dashboard/education/care/__tests__/page.test.tsx",
+    "src/app/dashboard/education/care/__tests__/WeeklyMenuEditorModal.test.tsx",
+    "src/app/dashboard/education/communication/__tests__/page.test.tsx",
+    "src/app/dashboard/education/courses/[id]/__tests__/page.test.tsx",
+    "src/app/dashboard/education/courses/__tests__/canonical-catalog.test.tsx",
+    "src/app/dashboard/education/courses/__tests__/canonical-create.test.tsx",
+    "src/app/dashboard/education/courses/__tests__/classroom-live-data.test.ts",
+    "src/app/dashboard/education/courses/__tests__/operational-wiring.test.tsx",
+    "src/app/dashboard/education/courses/__tests__/page.test.tsx",
+    "src/app/dashboard/education/curriculum/__tests__/LessonPlanEditorModal.test.tsx",
+    "src/app/dashboard/education/curriculum/__tests__/page.test.tsx",
+    "src/app/dashboard/education/enrollments/[id]/__tests__/page.test.tsx",
+    "src/app/dashboard/education/enrollments/[id]/__tests__/PortalAccessLink.test.tsx",
+    "src/app/dashboard/education/enrollments/[id]/__tests__/StudentCommunication.test.tsx",
+    "src/app/dashboard/education/enrollments/[id]/__tests__/StudentDevelopment.test.tsx",
+    "src/app/dashboard/education/enrollments/[id]/__tests__/StudentFinance.test.tsx",
+    "src/app/dashboard/education/enrollments/[id]/__tests__/StudentGuardians.test.tsx",
+    "src/app/dashboard/education/enrollments/[id]/__tests__/StudentHealth.test.tsx",
+    "src/app/dashboard/education/enrollments/__tests__/EnrollmentCreateForm.test.tsx",
+    "src/app/dashboard/education/enrollments/__tests__/registry-page.test.tsx",
+    "src/app/dashboard/education/enrollments/__tests__/registry-reader.test.ts",
+    "src/app/dashboard/education/enrollments/__tests__/registry.test.tsx",
+    "src/app/dashboard/education/finance/__tests__/multi-branch-superadmin.test.tsx",
+    "src/app/dashboard/education/finance/__tests__/page.test.tsx",
+    "src/app/dashboard/education/grades/__tests__/page.test.tsx",
+    "src/app/dashboard/education/learning/__tests__/page.test.tsx",
+    "src/app/dashboard/education/nutrition/__tests__/page.test.tsx",
+    "src/app/dashboard/education/reports/__tests__/page.test.tsx",
+    "src/app/dashboard/education/teachers/__tests__/restored-detail.test.tsx",
+    "src/app/dashboard/education/teachers/__tests__/restored-page.test.tsx",
+    "src/app/dashboard/education/teachers/__tests__/workspace.test.tsx",
+    "src/app/dashboard/education/work-queue/__tests__/page.test.tsx",
+    "src/app/dashboard/education/__tests__/copilot-runtime.test.tsx",
+    "src/app/dashboard/education/__tests__/mvp-held-workspaces.test.tsx",
+    "src/app/dashboard/education/__tests__/page.test.tsx",
+    "src/products/bella-education/analytics/domain/__tests__/analytics-response.test.ts",
+    "src/products/bella-education/care-wellbeing/nutrition/__tests__/weekly-menu.service.test.ts",
+    "src/products/bella-education/learning-development/curriculum/__tests__/curriculum.service.test.ts",
+    "src/products/bella-education/__tests__/bella-education-architecture.test.ts",
+    "src/products/bella-education/__tests__/bella-education-customization-architecture.test.ts",
+    "src/products/bella-education/__tests__/bella-education-extension-sandbox.test.ts",
+    "src/products/bella-education/__tests__/child-pii-shield-security.test.ts",
+    "src/products/bella-education/__tests__/preschool-activity-feed-aggregator.test.ts",
+    "src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts",
+    "src/products/bella-education/__tests__/preschool-admission-enrollment-recovery-gap.test.ts",
+    "src/products/bella-education/__tests__/preschool-admission.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-ai-copilot.test.ts",
+    "src/products/bella-education/__tests__/preschool-analytics-canonical-readback.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-attendance-access.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-attendance-command.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-care-atomic-save.test.ts",
+    "src/products/bella-education/__tests__/preschool-care-roster-contract.test.ts",
+    "src/products/bella-education/__tests__/preschool-chain.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-classroom-command.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-daily-care-canonical.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-finance-atomic-service.test.ts",
+    "src/products/bella-education/__tests__/preschool-finance-billing-period-provenance.test.ts",
+    "src/products/bella-education/__tests__/preschool-finance-branch-surface.test.ts",
+    "src/products/bella-education/__tests__/preschool-finance-canonical-student-connection.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-finance-payment-intent.test.ts",
+    "src/products/bella-education/__tests__/preschool-finance-period-completion-operation.test.ts",
+    "src/products/bella-education/__tests__/preschool-finance-tenant-actor-authorization.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-finance-tt99-recognition.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-finance-validation-precedence.test.ts",
+    "src/products/bella-education/__tests__/preschool-guardian-authorization.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-parent-daily-experience.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-parent-portal-security.test.ts",
+    "src/products/bella-education/__tests__/preschool-parent-portal.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-parent-user-role-migration.test.ts",
+    "src/products/bella-education/__tests__/preschool-safe-pickup-handover.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-student-guardian-read.service.test.ts",
+    "src/products/bella-education/__tests__/preschool-teacher-attendance.service.test.ts",
+    "src/platform/education/assessment/__tests__/assessment.aggregate.test.ts",
+    "src/platform/education/attendance/__tests__/attendance.aggregate.test.ts",
+    "src/platform/education/contracts/__tests__/attendance-record-rpc.contract.test.ts",
+    "src/platform/education/contracts/__tests__/canonical-course-command.test.ts",
+    "src/platform/education/contracts/__tests__/preschool-enrollment.contract.test.ts",
+    "src/platform/education/contracts/__tests__/preschool-registry.contract.impl.test.ts",
+    "src/platform/education/contracts/__tests__/preschool-roster-identity.contract.test.ts",
+    "src/platform/education/contracts/__tests__/preschool-teacher.contract.test.ts",
+    "src/platform/education/contracts/__tests__/student-candidate-search.contract.test.ts",
+    "src/platform/education/course/__tests__/course.aggregate.test.ts",
+    "src/platform/education/domain/__tests__/course-enrollment.domain.test.ts",
+    "src/platform/education/enrollment/__tests__/enrollment.aggregate.test.ts",
+    "src/platform/education/student/__tests__/student.aggregate.test.ts",
+    "src/platform/education/__tests__/attendance-command.contract.test.ts",
+    "src/platform/education/__tests__/enrollment-event-recovery.contract.test.ts",
+    "src/platform/education/__tests__/enrollment-recovery.contract.test.ts",
+    "src/platform/education/__tests__/r3-student-identity-query.test.ts"
+  ],
+  "excludedTests": [
+    "src/products/bella-education/__tests__/bella-education-conformance.integration.test.ts",
+    "src/products/bella-education/__tests__/bella-education-customization-conformance.integration.test.ts",
+    "src/products/bella-education/__tests__/bella-education-extension-conformance.integration.test.ts",
+    "src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts",
+    "src/products/bella-education/__tests__/preschool-admission-enrollment-recovery-real-db.test.ts",
+    "src/products/bella-education/__tests__/preschool-admission-real-db.test.ts",
+    "src/products/bella-education/__tests__/preschool-branch-security-real-db.test.ts",
+    "src/products/bella-education/__tests__/preschool-chain-real-db.test.ts",
+    "src/products/bella-education/__tests__/preschool-enrollment-operational.integration.test.ts",
+    "src/products/bella-education/__tests__/preschool-finance-atomic-real-db.test.ts",
+    "src/products/bella-education/__tests__/preschool-finance-failure-real-db.test.ts",
+    "src/platform/education/course/__tests__/course.integration.test.ts",
+    "src/platform/education/enrollment/__tests__/enrollment.integration.test.ts",
+    "src/platform/education/student/__tests__/student.integration.test.ts",
+    "src/platform/education/__tests__/attendance-contract-real-db.integration.test.ts",
+    "src/platform/education/__tests__/capacity-concurrency.integration.test.ts",
+    "src/platform/education/__tests__/course-contract-real-db.integration.test.ts",
+    "src/platform/education/__tests__/education-engine.integration.test.ts",
+    "src/platform/education/__tests__/enrollment-event-recovery-real-db.test.ts",
+    "src/platform/education/__tests__/enrollment-recovery-real-db.test.ts",
+    "src/platform/education/__tests__/kernel-invariants.integration.test.ts",
+    "src/platform/education/__tests__/teacher-assignment.integration.test.ts",
+    "src/platform/education/__tests__/verification-gates.test.ts"
+  ],
+  "limitation": "Static inventory flags are review leads, not findings. Local mocks do not prove DB/RLS/browser/Production."
+}

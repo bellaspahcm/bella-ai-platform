@@ -39,6 +39,7 @@ export interface SaveWeeklyMenuDayInput {
 
 export interface SaveWeeklyMenuInput {
   readonly menuId?: string;
+  readonly expectedUpdatedAt?: string;
   readonly academicYear?: string;
   readonly weekNumber: number;
   readonly year: number;
@@ -67,6 +68,7 @@ export interface WeeklyMenuSummaryDTO {
 export interface SaveWeeklyMenuResult {
   readonly success: boolean;
   readonly menuId: string;
+  readonly updatedAt?: string;
   readonly message?: string;
   readonly error?: string;
 }

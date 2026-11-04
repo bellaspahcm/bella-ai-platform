@@ -19,3 +19,7 @@ Shared Education changes are limited to the public contract, its owning adapter/
 ## Verification
 
 Run unit/request/UI positive/negative/idempotency/payload checks and full type/architecture checks for changed source. Rehearsal and real persistence proof follow separately approved migration/application prerequisites. No mock success proves runtime RLS or full flow; preserve current partial state until actual E2E proves create/read/branch/teacher/attendance behavior.
+
+## Teacher schema provisioning addendum — 2026-10-27
+
+The owner approved the existing Party confirmation and canonical assignment model for a clean local/E2E migration sequence on a separate branch. Preserve the existing Education assignment aggregate and its legacy `course_id -> courses.course_id` namespace; add a paired canonical course/confirmation namespace and a Preschool-owned branch confirmation relation. Use the existing legacy profile, not the empty-E2E bootstrap. Keep ACLs, public contract signatures, UI, shared databases and Production unchanged. A focused database constraint requires `effective_end_date` for terminated canonical rows while leaving legacy rows untouched. The exact allowlist and forward-only recovery plan are in `teacher-design/SCOPED_MIGRATION_UNLOCK_20261027.json`.

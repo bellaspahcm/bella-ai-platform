@@ -4,6 +4,8 @@
 **Status:** PROPOSAL (Requires Product Owner Review)  
 **Purpose:** Define policy space for Education Finance Contract with Generality Principle
 
+> **Bella Preschool Fee Program:** This proposal defines a general Education Finance policy space. It is not the source for Preschool fee versions, item applicability, or service-period resolution. See the [Bella Preschool Fee Program Publish Contract](../products/bella-preschool/FEE_PROGRAM_PUBLISH_CONTRACT.md). This pointer does not approve fee amounts or accounting treatment.
+
 ---
 
 ## Document Purpose

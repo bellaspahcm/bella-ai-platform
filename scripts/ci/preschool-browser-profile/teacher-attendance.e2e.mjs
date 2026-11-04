@@ -19,6 +19,8 @@ const runDirectory = env.BELLA_PROFILE_RUN_DIRECTORY;
 const appRoot = env.BELLA_PROFILE_APP_ROOT;
 const repoRoot = env.BELLA_PROFILE_REPO_ROOT;
 const targetCommit = env.BELLA_PROFILE_TARGET_COMMIT;
+const acceptanceFocus = env.PRESCHOOL_PROFILE_ACCEPTANCE_FOCUS ?? 'full';
+if (!['full', 'guardian'].includes(acceptanceFocus)) throw new Error('PROFILE_ACCEPTANCE_FOCUS_INVALID');
 const requiredEnv = { apiUrl, dbUrl, anonKey, serviceKey, runDirectory, appRoot, repoRoot, targetCommit };
 
 for (const [key, value] of Object.entries(requiredEnv)) {
@@ -46,6 +48,7 @@ if (/mock\.supabase\.co|supabase\.co\/rest|supabase\.com\/rest/i.test(apiUrl)) {
 
 const outcome = {
   profileId: receipt.profileId,
+  acceptanceFocus,
   targetCommit,
   applicationSourceRevision: targetCommit,
   schemaSourceRevision: receipt.sourceRevision,
@@ -55,6 +58,7 @@ const outcome = {
   fixture: { kind: 'synthetic-only', businessDataImported: false, fabricatedR3IdentityMappings: false },
   jwtDatabase: { status: 'NOT_RUN', results: [] },
   browserE2e: { status: 'NOT_RUN', results: [] },
+  readback: { status: 'NOT_PROVEN', results: [] },
   cleanup: 'PENDING_PROFILE_CLEANUP',
   credentialsRecorded: false,
   completedAt: null,
@@ -87,6 +91,7 @@ function scrub(value) {
   for (const secret of createdPasswords) if (secret) text = text.split(secret).join('[REDACTED]');
   return text
     .replace(/eyJ[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{8,}/g, '[REDACTED_JWT]')
+    .replace(/postgres(?:ql)?:\/\/[^"\s]+/gi, '[REDACTED_DATABASE_URL]')
     .replace(/e2e-(?:admin-[ab]|teacher)-[a-f0-9-]+@bella\.test/gi, '[REDACTED_EMAIL]')
     .replace(/(apikey|service_role_key|anon_key|access_token|refresh_token|password)(\s*[=:]\s*)[^\s,;]+/gi, '$1$2[REDACTED]');
 }
@@ -137,8 +142,9 @@ async function signIn(client, email, password, label) {
 
 async function ownerCount(table) {
   const allowed = new Set([
-    'tenants', 'users', 'org_units', 'people_directory', 'org_relationships', 'party_parties', 'students', 'edu_courses', 'edu_enrollments',
-    'party_auth_links', 'teacher_assignments', 'edu_attendance', 'edu_attendance_daily_state',
+    'tenants', 'users', 'org_units', 'people_directory', 'org_relationships', 'party_parties', 'party_relationships', 'party_identifiers',
+    'students', 'edu_courses', 'edu_enrollments', 'edu_preschool_pickup_authorizations', 'party_auth_links', 'teacher_assignments',
+    'edu_attendance', 'edu_attendance_daily_state', 'edu_daily_care_sessions', 'edu_daily_care_records',
   ]);
   if (!allowed.has(table)) throw new Error('PROFILE_COUNT_TABLE_NOT_ALLOWLISTED');
   const result = await pgClient.query(`SELECT count(*)::int AS count FROM public.${table}`);
@@ -198,14 +204,97 @@ async function stopApp() {
   await Promise.race([once(appProcess, 'exit'), new Promise(resolve => setTimeout(resolve, 10000))]);
 }
 
+async function runGuardianBrowserAcceptance(appOrigin, fixture) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  const pageErrors = [];
+  const authResponseStatuses = [];
+  page.on('pageerror', error => pageErrors.push(scrub(error.message)));
+  page.on('response', async response => {
+    if (new URL(response.url()).pathname !== '/auth/v1/token') return;
+    let errorCode = null;
+    if (response.status() >= 400) {
+      const body = await response.json().catch(() => ({}));
+      const candidate = body?.error_code ?? body?.error ?? body?.code;
+      if (typeof candidate === 'string' && /^[A-Za-z0-9_-]{1,60}$/.test(candidate)) errorCode = candidate;
+    }
+    authResponseStatuses.push({ status: response.status(), errorCode });
+  });
+
+  await page.goto(`${appOrigin}/login`, { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('networkidle', { timeout: 60000 });
+  const emailInput = page.locator('input[type="email"]');
+  await emailInput.focus();
+  await page.waitForFunction(() => {
+    const input = document.querySelector('input[type="email"]');
+    return input instanceof HTMLInputElement && input.style.borderColor === 'rgb(124, 58, 237)';
+  }, { timeout: 20000 });
+  await emailInput.fill(fixture.adminEmail);
+  await page.locator('input[type="password"]').fill(fixture.adminPassword);
+  await page.getByRole('button', { name: 'Đăng nhập ngay' }).click();
+  try {
+    await page.waitForURL(url => url.pathname === '/dashboard/education', { timeout: 45000 });
+    await page.waitForLoadState('load', { timeout: 45000 });
+  } catch {
+    const visibleText = await page.locator('body').innerText().catch(() => 'BODY_TEXT_UNAVAILABLE');
+    throw new Error(`G1_ADMIN_LOGIN_REDIRECT_FAILED:${JSON.stringify({
+      path: new URL(page.url()).pathname,
+      authResponseStatuses,
+      visibleText: scrub(visibleText).slice(0, 1000),
+      pageErrors: pageErrors.slice(-5),
+    })}`);
+  }
+  addPass('browserE2e', 'g1_admin_signs_in_with_real_supabase_auth');
+
+  const guardianApi = await page.evaluate(async studentId => {
+    const response = await fetch(`/api/education/enrollments/${encodeURIComponent(studentId)}/guardians`, { cache: 'no-store' });
+    return { status: response.status, body: await response.json() };
+  }, fixture.studentId);
+  assert(guardianApi.status === 200 && guardianApi.body?.success === true
+    && guardianApi.body?.guardians?.studentId === fixture.studentId
+    && guardianApi.body?.guardians?.guardianCount === 1
+    && guardianApi.body?.guardians?.guardians?.[0]?.displayName === 'Synthetic Guardian A'
+    && guardianApi.body?.guardians?.guardians?.[0]?.phone === '0900000001'
+    && guardianApi.body?.guardians?.guardians?.[0]?.pickupStatus === 'authorized',
+  'G1_BROWSER_API_RETURNS_AUTHORIZED_GUARDIAN_DATA');
+  addPass('browserE2e', 'g1_student_guardians_api_reads_authenticated_guardian_data');
+  outcome.readback.results.push({ name: 'guardian_record_read_back_through_authenticated_api', result: 'PASS' });
+
+  const deniedGuardianApi = await page.evaluate(async studentId => {
+    const response = await fetch(`/api/education/enrollments/${encodeURIComponent(studentId)}/guardians`, { cache: 'no-store' });
+    return { status: response.status, body: await response.json() };
+  }, fixture.otherTenantStudentId);
+  assert(deniedGuardianApi.status === 403, 'G1_BROWSER_API_DENIES_CROSS_TENANT_STUDENT');
+  addPass('browserE2e', 'g1_student_guardians_api_denies_other_tenant_read', String(deniedGuardianApi.status));
+
+  await page.goto(`${appOrigin}/dashboard/education/enrollments/${encodeURIComponent(fixture.studentCode)}?courseId=${encodeURIComponent(fixture.courseId)}`, { waitUntil: 'load' });
+  const studentProfileApi = await page.evaluate(async studentCode => {
+    const response = await fetch(`/api/education/enrollments/${encodeURIComponent(studentCode)}`, { cache: 'no-store' });
+    const body = await response.json().catch(() => null);
+    return { status: response.status, body };
+  }, fixture.studentCode);
+  assert(studentProfileApi.status === 200 && studentProfileApi.body?.success === true
+    && studentProfileApi.body?.profile?.studentId === fixture.studentId,
+  `G1_STUDENT_360_PROFILE_API_FAILED:${studentProfileApi.status}:${studentProfileApi.body?.error ?? 'INVALID_RESPONSE'}`);
+  addPass('browserE2e', 'g1_student_360_profile_api_resolves_registry_and_history');
+  await page.getByRole('heading', { name: 'Người giám hộ', exact: true }).waitFor({ state: 'visible', timeout: 60000 });
+  await page.getByText('Synthetic Guardian A', { exact: true }).waitFor({ state: 'visible', timeout: 30000 });
+  await page.getByText('0900000001', { exact: true }).waitFor({ state: 'visible', timeout: 30000 });
+  await page.getByText('Được phép đón trẻ', { exact: true }).waitFor({ state: 'visible', timeout: 30000 });
+  assert(pageErrors.length === 0, 'G1_STUDENT_360_HAS_NO_UNHANDLED_PAGE_ERRORS');
+  addPass('browserE2e', 'g1_student_360_renders_guardian_in_real_browser');
+  await context.close();
+}
+
 async function main() {
   pgClient = new Client({ connectionString: dbUrl, connectionTimeoutMillis: 8000, statement_timeout: 15000 });
   await pgClient.connect();
   serviceClient = createClient(apiUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
   currentPhase = 'empty-profile-preflight';
-  const emptyTables = ['tenants', 'users', 'org_units', 'people_directory', 'org_relationships', 'party_parties', 'students', 'edu_courses', 'edu_enrollments',
-    'party_auth_links', 'teacher_assignments', 'edu_attendance', 'edu_attendance_daily_state'];
+  const emptyTables = ['tenants', 'users', 'org_units', 'people_directory', 'org_relationships', 'party_parties', 'party_relationships', 'party_identifiers',
+    'students', 'edu_courses', 'edu_enrollments', 'edu_preschool_pickup_authorizations', 'party_auth_links', 'teacher_assignments',
+    'edu_attendance', 'edu_attendance_daily_state', 'edu_daily_care_sessions', 'edu_daily_care_records'];
   const emptyCounts = {};
   for (const table of emptyTables) emptyCounts[table] = await ownerCount(table);
   const authCount = await pgClient.query('SELECT count(*)::int AS count FROM auth.users');
@@ -233,13 +322,13 @@ async function main() {
     branchA: randomUUID(), branchB: randomUUID(), branchC: randomUUID(),
     adminDirectoryA: randomUUID(), adminDirectoryB: randomUUID(),
     teacherDirectory: randomUUID(), teacherParty: randomUUID(),
-    studentPartyA: randomUUID(), studentPartyB: randomUUID(), studentPartyC: randomUUID(),
+    studentPartyA: randomUUID(), studentPartyB: randomUUID(), studentPartyC: randomUUID(), guardianPartyA: randomUUID(),
     personA: randomUUID(), personB: randomUUID(), personC: randomUUID(),
     studentA: randomUUID(), studentB: randomUUID(), studentC: randomUUID(),
     courseA: randomUUID(), courseB: randomUUID(), courseC: randomUUID(),
     enrollmentA: randomUUID(), enrollmentB: randomUUID(), enrollmentC: randomUUID(),
     requestA: randomUUID(), requestB: randomUUID(), requestC: randomUUID(),
-    teacherIdentityLinkId: randomUUID(), identityManagerGrant: randomUUID(), teacherConfirmation: randomUUID(), teacherAssignment: randomUUID(),
+    authLink: randomUUID(), identityManagerGrant: randomUUID(), teacherConfirmation: randomUUID(), teacherAssignment: randomUUID(),
   };
   ids.adminA = await createAuthUser(emails.adminA, passwords.adminA);
   ids.adminB = await createAuthUser(emails.adminB, passwords.adminB);
@@ -248,6 +337,12 @@ async function main() {
 
   const dayResult = await pgClient.query("SELECT (clock_timestamp() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date::text AS day");
   const schoolDay = dayResult.rows[0].day;
+  // The attendance API's default roll-call time is noon in Vietnam (05:00Z).
+  // Model these synthetic classes and enrollments as existing before that event
+  // so the Student 360 history contract can verify event provenance.
+  const rollCallTime = `${schoolDay}T05:00:00.000Z`;
+  const fixtureCreatedAt = new Date(Date.parse(rollCallTime) - 60 * 60 * 1000).toISOString();
+  assert(Date.parse(fixtureCreatedAt) < Date.parse(rollCallTime), 'SYNTHETIC_CLASS_AND_ENROLLMENT_PRECEDE_ROLL_CALL');
   const studentRows = [
     { tenantId: ids.tenantA, partyId: ids.studentPartyA, personId: ids.personA, studentId: ids.studentA, courseId: ids.courseA, enrollmentId: ids.enrollmentA, requestId: ids.requestA, code: `SYN-A-${suffix}`, first: 'Synthetic', last: 'Child A' },
     { tenantId: ids.tenantA, partyId: ids.studentPartyB, personId: ids.personB, studentId: ids.studentB, courseId: ids.courseB, enrollmentId: ids.enrollmentB, requestId: ids.requestB, code: `SYN-B-${suffix}`, first: 'Synthetic', last: 'Child B' },
@@ -275,8 +370,10 @@ async function main() {
       ids.adminDirectoryB, ids.branchC, ids.teacherDirectory]);
 
     await pgClient.query(`INSERT INTO public.party_parties(id,tenant_id,party_type,display_name,gender,dob)
-      VALUES ($1,$4,'person','Synthetic Teacher','other','1990-01-01'),($2,$4,'person','Synthetic Child A','other','2020-01-01'),($3,$4,'person','Synthetic Child B','other','2020-01-01'),($5,$6,'person','Synthetic Child C','other','2020-01-01')`,
-    [ids.teacherParty, ids.studentPartyA, ids.studentPartyB, ids.tenantA, ids.studentPartyC, ids.tenantB]);
+      VALUES ($1,$4,'person','Synthetic Teacher','other','1990-01-01'),($2,$4,'person','Synthetic Child A','other','2020-01-01'),
+        ($3,$4,'person','Synthetic Child B','other','2020-01-01'),($5,$6,'person','Synthetic Child C','other','2020-01-01'),
+        ($7,$4,'person','Synthetic Guardian A','other','1988-01-01')`,
+    [ids.teacherParty, ids.studentPartyA, ids.studentPartyB, ids.tenantA, ids.studentPartyC, ids.tenantB, ids.guardianPartyA]);
 
     for (const row of studentRows) {
       await pgClient.query(`INSERT INTO public.persons(id,tenant_id,first_name,last_name,date_of_birth,gender,status)
@@ -284,13 +381,19 @@ async function main() {
       await pgClient.query(`INSERT INTO public.students(student_id,tenant_id,person_id,student_code,academic_status,enrollment_type,program_id,enrollment_date,party_id)
         VALUES ($1,$2,$3,$4,'enrolled','full_time','preschool',CURRENT_DATE,$5)`, [row.studentId, row.tenantId, row.personId, row.code, row.partyId]);
     }
+    await pgClient.query(`INSERT INTO public.party_relationships(tenant_id,source_party_id,target_party_id,relationship_type,active_from)
+      VALUES ($1,$2,$3,'guardian_of',$4)`, [ids.tenantA, ids.guardianPartyA, ids.studentPartyA, schoolDay]);
+    await pgClient.query(`INSERT INTO public.party_identifiers(tenant_id,party_id,identifier_type,identifier_value,issued_at)
+      VALUES ($1,$2,'preschool_guardian_phone','0900000001',$3)`, [ids.tenantA, ids.guardianPartyA, schoolDay]);
+    await pgClient.query(`INSERT INTO public.edu_preschool_pickup_authorizations(tenant_id,student_party_id,guardian_party_id,status)
+      VALUES ($1,$2,$3,'authorized')`, [ids.tenantA, ids.studentPartyA, ids.guardianPartyA]);
 
-    await pgClient.query(`INSERT INTO public.edu_courses(id,tenant_id,course_code,title,status,max_students,current_enrollment)
-      VALUES ($1,$4,$6,'Synthetic Assigned Class','active',20,0),($2,$4,$7,'Synthetic Other Branch Class','active',20,0),($3,$5,$8,'Synthetic Other Tenant Class','active',20,0)`,
-    [ids.courseA, ids.courseB, ids.courseC, ids.tenantA, ids.tenantB, `E2E-A-${suffix}`, `E2E-B-${suffix}`, `E2E-C-${suffix}`]);
+    await pgClient.query(`INSERT INTO public.edu_courses(id,tenant_id,course_code,title,status,max_students,current_enrollment,created_at,updated_at)
+      VALUES ($1,$4,$6,'Synthetic Assigned Class','active',20,0,$9,$9),($2,$4,$7,'Synthetic Other Branch Class','active',20,0,$9,$9),($3,$5,$8,'Synthetic Other Tenant Class','active',20,0,$9,$9)`,
+    [ids.courseA, ids.courseB, ids.courseC, ids.tenantA, ids.tenantB, `E2E-A-${suffix}`, `E2E-B-${suffix}`, `E2E-C-${suffix}`, fixtureCreatedAt]);
     for (const row of studentRows) {
-      await pgClient.query(`INSERT INTO public.edu_enrollments(id,tenant_id,student_party_id,course_id,status,enrolled_at,request_id)
-        VALUES ($1,$2,$3,$4,'active',clock_timestamp(),$5)`, [row.enrollmentId, row.tenantId, row.partyId, row.courseId, row.requestId]);
+      await pgClient.query(`INSERT INTO public.edu_enrollments(id,tenant_id,student_party_id,course_id,status,enrolled_at,created_at,updated_at,request_id)
+        VALUES ($1,$2,$3,$4,'active',$5,$5,$5,$6)`, [row.enrollmentId, row.tenantId, row.partyId, row.courseId, fixtureCreatedAt, row.requestId]);
     }
     await pgClient.query(`INSERT INTO public.party_identity_link_managers(id,tenant_id,auth_user_id,valid_from,granted_by,reference)
       VALUES ($1,$2,$3,clock_timestamp()-interval '1 minute',$4,'Synthetic local/E2E fixture grant')`,
@@ -307,15 +410,17 @@ async function main() {
   const adminB = await signIn(adminBClient, emails.adminB, passwords.adminB, 'ADMIN_B');
   assert(adminA.userId === ids.adminA && adminB.userId === ids.adminB, 'FIXTURE_ADMIN_AUTH_PROFILES_MATCH');
 
-  const managerReceipt = await requiredRpc(adminAClient, 'party_confirm_auth_link', {
-    p_operation_key: ids.teacherIdentityLinkId,
-    p_auth_user_id: ids.teacher,
-    p_party_id: ids.teacherParty,
-    p_valid_from: new Date(Date.now() - 60_000).toISOString(),
-    p_valid_until: null,
-    p_attestation: 'Synthetic administrator confirmed the teacher identity for isolated E2E.',
-  });
-  assert(managerReceipt?.id === ids.teacherIdentityLinkId && managerReceipt?.partyId === ids.teacherParty, 'AUTH_PARTY_PUBLIC_CONFIRM_CONTRACT');
+  if (acceptanceFocus === 'full') {
+    const managerReceipt = await requiredRpc(adminAClient, 'party_confirm_auth_link', {
+      p_operation_key: ids.authLink,
+      p_auth_user_id: ids.teacher,
+      p_party_id: ids.teacherParty,
+      p_valid_from: new Date(Date.now() - 60_000).toISOString(),
+      p_valid_until: null,
+      p_attestation: 'Synthetic administrator confirmed the teacher identity for isolated E2E.',
+    });
+    assert(managerReceipt?.id === ids.authLink && managerReceipt?.partyId === ids.teacherParty, 'AUTH_PARTY_PUBLIC_CONFIRM_CONTRACT');
+  }
 
   for (const [tenantId, actorId, branchId, courseId, enrollmentId, requestId] of [
     [ids.tenantA, ids.adminA, ids.branchA, ids.courseA, ids.enrollmentA, ids.requestA],
@@ -327,6 +432,100 @@ async function main() {
       p_enrollment_id: enrollmentId, p_branch_id: branchId, p_request_id: requestId,
     });
     assert(Array.isArray(result) && result.length === 1, 'SYNTHETIC_BRANCH_ENROLLMENT_ASSIGNMENT_CREATED');
+  }
+  const courseAssignmentTime = await pgClient.query(`WITH fixture(tenant_id,course_id) AS (VALUES
+      ($2::uuid,$3::uuid),($4::uuid,$5::uuid),($6::uuid,$7::uuid))
+    UPDATE public.preschool_chain_course_branch_assignments assignment
+    SET created_at=$1,updated_at=$1 FROM fixture
+    WHERE assignment.tenant_id=fixture.tenant_id AND assignment.course_id=fixture.course_id`,
+  [fixtureCreatedAt, ids.tenantA, ids.courseA, ids.tenantA, ids.courseB, ids.tenantB, ids.courseC]);
+  const enrollmentAssignmentTime = await pgClient.query(`WITH fixture(tenant_id,enrollment_id) AS (VALUES
+      ($2::uuid,$3::uuid),($4::uuid,$5::uuid),($6::uuid,$7::uuid))
+    UPDATE public.preschool_chain_enrollment_branch_assignments assignment
+    SET created_at=$1,updated_at=$1 FROM fixture
+    WHERE assignment.tenant_id=fixture.tenant_id AND assignment.enrollment_id=fixture.enrollment_id`,
+  [fixtureCreatedAt, ids.tenantA, ids.enrollmentA, ids.tenantA, ids.enrollmentB, ids.tenantB, ids.enrollmentC]);
+  assert(courseAssignmentTime.rowCount === 3 && enrollmentAssignmentTime.rowCount === 3,
+    'SYNTHETIC_BRANCH_BINDINGS_PRECEDE_ROLL_CALL');
+  currentPhase = 'jwt-database-acceptance';
+  outcome.jwtDatabase.status = 'RUNNING';
+  const guardianRead = await adminAClient.rpc('preschool_g1_guardians_read', { p_student_id: ids.studentA });
+  assert(!guardianRead.error && guardianRead.data?.studentId === ids.studentA
+    && guardianRead.data?.studentPartyId === ids.studentPartyA
+    && guardianRead.data?.complete === true && guardianRead.data?.guardianCount === 1
+    && guardianRead.data?.guardians?.length === 1
+    && guardianRead.data?.guardians?.[0]?.guardianPartyId === ids.guardianPartyA
+    && guardianRead.data?.guardians?.[0]?.phone === '0900000001'
+    && guardianRead.data?.guardians?.[0]?.pickupStatus === 'authorized',
+  'G1_ADMIN_READS_CURRENT_GUARDIAN_THROUGH_MATCHED_BRANCH_BINDING');
+  addPass('jwtDatabase', 'g1_admin_reads_guardian_with_matching_enrollment_branch');
+  const g1CrossTenant = await adminAClient.rpc('preschool_g1_guardians_read', { p_student_id: ids.studentC });
+  assert(denied(g1CrossTenant.error) && !g1CrossTenant.data, 'G1_ADMIN_CANNOT_READ_OTHER_TENANT_STUDENT');
+  addPass('jwtDatabase', 'g1_admin_is_denied_other_tenant_student', g1CrossTenant.error.code ?? 'DENIED');
+  const g1WrongBranchBinding = await pgClient.query(`UPDATE public.preschool_chain_enrollment_branch_assignments
+    SET branch_id=$1 WHERE tenant_id=$2 AND enrollment_id=$3`, [ids.branchB, ids.tenantA, ids.enrollmentA]);
+  assert(g1WrongBranchBinding.rowCount === 1, 'G1_WRONG_BRANCH_FIXTURE_APPLIED');
+  let wrongBindingRead;
+  try {
+    wrongBindingRead = await adminAClient.rpc('preschool_g1_guardians_read', { p_student_id: ids.studentA });
+  } finally {
+    const restoreBranchBinding = await pgClient.query(`UPDATE public.preschool_chain_enrollment_branch_assignments
+      SET branch_id=$1 WHERE tenant_id=$2 AND enrollment_id=$3`, [ids.branchA, ids.tenantA, ids.enrollmentA]);
+    if (restoreBranchBinding.rowCount !== 1) throw new Error('G1_BRANCH_BINDING_RESTORE_FAILED');
+  }
+  assert(denied(wrongBindingRead?.error) && !wrongBindingRead?.data,
+    'G1_DENIES_MISMATCHED_ENROLLMENT_BRANCH_BINDING');
+  addPass('jwtDatabase', 'g1_mismatched_enrollment_branch_binding_is_denied', wrongBindingRead.error.code ?? 'DENIED');
+  const g1Acl = await pgClient.query(`SELECT
+      has_function_privilege('authenticated','public.preschool_g1_guardians_read(uuid)','EXECUTE') AS authenticated,
+      has_function_privilege('anon','public.preschool_g1_guardians_read(uuid)','EXECUTE') AS anon,
+      has_function_privilege('service_role','public.preschool_g1_guardians_read(uuid)','EXECUTE') AS service_role`);
+  assert(g1Acl.rows[0].authenticated === true && g1Acl.rows[0].anon === false && g1Acl.rows[0].service_role === false,
+    'G1_EXECUTE_IS_GRANTED_ONLY_TO_AUTHENTICATED_CALLERS');
+  addPass('jwtDatabase', 'g1_rpc_acl_is_authenticated_only');
+  if (acceptanceFocus === 'guardian') {
+    const registryPage = await adminAClient.rpc('edu_preschool_student_registry', {
+      p_query: '', p_status: 'all', p_course_id: null, p_branch_id: null, p_offset: 0, p_limit: 50,
+    });
+    if (registryPage.error) {
+      throw new Error(`G1_STUDENT_360_REGISTRY_RPC_FAILED:${registryPage.error.code ?? 'NO_CODE'}`);
+    }
+    const registryStudent = registryPage.data?.students?.find(row => row.id === ids.studentA);
+    assert(registryStudent?.enrollments?.length === 1
+      && registryStudent.enrollments[0].id === ids.enrollmentA
+      && registryStudent.enrollments[0].branchId === ids.branchA,
+    'G1_STUDENT_360_REGISTRY_RETURNS_CANONICAL_BRANCH_ENROLLMENT');
+    addPass('jwtDatabase', 'g1_student_360_registry_reads_canonical_branch_enrollment');
+    const attendanceHistory = await adminAClient.rpc('edu_preschool_admin_student_attendance_history', {
+      p_enrollment_id: ids.enrollmentA,
+    });
+    if (attendanceHistory.error) {
+      throw new Error(`G1_STUDENT_360_HISTORY_RPC_FAILED:${attendanceHistory.error.code ?? 'NO_CODE'}:${scrub(attendanceHistory.error.message ?? '')}`);
+    }
+    assert(Array.isArray(attendanceHistory.data), 'G1_STUDENT_360_HISTORY_RETURNS_VERIFIED_EVENT_LIST');
+    addPass('jwtDatabase', 'g1_student_360_history_reads_authorized_branch');
+    outcome.fixture = {
+      kind: 'synthetic-only', businessDataImported: false, fabricatedR3IdentityMappings: false,
+      tenantCount: 2, branchCount: 3, teacherCount: 0, studentCount: 3, classCount: 3,
+      preflightEmpty: true, syntheticOnly: true,
+    };
+    outcome.jwtDatabase.status = 'PASS';
+    const route = await startApp();
+    currentPhase = 'browser-e2e';
+    outcome.browserE2e.status = 'RUNNING';
+    browser = await chromium.launch({ headless: true });
+    await runGuardianBrowserAcceptance(route.appOrigin, {
+      adminEmail: emails.adminA,
+      adminPassword: passwords.adminA,
+      studentId: ids.studentA,
+      otherTenantStudentId: ids.studentC,
+      studentCode: `SYN-A-${suffix}`,
+      courseId: ids.courseA,
+    });
+    outcome.browserE2e.status = 'PASS';
+    outcome.readback.status = 'PASS';
+    outcome.fixture.cleanup = 'CONTAINED_IN_DISPOSABLE_PROFILE';
+    return;
   }
   await requiredRpc(serviceClient, 'preschool_confirm_teacher', {
     p_tenant_id: ids.tenantA, p_actor_id: ids.adminA, p_branch_id: ids.branchA,
@@ -345,7 +544,6 @@ async function main() {
     'CANONICAL_TEACHER_ASSIGNMENT_CONTRACT');
 
   // Seed real out-of-scope attendance rows only in this disposable profile so JWT/RLS denial is observable.
-  const rollCallTime = `${schoolDay}T05:00:00.000Z`;
   for (const [tenantId, enrollmentId] of [[ids.tenantA, ids.enrollmentB], [ids.tenantB, ids.enrollmentC]]) {
     const { error } = await serviceClient.rpc('edu_set_daily_attendance', {
       p_tenant_id: tenantId, p_enrollment_id: enrollmentId, p_status: 'excused',
@@ -407,6 +605,43 @@ async function main() {
   'SECOND_TENANT_ACTOR_RESOLVES_ONLY_OWN_TENANT');
   addPass('jwtDatabase', 'second_tenant_actor_is_self_scoped');
 
+  const adminCoursesA = await requiredRpc(adminAClient, 'edu_preschool_admin_course_catalog', { p_course_id: null });
+  const adminCourseIdsA = Array.isArray(adminCoursesA) ? adminCoursesA.map(row => row.id).sort() : [];
+  assert(adminCourseIdsA.length === 2 && adminCourseIdsA[0] === [ids.courseA, ids.courseB].sort()[0]
+    && adminCourseIdsA[1] === [ids.courseA, ids.courseB].sort()[1],
+  'ADMIN_COURSE_CATALOG_RETURNS_ONLY_OWN_TENANT_CLASSES');
+  addPass('jwtDatabase', 'admin_course_catalog_is_tenant_scoped');
+  const adminCoursesB = await requiredRpc(adminBClient, 'edu_preschool_admin_course_catalog', { p_course_id: null });
+  assert(Array.isArray(adminCoursesB) && adminCoursesB.length === 1 && adminCoursesB[0].id === ids.courseC,
+    'SECOND_TENANT_ADMIN_COURSE_CATALOG_IS_SELF_SCOPED');
+  addPass('jwtDatabase', 'second_tenant_admin_course_catalog_is_self_scoped');
+  const adminBranchesA = await requiredRpc(adminAClient, 'edu_preschool_admin_branch_catalog');
+  const adminBranchIdsA = Array.isArray(adminBranchesA) ? adminBranchesA.map(row => row.id).sort() : [];
+  assert(adminBranchIdsA.length === 2 && adminBranchIdsA[0] === [ids.branchA, ids.branchB].sort()[0]
+    && adminBranchIdsA[1] === [ids.branchA, ids.branchB].sort()[1],
+  'ADMIN_BRANCH_CATALOG_RETURNS_ONLY_AUTHORIZED_TENANT_BRANCHES');
+  addPass('jwtDatabase', 'admin_branch_catalog_is_tenant_and_access_scoped');
+  const adminBranchesB = await requiredRpc(adminBClient, 'edu_preschool_admin_branch_catalog');
+  assert(Array.isArray(adminBranchesB) && adminBranchesB.length === 1 && adminBranchesB[0].id === ids.branchC,
+    'SECOND_TENANT_ADMIN_BRANCH_CATALOG_IS_SELF_SCOPED');
+  addPass('jwtDatabase', 'second_tenant_admin_branch_catalog_is_self_scoped');
+  const teacherAdminCatalog = await teacherClient.rpc('edu_preschool_admin_course_catalog', { p_course_id: null });
+  assert(denied(teacherAdminCatalog.error) && !teacherAdminCatalog.data,
+    'TEACHER_CANNOT_CALL_ADMIN_COURSE_CATALOG');
+  addPass('jwtDatabase', 'teacher_is_denied_admin_course_catalog', teacherAdminCatalog.error.code ?? 'DENIED');
+  const anonymousAdminCatalog = await anonymousClient.rpc('edu_preschool_admin_branch_catalog');
+  assert(denied(anonymousAdminCatalog.error) && !anonymousAdminCatalog.data,
+    'ANONYMOUS_CANNOT_CALL_ADMIN_BRANCH_CATALOG');
+  addPass('jwtDatabase', 'anonymous_is_denied_admin_branch_catalog', anonymousAdminCatalog.error.code ?? 'DENIED');
+  const serviceRoleAdminCatalog = await serviceClient.rpc('edu_preschool_admin_course_catalog', { p_course_id: null });
+  assert(denied(serviceRoleAdminCatalog.error) && !serviceRoleAdminCatalog.data,
+    'SERVICE_ROLE_IS_NOT_A_BUSINESS_ACTOR_FOR_ADMIN_COURSE_CATALOG');
+  addPass('jwtDatabase', 'service_role_is_denied_admin_course_catalog', serviceRoleAdminCatalog.error.code ?? 'DENIED');
+  const directCourseRead = await adminAClient.from('edu_courses').select('id,tenant_id').eq('tenant_id', ids.tenantA);
+  assert(Boolean(directCourseRead.error) && !directCourseRead.data,
+    'ADMIN_CATALOG_DOES_NOT_GRANT_DIRECT_COURSE_SELECT');
+  addPass('jwtDatabase', 'admin_has_no_direct_edu_courses_select', directCourseRead.error.code ?? 'DENIED');
+
   const courses = await requiredRpc(teacherClient, 'preschool_teacher_attendance_courses', { p_school_day: schoolDay, p_branch_id: null });
   assert(courses?.tenantId === ids.tenantA && courses?.actorId === ids.teacher && Array.isArray(courses?.courses)
     && courses.courses.length === 1 && courses.courses[0].courseId === ids.courseA
@@ -417,6 +652,82 @@ async function main() {
   assert(ownRoster?.tenantId === ids.tenantA && ownRoster?.roster?.length === 1
     && ownRoster.roster[0].enrollmentId === ids.enrollmentA && ownRoster.roster[0].name === 'Synthetic Child A', 'REAL_JWT_READS_ASSIGNED_ROSTER');
   addPass('jwtDatabase', 'teacher_reads_assigned_course_roster');
+
+  const adminCareAccess = await requiredRpc(adminAClient, 'preschool_daily_care_access_allowed', {
+    p_tenant_id: ids.tenantA, p_course_id: ids.courseA, p_school_day: schoolDay,
+    p_student_party_id: ids.studentPartyA,
+  });
+  assert(adminCareAccess === true, 'DAILY_CARE_ADMIN_ACCESS_IS_SCOPED_TO_OWN_ACTIVE_ENROLLMENT');
+  addPass('jwtDatabase', 'daily_care_admin_can_access_own_enrolled_child');
+
+  const adminCareOtherTenant = await requiredRpc(adminAClient, 'preschool_daily_care_access_allowed', {
+    p_tenant_id: ids.tenantB, p_course_id: ids.courseC, p_school_day: schoolDay,
+    p_student_party_id: ids.studentPartyC,
+  });
+  assert(adminCareOtherTenant === false, 'DAILY_CARE_ADMIN_CANNOT_ACCESS_OTHER_TENANT');
+  addPass('jwtDatabase', 'daily_care_admin_is_denied_other_tenant');
+
+  const teacherCareOwn = await requiredRpc(teacherClient, 'preschool_daily_care_access_allowed', {
+    p_tenant_id: ids.tenantA, p_course_id: ids.courseA, p_school_day: schoolDay,
+    p_student_party_id: ids.studentPartyA,
+  });
+  assert(teacherCareOwn === true, 'DAILY_CARE_ASSIGNED_TEACHER_ACCESS_IS_ALLOWED');
+  addPass('jwtDatabase', 'daily_care_assigned_teacher_can_access_own_child');
+
+  const teacherCareOtherBranch = await requiredRpc(teacherClient, 'preschool_daily_care_access_allowed', {
+    p_tenant_id: ids.tenantA, p_course_id: ids.courseB, p_school_day: schoolDay,
+    p_student_party_id: ids.studentPartyB,
+  });
+  assert(teacherCareOtherBranch === false, 'DAILY_CARE_TEACHER_CANNOT_ACCESS_OTHER_BRANCH');
+  addPass('jwtDatabase', 'daily_care_teacher_is_denied_other_branch');
+
+  const anonymousCareAccess = await anonymousClient.rpc('preschool_daily_care_access_allowed', {
+    p_tenant_id: ids.tenantA, p_course_id: ids.courseA, p_school_day: schoolDay,
+    p_student_party_id: ids.studentPartyA,
+  });
+  assert(denied(anonymousCareAccess.error) && !anonymousCareAccess.data,
+    'DAILY_CARE_ACCESS_HELPER_DENIES_ANONYMOUS_CALLER');
+  addPass('jwtDatabase', 'daily_care_helper_denies_anonymous', anonymousCareAccess.error.code ?? 'DENIED');
+
+  const savedCare = await requiredRpc(adminAClient, 'preschool_save_care_records', {
+    p_tenant_id: ids.tenantA,
+    p_course_id: ids.courseA,
+    p_day: schoolDay,
+    p_records: [{ studentPartyId: ids.studentPartyA, note: 'Synthetic local E2E Daily Care record.' }],
+  });
+  assert(savedCare?.savedCount === 1 && savedCare?.total === 1, 'DAILY_CARE_AUTHENTICATED_ADMIN_SAVE_SUCCEEDS');
+  addPass('jwtDatabase', 'daily_care_admin_saves_through_authenticated_rpc');
+
+  const savedCareReadback = await adminAClient.from('edu_daily_care_records')
+    .select('tenant_id,student_party_id,morning_condition')
+    .eq('tenant_id', ids.tenantA).eq('student_party_id', ids.studentPartyA);
+  assert(!savedCareReadback.error && savedCareReadback.data?.length === 1
+    && savedCareReadback.data[0].tenant_id === ids.tenantA
+    && savedCareReadback.data[0].student_party_id === ids.studentPartyA
+    && savedCareReadback.data[0].morning_condition === 'Synthetic local E2E Daily Care record.',
+  'DAILY_CARE_ADMIN_READS_BACK_OWN_RECORD');
+  addPass('jwtDatabase', 'daily_care_admin_reads_back_own_record');
+
+  const deniedCareSave = await adminAClient.rpc('preschool_save_care_records', {
+    p_tenant_id: ids.tenantB,
+    p_course_id: ids.courseC,
+    p_day: schoolDay,
+    p_records: [{ studentPartyId: ids.studentPartyC }],
+  });
+  assert(denied(deniedCareSave.error) && !deniedCareSave.data,
+    'DAILY_CARE_SAVE_DENIES_OTHER_TENANT_WITHOUT_SIDE_EFFECT');
+  addPass('jwtDatabase', 'daily_care_save_is_denied_other_tenant', deniedCareSave.error.code ?? 'DENIED');
+
+  const hiddenCareRead = await adminAClient.from('edu_daily_care_records')
+    .select('id').eq('tenant_id', ids.tenantB);
+  assert(!hiddenCareRead.error && Array.isArray(hiddenCareRead.data) && hiddenCareRead.data.length === 0,
+    'DAILY_CARE_RLS_HIDES_OTHER_TENANT_ROWS');
+  addPass('jwtDatabase', 'daily_care_rls_hides_other_tenant_rows');
+
+  const deniedCareSessionInsert = await adminAClient.from('edu_daily_care_sessions')
+    .insert({ tenant_id: ids.tenantB, class_id: ids.courseC, date: schoolDay });
+  assert(denied(deniedCareSessionInsert.error), 'DAILY_CARE_DIRECT_SESSION_INSERT_DENIES_OTHER_TENANT');
+  addPass('jwtDatabase', 'daily_care_direct_insert_is_denied_other_tenant', deniedCareSessionInsert.error.code ?? 'DENIED');
 
   for (const [label, tenantId, courseId, enrollmentId] of [
     ['other_branch', ids.tenantA, ids.courseB, ids.enrollmentB],
@@ -459,6 +770,7 @@ async function main() {
   assert(Boolean(managerWrite.error) && managerWrite.error.code === '42501', 'AUTHENTICATED_CANNOT_SELF_GRANT_IDENTITY_MANAGER');
   addPass('jwtDatabase', 'caller_cannot_write_identity_manager_grants', managerWrite.error.code);
 
+  outcome.jwtDatabase.status = 'PASS';
   const route = await startApp();
   currentPhase = 'browser-e2e';
   outcome.browserE2e.status = 'RUNNING';
@@ -642,10 +954,14 @@ async function main() {
     addPass('browserE2e', `attendance_api_denies_${label}_write_without_partial_state`, String(posted.status));
   }
 
+  // The route currently renders AttendancePageContent from page.tsx. Its
+  // accessible control name is the visible status label, scoped to the child
+  // row; the newer PreschoolAttendance component is not mounted by this route.
   const present = childRowBeforeWrite.getByRole('button', { name: 'Có Mặt', exact: true });
   await present.waitFor({ state: 'visible', timeout: 30000 });
   await present.click();
-  await page.getByRole('status').filter({ hasText: 'Đã ghi nhận điểm danh thật vào hệ thống' }).waitFor({ state: 'visible', timeout: 30000 });
+  await page.getByRole('status').filter({ hasText: 'Đã ghi nhận điểm danh thật vào hệ thống' })
+    .waitFor({ state: 'visible', timeout: 30000 });
   const saved = await pgClient.query(`SELECT s.status,e.status AS event_status FROM public.edu_attendance_daily_state s
     JOIN public.edu_attendance e ON e.tenant_id=s.tenant_id AND e.enrollment_id=s.enrollment_id
       AND e.roll_call_time::date = s.school_day
@@ -653,6 +969,7 @@ async function main() {
   [ids.tenantA, ids.enrollmentA, schoolDay]);
   assert(saved.rows.length === 1 && saved.rows[0].status === 'present' && saved.rows[0].event_status === 'present',
     'BROWSER_WRITE_READS_BACK_FROM_DATABASE');
+  outcome.readback.results.push({ name: 'teacher_attendance_state_persisted_in_database', result: 'PASS' });
   await page.reload({ waitUntil: 'domcontentloaded' });
   const childRow = page.getByRole('row').filter({ hasText: 'Synthetic Child A' });
   await childRow.getByRole('cell', { name: 'Có Mặt', exact: true }).waitFor({ state: 'visible', timeout: 45000 });
@@ -660,100 +977,156 @@ async function main() {
   assert(pageErrors.length === 0, 'BROWSER_HAS_NO_UNHANDLED_PAGE_ERRORS');
   addPass('browserE2e', 'browser_page_has_no_unhandled_errors');
 
-  outcome.jwtDatabase.status = 'RUNNING';
-  const attendanceSnapshot = async () => {
-    const result = await pgClient.query(`SELECT
-      (SELECT coalesce(jsonb_agg(to_jsonb(e) ORDER BY e.id),'[]'::jsonb)
-        FROM public.edu_attendance e WHERE e.tenant_id=$1 AND e.enrollment_id=$2) AS events,
-      (SELECT coalesce(jsonb_agg(to_jsonb(s) ORDER BY s.id),'[]'::jsonb)
-        FROM public.edu_attendance_daily_state s WHERE s.tenant_id=$1 AND s.enrollment_id=$2 AND s.school_day=$3) AS states`,
-    [ids.tenantA, ids.enrollmentA, schoolDay]);
-    return result.rows[0];
-  };
-
-  const beforeInvalid = await attendanceSnapshot();
-  const invalidWrite = await teacherClient.rpc('edu_set_daily_attendance', {
-    p_tenant_id: ids.tenantA, p_enrollment_id: ids.enrollmentA, p_status: 'invalid-status',
-    p_roll_call_time: rollCallTime, p_school_day: schoolDay,
+  const adminContext = await browser.newContext();
+  const adminPage = await adminContext.newPage();
+  const adminPageErrors = [];
+  const adminAuthResponses = [];
+  adminPage.on('pageerror', error => adminPageErrors.push(scrub(error.message)));
+  adminPage.on('response', async response => {
+    const responseUrl = new URL(response.url());
+    if (responseUrl.pathname !== '/auth/v1/token') return;
+    let errorCode = null;
+    if (response.status() >= 400) {
+      const body = await response.json().catch(() => ({}));
+      const candidate = body?.error_code ?? body?.error ?? body?.code;
+      if (typeof candidate === 'string' && /^[A-Za-z0-9_-]{1,60}$/.test(candidate)) errorCode = candidate;
+    }
+    adminAuthResponses.push({ status: response.status(), errorCode });
   });
-  assert(invalidWrite.error?.code === '22023' && !invalidWrite.data, 'DB_INPUT_ERROR_IS_NOT_SUCCESS');
-  assert(JSON.stringify(await attendanceSnapshot()) === JSON.stringify(beforeInvalid),
-    'DB_INPUT_ERROR_LEAVES_EVENT_AND_STATE_UNCHANGED');
-  addPass('jwtDatabase', 'database_input_error_has_no_success_or_partial_state', '22023');
-
-  const concurrent = await Promise.all(['absent', 'excused'].map(async status => {
-    const rows = await requiredRpc(teacherClient, 'edu_set_daily_attendance', {
-      p_tenant_id: ids.tenantA, p_enrollment_id: ids.enrollmentA, p_status: status,
-      p_roll_call_time: rollCallTime, p_school_day: schoolDay,
-    });
-    assert(Array.isArray(rows) && rows.length === 1 && rows[0].tenant_id === ids.tenantA
-      && rows[0].enrollment_id === ids.enrollmentA && rows[0].school_day === schoolDay
-      && rows[0].status === status && rows[0].event_id, 'CONCURRENT_WRITER_CANONICAL_RECEIPT');
-    return rows[0];
-  }));
-  const afterConcurrent = await attendanceSnapshot();
-  assert(afterConcurrent.states.length === 1 && concurrent.every(row => row.id === afterConcurrent.states[0].id)
-    && concurrent.some(row => row.status === afterConcurrent.states[0].status)
-    && new Set(concurrent.map(row => row.event_id)).size === 2
-    && afterConcurrent.events.length === beforeInvalid.events.length + 2
-    && concurrent.every(row => afterConcurrent.events.some(event => event.id === row.event_id && event.status === row.status)),
-  'CONCURRENT_WRITES_KEEP_ONE_DAILY_STATE_AND_BOTH_ADDITIVE_EVENTS');
-  addPass('jwtDatabase', 'concurrent_teacher_writes_keep_one_state_and_two_events');
-
-  const revokedAssignment = await requiredRpc(serviceClient, 'edu_terminate_preschool_teacher', {
-    p_tenant_id: ids.tenantA, p_actor_id: ids.adminA, p_branch_id: ids.branchA,
-    p_course_id: ids.courseA, p_assignment_id: ids.teacherAssignment, p_end_date: schoolDay,
-  });
-  assert(revokedAssignment?.assignment_id === ids.teacherAssignment && revokedAssignment?.status === 'terminated',
-    'SYNTHETIC_ASSIGNMENT_REVOCATION_TARGETED');
-  {
-    const beforeRevokedWrite = await attendanceSnapshot();
-    const revokedScope = await requiredRpc(teacherClient, 'preschool_teacher_attendance_courses', {
-      p_school_day: schoolDay, p_branch_id: null,
-    });
-    assert(revokedScope?.courses?.length === 0, 'REVOKED_ASSIGNMENT_HAS_NO_TEACHER_COURSE');
-    const revokedWrite = await teacherClient.rpc('edu_set_daily_attendance', {
-      p_tenant_id: ids.tenantA, p_enrollment_id: ids.enrollmentA, p_status: 'present',
-      p_roll_call_time: rollCallTime, p_school_day: schoolDay,
-    });
-    assert(denied(revokedWrite.error) && !revokedWrite.data, 'REVOKED_ASSIGNMENT_DB_WRITE_DENIED');
-    const revokedRequests = await page.evaluate(async input => {
-      const read = await fetch(`/api/education/attendance?courseId=${encodeURIComponent(input.courseId)}&date=${encodeURIComponent(input.date)}`, { cache: 'no-store' });
-      const write = await fetch('/api/education/attendance', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enrollmentId: input.enrollmentId, status: 'present', date: input.date }),
-      });
-      return { readStatus: read.status, readBody: await read.json(), writeStatus: write.status, writeBody: await write.json() };
-    }, { courseId: ids.courseA, enrollmentId: ids.enrollmentA, date: schoolDay });
-    assert(revokedRequests.readStatus === 403 && revokedRequests.writeStatus === 403
-      && revokedRequests.readBody?.success === false && revokedRequests.writeBody?.success === false,
-    'REVOKED_ASSIGNMENT_API_READ_AND_WRITE_DENIED');
-    assert(JSON.stringify(await attendanceSnapshot()) === JSON.stringify(beforeRevokedWrite),
-      'REVOKED_ASSIGNMENT_DENIAL_HAS_NO_PARTIAL_STATE');
-    addPass('jwtDatabase', 'revoked_assignment_denies_same_branch_teacher_without_partial_state');
-    addPass('browserE2e', 'revoked_assignment_denies_api_read_and_write', '403');
+  await adminPage.goto(`${appOrigin}/login`, { waitUntil: 'domcontentloaded' });
+  await adminPage.waitForLoadState('networkidle', { timeout: 60000 });
+  const adminEmailInput = adminPage.locator('input[type="email"]');
+  await adminEmailInput.focus();
+  await adminPage.waitForFunction(() => {
+    const input = document.querySelector('input[type="email"]');
+    return input instanceof HTMLInputElement && input.style.borderColor === 'rgb(124, 58, 237)';
+  }, { timeout: 20000 });
+  await adminEmailInput.fill(emails.adminA);
+  await adminPage.locator('input[type="password"]').fill(passwords.adminA);
+  await adminPage.getByRole('button', { name: 'Đăng nhập ngay' }).click();
+  try {
+    await adminPage.waitForURL(url => url.pathname === '/dashboard/education', { timeout: 45000 });
+    await adminPage.waitForLoadState('load', { timeout: 45000 });
+    await adminPage.getByRole('heading', { name: 'Chào mừng bạn trở lại!' }).waitFor({ state: 'visible', timeout: 20000 });
+  } catch {
+    const visibleText = await adminPage.locator('body').innerText().catch(() => 'BODY_TEXT_UNAVAILABLE');
+    throw new Error(`ADMIN_LOGIN_REDIRECT_FAILED:${JSON.stringify({
+      path: new URL(adminPage.url()).pathname,
+      visibleText: scrub(visibleText).slice(0, 1000),
+      pageErrors: adminPageErrors.slice(-5),
+      authResponses: adminAuthResponses.slice(-5),
+    })}`);
   }
+  addPass('browserE2e', 'admin_signs_in_through_real_supabase_auth');
+  await adminPage.goto(`${appOrigin}/dashboard/education/attendance`, { waitUntil: 'load' });
+  await adminPage.getByText('Synthetic Assigned Class', { exact: true }).waitFor({ state: 'visible', timeout: 60000 });
+  await adminPage.getByText('Synthetic Other Branch Class', { exact: true }).waitFor({ state: 'visible', timeout: 60000 });
+  assert(await adminPage.getByText('Synthetic Other Tenant Class', { exact: true }).count() === 0,
+    'ADMIN_BROWSER_DOES_NOT_RENDER_OTHER_TENANT_CLASS');
+  addPass('browserE2e', 'admin_attendance_page_lists_only_own_tenant_classes');
+  const adminCourseList = await adminPage.evaluate(async date => {
+    const response = await fetch(`/api/education/attendance/courses?date=${encodeURIComponent(date)}`, { cache: 'no-store' });
+    return { status: response.status, body: await response.json() };
+  }, schoolDay);
+  const visibleAdminCourseIds = adminCourseList.body?.classrooms?.map(row => row.id).sort() ?? [];
+  assert(adminCourseList.status === 200 && adminCourseList.body?.success === true
+    && visibleAdminCourseIds.length === 2
+    && visibleAdminCourseIds[0] === [ids.courseA, ids.courseB].sort()[0]
+    && visibleAdminCourseIds[1] === [ids.courseA, ids.courseB].sort()[1],
+  'ADMIN_BROWSER_API_LISTS_ONLY_AUTHORIZED_TENANT_BRANCHES');
+  addPass('browserE2e', 'admin_attendance_api_lists_authorized_tenant_classes');
 
-  // Preserve terminated history and use a new public-command assignment for the independent identity-link case.
-  const replacementAssignmentId = randomUUID();
-  const replacement = await requiredRpc(serviceClient, 'edu_assign_preschool_teacher', {
-    p_tenant_id: ids.tenantA, p_actor_id: ids.adminA, p_branch_id: ids.branchA,
-    p_operation_key: replacementAssignmentId, p_course_id: ids.courseA,
-    p_confirmation_id: ids.teacherConfirmation, p_teacher_party_id: ids.teacherParty,
-    p_role: 'lead_teacher', p_academic_year: '2026-2027',
-    p_effective_start_date: schoolDay, p_effective_end_date: null,
-  });
-  assert(replacement?.assignment_id === replacementAssignmentId && replacement?.status === 'active',
-    'INDEPENDENT_IDENTITY_CASE_HAS_ACTIVE_SYNTHETIC_ASSIGNMENT');
-  const restoredScope = await requiredRpc(teacherClient, 'preschool_teacher_attendance_courses', {
-    p_school_day: schoolDay, p_branch_id: null,
-  });
-  assert(restoredScope?.courses?.length === 1 && restoredScope.courses[0].courseId === ids.courseA,
-    'INDEPENDENT_IDENTITY_CASE_HAS_RESTORED_COURSE_ACCESS');
-  outcome.jwtDatabase.status = 'PASS';
+  await adminPage.getByRole('button', { name: /Synthetic Other Branch Class/ }).click();
+  const adminChildRow = adminPage.getByRole('row').filter({ hasText: 'Synthetic Child B' });
+  await adminChildRow.waitFor({ state: 'visible', timeout: 45000 });
+  assert(await adminPage.getByText('Synthetic Child A', { exact: true }).count() === 0
+    && await adminPage.getByText('Synthetic Child C', { exact: true }).count() === 0,
+  'ADMIN_BROWSER_ROSTER_MATCHES_SELECTED_AUTHORIZED_BRANCH_CLASS');
+  addPass('browserE2e', 'admin_can_open_authorized_other_branch_class_roster');
+  const adminBranchRoster = await adminPage.evaluate(async input => {
+    const response = await fetch(`/api/education/attendance?courseId=${encodeURIComponent(input.courseId)}&date=${encodeURIComponent(input.date)}`, { cache: 'no-store' });
+    return { status: response.status, body: await response.json() };
+  }, { courseId: ids.courseB, date: schoolDay });
+  assert(adminBranchRoster.status === 200 && adminBranchRoster.body?.success === true
+    && adminBranchRoster.body.roster?.length === 1
+    && adminBranchRoster.body.roster[0].name === 'Synthetic Child B',
+  'ADMIN_BROWSER_API_READS_ROSTER_FROM_AUTHORIZED_BRANCH');
+  addPass('browserE2e', 'admin_attendance_api_reads_authorized_branch_roster');
+
+  const deniedAdminRoster = await adminPage.evaluate(async input => {
+    const response = await fetch(`/api/education/attendance?courseId=${encodeURIComponent(input.courseId)}&date=${encodeURIComponent(input.date)}`, { cache: 'no-store' });
+    return { status: response.status, body: await response.json() };
+  }, { courseId: ids.courseC, date: schoolDay });
+  assert(deniedAdminRoster.status === 403, 'ADMIN_BROWSER_API_DENIES_OTHER_TENANT_CLASS');
+  addPass('browserE2e', 'admin_attendance_api_denies_other_tenant_class', String(deniedAdminRoster.status));
+  const adminDeniedBefore = await pgClient.query(`SELECT
+    (SELECT count(*)::int FROM public.edu_attendance WHERE tenant_id=$1 AND enrollment_id=$2) AS events,
+    (SELECT count(*)::int FROM public.edu_attendance_daily_state WHERE tenant_id=$1 AND enrollment_id=$2 AND school_day=$3) AS states`,
+  [ids.tenantB, ids.enrollmentC, schoolDay]);
+  const deniedAdminWrite = await adminPage.evaluate(async input => {
+    const response = await fetch('/api/education/attendance', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enrollmentId: input.enrollmentId, status: 'present', date: input.date }),
+    });
+    return { status: response.status, body: await response.json() };
+  }, { enrollmentId: ids.enrollmentC, date: schoolDay });
+  const adminDeniedAfter = await pgClient.query(`SELECT
+    (SELECT count(*)::int FROM public.edu_attendance WHERE tenant_id=$1 AND enrollment_id=$2) AS events,
+    (SELECT count(*)::int FROM public.edu_attendance_daily_state WHERE tenant_id=$1 AND enrollment_id=$2 AND school_day=$3) AS states`,
+  [ids.tenantB, ids.enrollmentC, schoolDay]);
+  assert(deniedAdminWrite.status === 403
+    && adminDeniedBefore.rows[0].events === adminDeniedAfter.rows[0].events
+    && adminDeniedBefore.rows[0].states === adminDeniedAfter.rows[0].states,
+  'ADMIN_BROWSER_CROSS_TENANT_WRITE_DENIED_WITHOUT_PARTIAL_STATE');
+  addPass('browserE2e', 'admin_attendance_api_denies_cross_tenant_write_without_partial_state', String(deniedAdminWrite.status));
+
+  await adminChildRow.getByRole('button', { name: 'Có Mặt', exact: true }).click();
+  await adminPage.getByRole('status').filter({ hasText: 'Đã ghi nhận điểm danh thật vào hệ thống' })
+    .waitFor({ state: 'visible', timeout: 30000 });
+  const adminSaved = await pgClient.query(`SELECT s.status,e.status AS event_status FROM public.edu_attendance_daily_state s
+    JOIN public.edu_attendance e ON e.tenant_id=s.tenant_id AND e.enrollment_id=s.enrollment_id
+      AND e.roll_call_time::date = s.school_day
+    WHERE s.tenant_id=$1 AND s.enrollment_id=$2 AND s.school_day=$3 ORDER BY e.created_at DESC LIMIT 1`,
+  [ids.tenantA, ids.enrollmentB, schoolDay]);
+  assert(adminSaved.rows.length === 1 && adminSaved.rows[0].status === 'present'
+    && adminSaved.rows[0].event_status === 'present', 'ADMIN_BROWSER_WRITE_READS_BACK_FROM_DATABASE');
+  outcome.readback.results.push({ name: 'admin_attendance_state_persisted_in_database', result: 'PASS' });
+  await adminPage.reload({ waitUntil: 'domcontentloaded' });
+  await adminPage.getByRole('button', { name: /Synthetic Other Branch Class/ }).click();
+  const adminChildRowAfterReload = adminPage.getByRole('row').filter({ hasText: 'Synthetic Child B' });
+  await adminChildRowAfterReload.getByRole('cell', { name: 'Có Mặt', exact: true })
+    .waitFor({ state: 'visible', timeout: 45000 });
+  assert(adminPageErrors.length === 0, 'ADMIN_BROWSER_HAS_NO_UNHANDLED_PAGE_ERRORS');
+  addPass('browserE2e', 'admin_marks_attendance_and_state_persists_after_reload');
+  const guardianApi = await adminPage.evaluate(async studentId => {
+    const response = await fetch(`/api/education/enrollments/${encodeURIComponent(studentId)}/guardians`, { cache: 'no-store' });
+    return { status: response.status, body: await response.json() };
+  }, ids.studentA);
+  assert(guardianApi.status === 200 && guardianApi.body?.success === true
+    && guardianApi.body?.guardians?.studentId === ids.studentA
+    && guardianApi.body?.guardians?.guardianCount === 1
+    && guardianApi.body?.guardians?.guardians?.[0]?.displayName === 'Synthetic Guardian A'
+    && guardianApi.body?.guardians?.guardians?.[0]?.phone === '0900000001',
+  'G1_BROWSER_API_RETURNS_CANONICAL_GUARDIAN_DATA');
+  addPass('browserE2e', 'g1_student_guardians_api_reads_real_authenticated_guardian_data');
+  const deniedGuardianApi = await adminPage.evaluate(async studentId => {
+    const response = await fetch(`/api/education/enrollments/${encodeURIComponent(studentId)}/guardians`, { cache: 'no-store' });
+    return { status: response.status, body: await response.json() };
+  }, ids.studentC);
+  assert(deniedGuardianApi.status === 403, 'G1_BROWSER_API_DENIES_OTHER_TENANT_STUDENT');
+  addPass('browserE2e', 'g1_student_guardians_api_denies_cross_tenant_read', String(deniedGuardianApi.status));
+  const studentCode = `SYN-A-${suffix}`;
+  await adminPage.goto(`${appOrigin}/dashboard/education/enrollments/${encodeURIComponent(studentCode)}?courseId=${encodeURIComponent(ids.courseA)}`, { waitUntil: 'load' });
+  await adminPage.getByRole('heading', { name: 'Người giám hộ', exact: true }).waitFor({ state: 'visible', timeout: 60000 });
+  await adminPage.getByText('Synthetic Guardian A', { exact: true }).waitFor({ state: 'visible', timeout: 30000 });
+  await adminPage.getByText('0900000001', { exact: true }).waitFor({ state: 'visible', timeout: 30000 });
+  await adminPage.getByText('Được phép đón trẻ', { exact: true }).waitFor({ state: 'visible', timeout: 30000 });
+  assert(adminPageErrors.length === 0, 'G1_STUDENT_360_HAS_NO_UNHANDLED_PAGE_ERRORS');
+  addPass('browserE2e', 'g1_student_360_renders_verified_guardian_in_real_browser');
+  await adminContext.close();
 
   const adminRevoke = await adminAClient.rpc('party_revoke_auth_link', {
-    p_link_id: ids.teacherIdentityLinkId, p_reason: 'Synthetic E2E revocation to verify immediate denial.',
+    p_link_id: ids.authLink, p_reason: 'Synthetic E2E revocation to verify immediate denial.',
   });
   assert(!adminRevoke.error && adminRevoke.data?.revokedAt, 'ADMIN_REVOKES_AUTH_PARTY_LINK_VIA_PUBLIC_CONTRACT');
   const resolvedAfterRevoke = await teacherClient.rpc('party_resolve_current_auth_link');
@@ -764,6 +1137,9 @@ async function main() {
   }, schoolDay);
   assert(revokedApi.status === 403, 'BROWSER_API_DENIES_REVOKED_TEACHER_IDENTITY');
   addPass('browserE2e', 'revoked_auth_party_link_denies_following_teacher_request');
+  if (outcome.readback.results.length === 2 && outcome.readback.results.every(result => result.result === 'PASS')) {
+    outcome.readback.status = 'PASS';
+  }
   outcome.browserE2e.status = 'PASS';
   outcome.jwtDatabase.status = 'PASS';
   outcome.fixture.cleanup = 'CONTAINED_IN_DISPOSABLE_PROFILE';
@@ -773,7 +1149,7 @@ try {
   await main();
 } catch (error) {
   failure = { phase: currentPhase, code: scrub(error?.message ?? 'UNKNOWN_FAILURE').slice(0, 1500) };
-  if (outcome.jwtDatabase.status === 'RUNNING') outcome.jwtDatabase.status = 'FAIL';
+  if (currentPhase === 'jwt-database-acceptance' && outcome.jwtDatabase.status === 'RUNNING') outcome.jwtDatabase.status = 'FAIL';
   if (currentPhase === 'browser-e2e' && outcome.browserE2e.status === 'RUNNING') outcome.browserE2e.status = 'FAIL';
   process.stderr.write(`PRESCHOOL_PROFILE_ACCEPTANCE_FAIL phase=${failure.phase} reason=${failure.code}\n`);
 } finally {

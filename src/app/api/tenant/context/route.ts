@@ -8,7 +8,16 @@ import type { TenantContext } from '@/core/types/tenant';
 import type { Database } from '@/types/database.types';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import { getTenantSettings } from '@/services/tenant-actions';
-import { CURRENT_ACTOR_PROFILE_RPC, reconcileCurrentActorProfile, type PlatformActorDatabase } from '@/platform/security/current-actor.contract';
+import {
+  CURRENT_ACTOR_PROFILE_RPC,
+  CURRENT_ACTOR_TENANT_PRESENTATION_RPC,
+  reconcileCurrentActorProfile,
+  reconcileCurrentActorTenantPresentation,
+  type ActiveCurrentActorTenantPresentation,
+  type PlatformActorDatabase,
+} from '@/platform/security/current-actor.contract';
+
+type TenantRow = Database['public']['Tables']['tenants']['Row'];
 
 /**
  * Create a fresh Supabase server client for this Route Handler.
@@ -224,10 +233,6 @@ async function resolveAuthenticatedUser(
 }
 
 /**
- * Type for tenant row from database.
- */
-type TenantRow = Database['public']['Tables']['tenants']['Row'];
-
 /**
  * API route to fetch tenant configuration for the authenticated user.
  * 
@@ -331,23 +336,53 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Reuse the current-tenant service already consumed by the dashboard. It
-    // independently validates the actor before its existing server-owned read.
-    const tenant = await getTenantSettings();
+    // Read only the authenticated actor's approved tenant projection. Do not
+    // query the tenant table or use a service-role fallback for this context.
+    const { data: tenantRows, error: tenantError } = await actorClient.rpc(CURRENT_ACTOR_TENANT_PRESENTATION_RPC);
+    if (tenantError) {
+      return NextResponse.json(
+        { error: 'Failed to fetch tenant presentation' },
+        { status: tenantError.code === '42501' ? 403 : 500 },
+      );
+    }
+    const tenant = reconcileCurrentActorTenantPresentation(actor.tenant_id, tenantRows);
     if (!tenant) {
+      return NextResponse.json(
+        { error: 'Forbidden: Active tenant presentation required.' },
+        { status: 403 },
+      );
+    }
+
+    if (tenant.product_key === 'bella_preschool') {
+      return NextResponse.json(transformTenantPresentationToContext(tenant), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      });
+    }
+
+    // Keep the established full settings mapping for other products. Preschool
+    // must use the signed-in Platform projection above and never fall back to a
+    // direct tenants-table read.
+    const tenantSettings = await getTenantSettings();
+    if (!tenantSettings) {
       return NextResponse.json(
         { error: 'Failed to fetch tenant configuration' },
         { status: 500 },
       );
     }
-    if (tenant.id !== actor.tenant_id || tenant.status !== 'active') {
+    if (tenantSettings.id !== actor.tenant_id || tenantSettings.status !== 'active') {
       return NextResponse.json(
         { error: 'Forbidden: Tenant configuration does not match current actor.' },
         { status: 403 },
       );
     }
 
-    return NextResponse.json(transformTenantRowToContext(tenant), {
+    return NextResponse.json(transformTenantRowToContext(tenantSettings), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
@@ -362,62 +397,24 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/**
- * Transform database tenant row to TenantContext contract type.
- * 
- * @remarks
- * This function maps the database schema to the TenantContext interface
- * defined in Phase 2. It handles type conversions and provides defaults
- * for missing fields.
- * 
- * **Field Mappings**:
- * - `id` → `tenantId`
- * - `name` → `tenantName`
- * - `enabled_modules` → `enabledModules` (with default ['spa'])
- * - `subscription_tier` → `subscriptionPlan` (with default 'basic')
- * - Database JSON fields → `featureFlags` and `settings`
- * 
- * **Defaults**:
- * - If `enabled_modules` is null/empty, defaults to `['spa']`
- * - If `subscription_plan` is null, defaults to `'basic'`
- * - Feature flags and settings default to empty objects if not set
- * 
- * @param tenant - Tenant row from database
- * @returns TenantContext object
- */
+/** Transform an established full tenant settings row for legacy product consumers. */
 function transformTenantRowToContext(tenant: TenantRow): TenantContext {
-  // Extract enabled modules from database (stored as JSONB object like {beauty_spa: true, babycare: false})
-  let enabledModules: string[] = ['spa']; // Default fallback
-  
+  let enabledModules: string[] = ['spa'];
   if (tenant.enabled_modules) {
     if (Array.isArray(tenant.enabled_modules)) {
-      // Already an array of strings - need to filter out non-strings
       enabledModules = tenant.enabled_modules.filter((item): item is string => typeof item === 'string');
     } else if (typeof tenant.enabled_modules === 'object' && tenant.enabled_modules !== null) {
-      // JSONB object format: {beauty_spa: true, babycare: false}
-      // Filter to get only enabled modules
       enabledModules = Object.entries(tenant.enabled_modules)
-        .filter(([_key, value]) => value === true)
-        .map(([key, _value]) => key);
-      
-      // If no modules enabled, fallback to spa
-      if (enabledModules.length === 0) {
-        enabledModules = ['spa'];
-      }
+        .filter(([, value]) => value === true)
+        .map(([key]) => key);
+      if (enabledModules.length === 0) enabledModules = ['spa'];
     } else if (typeof tenant.enabled_modules === 'string') {
-      // Single module as string
       enabledModules = [tenant.enabled_modules];
     }
   }
 
-  // Extract subscription plan (with fallback to 'basic')
   const subscriptionPlan = (tenant.subscription_tier as TenantContext['subscriptionPlan']) || 'basic';
-
-  // Extract feature flags from database
-  // Feature flags may be stored in a JSON column or derived from tenant settings
   const featureFlags: Record<string, boolean> = {};
-  
-  // Parse feature flags from tenant configuration if available
   if (tenant.role_permissions && typeof tenant.role_permissions === 'object') {
     const rolePermissions = tenant.role_permissions as Record<string, unknown>;
     if (rolePermissions.feature_flags && typeof rolePermissions.feature_flags === 'object') {
@@ -425,13 +422,74 @@ function transformTenantRowToContext(tenant: TenantRow): TenantContext {
     }
   }
 
-  // Extract settings from database
-  // Settings include currency, timezone, locale, and other tenant-specific config
   const settings: Record<string, unknown> = {
-    currency: 'VND', // Default currency
-    timezone: 'Asia/Ho_Chi_Minh', // Default timezone
-    locale: 'vi-VN', // Default locale
-    companyName: tenant.name, // Always set company name
+    currency: 'VND',
+    timezone: 'Asia/Ho_Chi_Minh',
+    locale: 'vi-VN',
+    companyName: tenant.name,
+    productKey: tenant.product_key ?? null,
+  };
+  const brand = tenant.brand_theme;
+  if (brand && typeof brand === 'object' && !Array.isArray(brand)) {
+    const keys = ['brandName', 'logoUrl', 'primaryColor', 'accentColor', 'portalDisplayName',
+      'invoiceDisplayName', 'stylePreset', 'radiusStyle', 'buttonStyle', 'menuStyle', 'fontHeading'];
+    settings.brandTheme = Object.fromEntries(keys.filter(key => typeof brand[key] === 'string').map(key => [key, brand[key]]));
+  }
+  if (tenant.brand_theme && typeof tenant.brand_theme === 'object' && !Array.isArray(tenant.brand_theme)) {
+    const theme = tenant.brand_theme as Record<string, unknown>;
+    Object.assign(settings, {
+      logoUrl: theme.logoUrl || tenant.logo_url,
+      primaryColor: theme.primaryColor,
+    });
+  } else if (tenant.logo_url) {
+    settings.logoUrl = tenant.logo_url;
+  }
+  if (tenant.salary_config && typeof tenant.salary_config === 'object') settings.salaryConfig = tenant.salary_config;
+  if (tenant.qr_bank_code) {
+    settings.qrPayment = {
+      bankCode: tenant.qr_bank_code,
+      accountNumber: tenant.qr_account_number,
+      accountName: tenant.qr_account_name,
+    };
+  }
+  if (tenant.contact_phone || tenant.email || tenant.address) {
+    settings.contact = { phone: tenant.contact_phone, email: tenant.email, address: tenant.address };
+  }
+
+  return {
+    tenantId: tenant.id,
+    tenantName: tenant.name || 'Unnamed Tenant',
+    enabledModules: enabledModules as TenantContext['enabledModules'],
+    subscriptionPlan,
+    featureFlags,
+    settings,
+  };
+}
+
+/** Map the approved self-scoped tenant presentation to the client context. */
+function transformTenantPresentationToContext(tenant: ActiveCurrentActorTenantPresentation): TenantContext {
+  let enabledModules: string[] = [];
+  if (Array.isArray(tenant.enabled_modules)) {
+    enabledModules = tenant.enabled_modules.filter((item): item is string => typeof item === 'string');
+  } else if (typeof tenant.enabled_modules === 'object' && tenant.enabled_modules !== null) {
+    enabledModules = Object.entries(tenant.enabled_modules)
+      .filter(([, value]) => value === true)
+      .map(([key]) => key);
+  } else if (typeof tenant.enabled_modules === 'string' && tenant.enabled_modules.trim()) {
+    enabledModules = [tenant.enabled_modules];
+  }
+
+  // The presentation contract does not expose billing entitlements or caller
+  // feature grants. Use the lowest context tier and no client feature grants;
+  // action authorization remains server-side.
+  const subscriptionPlan: TenantContext['subscriptionPlan'] = 'basic';
+  const featureFlags: Record<string, boolean> = {};
+
+  const settings: Record<string, unknown> = {
+    currency: 'VND',
+    timezone: 'Asia/Ho_Chi_Minh',
+    locale: 'vi-VN',
+    companyName: tenant.name,
     productKey: tenant.product_key ?? null,
   };
 
@@ -442,45 +500,20 @@ function transformTenantRowToContext(tenant: TenantRow): TenantContext {
     settings.brandTheme = Object.fromEntries(keys.filter(key => typeof brand[key] === 'string').map(key => [key, brand[key]]));
   }
 
-  // Merge in any additional settings from database
-  if (tenant.brand_theme && typeof tenant.brand_theme === 'object') {
+  if (tenant.brand_theme && typeof tenant.brand_theme === 'object' && !Array.isArray(tenant.brand_theme)) {
     const theme = tenant.brand_theme as Record<string, unknown>;
     Object.assign(settings, {
-      logoUrl: theme.logoUrl || tenant.logo_url,
-      primaryColor: theme.primaryColor,
+      logoUrl: typeof theme.logoUrl === 'string' ? theme.logoUrl : tenant.logo_url,
+      ...(typeof theme.primaryColor === 'string' ? { primaryColor: theme.primaryColor } : {}),
     });
-  } else if (tenant.logo_url) {
-    // If no brand_theme but logo_url exists, set it
+  } else if (tenant.logo_url !== null) {
     settings.logoUrl = tenant.logo_url;
-  }
-
-  // Add salary configuration if available
-  if (tenant.salary_config && typeof tenant.salary_config === 'object') {
-    settings.salaryConfig = tenant.salary_config;
-  }
-
-  // Add QR payment configuration if available
-  if (tenant.qr_bank_code) {
-    settings.qrPayment = {
-      bankCode: tenant.qr_bank_code,
-      accountNumber: tenant.qr_account_number,
-      accountName: tenant.qr_account_name,
-    };
-  }
-
-  // Add contact information
-  if (tenant.contact_phone || tenant.email || tenant.address) {
-    settings.contact = {
-      phone: tenant.contact_phone,
-      email: tenant.email,
-      address: tenant.address,
-    };
   }
 
   // Construct and return TenantContext
   const context: TenantContext = {
     tenantId: tenant.id,
-    tenantName: tenant.name || 'Unnamed Tenant',
+    tenantName: tenant.name,
     enabledModules: enabledModules as TenantContext['enabledModules'],
     subscriptionPlan,
     featureFlags,

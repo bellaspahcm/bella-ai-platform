@@ -115,8 +115,53 @@ function candidateEnrollmentJson(body: unknown, status = 200): NextResponse {
   return NextResponse.json(body, { status, headers: CANDIDATE_ENROLLMENT_PRIVATE_HEADERS });
 }
 
-function candidateEnrollmentUnavailable(): NextResponse {
-  return candidateEnrollmentJson({ success: false, error: 'ENROLLMENT_WORKFLOW_UNAVAILABLE' }, 503);
+function candidateEnrollmentUnavailable(error?: unknown): NextResponse {
+  const body: { success: false; error: string; diagnostic?: { name: string; code?: string; status?: number; messageCode?: string; stage?: string; providerCode?: string } } = {
+    success: false,
+    error: 'ENROLLMENT_WORKFLOW_UNAVAILABLE',
+  };
+  if (process.env.NODE_ENV === 'development' && process.env.BELLA_PROFILE_ACCEPTANCE_DIAGNOSTICS === '1'
+    && error && typeof error === 'object') {
+    const candidate = error as { name?: unknown; code?: unknown; status?: unknown; message?: unknown; diagnosticStage?: unknown; diagnosticProviderCode?: unknown };
+    const constructorName = (error as { constructor?: { name?: unknown } }).constructor?.name;
+    const name = typeof candidate.name === 'string' && /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(candidate.name)
+      ? candidate.name
+      : typeof constructorName === 'string' && /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(constructorName) ? constructorName : 'UnknownError';
+    const diagnostic: { name: string; code?: string; status?: number; messageCode?: string; stage?: string; providerCode?: string } = { name };
+    if (typeof candidate.code === 'string' && /^(?:[A-Z0-9_]{1,80}|[0-9A-Z]{5})$/.test(candidate.code)) diagnostic.code = candidate.code;
+    if ([400, 401, 403, 409, 500, 503].includes(Number(candidate.status))) diagnostic.status = Number(candidate.status);
+    if (typeof candidate.message === 'string' && /^[A-Z][A-Z0-9_]{0,100}$/.test(candidate.message)) diagnostic.messageCode = candidate.message;
+    if (['actor_profile_read', 'enrollment_rpc', 'enrollment_rpc_response'].includes(String(candidate.diagnosticStage))) {
+      diagnostic.stage = String(candidate.diagnosticStage);
+    }
+    if (typeof candidate.diagnosticProviderCode === 'string'
+      && /^(?:[A-Z0-9_]{1,80}|[0-9A-Z]{5})$/.test(candidate.diagnosticProviderCode)) {
+      diagnostic.providerCode = candidate.diagnosticProviderCode;
+    }
+    body.diagnostic = diagnostic;
+  }
+  return candidateEnrollmentJson(body, 503);
+}
+
+type PreschoolEnrollmentFailureCode = 'INVALID_REQUEST' | 'DENIED' | 'STUDENT_DENIED' | 'GUARDIAN_REQUIRED' | 'CONFLICT' | 'UNAVAILABLE';
+function getPreschoolEnrollmentFailureCode(error: unknown): PreschoolEnrollmentFailureCode | null {
+  if (error instanceof EducationPreschoolEnrollmentError) return error.code;
+  if (!error || typeof error !== 'object') return null;
+  const candidate = error as { name?: unknown; code?: unknown };
+  if (candidate.name !== 'EducationPreschoolEnrollmentError' || typeof candidate.code !== 'string') return null;
+  return ['INVALID_REQUEST', 'DENIED', 'STUDENT_DENIED', 'GUARDIAN_REQUIRED', 'CONFLICT', 'UNAVAILABLE']
+    .includes(candidate.code) ? candidate.code as PreschoolEnrollmentFailureCode : null;
+}
+
+function getAttendanceAccessFailure(error: unknown): { status: 400 | 401 | 403 | 503; code: string } | null {
+  if (error instanceof AttendanceAccessError) return { status: error.status, code: error.code };
+  if (!error || typeof error !== 'object') return null;
+  const candidate = error as { name?: unknown; status?: unknown; code?: unknown };
+  if (candidate.name !== 'AttendanceAccessError'
+    || ![400, 401, 403, 503].includes(Number(candidate.status))
+    || typeof candidate.code !== 'string'
+    || !/^[A-Z0-9_]{1,80}$/.test(candidate.code)) return null;
+  return { status: candidate.status as 400 | 401 | 403 | 503, code: candidate.code };
 }
 
 function isCandidateEnrollmentRecord(value: unknown): value is Record<string, unknown> {
@@ -155,11 +200,12 @@ async function getEnrollmentCandidates(request: Request): Promise<NextResponse> 
     if (result.tenantId !== context.tenantId || result.courseId !== courseId) return candidateEnrollmentUnavailable();
     return candidateEnrollmentJson({ success: true, ...result });
   } catch (error) {
-    if (error instanceof AttendanceAccessError) return candidateEnrollmentJson({ success: false, error: error.code }, error.status);
+    const accessFailure = getAttendanceAccessFailure(error);
+    if (accessFailure) return candidateEnrollmentJson({ success: false, error: accessFailure.code }, accessFailure.status);
     if (error instanceof EducationCandidateReadError && error.code === 'INVALID_REQUEST') {
       return candidateEnrollmentJson({ success: false, error: 'ENROLLMENT_INVALID_REQUEST' }, 400);
     }
-    return candidateEnrollmentUnavailable();
+    return candidateEnrollmentUnavailable(error);
   }
 }
 
@@ -199,14 +245,17 @@ async function createExistingStudentEnrollment(request: Request): Promise<NextRe
       courseId: enrollment.courseId, status: enrollment.status, enrolledAt: enrollment.enrolledAt,
     } });
   } catch (error) {
-    if (error instanceof AttendanceAccessError) return candidateEnrollmentJson({ success: false, error: error.code }, error.status);
-    if (error instanceof EducationPreschoolEnrollmentError) {
-      if (error.code === 'INVALID_REQUEST') return candidateEnrollmentJson({ success: false, error: 'ENROLLMENT_INVALID_REQUEST' }, 400);
-      if (error.code === 'STUDENT_DENIED') return candidateEnrollmentJson({ success: false, error: 'ENROLLMENT_STUDENT_ACCESS_DENIED' }, 403);
-      if (error.code === 'GUARDIAN_REQUIRED') return candidateEnrollmentJson({ success: false, error: 'ENROLLMENT_GUARDIAN_RELATIONSHIP_REQUIRED' }, 403);
-      if (error.code === 'DENIED') return candidateEnrollmentJson({ success: false, error: 'ENROLLMENT_ACCESS_DENIED' }, 403);
+    const accessFailure = getAttendanceAccessFailure(error);
+    if (accessFailure) return candidateEnrollmentJson({ success: false, error: accessFailure.code }, accessFailure.status);
+    const enrollmentFailureCode = getPreschoolEnrollmentFailureCode(error);
+    if (enrollmentFailureCode) {
+      if (enrollmentFailureCode === 'INVALID_REQUEST') return candidateEnrollmentJson({ success: false, error: 'ENROLLMENT_INVALID_REQUEST' }, 400);
+      if (enrollmentFailureCode === 'STUDENT_DENIED') return candidateEnrollmentJson({ success: false, error: 'ENROLLMENT_STUDENT_ACCESS_DENIED' }, 403);
+      if (enrollmentFailureCode === 'GUARDIAN_REQUIRED') return candidateEnrollmentJson({ success: false, error: 'ENROLLMENT_GUARDIAN_RELATIONSHIP_REQUIRED' }, 403);
+      if (enrollmentFailureCode === 'DENIED') return candidateEnrollmentJson({ success: false, error: 'ENROLLMENT_ACCESS_DENIED' }, 403);
+      if (enrollmentFailureCode === 'CONFLICT') return candidateEnrollmentJson({ success: false, error: 'ENROLLMENT_CONFLICT' }, 409);
     }
-    return candidateEnrollmentUnavailable();
+    return candidateEnrollmentUnavailable(error);
   }
 }
 

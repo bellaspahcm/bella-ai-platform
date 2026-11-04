@@ -1,0 +1,41 @@
+{
+  "acr": "ACR-2026-024-preschool-admin-course-read",
+  "adr": "ADR-029-preschool-admin-course-read",
+  "authority": "AUTHORITY.json",
+  "status": "IMPLEMENTED_BOUNDED_LOCAL_RESEAL_HELD",
+  "automatedEnforcement": false,
+  "globalEducationState": "FROZEN",
+  "previousCourseCatalogUnlock": "docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/SCOPED_UNLOCK.json (closed; not reused)",
+  "exactPaths": [
+    "src/platform/education/contracts/canonical-course-catalog.contract.ts",
+    "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts",
+    "src/platform/education/contracts/__tests__/preschool-admin-course-catalog.contract.test.ts"
+  ],
+  "supportingPaths": [
+    "src/app/api/education/courses/catalog/route.ts",
+    "src/app/dashboard/education/courses/CanonicalClassroomCatalog.tsx",
+    "supabase/migrations/20261028140000_preschool_admin_course_catalog_read.sql"
+  ],
+  "allowedOperations": [
+    "ADD_PRESCHOOL_ADMIN_READ_METHODS_TO_EXISTING_COURSE_CATALOG_CONTRACT",
+    "ADD_FOCUSED_CONTRACT_TEST",
+    "APPLY_AND_VERIFY_MIGRATION_ON_DISPOSABLE_PROFILE_ONLY"
+  ],
+  "allowedDatabaseTarget": "bella-preschool-95c70855",
+  "sharedDatabaseAuthorized": false,
+  "productionAuthorized": false,
+  "globalManifestOrGuardChangesAllowed": false,
+  "implementationWindowClosed": true,
+  "exactSha256": {
+    "src/platform/education/contracts/canonical-course-catalog.contract.ts": "84bfddc6a35f6f65409b08fc3562ae1c38845caea006dc501e219d3fa024a2dc",
+    "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts": "1ddaa06906255105f5a176832ea1e11f54b30e32c05b521b2a66545b61671569",
+    "src/platform/education/contracts/__tests__/preschool-admin-course-catalog.contract.test.ts": "5ff3ceccb00a8249a9c49cf3d989e4152a75bb4c4977ee18a9b8aa60ed534b28",
+    "supabase/migrations/20261028140000_preschool_admin_course_catalog_read.sql": "24cc30646290185c8fcbe28cd389a722cbb3925185e1c030a0b7dbd5dbd8133f",
+    "src/app/api/education/courses/catalog/route.ts": "2804e5c747f662d3a9e89d10fed1270c3688e66f22e1c4461ba5fb7166df8e88",
+    "src/app/dashboard/education/courses/CanonicalClassroomCatalog.tsx": "3cb77d2d23eaeb0b6b3ffdab04d72092234895c09caf49a3aa1549621bd94e00"
+  },
+  "reseal": {
+    "result": "HELD",
+    "reason": "Bounded local API/DB, component, and multi-class browser evidence passes. The full Education reseal suite was not run. No Production or Go-Live claim."
+  }
+}
