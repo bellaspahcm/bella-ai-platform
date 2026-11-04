@@ -182,6 +182,8 @@ jobs:
 
   real-db-e2e:
     name: Real Database Business E2E
+    outputs:
+      preschool_profile_uses_disposable: ${{ steps.preschool-profile.outputs.use_disposable }}
     concurrency:
       group: bella-e2e-bmnbqbcdbuklhopfbopv
       cancel-in-progress: false
@@ -440,11 +442,17 @@ jobs:
         run: npm run db:migration:zero-downtime -- --base "$BASE_REF"
 
       - name: Require database drift credentials
+        if: needs.real-db-e2e.outputs.preschool_profile_uses_disposable != 'true'
         env:
           SUPABASE_DB_URL: ${{ secrets.E2E_SUPABASE_DB_URL }}
         run: test -n "$SUPABASE_DB_URL"
 
+      - name: Use disposable Preschool migration evidence
+        if: needs.real-db-e2e.outputs.preschool_profile_uses_disposable == 'true'
+        run: echo 'Skipping shared E2E ledger comparison because the dependent Real Database Business E2E applied and verified this PR profile on its disposable database.'
+
       - name: Supabase migration drift (E2E baseline)
+        if: needs.real-db-e2e.outputs.preschool_profile_uses_disposable != 'true'
         env:
           BASE_REF: ${{ steps.migration-base.outputs.base }}
           SUPABASE_DB_URL: ${{ secrets.E2E_SUPABASE_DB_URL }}
