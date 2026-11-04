@@ -25,6 +25,12 @@ const LOGISTICS_RUNTIME_PRIVILEGES_MIGRATION =
   'supabase/migrations/20261007090000_platform_logistics_runtime_privileges.sql';
 const F2_V1_V2_BRIDGE_MIGRATION =
   'supabase/migrations/20261103100000_finance_f2_v1_v2_compatibility_bridge.sql';
+const F2_LEGACY_V2_LEG_ORDER_COMPAT_MIGRATION =
+  'supabase/migrations/20261104033616_finance_f2_legacy_v2_leg_order_compat.sql';
+const F1_CATALOG_GUARD_MIGRATIONS = new Set([
+  F2_V1_V2_BRIDGE_MIGRATION,
+  F2_LEGACY_V2_LEG_ORDER_COMPAT_MIGRATION,
+]);
 const PLATFORM_RULE_DOMAIN_TYPE_SQL = `
 DO $$ BEGIN
   CREATE TYPE public.platform_rule_domain AS ENUM (
@@ -697,7 +703,7 @@ async function main() {
     await ensureMigrationHistory(client);
     const migrations = files.map((file) => parseMigration(file));
     await ensureRequiredE2eBaseline(client, migrations);
-    const f1CatalogBefore = migrations.some((migration) => migration.file === F2_V1_V2_BRIDGE_MIGRATION)
+    const f1CatalogBefore = migrations.some((migration) => F1_CATALOG_GUARD_MIGRATIONS.has(migration.file))
       ? await getF1CatalogSnapshot(client)
       : null;
     for (const migration of migrations) {

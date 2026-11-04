@@ -126,6 +126,9 @@ The exception is limited to these artifacts:
    - Adds the F2 bridge trigger for the two F1 v1 event types.
    - Adds the F2 shared command `finance_f2_project_v2_event(uuid, uuid)`.
    - Adds the v2 semantic identity index.
+2. `supabase/migrations/20261104033616_finance_f2_legacy_v2_leg_order_compat.sql`
+   - Applies only when the reviewed F2 projector fingerprint, owner, security mode, `search_path`, ACL, and effective `EXECUTE` match.
+   - Sorts candidate cash legs in the projector's local payload before canonical comparison; does not update stored outbox events or F1.
 2. `src/platform/finance/engines/cash-engine/cash-projection-worker.ts`
    - Routes worker replay through the shared command; removes independent leg/mapping projection and reversal first-match behavior.
 3. `src/types/database.types.ts`, only for the new command signature.
@@ -143,7 +146,7 @@ F1 function definitions, owner, `SECURITY DEFINER`, ACL, effective `EXECUTE`, an
 | Minimal F2 dependency closure | `PASS` — existing migrations `20260816000000`, `20260816005000`, `20260816010000`, `20260816021000`, `20260816022000`, and `20260816040000` applied atomically on this disposable DB; legacy `20260816020000_finance_ledger_emit_v2_events.sql` intentionally excluded because it changes the F1 v1 event path |
 | F1 catalog before/after | `PASS` — full definition/body fingerprints, owner, `SECURITY DEFINER`, `proconfig`, ACL, and effective `EXECUTE` match before/after; the two frozen RPCs remain byte-identical at the catalog fingerprint level |
 | F2 bridge migration | `PASS` — `20261103100000_finance_f2_v1_v2_compatibility_bridge.sql` applied atomically to the verified disposable DB |
-| PR #479 migration compatibility | `PENDING` — the outbox index is a separate `CREATE UNIQUE INDEX CONCURRENTLY` migration; bridge accepts only the two reviewed F1 body variants and skips synthesis when legacy F1 already emits v2; the CI migration runner compares the complete F1 catalog before/after; re-seal after current Real DB E2E passes |
+| PR #479 migration compatibility | `PENDING` — the outbox index is a separate `CREATE UNIQUE INDEX CONCURRENTLY` migration; bridge accepts only the two reviewed F1 body variants and skips synthesis when legacy F1 already emits v2; the F2 projector sorts only its in-memory legacy candidate-leg array before canonical comparison, without updating immutable outbox payloads; the CI migration runner compares the complete F1 catalog before/after both migrations; re-seal after current Real DB E2E passes |
 | Worker shared-command test | `PASS` |
 | DB integration checks | `PASS` — 5/5 tests: worker routing, canonical v1→v2 projection, tenant mismatch, idempotent replay/concurrency, reversal lineage/fail-closed, rollback, and restricted command execution |
 | Bridge command boundary | `PASS` — owner `postgres`, `SECURITY DEFINER`, fixed `search_path=pg_catalog, public`; `EXECUTE` only for `service_role`; `anon` and `authenticated` denied |
