@@ -981,12 +981,19 @@ async function main() {
   });
   await adminPage.goto(`${appOrigin}/login`, { waitUntil: 'domcontentloaded' });
   await adminPage.waitForLoadState('networkidle', { timeout: 60000 });
-  await adminPage.locator('input[type="email"]').fill(emails.adminA);
+  const adminEmailInput = adminPage.locator('input[type="email"]');
+  await adminEmailInput.focus();
+  await adminPage.waitForFunction(() => {
+    const input = document.querySelector('input[type="email"]');
+    return input instanceof HTMLInputElement && input.style.borderColor === 'rgb(124, 58, 237)';
+  }, { timeout: 20000 });
+  await adminEmailInput.fill(emails.adminA);
   await adminPage.locator('input[type="password"]').fill(passwords.adminA);
   await adminPage.getByRole('button', { name: 'Đăng nhập ngay' }).click();
   try {
     await adminPage.waitForURL(url => url.pathname === '/dashboard/education', { timeout: 45000 });
     await adminPage.waitForLoadState('load', { timeout: 45000 });
+    await adminPage.getByRole('heading', { name: 'Chào mừng bạn trở lại!' }).waitFor({ state: 'visible', timeout: 20000 });
   } catch {
     const visibleText = await adminPage.locator('body').innerText().catch(() => 'BODY_TEXT_UNAVAILABLE');
     throw new Error(`ADMIN_LOGIN_REDIRECT_FAILED:${JSON.stringify({
