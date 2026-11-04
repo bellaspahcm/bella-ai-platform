@@ -192,7 +192,7 @@ async function ensureGovernance(db) {
     assert.equal(row.owner, 'postgres'); assert.equal(row.relrowsecurity, true);
     assert.equal(row.anon_rights, false); assert.equal(row.app_rights, false);
   }
-  const { rows: [triggerState] } = await db.query(`select array_agg(tgname order by tgname) as trigger_names
+  const { rows: [triggerState] } = await db.query(`select json_agg(tgname order by tgname) as trigger_names
     from pg_trigger where tgrelid='public.bella_execution_audit'::regclass and not tgisinternal`);
   assert.deepEqual(triggerState.trigger_names, [
     'bdgf_rehearsal_prevent_audit_delete', 'bdgf_rehearsal_prevent_audit_update'

@@ -228,25 +228,26 @@ jobs:
           acceptance_control_changed="$(git diff --name-only "$BASE_REF...HEAD" -- scripts/ci/preschool-browser-profile/accept.ps1)"
           teacher_profile_migration=false
           unexpected_migration=false
+          profile_migrations="$(node -e '
+            const fs = require("node:fs");
+            const manifest = JSON.parse(fs.readFileSync("scripts/ci/preschool-browser-profile/manifest.json", "utf8"));
+            const entries = [...(manifest.profileMigrations ?? []), ...(manifest.admissionProfile?.profileMigrations ?? [])];
+            const sources = entries.map(entry => entry.source);
+            if (sources.length === 0 || sources.some(source => typeof source !== "string" || source.length === 0)) process.exit(1);
+            process.stdout.write(sources.join("\n"));
+          ')"
+          if [ -z "$profile_migrations" ]; then
+            echo 'PRESCHOOL_PROFILE_MANIFEST_SOURCE_LIST_EMPTY' >&2
+            exit 1
+          fi
           while IFS= read -r file; do
             [ -n "$file" ] || continue
-            case "$file" in
-              supabase/migrations/20261027010000_preschool_teacher_assignment_legacy_profile.sql|\
-              supabase/migrations/20261027010100_preschool_teacher_confirmation_and_canonical_assignment.sql|\
-              supabase/migrations/20261027010200_preschool_teacher_termination_end_date_check.sql|\
-              supabase/migrations/20261027010300_scope_attendance_state_with_authorized_helper.sql|\
-              supabase/migrations/20261027020000_platform_current_actor_tenant_presentation.sql|\
-              supabase/migrations/20261028130000_preschool_student_registry_rpc.sql|\
-              supabase/migrations/20261028140000_preschool_admin_course_catalog_read.sql|\
-              supabase/migrations/20261028150000_preschool_admin_branch_catalog_read.sql|\
-              supabase/migrations/20261028160000_preschool_admin_student_attendance_history.sql|\
-              supabase/migrations/20261028170000_preschool_g1_guardians_read.sql|\
-              supabase/migrations/20261028180000_preschool_daily_care_authorization_and_save.sql|\
-              supabase/migrations/20261029100000_preschool_single_active_class_enrollment.sql)
-                teacher_profile_migration=true
-                ;;
-              *) unexpected_migration=true ;;
-            esac
+            if printf '%s\n' "$profile_migrations" | grep -Fqx -- "$file"; then
+              teacher_profile_migration=true
+            else
+              unexpected_migration=true
+              echo "Unlisted migration in PR: $file" >&2
+            fi
           done <<< "$changed"
 
           if { [ "$teacher_profile_migration" = true ] || [ -n "$acceptance_control_changed" ]; } && [ "$unexpected_migration" = true ]; then
