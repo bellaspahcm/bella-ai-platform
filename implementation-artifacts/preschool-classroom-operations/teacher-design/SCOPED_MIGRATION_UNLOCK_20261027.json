@@ -1,0 +1,33 @@
+{
+  "scope": "Preschool teacher confirmation and canonical assignment provisioning, plus the approved package_name and get_my_tenant_id clean-replay prerequisites",
+  "status": "APPROVED_FOR_ISOLATED_LOCAL_E2E",
+  "decisionOwner": "User",
+  "authority": "Explicit user approval in current chat on 2026-10-27 to review and add the migration sequence on a separate branch, verify only in a fresh isolated local/E2E database, and select the pinned 2026-10-21 Production catalog snapshot as the canonical get_my_tenant_id definition for this migration.",
+  "sourceBase": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "businessDecisions": [
+    "Reuse the existing Party and Education teacher_assignments aggregate.",
+    "Preschool owns the branch confirmation relation; assignments use canonical edu_courses identity.",
+    "Keep the existing legacy course_id FK and legacy assignment behavior; add canonical_course_id and canonical_teacher_confirmation_id as a paired namespace.",
+    "Use the existing legacy-profile migration because the canonical main migration chain creates teacher_assignments and courses(course_id); do not use the empty-E2E bootstrap profile.",
+    "Require a non-null effective_end_date for terminated canonical assignments; legacy rows are unchanged."
+  ],
+  "allowedMigrations": [
+    "supabase/migrations/20260515000002_add_bookings_package_name_before_backfill.sql",
+    "supabase/migrations/20260515040001_add_get_my_tenant_id_from_approved_catalog.sql",
+    "supabase/migrations/20261027010000_preschool_teacher_assignment_legacy_profile.sql",
+    "supabase/migrations/20261027010100_preschool_teacher_confirmation_and_canonical_assignment.sql",
+    "supabase/migrations/20261027010200_preschool_teacher_termination_end_date_check.sql"
+  ],
+  "protectedUnchanged": [
+    "Shared Preschool database and every Production database",
+    "Production migration history and production data",
+    "UI and existing API/public-contract signatures",
+    "Existing Party, Auth, teacher and student business records",
+    "Existing legacy teacher_assignments course_id foreign key, ACLs and semantics",
+    "Global Education freeze controls, guards and baselines"
+  ],
+  "verification": "Fresh project ID and isolated local Supabase stack; synthetic fixtures only; verify schema, JWT/RLS allow/deny paths, browser read/write/read-back, cleanup, and rollback by disposing only the isolated project.",
+  "rollback": "Forward-only for persistent targets: stop dependent writes and preserve schema/history; do not drop the canonical columns, confirmation table, or assignment records. The disposable local database is discarded only after confirming its unique project identity.",
+  "globalFreezeChanged": false,
+  "productionAuthorized": false
+}
