@@ -1,0 +1,124 @@
+{
+  "partial": true,
+  "acceptance": "NOT_PROVEN",
+  "capturedAt": "2026-10-21T03:25:04.705Z",
+  "startedAt": "2026-10-21T03:24:49.089Z",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "baseline": "4a7a855e3472dcfd86649b18f27671ccbe7188a1",
+  "scope": "Already-retained E2E fixture/browser verification; no DDL",
+  "checks": [
+    {
+      "name": "ISOLATED_FIXTURES",
+      "result": "PASS",
+      "tenants": 2,
+      "branches": 2,
+      "actors": 6,
+      "courses": 2,
+      "parties": 4,
+      "enrollments": 4,
+      "fakeLegacyStudents": 0
+    }
+  ],
+  "cleanup": {
+    "failures": []
+  },
+  "recovery": {
+    "attempted": false
+  },
+  "databaseTls": {
+    "rejectUnauthorized": true,
+    "servernameVerified": true,
+    "vendorCaFingerprint256": "80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA",
+    "reusedHelper": "scripts/bdgf/database-connection.mjs"
+  },
+  "sourceBefore": {
+    "head": "6b031511fd37e5ee22288676b833cf855d40b43f",
+    "tree": "af0264a65227106e1f693b0c5915e61e1be7c40d",
+    "ancestor": true,
+    "changed": [
+      "src/app/dashboard/education/care/page.tsx"
+    ],
+    "untracked": [
+      "src/app/dashboard/education/care/__tests__/care-save.test.ts",
+      "src/app/dashboard/education/care/care-save.ts"
+    ],
+    "sha256": "2249d6eb0a4f2cf38f257801e72da6f2ea34b64909125635c8b68fba392dfbf9",
+    "environmentFiles": []
+  },
+  "effectiveTransactionTimeouts": {
+    "lock_timeout": "5s",
+    "statement_timeout": "30s"
+  },
+  "fixtureIdentities": [
+    {
+      "tenant": "25ac3b8f-911c-4649-b811-337086b12f4d",
+      "branch": "a1afcef9-30d4-4ee3-9df5-dae73f490c54",
+      "person": "54a60133-0658-4c27-a6e4-a9568c4313d2",
+      "relationship": "6c055f40-bb9e-43a7-8ebe-c571515ce6a7",
+      "course": "fd4a0b20-aa9f-4d2b-bd1f-adfc5f5f229c",
+      "assignment": "adef3e09-9359-4ab1-b95a-0083f4b71fbd",
+      "attendance": "18ae129b-4f15-485b-ba94-4c913dc8ba75",
+      "students": [
+        {
+          "id": "06bde4a6-81b1-4afa-9e9f-d56895b3faa8",
+          "enrollment": "2c97ada5-fcee-408f-8bd1-a72371741536",
+          "status": "active"
+        },
+        {
+          "id": "f7a29a17-5b8e-4956-a2ba-6eaae4929ba3",
+          "enrollment": "4353a116-4317-4b39-a920-1451d1dfab29",
+          "status": "pending"
+        }
+      ],
+      "actors": [
+        {
+          "id": "c09a7d8f-428b-4ebd-95f6-1b3693d85755",
+          "role": "admin"
+        },
+        {
+          "id": "6b83297b-3ffd-4940-a08d-734e65fdd585",
+          "role": "admin_staff"
+        },
+        {
+          "id": "1ad6a6a8-031d-4258-8bc2-d6672520e0a6",
+          "role": "accountant"
+        }
+      ]
+    },
+    {
+      "tenant": "1267e067-e288-4fb8-9dea-6f691b5d869d",
+      "branch": "d96c9e99-c20e-4381-88b6-4e4b357cbb5b",
+      "person": "5dc3ace4-4398-4711-a161-7985fc45e526",
+      "relationship": "e56f7a12-cf67-40fd-86ea-9bb9b537a54d",
+      "course": "01eef3e9-b628-4a15-a0ff-e56e722138c8",
+      "assignment": "46d2effe-53cf-4d3b-9f75-6e02bcc95557",
+      "attendance": "9f69c860-3abd-49a0-9726-b6bfab8a2e74",
+      "students": [
+        {
+          "id": "1586a104-ff0b-44c0-a2ab-6e11a14ab93b",
+          "enrollment": "aea064a3-fb47-4b05-a80c-11b9b1cabfe0",
+          "status": "active"
+        },
+        {
+          "id": "d3165e67-fcdd-4211-a651-4503132a014e",
+          "enrollment": "ec957008-95ce-4e5a-8826-1ace93deb4a4",
+          "status": "pending"
+        }
+      ],
+      "actors": [
+        {
+          "id": "9dfd50fe-517a-4f85-b8ca-1fdc78b4b11c",
+          "role": "admin"
+        },
+        {
+          "id": "80752249-882b-4dfd-9a16-c6ab2a265528",
+          "role": "admin_staff"
+        },
+        {
+          "id": "1b6567d3-40e3-431e-bde0-0cb6597f0515",
+          "role": "accountant"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-10-20T20:29:50.567Z",
+  "result": "PASS",
+  "replays": 2,
+  "originalApprovedPrestateReplay": true,
+  "unknownDirectGranteeAbortsAndRollsBack": true,
+  "unreviewedInheritedClientPrivilegeAbortsAndRollsBack": true,
+  "unchangedExpectedCatalog": true,
+  "environment": "local isolated PostgreSQL17.10",
+  "productionMigrationHistoryChanged": false
+}

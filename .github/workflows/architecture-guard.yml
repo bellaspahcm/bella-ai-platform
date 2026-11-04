@@ -46,9 +46,12 @@ jobs:
 
       - name: Check if Healthcare files changed
         id: check-healthcare
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-            CHANGED_FILES=$(git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" 2>/dev/null || echo "")
+            CHANGED_FILES=$(git diff --name-only "$PR_BASE_SHA" "$PR_HEAD_SHA" 2>/dev/null || echo "")
           else
             CHANGED_FILES=$(git diff --name-only HEAD^ HEAD 2>/dev/null || echo "")
           fi
@@ -105,12 +108,14 @@ jobs:
       
       - name: Report Status
         if: always()
+        env:
+          WORKFLOW_STATUS: ${{ job.status }}
         run: |
-          echo "📊 Architecture Guard Results:"
-          echo "- ESLint rules: ${{ job.status }}"
-          echo "- Healthcare guard: ${{ job.status }}"
-          echo "- P1 boundary check: ${{ job.status }}"
-          echo "- Regression tests: ${{ job.status }}"
+          echo "Architecture Guard Results:"
+          echo "- ESLint rules: $WORKFLOW_STATUS"
+          echo "- Healthcare guard: $WORKFLOW_STATUS"
+          echo "- P1 boundary check: $WORKFLOW_STATUS"
+          echo "- Regression tests: $WORKFLOW_STATUS"
   
   education-compliance:
     name: Education Constitution Enforcement
@@ -131,6 +136,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
+      - name: Test Education architecture scanner
+        run: node scripts/test-ci-weekly-menu-boundary.mjs
+
       - name: Run Education Architecture Tests
         run: npm run education:architecture:ci
       
@@ -156,14 +164,19 @@ jobs:
       - name: Verify approved Core change
         env:
           GH_TOKEN: ${{ github.token }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER_ENV: ${{ github.event.pull_request.number }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          PUSH_HEAD_SHA: ${{ github.sha }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-            BASE_SHA="${{ github.event.pull_request.base.sha }}"
-            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-            PR_NUMBER="${{ github.event.pull_request.number }}"
+            BASE_SHA="$PR_BASE_SHA"
+            HEAD_SHA="$PR_HEAD_SHA"
+            PR_NUMBER="$PR_NUMBER_ENV"
           elif [ "$GITHUB_EVENT_NAME" = "push" ]; then
-            BASE_SHA="${{ github.event.before }}"
-            HEAD_SHA="${{ github.sha }}"
+            BASE_SHA="$PUSH_BEFORE_SHA"
+            HEAD_SHA="$PUSH_HEAD_SHA"
             PR_NUMBER="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" --jq '.[0].number // empty')"
             if [ -z "$PR_NUMBER" ]; then
               echo "❌ Core changes on push must resolve to an approved PR."

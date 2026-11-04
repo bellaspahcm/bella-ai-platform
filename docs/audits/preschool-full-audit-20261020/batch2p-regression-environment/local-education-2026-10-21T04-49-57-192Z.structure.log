@@ -1,0 +1,56 @@
+> bella-spa-erp@0.1.0 education:verify
+> npm run education:architecture && npm run education:customization:architecture && npm run education:extensions:architecture && npm run education:conformance && npm run education:customization:conformance && npm run education:extensions:conformance
+> bella-spa-erp@0.1.0 education:architecture
+> jest src/products/bella-education/__tests__/bella-education-architecture.test.ts --runInBand
+PASS src/products/bella-education/__tests__/bella-education-architecture.test.ts
+Test Suites: 1 passed, 1 total
+Tests:       4 passed, 4 total
+Snapshots:   0 total
+Time:        0.668 s, estimated 1 s
+Ran all test suites matching src/products/bella-education/__tests__/bella-education-architecture.test.ts.
+> bella-spa-erp@0.1.0 education:customization:architecture
+> jest src/products/bella-education/__tests__/bella-education-customization-architecture.test.ts --runInBand
+PASS src/products/bella-education/__tests__/bella-education-customization-architecture.test.ts
+Test Suites: 1 passed, 1 total
+Tests:       2 passed, 2 total
+Snapshots:   0 total
+Time:        0.587 s, estimated 1 s
+Ran all test suites matching src/products/bella-education/__tests__/bella-education-customization-architecture.test.ts.
+> bella-spa-erp@0.1.0 education:extensions:architecture
+> jest src/products/bella-education/__tests__/bella-education-extension-sandbox.test.ts --runInBand
+PASS src/products/bella-education/__tests__/bella-education-extension-sandbox.test.ts
+Test Suites: 1 passed, 1 total
+Tests:       1 passed, 1 total
+Snapshots:   0 total
+Time:        0.537 s, estimated 1 s
+Ran all test suites matching src/products/bella-education/__tests__/bella-education-extension-sandbox.test.ts.
+> bella-spa-erp@0.1.0 education:conformance
+> jest src/products/bella-education/__tests__/bella-education-conformance.integration.test.ts src/platform/education/__tests__/ --runInBand
+FAIL src/platform/education/__tests__/verification-gates.test.ts
+  ● Console
+  ● Education OS — 11 Automated Verification Gates › Gate 2: Contract Boundary Compliance › should retrieve course and register student using Public Contract implementation classes
+  ● Education OS — 11 Automated Verification Gates › Gate 3: Tenant Isolation › should completely isolate student and course records between Tenant A and Tenant B
+  ● Education OS — 11 Automated Verification Gates › Gate 8: Temporal Provenance › should log academic status changes inside platform timeline primitive
+FAIL src/platform/education/__tests__/kernel-invariants.integration.test.ts
+  ● Console
+  ● Education OS — Kernel Invariants Integration Tests › Prerequisite Checks with Versioned Grading Rules › should validate prerequisite under Vietnamese 10-point scale: 4.5 -> BLOCK, 5.0 -> ALLOW
+  ● Education OS — Kernel Invariants Integration Tests › Prerequisite Checks with Versioned Grading Rules › should validate prerequisite under Percentage scale: 69 -> BLOCK, 70 -> ALLOW
+FAIL src/platform/education/__tests__/attendance-contract-real-db.integration.test.ts
+  ● Console
+  ● Education Attendance Contract — canonical real DB chain › upserts one daily state while preserving additive attendance events
+  ● Education Attendance Contract — canonical real DB chain › loads daily course roster through party identity without requiring person_id
+PASS src/platform/education/__tests__/capacity-concurrency.integration.test.ts
+  ● Console
+PASS src/platform/education/__tests__/education-engine.integration.test.ts
+  ● Console
+PASS src/platform/education/__tests__/teacher-assignment.integration.test.ts
+  ● Console
+PASS src/products/bella-education/__tests__/bella-education-conformance.integration.test.ts
+  ● Console
+PASS src/platform/education/__tests__/r3-student-identity-query.test.ts
+  ● Console
+Test Suites: 3 failed, 5 passed, 8 total
+Tests:       7 failed, 39 passed, 46 total
+Snapshots:   0 total
+Time:        3.873 s
+Ran all test suites matching src/products/bella-education/__tests__/bella-education-conformance.integration.test.ts|src/platform/education/__tests__/.

@@ -1,0 +1,79 @@
+> bella-spa-erp@0.1.0 education:verify
+> npm run education:architecture && npm run education:customization:architecture && npm run education:extensions:architecture && npm run education:conformance && npm run education:customization:conformance && npm run education:extensions:conformance
+> bella-spa-erp@0.1.0 education:architecture
+> jest src/products/bella-education/__tests__/bella-education-architecture.test.ts --runInBand
+PASS src/products/bella-education/__tests__/bella-education-architecture.test.ts
+Test Suites: 1 passed, 1 total
+Tests:       4 passed, 4 total
+Snapshots:   0 total
+Time:        0.675 s, estimated 1 s
+Ran all test suites matching src/products/bella-education/__tests__/bella-education-architecture.test.ts.
+> bella-spa-erp@0.1.0 education:customization:architecture
+> jest src/products/bella-education/__tests__/bella-education-customization-architecture.test.ts --runInBand
+PASS src/products/bella-education/__tests__/bella-education-customization-architecture.test.ts
+Test Suites: 1 passed, 1 total
+Tests:       2 passed, 2 total
+Snapshots:   0 total
+Time:        0.613 s, estimated 1 s
+Ran all test suites matching src/products/bella-education/__tests__/bella-education-customization-architecture.test.ts.
+> bella-spa-erp@0.1.0 education:extensions:architecture
+> jest src/products/bella-education/__tests__/bella-education-extension-sandbox.test.ts --runInBand
+PASS src/products/bella-education/__tests__/bella-education-extension-sandbox.test.ts
+Test Suites: 1 passed, 1 total
+Tests:       1 passed, 1 total
+Snapshots:   0 total
+Time:        0.535 s, estimated 1 s
+Ran all test suites matching src/products/bella-education/__tests__/bella-education-extension-sandbox.test.ts.
+> bella-spa-erp@0.1.0 education:conformance
+> jest src/products/bella-education/__tests__/bella-education-conformance.integration.test.ts src/platform/education/__tests__/ --runInBand
+FAIL src/platform/education/__tests__/verification-gates.test.ts
+  ● Console
+  ● Education OS — 11 Automated Verification Gates › Gate 2: Contract Boundary Compliance › should retrieve course and register student using Public Contract implementation classes
+  ● Education OS — 11 Automated Verification Gates › Gate 3: Tenant Isolation › should completely isolate student and course records between Tenant A and Tenant B
+  ● Education OS — 11 Automated Verification Gates › Gate 6: Event-After-Persistence Flow › should publish enrollment created event only after DB write success
+  ● Education OS — 11 Automated Verification Gates › Gate 8: Temporal Provenance › should log academic status changes inside platform timeline primitive
+FAIL src/platform/education/__tests__/attendance-contract-real-db.integration.test.ts
+  ● Console
+  ● Education Attendance Contract — canonical real DB chain › persists attendance against the exact canonical edu_enrollments.id
+  ● Education Attendance Contract — canonical real DB chain › rejects cross-tenant attendance against another tenant enrollment
+  ● Education Attendance Contract — canonical real DB chain › upserts one daily state while preserving additive attendance events
+  ● Education Attendance Contract — canonical real DB chain › loads daily course roster through party identity without requiring person_id
+FAIL src/platform/education/__tests__/kernel-invariants.integration.test.ts
+  ● Console
+  ● Education OS — Kernel Invariants Integration Tests › Prerequisite Checks with Versioned Grading Rules › should validate prerequisite under Vietnamese 10-point scale: 4.5 -> BLOCK, 5.0 -> ALLOW
+  ● Education OS — Kernel Invariants Integration Tests › Prerequisite Checks with Versioned Grading Rules › should validate prerequisite under Percentage scale: 69 -> BLOCK, 70 -> ALLOW
+  ● Education OS — Kernel Invariants Integration Tests › Governed Override Invariants › should bypass prerequisite check when valid OverrideRequest payload is supplied
+  ● Education OS — Kernel Invariants Integration Tests › Governed Override Invariants › should reject override if OverrideRequest validation fails (missing fields)
+  ● Education OS — Kernel Invariants Integration Tests › Database Capacity Concurrency and Idempotency Invariants › should enforce course capacity: max_students = 2 -> only 2 enrollments succeed, others fail
+  ● Education OS — Kernel Invariants Integration Tests › Database Capacity Concurrency and Idempotency Invariants › should enforce idempotency retry: identical requests yield identical result without increasing enrollment count or emitting second event
+  ● Education OS — Kernel Invariants Integration Tests › Database Capacity Concurrency and Idempotency Invariants › should return duplicate true instead of capacity exceeded for duplicate request on full course
+  ● Education OS — Kernel Invariants Integration Tests › Database Capacity Concurrency and Idempotency Invariants › should not publish events on failure and correctly rollback transaction
+FAIL src/platform/education/__tests__/capacity-concurrency.integration.test.ts
+  ● Console
+  ● Education OS — Capacity Concurrency Invariant Bounded Check › should enforce 25/25 full course concurrency: 2 concurrent requests on full course MUST BOTH FAIL without over-subscribing
+  ● Education OS — Capacity Concurrency Invariant Bounded Check › should enforce 24/25 single-slot concurrency: 2 concurrent requests on 24/25 course -> EXACTLY 1 succeeds, EXACTLY 1 fails
+  ● Education OS — Capacity Concurrency Invariant Bounded Check › should prove database check constraint supremacy (chk_edu_courses_capacity blocks direct SQL update exceeding max_students)
+FAIL src/platform/education/__tests__/education-engine.integration.test.ts
+  ● Console
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Student Role & Party Validation Invariants › should reject enrollment if student party does not exist
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Student Role & Party Validation Invariants › should reject enrollment if party is an organization (not a person)
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Student Role & Party Validation Invariants › should reject enrollment if student belongs to a different tenant
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Enrollment Workflow & Event-After-Persistence › should enroll student, persist to database, and publish edu.enrollment.created.v1 event
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Enrollment Workflow & Event-After-Persistence › should enforce idempotency on duplicate requests without creating second record or emitting second event
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Multi-Tenant RLS & Isolation › should isolate Education records between tenants
+FAIL src/platform/education/__tests__/teacher-assignment.integration.test.ts
+  ● Console
+  ● Education OS — Teacher Assignment Bounded Check › should assign primary lead teacher to course for Academic Year 2025-2026
+  ● Education OS — Teacher Assignment Bounded Check › should enforce hard invariant: attempting to assign second lead teacher for same course and academic year throws TEACHER_ASSIGNMENT_CONFLICT
+  ● Education OS — Teacher Assignment Bounded Check › should allow assigning co-teacher alongside active lead teacher for same course & academic year
+  ● Education OS — Teacher Assignment Bounded Check › should allow assigning new lead teacher after terminating previous lead teacher
+  ● Education OS — Teacher Assignment Bounded Check › should verify ZERO shadow persistence in courses.metadata
+PASS src/products/bella-education/__tests__/bella-education-conformance.integration.test.ts
+  ● Console
+PASS src/platform/education/__tests__/r3-student-identity-query.test.ts
+  ● Console
+Test Suites: 6 failed, 2 passed, 8 total
+Tests:       30 failed, 16 passed, 46 total
+Snapshots:   0 total
+Time:        2.409 s, estimated 43 s
+Ran all test suites matching src/products/bella-education/__tests__/bella-education-conformance.integration.test.ts|src/platform/education/__tests__/.

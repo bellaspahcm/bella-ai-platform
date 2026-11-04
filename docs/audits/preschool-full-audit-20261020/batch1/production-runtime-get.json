@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-10-20T16:01:45.273Z",
+  "origin": "https://bella-spa-erp.vercel.app",
+  "session": "No cookies, no Authorization header",
+  "method": "GET only",
+  "reads": [
+    {
+      "path": "/api/health",
+      "tenantQuery": false,
+      "status": 200,
+      "environment": "production",
+      "healthStatus": "healthy",
+      "database": "ok"
+    },
+    {
+      "path": "/api/education/courses",
+      "tenantQuery": true,
+      "status": 200,
+      "environment": "production",
+      "success": true,
+      "classroomCount": 8
+    }
+  ]
+}

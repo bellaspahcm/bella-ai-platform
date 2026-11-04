@@ -1,0 +1,8 @@
+{
+  "command": "npm run test:critical -- src/__tests__/sentry-instrumentation.test.ts src/__tests__/validations.test.ts src/__tests__/validation.middleware.test.ts --json --outputFile=docs/audits/platform-risk-20261027/regression-results.json",
+  "startedUtc": "2026-10-27T04:03:43.8163109Z",
+  "endedUtc": "2026-10-27T04:03:56.6825443Z",
+  "exitCode": 0,
+  "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "lockfileSha256": "2cae548c90b14606d78a5ff182e8a6d7841ffe0a9230a59a2b1958e82234c98e"
+}

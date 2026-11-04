@@ -1,0 +1,535 @@
+{
+  "dynamic_candidates": [
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "sql_query text",
+      "definition": "CREATE OR REPLACE FUNCTION public.exec_sql(sql_query text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\r\nBEGIN\r\n  EXECUTE sql_query;\r\nEND;\r\n$function$\n",
+      "name": "exec_sql",
+      "owner": "postgres",
+      "schema": "public"
+    }
+  ],
+  "function": {
+    "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+    "arguments": "sql_query text",
+    "definition": "CREATE OR REPLACE FUNCTION public.exec_sql(sql_query text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\r\nBEGIN\r\n  EXECUTE sql_query;\r\nEND;\r\n$function$\n",
+    "name": "exec_sql",
+    "owner": "postgres",
+    "proconfig": null,
+    "schema": "public",
+    "security_definer": true
+  },
+  "function_grants": [
+    {
+      "grantable": false,
+      "grantee": "PUBLIC",
+      "grantor": "postgres",
+      "privilege": "EXECUTE"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "EXECUTE"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "EXECUTE"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "EXECUTE"
+    }
+  ],
+  "incoming_function_references": [],
+  "memberships": [
+    {
+      "admin": false,
+      "inherit": false,
+      "member": "authenticator",
+      "role": "anon",
+      "set": true
+    },
+    {
+      "admin": true,
+      "inherit": true,
+      "member": "postgres",
+      "role": "anon",
+      "set": true
+    },
+    {
+      "admin": false,
+      "inherit": false,
+      "member": "authenticator",
+      "role": "authenticated",
+      "set": true
+    },
+    {
+      "admin": true,
+      "inherit": true,
+      "member": "postgres",
+      "role": "authenticated",
+      "set": true
+    },
+    {
+      "admin": true,
+      "inherit": true,
+      "member": "postgres",
+      "role": "authenticator",
+      "set": true
+    },
+    {
+      "admin": false,
+      "inherit": false,
+      "member": "supabase_storage_admin",
+      "role": "authenticator",
+      "set": true
+    },
+    {
+      "admin": true,
+      "inherit": false,
+      "member": "postgres",
+      "role": "bella_developer",
+      "set": false
+    },
+    {
+      "admin": true,
+      "inherit": false,
+      "member": "postgres",
+      "role": "bella_migration_executor",
+      "set": false
+    },
+    {
+      "admin": true,
+      "inherit": true,
+      "member": "postgres",
+      "role": "pg_create_subscription",
+      "set": true
+    },
+    {
+      "admin": true,
+      "inherit": true,
+      "member": "postgres",
+      "role": "pg_monitor",
+      "set": true
+    },
+    {
+      "admin": false,
+      "inherit": true,
+      "member": "supabase_etl_admin",
+      "role": "pg_monitor",
+      "set": true
+    },
+    {
+      "admin": false,
+      "inherit": true,
+      "member": "supabase_read_only_user",
+      "role": "pg_monitor",
+      "set": true
+    },
+    {
+      "admin": true,
+      "inherit": true,
+      "member": "postgres",
+      "role": "pg_read_all_data",
+      "set": true
+    },
+    {
+      "admin": false,
+      "inherit": true,
+      "member": "supabase_etl_admin",
+      "role": "pg_read_all_data",
+      "set": true
+    },
+    {
+      "admin": false,
+      "inherit": true,
+      "member": "supabase_read_only_user",
+      "role": "pg_read_all_data",
+      "set": true
+    },
+    {
+      "admin": false,
+      "inherit": true,
+      "member": "pg_monitor",
+      "role": "pg_read_all_settings",
+      "set": true
+    },
+    {
+      "admin": false,
+      "inherit": true,
+      "member": "pg_monitor",
+      "role": "pg_read_all_stats",
+      "set": true
+    },
+    {
+      "admin": true,
+      "inherit": true,
+      "member": "postgres",
+      "role": "pg_signal_backend",
+      "set": true
+    },
+    {
+      "admin": false,
+      "inherit": true,
+      "member": "pg_monitor",
+      "role": "pg_stat_scan_tables",
+      "set": true
+    },
+    {
+      "admin": false,
+      "inherit": false,
+      "member": "cli_login_postgres",
+      "role": "postgres",
+      "set": true
+    },
+    {
+      "admin": false,
+      "inherit": false,
+      "member": "authenticator",
+      "role": "service_role",
+      "set": true
+    },
+    {
+      "admin": true,
+      "inherit": true,
+      "member": "postgres",
+      "role": "service_role",
+      "set": true
+    },
+    {
+      "admin": false,
+      "inherit": true,
+      "member": "postgres",
+      "role": "supabase_privileged_role",
+      "set": true
+    },
+    {
+      "admin": false,
+      "inherit": true,
+      "member": "supabase_etl_admin",
+      "role": "supabase_privileged_role",
+      "set": true
+    },
+    {
+      "admin": true,
+      "inherit": false,
+      "member": "postgres",
+      "role": "verification_executor",
+      "set": false
+    }
+  ],
+  "roles": [
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "anon",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "authenticated",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": false,
+      "login": true,
+      "name": "authenticator",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": true,
+      "name": "bella_developer",
+      "superuser": false
+    },
+    {
+      "bypass_rls": true,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": true,
+      "name": "bella_migration_executor",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": false,
+      "login": true,
+      "name": "cli_login_postgres",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "dashboard_user",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_checkpoint",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_create_subscription",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_database_owner",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_execute_server_program",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_maintain",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_monitor",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_read_all_data",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_read_all_settings",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_read_all_stats",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_read_server_files",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_signal_backend",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_stat_scan_tables",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_use_reserved_connections",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_write_all_data",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "pg_write_server_files",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": true,
+      "name": "pgbouncer",
+      "superuser": false
+    },
+    {
+      "bypass_rls": true,
+      "execute": true,
+      "grant_option": true,
+      "inherit": true,
+      "login": true,
+      "name": "postgres",
+      "superuser": false
+    },
+    {
+      "bypass_rls": true,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "service_role",
+      "superuser": false
+    },
+    {
+      "bypass_rls": true,
+      "execute": true,
+      "grant_option": true,
+      "inherit": true,
+      "login": true,
+      "name": "supabase_admin",
+      "superuser": true
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": false,
+      "login": true,
+      "name": "supabase_auth_admin",
+      "superuser": false
+    },
+    {
+      "bypass_rls": true,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": true,
+      "name": "supabase_etl_admin",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": false,
+      "name": "supabase_privileged_role",
+      "superuser": false
+    },
+    {
+      "bypass_rls": true,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": true,
+      "name": "supabase_read_only_user",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": false,
+      "login": false,
+      "name": "supabase_realtime_admin",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": true,
+      "name": "supabase_replication_admin",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": false,
+      "login": true,
+      "name": "supabase_storage_admin",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "execute": true,
+      "grant_option": false,
+      "inherit": true,
+      "login": true,
+      "name": "verification_executor",
+      "superuser": false
+    }
+  ]
+}

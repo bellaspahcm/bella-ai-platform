@@ -1,0 +1,2700 @@
+{
+  "startedAt": "2026-10-21T04:14:20.696Z",
+  "scope": "Local production build and actual browser; E2E only, no schema change",
+  "checks": [
+    {
+      "name": "LOCAL_PRODUCTION_BUILD",
+      "result": "PASS",
+      "code": 0,
+      "signal": null,
+      "command": "next build --webpack",
+      "nodeEnv": "production",
+      "privilegedKeyInChild": false,
+      "outputBytes": 32297,
+      "typescriptGate": "NOT_PROVEN_BUILD_CONFIG_IGNORES_TYPE_ERRORS",
+      "buildId": "qAvlysE_xdKbWOIEV6bda",
+      "reusedFrom": "browser-results-2026-10-21T04-09-14-018Z.json"
+    },
+    {
+      "name": "FIXTURE_SEED",
+      "result": "PASS"
+    },
+    {
+      "name": "OWN_PRODUCTION_SERVER",
+      "result": "PASS"
+    },
+    {
+      "name": "PRODUCTION_BUILD_PRIVATE_HEADER",
+      "result": "PASS",
+      "status": 401,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "CATALOG_ANONYMOUS",
+      "result": "PASS",
+      "status": 401,
+      "code": "CARE_UNAUTHENTICATED",
+      "realProviderSession": false,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "CATALOG_ADMIN_0",
+      "result": "PASS",
+      "status": 200,
+      "code": null,
+      "realProviderSession": true,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "CATALOG_ROLE_0_admin_staff",
+      "result": "PASS",
+      "status": 503,
+      "code": "CARE_TEACHER_IDENTITY_UNAVAILABLE",
+      "realProviderSession": true,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "CATALOG_ROLE_0_accountant",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_ROLE_DENIED",
+      "realProviderSession": true,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "CATALOG_ADMIN_1",
+      "result": "PASS",
+      "status": 200,
+      "code": null,
+      "realProviderSession": true,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "CATALOG_ROLE_1_admin_staff",
+      "result": "PASS",
+      "status": 503,
+      "code": "CARE_TEACHER_IDENTITY_UNAVAILABLE",
+      "realProviderSession": true,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "CATALOG_ROLE_1_accountant",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_ROLE_DENIED",
+      "realProviderSession": true,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "CATALOG_FOREIGN_TENANT",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "realProviderSession": true,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "CATALOG_DUPLICATE_TENANT",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "realProviderSession": true,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "CATALOG_BRANCH_SELECTOR",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "realProviderSession": true,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "CATALOG_INACTIVE_BRANCH",
+      "result": "PASS",
+      "status": 200,
+      "code": null,
+      "realProviderSession": true,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "CATALOG_INACTIVE_PROFILE",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_ACCESS_DENIED",
+      "realProviderSession": true,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "CATALOG_ROLE_CHANGED",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_ROLE_DENIED",
+      "realProviderSession": true,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "CATALOG_INACTIVE_TENANT",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_ACCESS_DENIED",
+      "realProviderSession": true,
+      "private": true,
+      "noStore": true
+    },
+    {
+      "name": "BROWSER_REAL_LOGIN",
+      "result": "PASS",
+      "actualForm": true,
+      "providerCookie": true,
+      "mockCookie": false
+    },
+    {
+      "name": "BROWSER_CARE_ROSTER",
+      "result": "PASS",
+      "canonicalCourse": true,
+      "activeStudent": true,
+      "pendingExcluded": true
+    },
+    {
+      "name": "BROWSER_QUICK_SAVE_AND_READBACK",
+      "result": "PASS",
+      "realApi": true,
+      "independentDbReadback": true,
+      "reloadPersisted": true,
+      "healthUnchanged": true
+    },
+    {
+      "name": "BROWSER_INDIVIDUAL_SAVE_AND_READBACK",
+      "result": "PASS",
+      "realApi": true,
+      "independentDbReadback": true,
+      "reloadPersisted": true,
+      "healthUnchanged": true
+    },
+    {
+      "name": "BROWSER_DENIED_SAVE_NO_FALSE_SUCCESS",
+      "result": "PASS",
+      "actualDenial": 403,
+      "editorPreserved": true,
+      "independentDbUnchanged": true
+    },
+    {
+      "name": "BROWSER_AUTHENTICATED_CARE_PRIVATE_HEADERS",
+      "result": "PASS",
+      "responses": 11,
+      "private": true,
+      "noStore": true
+    }
+  ],
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "harnessSha256": "c9d4cee3b98aee56d3168c5d95c0b534c03dce56cfad7b27c1cc0adb621b3203",
+  "sourceBefore": {
+    "head": "6b031511fd37e5ee22288676b833cf855d40b43f",
+    "tree": "af0264a65227106e1f693b0c5915e61e1be7c40d",
+    "ancestor": true,
+    "changed": [
+      "src/app/dashboard/education/care/page.tsx",
+      "src/proxy.ts"
+    ],
+    "untracked": [
+      "src/app/api/education/care/classes/__tests__/access.test.ts",
+      "src/app/api/education/care/classes/__tests__/catalog-contract.test.ts",
+      "src/app/api/education/care/classes/route.ts",
+      "src/app/dashboard/education/care/__tests__/care-save.test.ts",
+      "src/app/dashboard/education/care/__tests__/page.test.tsx",
+      "src/app/dashboard/education/care/care-save.ts",
+      "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts",
+      "src/platform/education/contracts/canonical-course-catalog.contract.ts"
+    ],
+    "sha256": "5f844bb80c578f76cbe4a1a2c8825be5fb4849d75c2cdc28d06b49780dfc1835",
+    "environmentFiles": []
+  },
+  "productHashesBefore": {
+    "src/app/dashboard/education/care/page.tsx": "9f7b0cac74d860def073923451db8f0ee0041f3e8ba7160eb8667382dcf04948",
+    "src/app/dashboard/education/care/care-save.ts": "e9cd8d4a5646092bdd086c38e6aafd978cf07788f2cabb55dd8b88876e2a897b",
+    "src/app/dashboard/education/care/__tests__/care-save.test.ts": "c65bbd6b6bfa5590db0d0b2092990ef21a839ac0861e89a56a65bd402ab84fe8",
+    "src/app/dashboard/education/care/__tests__/page.test.tsx": "f886c1e13ad37090bdeb963b9a5a46ea52a3211479548e2854bad80b2b3b0538",
+    "src/proxy.ts": "534626ffd4a808d795db57699b5a15e272b364cc2a94ffc2007bf4a2566b9189",
+    "src/platform/education/contracts/canonical-course-catalog.contract.ts": "786482c9253ae9846fdba79f5db8db7ee790de9c87743c614b65f3e0851cca18",
+    "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts": "63d202f07318fe32de41145df53295283adb93f3b1d63d0f470119d07d496924",
+    "src/app/api/education/care/classes/route.ts": "e3e2a62eea5206498b3032e9d248725cbec1e075204bce093963babd121c90ea",
+    "src/app/api/education/care/classes/__tests__/access.test.ts": "b17b78a956b5bcd75f0655662daac1626e182150e4cd6a971c93eadbc071e673",
+    "src/app/api/education/care/classes/__tests__/catalog-contract.test.ts": "a0b4bc28eb3716eb52117300a5ea21084e1cc6140ffdfbacadd73f4992ecc18f"
+  },
+  "productionEnvironmentFiles": [],
+  "build": {
+    "code": 0,
+    "signal": null,
+    "command": "next build --webpack",
+    "nodeEnv": "production",
+    "privilegedKeyInChild": false,
+    "outputBytes": 32297,
+    "typescriptGate": "NOT_PROVEN_BUILD_CONFIG_IGNORES_TYPE_ERRORS",
+    "buildId": "qAvlysE_xdKbWOIEV6bda",
+    "reusedFrom": "browser-results-2026-10-21T04-09-14-018Z.json"
+  },
+  "catalogBefore": {
+    "sha256": "9afc1e07426e3c7c27bf697c3e4f1877c5affe876cc96505e471f6a08d31d5d2",
+    "outsideSha256": "df7640a25b92314020bbba4faa491eac803ca4046e8d70059b27820799496e22",
+    "controls": {
+      "helpers": "8043da94be84508b8e6cd94ab28c280b",
+      "schemas": "955055143a06dce2eeda4cf0bcd047d3",
+      "defaults": "b1770c284516ee33dbdcf0b9fe17e2a7",
+      "roles": "1d98412ceca52c66ffd353154142eab0",
+      "memberships": "631d497f1d63ff8554abab29d60bda24"
+    },
+    "targets": {
+      "edu_courses": {
+        "present": true,
+        "sha256": "7cc79ed2e78f34e970dbefb91def4ba1bccb3dec3b412930073ad284c0bb4cd8"
+      },
+      "edu_enrollments": {
+        "present": true,
+        "sha256": "06b4bc88928a4ac0ddaa508a87660476083a99ff5ea40f8599126a3a622cd9d2"
+      },
+      "party_parties": {
+        "present": true,
+        "sha256": "294452d35b8d10606ebeeb260933cc2dac2f5f50c845d636be1b0950d97fca12"
+      },
+      "edu_attendance_daily_state": {
+        "present": true,
+        "sha256": "54a1600c1a0e33c257870443c77f855fbf684f945da57d1126a8297404956f8e"
+      },
+      "edu_daily_care_sessions": {
+        "present": true,
+        "sha256": "ec4e2bb151d627dc00c362016fa97364d63d7ca466d3a7b5f4b4cb375b59dc36"
+      },
+      "edu_daily_care_records": {
+        "present": true,
+        "sha256": "a7baf5e15e0d67549139ed817202fffd4b6e84a11045564abe9ec8ebde5efa1f"
+      }
+    },
+    "targetCatalog": {
+      "edu_courses": {
+        "acl": [
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "DELETE"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "INSERT"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "MAINTAIN"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "REFERENCES"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRIGGER"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRUNCATE"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "UPDATE"
+          },
+          {
+            "grantee": "authenticated",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "DELETE"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "INSERT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "MAINTAIN"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "REFERENCES"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRIGGER"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRUNCATE"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "UPDATE"
+          }
+        ],
+        "rls": true,
+        "kind": "r",
+        "view": null,
+        "force": false,
+        "owner": "postgres",
+        "columns": [
+          {
+            "acl": null,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "tenant_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "course_code",
+            "type": "text",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "title",
+            "type": "text",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "status",
+            "type": "text",
+            "default": "'active'::text",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "max_students",
+            "type": "integer",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "current_enrollment",
+            "type": "integer",
+            "default": "0",
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "prerequisite_course_codes",
+            "type": "text[]",
+            "default": "'{}'::text[]",
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          }
+        ],
+        "indexes": [
+          {
+            "name": "edu_courses_pkey",
+            "definition": "CREATE UNIQUE INDEX edu_courses_pkey ON public.edu_courses USING btree (id)"
+          },
+          {
+            "name": "idx_edu_courses_tenant",
+            "definition": "CREATE INDEX idx_edu_courses_tenant ON public.edu_courses USING btree (tenant_id)"
+          },
+          {
+            "name": "uq_edu_courses_code",
+            "definition": "CREATE UNIQUE INDEX uq_edu_courses_code ON public.edu_courses USING btree (tenant_id, course_code)"
+          }
+        ],
+        "options": null,
+        "policies": [
+          {
+            "cmd": "SELECT",
+            "name": "e2e_care_course_select_allow",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "using": "((tenant_id = ( SELECT get_auth_tenant_id() AS get_auth_tenant_id)) AND (tenant_id = ANY (ARRAY( SELECT actor_profile.tenant_id\n   FROM (users actor_profile\n     JOIN tenants actor_tenant ON ((actor_tenant.id = actor_profile.tenant_id)))\n  WHERE ((actor_profile.id = ( SELECT auth.uid() AS uid)) AND (actor_profile.status = 'active'::text) AND (lower(btrim(actor_profile.role)) = 'admin'::text) AND (actor_tenant.status = 'active'::text) AND (actor_tenant.product_key = 'bella_preschool'::text))))))",
+            "permissive": "PERMISSIVE"
+          },
+          {
+            "cmd": "SELECT",
+            "name": "e2e_care_course_select_guard",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "using": "((tenant_id = ( SELECT get_auth_tenant_id() AS get_auth_tenant_id)) AND (tenant_id = ANY (ARRAY( SELECT actor_profile.tenant_id\n   FROM (users actor_profile\n     JOIN tenants actor_tenant ON ((actor_tenant.id = actor_profile.tenant_id)))\n  WHERE ((actor_profile.id = ( SELECT auth.uid() AS uid)) AND (actor_profile.status = 'active'::text) AND (lower(btrim(actor_profile.role)) = 'admin'::text) AND (actor_tenant.status = 'active'::text) AND (actor_tenant.product_key = 'bella_preschool'::text))))) AND (status = 'active'::text) AND (( SELECT count(*) AS count\n   FROM preschool_chain_course_branch_assignments binding_count\n  WHERE ((binding_count.tenant_id = edu_courses.tenant_id) AND (binding_count.course_id = edu_courses.id))) = 1) AND (EXISTS ( SELECT 1\n   FROM (preschool_chain_course_branch_assignments binding\n     JOIN org_units branch ON (((branch.id = binding.branch_id) AND (branch.tenant_id = binding.tenant_id))))\n  WHERE ((binding.tenant_id = edu_courses.tenant_id) AND (binding.course_id = edu_courses.id) AND (branch.unit_type = 'branch'::text) AND (branch.is_active IS TRUE) AND (branch.id = ANY (ARRAY( SELECT branch_access.org_unit_id\n           FROM user_org_unit_access branch_access\n          WHERE ((branch_access.tenant_id = ( SELECT get_auth_tenant_id() AS get_auth_tenant_id)) AND (branch_access.user_id = ( SELECT auth.uid() AS uid))))))))))",
+            "permissive": "RESTRICTIVE"
+          },
+          {
+            "cmd": "ALL",
+            "name": "edu_courses_tenant_isolation",
+            "check": null,
+            "roles": [
+              "public"
+            ],
+            "using": "(tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid)",
+            "permissive": "PERMISSIVE"
+          }
+        ],
+        "triggers": [],
+        "constraints": [
+          {
+            "name": "chk_edu_courses_capacity",
+            "validated": true,
+            "definition": "CHECK (max_students IS NULL OR current_enrollment <= max_students)"
+          },
+          {
+            "name": "chk_edu_courses_current_enrollment",
+            "validated": true,
+            "definition": "CHECK (current_enrollment >= 0)"
+          },
+          {
+            "name": "chk_edu_courses_max_students",
+            "validated": true,
+            "definition": "CHECK (max_students IS NULL OR max_students > 0)"
+          },
+          {
+            "name": "edu_courses_pkey",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+          },
+          {
+            "name": "edu_courses_status_check",
+            "validated": true,
+            "definition": "CHECK (status = ANY (ARRAY['draft'::text, 'active'::text, 'archived'::text]))"
+          },
+          {
+            "name": "edu_courses_tenant_id_fkey",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "uq_edu_courses_code",
+            "validated": true,
+            "definition": "UNIQUE (tenant_id, course_code)"
+          }
+        ]
+      },
+      "edu_enrollments": {
+        "acl": [
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "DELETE"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "INSERT"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "MAINTAIN"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "REFERENCES"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRIGGER"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRUNCATE"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "UPDATE"
+          },
+          {
+            "grantee": "authenticated",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "DELETE"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "INSERT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "MAINTAIN"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "REFERENCES"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRIGGER"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRUNCATE"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "UPDATE"
+          }
+        ],
+        "rls": true,
+        "kind": "r",
+        "view": null,
+        "force": false,
+        "owner": "postgres",
+        "columns": [
+          {
+            "acl": null,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "tenant_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "student_party_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "course_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "status",
+            "type": "text",
+            "default": "'pending'::text",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "enrolled_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "request_id",
+            "type": "text",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          }
+        ],
+        "indexes": [
+          {
+            "name": "edu_enrollments_pkey",
+            "definition": "CREATE UNIQUE INDEX edu_enrollments_pkey ON public.edu_enrollments USING btree (id)"
+          },
+          {
+            "name": "idx_edu_enrollments_course",
+            "definition": "CREATE INDEX idx_edu_enrollments_course ON public.edu_enrollments USING btree (course_id)"
+          },
+          {
+            "name": "idx_edu_enrollments_student",
+            "definition": "CREATE INDEX idx_edu_enrollments_student ON public.edu_enrollments USING btree (student_party_id)"
+          },
+          {
+            "name": "idx_edu_enrollments_tenant",
+            "definition": "CREATE INDEX idx_edu_enrollments_tenant ON public.edu_enrollments USING btree (tenant_id)"
+          },
+          {
+            "name": "uq_edu_enrollments_request_id",
+            "definition": "CREATE UNIQUE INDEX uq_edu_enrollments_request_id ON public.edu_enrollments USING btree (tenant_id, request_id)"
+          },
+          {
+            "name": "uq_edu_enrollments_student_course",
+            "definition": "CREATE UNIQUE INDEX uq_edu_enrollments_student_course ON public.edu_enrollments USING btree (tenant_id, student_party_id, course_id)"
+          }
+        ],
+        "options": null,
+        "policies": [
+          {
+            "cmd": "SELECT",
+            "name": "e2e_care_enrollment_select_allow",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "using": "((tenant_id = ( SELECT get_auth_tenant_id() AS get_auth_tenant_id)) AND (tenant_id = ANY (ARRAY( SELECT actor_profile.tenant_id\n   FROM (users actor_profile\n     JOIN tenants actor_tenant ON ((actor_tenant.id = actor_profile.tenant_id)))\n  WHERE ((actor_profile.id = ( SELECT auth.uid() AS uid)) AND (actor_profile.status = 'active'::text) AND (lower(btrim(actor_profile.role)) = 'admin'::text) AND (actor_tenant.status = 'active'::text) AND (actor_tenant.product_key = 'bella_preschool'::text))))))",
+            "permissive": "PERMISSIVE"
+          },
+          {
+            "cmd": "SELECT",
+            "name": "e2e_care_enrollment_select_guard",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "using": "((tenant_id = ( SELECT get_auth_tenant_id() AS get_auth_tenant_id)) AND (tenant_id = ANY (ARRAY( SELECT actor_profile.tenant_id\n   FROM (users actor_profile\n     JOIN tenants actor_tenant ON ((actor_tenant.id = actor_profile.tenant_id)))\n  WHERE ((actor_profile.id = ( SELECT auth.uid() AS uid)) AND (actor_profile.status = 'active'::text) AND (lower(btrim(actor_profile.role)) = 'admin'::text) AND (actor_tenant.status = 'active'::text) AND (actor_tenant.product_key = 'bella_preschool'::text))))) AND (status = 'active'::text) AND (enrolled_at <= ((((statement_timestamp() AT TIME ZONE 'Asia/Ho_Chi_Minh'::text))::date + '23:59:59.999'::time without time zone) AT TIME ZONE 'Asia/Ho_Chi_Minh'::text)) AND (EXISTS ( SELECT 1\n   FROM edu_courses eligible_course\n  WHERE ((eligible_course.id = edu_enrollments.course_id) AND (eligible_course.tenant_id = edu_enrollments.tenant_id) AND (eligible_course.status = 'active'::text)))))",
+            "permissive": "RESTRICTIVE"
+          },
+          {
+            "cmd": "ALL",
+            "name": "edu_enrollments_tenant_isolation",
+            "check": null,
+            "roles": [
+              "public"
+            ],
+            "using": "(tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid)",
+            "permissive": "PERMISSIVE"
+          }
+        ],
+        "triggers": [],
+        "constraints": [
+          {
+            "name": "edu_enrollments_course_id_fkey",
+            "validated": true,
+            "definition": "FOREIGN KEY (course_id) REFERENCES edu_courses(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "edu_enrollments_pkey",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+          },
+          {
+            "name": "edu_enrollments_status_check",
+            "validated": true,
+            "definition": "CHECK (status = ANY (ARRAY['pending'::text, 'active'::text, 'completed'::text, 'cancelled'::text]))"
+          },
+          {
+            "name": "edu_enrollments_student_party_id_fkey",
+            "validated": true,
+            "definition": "FOREIGN KEY (student_party_id) REFERENCES party_parties(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "edu_enrollments_tenant_id_fkey",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "uq_edu_enrollments_request_id",
+            "validated": true,
+            "definition": "UNIQUE (tenant_id, request_id)"
+          },
+          {
+            "name": "uq_edu_enrollments_student_course",
+            "validated": true,
+            "definition": "UNIQUE (tenant_id, student_party_id, course_id)"
+          }
+        ]
+      },
+      "party_parties": {
+        "acl": [
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "DELETE"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "INSERT"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "MAINTAIN"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "REFERENCES"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRIGGER"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRUNCATE"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "UPDATE"
+          },
+          {
+            "grantee": "authenticated",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "DELETE"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "INSERT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "MAINTAIN"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "REFERENCES"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRIGGER"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRUNCATE"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "UPDATE"
+          }
+        ],
+        "rls": true,
+        "kind": "r",
+        "view": null,
+        "force": false,
+        "owner": "postgres",
+        "columns": [
+          {
+            "acl": null,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "tenant_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "party_type",
+            "type": "text",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "display_name",
+            "type": "text",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "legal_name",
+            "type": "text",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "tax_code",
+            "type": "text",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "dob",
+            "type": "date",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "gender",
+            "type": "text",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "blood_type",
+            "type": "text",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "version",
+            "type": "integer",
+            "default": "1",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "deleted_at",
+            "type": "timestamp with time zone",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          }
+        ],
+        "indexes": [
+          {
+            "name": "idx_party_parties_deleted",
+            "definition": "CREATE INDEX idx_party_parties_deleted ON public.party_parties USING btree (deleted_at) WHERE (deleted_at IS NULL)"
+          },
+          {
+            "name": "idx_party_parties_tenant",
+            "definition": "CREATE INDEX idx_party_parties_tenant ON public.party_parties USING btree (tenant_id)"
+          },
+          {
+            "name": "idx_party_parties_type",
+            "definition": "CREATE INDEX idx_party_parties_type ON public.party_parties USING btree (party_type)"
+          },
+          {
+            "name": "party_parties_pkey",
+            "definition": "CREATE UNIQUE INDEX party_parties_pkey ON public.party_parties USING btree (id)"
+          }
+        ],
+        "options": null,
+        "policies": [
+          {
+            "cmd": "SELECT",
+            "name": "e2e_care_party_select_allow",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "using": "((tenant_id = ( SELECT get_auth_tenant_id() AS get_auth_tenant_id)) AND (tenant_id = ANY (ARRAY( SELECT actor_profile.tenant_id\n   FROM (users actor_profile\n     JOIN tenants actor_tenant ON ((actor_tenant.id = actor_profile.tenant_id)))\n  WHERE ((actor_profile.id = ( SELECT auth.uid() AS uid)) AND (actor_profile.status = 'active'::text) AND (lower(btrim(actor_profile.role)) = 'admin'::text) AND (actor_tenant.status = 'active'::text) AND (actor_tenant.product_key = 'bella_preschool'::text))))))",
+            "permissive": "PERMISSIVE"
+          },
+          {
+            "cmd": "SELECT",
+            "name": "e2e_care_party_select_guard",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "using": "((tenant_id = ( SELECT get_auth_tenant_id() AS get_auth_tenant_id)) AND (tenant_id = ANY (ARRAY( SELECT actor_profile.tenant_id\n   FROM (users actor_profile\n     JOIN tenants actor_tenant ON ((actor_tenant.id = actor_profile.tenant_id)))\n  WHERE ((actor_profile.id = ( SELECT auth.uid() AS uid)) AND (actor_profile.status = 'active'::text) AND (lower(btrim(actor_profile.role)) = 'admin'::text) AND (actor_tenant.status = 'active'::text) AND (actor_tenant.product_key = 'bella_preschool'::text))))) AND (EXISTS ( SELECT 1\n   FROM edu_enrollments eligible_enrollment\n  WHERE ((eligible_enrollment.student_party_id = party_parties.id) AND (eligible_enrollment.tenant_id = party_parties.tenant_id) AND (eligible_enrollment.status = 'active'::text)))))",
+            "permissive": "RESTRICTIVE"
+          },
+          {
+            "cmd": "ALL",
+            "name": "tenant_isolation_parties",
+            "check": null,
+            "roles": [
+              "public"
+            ],
+            "using": "(tenant_id = get_auth_tenant_id())",
+            "permissive": "PERMISSIVE"
+          }
+        ],
+        "triggers": [],
+        "constraints": [
+          {
+            "name": "party_parties_gender_check",
+            "validated": true,
+            "definition": "CHECK (gender = ANY (ARRAY['male'::text, 'female'::text, 'other'::text]))"
+          },
+          {
+            "name": "party_parties_party_type_check",
+            "validated": true,
+            "definition": "CHECK (party_type = ANY (ARRAY['person'::text, 'organization'::text]))"
+          },
+          {
+            "name": "party_parties_pkey",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+          },
+          {
+            "name": "party_parties_tenant_id_fkey",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+          }
+        ]
+      },
+      "edu_attendance_daily_state": {
+        "acl": [
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "DELETE"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "INSERT"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "MAINTAIN"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "REFERENCES"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRIGGER"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRUNCATE"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "UPDATE"
+          },
+          {
+            "grantee": "authenticated",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "DELETE"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "INSERT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "MAINTAIN"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "REFERENCES"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRIGGER"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRUNCATE"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "UPDATE"
+          }
+        ],
+        "rls": true,
+        "kind": "r",
+        "view": null,
+        "force": false,
+        "owner": "postgres",
+        "columns": [
+          {
+            "acl": null,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "tenant_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "enrollment_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "school_day",
+            "type": "date",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "status",
+            "type": "text",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          }
+        ],
+        "indexes": [
+          {
+            "name": "edu_attendance_daily_state_pkey",
+            "definition": "CREATE UNIQUE INDEX edu_attendance_daily_state_pkey ON public.edu_attendance_daily_state USING btree (id)"
+          },
+          {
+            "name": "edu_attendance_daily_state_unique",
+            "definition": "CREATE UNIQUE INDEX edu_attendance_daily_state_unique ON public.edu_attendance_daily_state USING btree (tenant_id, enrollment_id, school_day)"
+          },
+          {
+            "name": "idx_edu_attendance_daily_state_enrollment",
+            "definition": "CREATE INDEX idx_edu_attendance_daily_state_enrollment ON public.edu_attendance_daily_state USING btree (enrollment_id)"
+          },
+          {
+            "name": "idx_edu_attendance_daily_state_tenant_day",
+            "definition": "CREATE INDEX idx_edu_attendance_daily_state_tenant_day ON public.edu_attendance_daily_state USING btree (tenant_id, school_day)"
+          }
+        ],
+        "options": null,
+        "policies": [
+          {
+            "cmd": "SELECT",
+            "name": "e2e_care_attendance_select",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "using": "((tenant_id = ( SELECT get_auth_tenant_id() AS get_auth_tenant_id)) AND (tenant_id = ANY (ARRAY( SELECT actor_profile.tenant_id\n   FROM (users actor_profile\n     JOIN tenants actor_tenant ON ((actor_tenant.id = actor_profile.tenant_id)))\n  WHERE ((actor_profile.id = ( SELECT auth.uid() AS uid)) AND (actor_profile.status = 'active'::text) AND (lower(btrim(actor_profile.role)) = 'admin'::text) AND (actor_tenant.status = 'active'::text) AND (actor_tenant.product_key = 'bella_preschool'::text))))) AND (school_day = ((statement_timestamp() AT TIME ZONE 'Asia/Ho_Chi_Minh'::text))::date) AND (EXISTS ( SELECT 1\n   FROM edu_enrollments eligible_enrollment\n  WHERE ((eligible_enrollment.id = edu_attendance_daily_state.enrollment_id) AND (eligible_enrollment.tenant_id = edu_attendance_daily_state.tenant_id) AND (eligible_enrollment.status = 'active'::text)))))",
+            "permissive": "PERMISSIVE"
+          }
+        ],
+        "triggers": [],
+        "constraints": [
+          {
+            "name": "edu_attendance_daily_state_enrollment_id_fkey",
+            "validated": true,
+            "definition": "FOREIGN KEY (enrollment_id) REFERENCES edu_enrollments(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "edu_attendance_daily_state_pkey",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+          },
+          {
+            "name": "edu_attendance_daily_state_status_check",
+            "validated": true,
+            "definition": "CHECK (status = ANY (ARRAY['present'::text, 'absent'::text, 'excused'::text]))"
+          },
+          {
+            "name": "edu_attendance_daily_state_tenant_id_fkey",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "edu_attendance_daily_state_unique",
+            "validated": true,
+            "definition": "UNIQUE (tenant_id, enrollment_id, school_day)"
+          }
+        ]
+      },
+      "edu_daily_care_sessions": {
+        "acl": [
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "DELETE"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "INSERT"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "MAINTAIN"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "REFERENCES"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRIGGER"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRUNCATE"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "UPDATE"
+          },
+          {
+            "grantee": "authenticated",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "INSERT"
+          },
+          {
+            "grantee": "authenticated",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "DELETE"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "INSERT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "MAINTAIN"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "REFERENCES"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRIGGER"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRUNCATE"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "UPDATE"
+          }
+        ],
+        "rls": true,
+        "kind": "r",
+        "view": null,
+        "force": false,
+        "owner": "postgres",
+        "columns": [
+          {
+            "acl": null,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "tenant_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "class_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "date",
+            "type": "date",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "status",
+            "type": "text",
+            "default": "'OPEN'::text",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          }
+        ],
+        "indexes": [
+          {
+            "name": "edu_daily_care_sessions_pkey",
+            "definition": "CREATE UNIQUE INDEX edu_daily_care_sessions_pkey ON public.edu_daily_care_sessions USING btree (id)"
+          },
+          {
+            "name": "uq_tenant_class_date",
+            "definition": "CREATE UNIQUE INDEX uq_tenant_class_date ON public.edu_daily_care_sessions USING btree (tenant_id, class_id, date)"
+          }
+        ],
+        "options": null,
+        "policies": [
+          {
+            "cmd": "INSERT",
+            "name": "e2e_care_session_insert",
+            "check": "((tenant_id = ( SELECT get_auth_tenant_id() AS get_auth_tenant_id)) AND (tenant_id = ANY (ARRAY( SELECT actor_profile.tenant_id\n   FROM (users actor_profile\n     JOIN tenants actor_tenant ON ((actor_tenant.id = actor_profile.tenant_id)))\n  WHERE ((actor_profile.id = ( SELECT auth.uid() AS uid)) AND (actor_profile.status = 'active'::text) AND (lower(btrim(actor_profile.role)) = 'admin'::text) AND (actor_tenant.status = 'active'::text) AND (actor_tenant.product_key = 'bella_preschool'::text))))) AND (date = ((statement_timestamp() AT TIME ZONE 'Asia/Ho_Chi_Minh'::text))::date) AND (EXISTS ( SELECT 1\n   FROM edu_courses eligible_course\n  WHERE ((eligible_course.id = edu_daily_care_sessions.class_id) AND (eligible_course.tenant_id = edu_daily_care_sessions.tenant_id) AND (eligible_course.status = 'active'::text)))))",
+            "roles": [
+              "authenticated"
+            ],
+            "using": null,
+            "permissive": "PERMISSIVE"
+          },
+          {
+            "cmd": "SELECT",
+            "name": "e2e_care_session_select",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "using": "((tenant_id = ( SELECT get_auth_tenant_id() AS get_auth_tenant_id)) AND (tenant_id = ANY (ARRAY( SELECT actor_profile.tenant_id\n   FROM (users actor_profile\n     JOIN tenants actor_tenant ON ((actor_tenant.id = actor_profile.tenant_id)))\n  WHERE ((actor_profile.id = ( SELECT auth.uid() AS uid)) AND (actor_profile.status = 'active'::text) AND (lower(btrim(actor_profile.role)) = 'admin'::text) AND (actor_tenant.status = 'active'::text) AND (actor_tenant.product_key = 'bella_preschool'::text))))) AND (date = ((statement_timestamp() AT TIME ZONE 'Asia/Ho_Chi_Minh'::text))::date) AND (EXISTS ( SELECT 1\n   FROM edu_courses eligible_course\n  WHERE ((eligible_course.id = edu_daily_care_sessions.class_id) AND (eligible_course.tenant_id = edu_daily_care_sessions.tenant_id) AND (eligible_course.status = 'active'::text)))))",
+            "permissive": "PERMISSIVE"
+          }
+        ],
+        "triggers": [],
+        "constraints": [
+          {
+            "name": "edu_daily_care_sessions_pkey",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+          },
+          {
+            "name": "edu_daily_care_sessions_status_check",
+            "validated": true,
+            "definition": "CHECK (status = ANY (ARRAY['OPEN'::text, 'COMPLETED'::text, 'CLOSED'::text]))"
+          },
+          {
+            "name": "edu_daily_care_sessions_tenant_id_fkey",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+          },
+          {
+            "name": "uq_tenant_class_date",
+            "validated": true,
+            "definition": "UNIQUE (tenant_id, class_id, date)"
+          }
+        ]
+      },
+      "edu_daily_care_records": {
+        "acl": [
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "DELETE"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "INSERT"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "MAINTAIN"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "REFERENCES"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRIGGER"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRUNCATE"
+          },
+          {
+            "grantee": "postgres",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "UPDATE"
+          },
+          {
+            "grantee": "authenticated",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "DELETE"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "INSERT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "MAINTAIN"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "REFERENCES"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "SELECT"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRIGGER"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "TRUNCATE"
+          },
+          {
+            "grantee": "service_role",
+            "grantor": "postgres",
+            "grantable": false,
+            "privilege": "UPDATE"
+          }
+        ],
+        "rls": true,
+        "kind": "r",
+        "view": null,
+        "force": false,
+        "owner": "postgres",
+        "columns": [
+          {
+            "acl": null,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": "{authenticated=a/postgres}",
+            "name": "tenant_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": "{authenticated=a/postgres}",
+            "name": "session_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "student_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": "{authenticated=aw/postgres}",
+            "name": "arrival_status",
+            "type": "text",
+            "default": "'PRESENT'::text",
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": "{authenticated=aw/postgres}",
+            "name": "arrival_time",
+            "type": "timestamp with time zone",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": "{authenticated=aw/postgres}",
+            "name": "morning_condition",
+            "type": "text",
+            "default": "'GOOD'::text",
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": "{authenticated=aw/postgres}",
+            "name": "meal_records",
+            "type": "jsonb",
+            "default": "'[]'::jsonb",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": "{authenticated=aw/postgres}",
+            "name": "hygiene_records",
+            "type": "jsonb",
+            "default": "'[]'::jsonb",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": "{authenticated=aw/postgres}",
+            "name": "nap_records",
+            "type": "jsonb",
+            "default": "'{}'::jsonb",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "health_checks",
+            "type": "jsonb",
+            "default": "'{}'::jsonb",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": null,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": "{authenticated=aw/postgres}",
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "acl": "{authenticated=a/postgres}",
+            "name": "student_party_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          }
+        ],
+        "indexes": [
+          {
+            "name": "edu_daily_care_records_pkey",
+            "definition": "CREATE UNIQUE INDEX edu_daily_care_records_pkey ON public.edu_daily_care_records USING btree (id)"
+          },
+          {
+            "name": "idx_daily_care_records_tenant_student_party",
+            "definition": "CREATE INDEX idx_daily_care_records_tenant_student_party ON public.edu_daily_care_records USING btree (tenant_id, student_party_id)"
+          },
+          {
+            "name": "uq_daily_care_records_session_student_party",
+            "definition": "CREATE UNIQUE INDEX uq_daily_care_records_session_student_party ON public.edu_daily_care_records USING btree (session_id, student_party_id) WHERE (student_party_id IS NOT NULL)"
+          },
+          {
+            "name": "uq_session_student",
+            "definition": "CREATE UNIQUE INDEX uq_session_student ON public.edu_daily_care_records USING btree (session_id, student_id)"
+          }
+        ],
+        "options": null,
+        "policies": [
+          {
+            "cmd": "INSERT",
+            "name": "e2e_care_record_insert",
+            "check": "((tenant_id = ( SELECT get_auth_tenant_id() AS get_auth_tenant_id)) AND (tenant_id = ANY (ARRAY( SELECT actor_profile.tenant_id\n   FROM (users actor_profile\n     JOIN tenants actor_tenant ON ((actor_tenant.id = actor_profile.tenant_id)))\n  WHERE ((actor_profile.id = ( SELECT auth.uid() AS uid)) AND (actor_profile.status = 'active'::text) AND (lower(btrim(actor_profile.role)) = 'admin'::text) AND (actor_tenant.status = 'active'::text) AND (actor_tenant.product_key = 'bella_preschool'::text))))) AND (student_party_id IS NOT NULL) AND (EXISTS ( SELECT 1\n   FROM (edu_daily_care_sessions eligible_session\n     JOIN edu_enrollments eligible_enrollment ON (((eligible_enrollment.course_id = eligible_session.class_id) AND (eligible_enrollment.tenant_id = eligible_session.tenant_id))))\n  WHERE ((eligible_session.id = edu_daily_care_records.session_id) AND (eligible_session.tenant_id = edu_daily_care_records.tenant_id) AND (eligible_session.date = ((statement_timestamp() AT TIME ZONE 'Asia/Ho_Chi_Minh'::text))::date) AND (eligible_enrollment.student_party_id = edu_daily_care_records.student_party_id) AND (eligible_enrollment.status = 'active'::text)))))",
+            "roles": [
+              "authenticated"
+            ],
+            "using": null,
+            "permissive": "PERMISSIVE"
+          },
+          {
+            "cmd": "SELECT",
+            "name": "e2e_care_record_select",
+            "check": null,
+            "roles": [
+              "authenticated"
+            ],
+            "using": "((tenant_id = ( SELECT get_auth_tenant_id() AS get_auth_tenant_id)) AND (tenant_id = ANY (ARRAY( SELECT actor_profile.tenant_id\n   FROM (users actor_profile\n     JOIN tenants actor_tenant ON ((actor_tenant.id = actor_profile.tenant_id)))\n  WHERE ((actor_profile.id = ( SELECT auth.uid() AS uid)) AND (actor_profile.status = 'active'::text) AND (lower(btrim(actor_profile.role)) = 'admin'::text) AND (actor_tenant.status = 'active'::text) AND (actor_tenant.product_key = 'bella_preschool'::text))))) AND (student_party_id IS NOT NULL) AND (EXISTS ( SELECT 1\n   FROM (edu_daily_care_sessions eligible_session\n     JOIN edu_enrollments eligible_enrollment ON (((eligible_enrollment.course_id = eligible_session.class_id) AND (eligible_enrollment.tenant_id = eligible_session.tenant_id))))\n  WHERE ((eligible_session.id = edu_daily_care_records.session_id) AND (eligible_session.tenant_id = edu_daily_care_records.tenant_id) AND (eligible_session.date = ((statement_timestamp() AT TIME ZONE 'Asia/Ho_Chi_Minh'::text))::date) AND (eligible_enrollment.student_party_id = edu_daily_care_records.student_party_id) AND (eligible_enrollment.status = 'active'::text)))))",
+            "permissive": "PERMISSIVE"
+          },
+          {
+            "cmd": "UPDATE",
+            "name": "e2e_care_record_update",
+            "check": "((tenant_id = ( SELECT get_auth_tenant_id() AS get_auth_tenant_id)) AND (tenant_id = ANY (ARRAY( SELECT actor_profile.tenant_id\n   FROM (users actor_profile\n     JOIN tenants actor_tenant ON ((actor_tenant.id = actor_profile.tenant_id)))\n  WHERE ((actor_profile.id = ( SELECT auth.uid() AS uid)) AND (actor_profile.status = 'active'::text) AND (lower(btrim(actor_profile.role)) = 'admin'::text) AND (actor_tenant.status = 'active'::text) AND (actor_tenant.product_key = 'bella_preschool'::text))))) AND (student_party_id IS NOT NULL) AND (EXISTS ( SELECT 1\n   FROM (edu_daily_care_sessions eligible_session\n     JOIN edu_enrollments eligible_enrollment ON (((eligible_enrollment.course_id = eligible_session.class_id) AND (eligible_enrollment.tenant_id = eligible_session.tenant_id))))\n  WHERE ((eligible_session.id = edu_daily_care_records.session_id) AND (eligible_session.tenant_id = edu_daily_care_records.tenant_id) AND (eligible_session.date = ((statement_timestamp() AT TIME ZONE 'Asia/Ho_Chi_Minh'::text))::date) AND (eligible_enrollment.student_party_id = edu_daily_care_records.student_party_id) AND (eligible_enrollment.status = 'active'::text)))))",
+            "roles": [
+              "authenticated"
+            ],
+            "using": "((tenant_id = ( SELECT get_auth_tenant_id() AS get_auth_tenant_id)) AND (tenant_id = ANY (ARRAY( SELECT actor_profile.tenant_id\n   FROM (users actor_profile\n     JOIN tenants actor_tenant ON ((actor_tenant.id = actor_profile.tenant_id)))\n  WHERE ((actor_profile.id = ( SELECT auth.uid() AS uid)) AND (actor_profile.status = 'active'::text) AND (lower(btrim(actor_profile.role)) = 'admin'::text) AND (actor_tenant.status = 'active'::text) AND (actor_tenant.product_key = 'bella_preschool'::text))))) AND (student_party_id IS NOT NULL) AND (EXISTS ( SELECT 1\n   FROM (edu_daily_care_sessions eligible_session\n     JOIN edu_enrollments eligible_enrollment ON (((eligible_enrollment.course_id = eligible_session.class_id) AND (eligible_enrollment.tenant_id = eligible_session.tenant_id))))\n  WHERE ((eligible_session.id = edu_daily_care_records.session_id) AND (eligible_session.tenant_id = edu_daily_care_records.tenant_id) AND (eligible_session.date = ((statement_timestamp() AT TIME ZONE 'Asia/Ho_Chi_Minh'::text))::date) AND (eligible_enrollment.student_party_id = edu_daily_care_records.student_party_id) AND (eligible_enrollment.status = 'active'::text)))))",
+            "permissive": "PERMISSIVE"
+          }
+        ],
+        "triggers": [],
+        "constraints": [
+          {
+            "name": "edu_daily_care_records_arrival_status_check",
+            "validated": true,
+            "definition": "CHECK (arrival_status = ANY (ARRAY['PRESENT'::text, 'ABSENT'::text, 'LATE'::text]))"
+          },
+          {
+            "name": "edu_daily_care_records_pkey",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+          },
+          {
+            "name": "edu_daily_care_records_session_id_fkey",
+            "validated": true,
+            "definition": "FOREIGN KEY (session_id) REFERENCES edu_daily_care_sessions(id) ON DELETE CASCADE"
+          },
+          {
+            "name": "edu_daily_care_records_student_id_fkey",
+            "validated": true,
+            "definition": "FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE"
+          },
+          {
+            "name": "edu_daily_care_records_student_party_id_fkey",
+            "validated": true,
+            "definition": "FOREIGN KEY (student_party_id) REFERENCES party_parties(id) ON DELETE CASCADE"
+          },
+          {
+            "name": "edu_daily_care_records_tenant_id_fkey",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+          },
+          {
+            "name": "uq_session_student",
+            "validated": true,
+            "definition": "UNIQUE (session_id, student_id)"
+          }
+        ]
+      }
+    },
+    "timelineCatalog": {
+      "acl": [
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "DELETE"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "INSERT"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "MAINTAIN"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "REFERENCES"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "SELECT"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "TRIGGER"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "TRUNCATE"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "UPDATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "DELETE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "INSERT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "MAINTAIN"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "REFERENCES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "SELECT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "TRIGGER"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "TRUNCATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "grantable": false,
+          "privilege": "UPDATE"
+        }
+      ],
+      "rls": true,
+      "kind": "r",
+      "view": null,
+      "force": false,
+      "owner": "postgres",
+      "columns": [
+        {
+          "acl": null,
+          "name": "id",
+          "type": "uuid",
+          "default": "gen_random_uuid()",
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "tenant_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "vertical",
+          "type": "text",
+          "default": null,
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "primary_party_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "journey_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "correlation_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "causation_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "event_category",
+          "type": "text",
+          "default": null,
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "event_type",
+          "type": "text",
+          "default": null,
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "event_version",
+          "type": "text",
+          "default": "'v1'::text",
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "schema_version",
+          "type": "text",
+          "default": "'1.0.0'::text",
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "aggregate_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "aggregate_type",
+          "type": "text",
+          "default": null,
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "sequence_number",
+          "type": "integer",
+          "default": null,
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "event_hash",
+          "type": "text",
+          "default": null,
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "reference_table",
+          "type": "text",
+          "default": null,
+          "notnull": false,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "reference_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "summary",
+          "type": "text",
+          "default": null,
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "ai_insight",
+          "type": "text",
+          "default": null,
+          "notnull": false,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "event_data",
+          "type": "jsonb",
+          "default": "'{}'::jsonb",
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "recorded_by",
+          "type": "uuid",
+          "default": null,
+          "notnull": false,
+          "identity": "",
+          "generated": ""
+        },
+        {
+          "acl": null,
+          "name": "occurred_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true,
+          "identity": "",
+          "generated": ""
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_timeline_events_aggregate",
+          "definition": "CREATE INDEX idx_timeline_events_aggregate ON public.timeline_events USING btree (aggregate_type, aggregate_id)"
+        },
+        {
+          "name": "idx_timeline_events_correlation",
+          "definition": "CREATE INDEX idx_timeline_events_correlation ON public.timeline_events USING btree (correlation_id)"
+        },
+        {
+          "name": "idx_timeline_events_party",
+          "definition": "CREATE INDEX idx_timeline_events_party ON public.timeline_events USING btree (primary_party_id, occurred_at DESC)"
+        },
+        {
+          "name": "timeline_events_pkey",
+          "definition": "CREATE UNIQUE INDEX timeline_events_pkey ON public.timeline_events USING btree (id)"
+        },
+        {
+          "name": "timeline_events_tenant_id_aggregate_type_aggregate_id_seque_key",
+          "definition": "CREATE UNIQUE INDEX timeline_events_tenant_id_aggregate_type_aggregate_id_seque_key ON public.timeline_events USING btree (tenant_id, aggregate_type, aggregate_id, sequence_number)"
+        }
+      ],
+      "options": null,
+      "policies": [
+        {
+          "cmd": "ALL",
+          "name": "tenant_isolation_timeline",
+          "check": null,
+          "roles": [
+            "public"
+          ],
+          "using": "(tenant_id = get_auth_tenant_id())",
+          "permissive": "PERMISSIVE"
+        }
+      ],
+      "triggers": [],
+      "constraints": [
+        {
+          "name": "timeline_events_event_category_check",
+          "validated": true,
+          "definition": "CHECK (event_category = ANY (ARRAY['business'::text, 'audit'::text, 'ai'::text, 'system'::text]))"
+        },
+        {
+          "name": "timeline_events_journey_id_fkey",
+          "validated": true,
+          "definition": "FOREIGN KEY (journey_id) REFERENCES journey_journeys(id) ON DELETE SET NULL"
+        },
+        {
+          "name": "timeline_events_pkey",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "timeline_events_primary_party_id_fkey",
+          "validated": true,
+          "definition": "FOREIGN KEY (primary_party_id) REFERENCES party_parties(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "timeline_events_recorded_by_fkey",
+          "validated": true,
+          "definition": "FOREIGN KEY (recorded_by) REFERENCES party_parties(id)"
+        },
+        {
+          "name": "timeline_events_tenant_id_aggregate_type_aggregate_id_seque_key",
+          "validated": true,
+          "definition": "UNIQUE (tenant_id, aggregate_type, aggregate_id, sequence_number)"
+        },
+        {
+          "name": "timeline_events_tenant_id_fkey",
+          "validated": true,
+          "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+        }
+      ],
+      "rules": [
+        {
+          "rulename": "timeline_events_no_delete",
+          "definition": "CREATE RULE timeline_events_no_delete AS\n    ON DELETE TO public.timeline_events DO INSTEAD NOTHING;"
+        },
+        {
+          "rulename": "timeline_events_no_update",
+          "definition": "CREATE RULE timeline_events_no_update AS\n    ON UPDATE TO public.timeline_events DO INSTEAD NOTHING;"
+        }
+      ]
+    },
+    "outsideSevenSha256": "8239019f79a8ff96f2cfdc5f0a1a2fdb9887be06da391207c3f5c62f2714c677"
+  },
+  "headerObservation": {
+    "status": 401,
+    "cacheControl": "private, no-store",
+    "environment": "production"
+  },
+  "catalogHttpReceipts": [
+    {
+      "check": null,
+      "method": "GET",
+      "status": 401,
+      "code": "CARE_UNAUTHENTICATED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 200,
+      "code": null,
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 503,
+      "code": "CARE_TEACHER_IDENTITY_UNAVAILABLE",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_ROLE_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 200,
+      "code": null,
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 503,
+      "code": "CARE_TEACHER_IDENTITY_UNAVAILABLE",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_ROLE_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 200,
+      "code": null,
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_ACCESS_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_ROLE_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_ACCESS_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    }
+  ],
+  "browserReceipts": [
+    {
+      "path": "/api/education/care/classes",
+      "method": "GET",
+      "status": 200,
+      "errorKind": null,
+      "cacheControl": "private, no-store",
+      "private": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/education/care/bulk",
+      "method": "GET",
+      "status": 200,
+      "errorKind": null,
+      "cacheControl": "private, no-store",
+      "private": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/education/care/bulk",
+      "method": "POST",
+      "status": 200,
+      "errorKind": null,
+      "cacheControl": "private, no-store",
+      "private": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/education/care/bulk",
+      "method": "GET",
+      "status": 200,
+      "errorKind": null,
+      "cacheControl": "private, no-store",
+      "private": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/education/care/classes",
+      "method": "GET",
+      "status": 200,
+      "errorKind": null,
+      "cacheControl": "private, no-store",
+      "private": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/education/care/bulk",
+      "method": "GET",
+      "status": 200,
+      "errorKind": null,
+      "cacheControl": "private, no-store",
+      "private": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/education/care/bulk",
+      "method": "POST",
+      "status": 200,
+      "errorKind": null,
+      "cacheControl": "private, no-store",
+      "private": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/education/care/bulk",
+      "method": "GET",
+      "status": 200,
+      "errorKind": null,
+      "cacheControl": "private, no-store",
+      "private": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/education/care/classes",
+      "method": "GET",
+      "status": 200,
+      "errorKind": null,
+      "cacheControl": "private, no-store",
+      "private": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/education/care/bulk",
+      "method": "GET",
+      "status": 200,
+      "errorKind": null,
+      "cacheControl": "private, no-store",
+      "private": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/education/care/bulk",
+      "method": "POST",
+      "status": 403,
+      "errorKind": "CARE_BRANCH_ACCESS_DENIED",
+      "cacheControl": "private, no-store",
+      "private": true,
+      "noStore": true
+    }
+  ],
+  "cleanup": {
+    "failures": [],
+    "residualCounts": {
+      "edu_daily_care_records": 0,
+      "edu_daily_care_sessions": 0,
+      "edu_attendance_daily_state": 0,
+      "edu_enrollments": 0,
+      "preschool_chain_course_branch_assignments": 0,
+      "party_parties": 0,
+      "edu_courses": 0,
+      "org_relationships": 0,
+      "people_directory": 0,
+      "org_units": 0,
+      "auth_users": 0,
+      "public_users": 0
+    },
+    "retainedTenantShells": 2,
+    "retainedReason": "IMMUTABLE_AUDIT_SHELLS_TERMINATED"
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "port": 60351,
+    "ownPid": 10288,
+    "nodeEnv": "production",
+    "privilegedKeyInChild": false,
+    "exit": {
+      "code": 1,
+      "signal": null
+    },
+    "stdoutBytes": 2085,
+    "stderrBytes": 0,
+    "rawLogsSaved": false,
+    "listenerClosed": true
+  },
+  "catalogAfterSha256": "9afc1e07426e3c7c27bf697c3e4f1877c5affe876cc96505e471f6a08d31d5d2",
+  "sourceAfter": {
+    "head": "6b031511fd37e5ee22288676b833cf855d40b43f",
+    "tree": "af0264a65227106e1f693b0c5915e61e1be7c40d",
+    "ancestor": true,
+    "changed": [
+      "src/app/dashboard/education/care/page.tsx",
+      "src/proxy.ts"
+    ],
+    "untracked": [
+      "src/app/api/education/care/classes/__tests__/access.test.ts",
+      "src/app/api/education/care/classes/__tests__/catalog-contract.test.ts",
+      "src/app/api/education/care/classes/route.ts",
+      "src/app/dashboard/education/care/__tests__/care-save.test.ts",
+      "src/app/dashboard/education/care/__tests__/page.test.tsx",
+      "src/app/dashboard/education/care/care-save.ts",
+      "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts",
+      "src/platform/education/contracts/canonical-course-catalog.contract.ts"
+    ],
+    "sha256": "5f844bb80c578f76cbe4a1a2c8825be5fb4849d75c2cdc28d06b49780dfc1835",
+    "environmentFiles": []
+  },
+  "productHashesAfter": {
+    "src/app/dashboard/education/care/page.tsx": "9f7b0cac74d860def073923451db8f0ee0041f3e8ba7160eb8667382dcf04948",
+    "src/app/dashboard/education/care/care-save.ts": "e9cd8d4a5646092bdd086c38e6aafd978cf07788f2cabb55dd8b88876e2a897b",
+    "src/app/dashboard/education/care/__tests__/care-save.test.ts": "c65bbd6b6bfa5590db0d0b2092990ef21a839ac0861e89a56a65bd402ab84fe8",
+    "src/app/dashboard/education/care/__tests__/page.test.tsx": "f886c1e13ad37090bdeb963b9a5a46ea52a3211479548e2854bad80b2b3b0538",
+    "src/proxy.ts": "534626ffd4a808d795db57699b5a15e272b364cc2a94ffc2007bf4a2566b9189",
+    "src/platform/education/contracts/canonical-course-catalog.contract.ts": "786482c9253ae9846fdba79f5db8db7ee790de9c87743c614b65f3e0851cca18",
+    "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts": "63d202f07318fe32de41145df53295283adb93f3b1d63d0f470119d07d496924",
+    "src/app/api/education/care/classes/route.ts": "e3e2a62eea5206498b3032e9d248725cbec1e075204bce093963babd121c90ea",
+    "src/app/api/education/care/classes/__tests__/access.test.ts": "b17b78a956b5bcd75f0655662daac1626e182150e4cd6a971c93eadbc071e673",
+    "src/app/api/education/care/classes/__tests__/catalog-contract.test.ts": "a0b4bc28eb3716eb52117300a5ea21084e1cc6140ffdfbacadd73f4992ecc18f"
+  },
+  "finishedAt": "2026-10-21T04:17:13.440Z",
+  "result": "PASS_SCOPED_BROWSER",
+  "exitCode": 0
+}

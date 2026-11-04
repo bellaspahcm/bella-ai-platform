@@ -382,7 +382,7 @@ describeWithRealSupabase('Bella Nail Finance real DB proof', () => {
     expect(completion.error).toBeFalsy();
 
     const financeService = new SemanticReceivableChargeService(
-      new SupabaseReceivableChargeGateway(mockSupabaseAdminClient),
+      new SupabaseReceivableChargeGateway(mockSupabaseAdminClient, 'service_role'),
     );
     const receivable = await financeService.recognizeServiceReceivable({
       tenantId,

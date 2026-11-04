@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import PreschoolSelect from '@/components/ui/PreschoolSelect';
 import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, FileText, HeartPulse, MessageSquare, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -120,14 +121,23 @@ function WorkQueue() {
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
         <label className="flex items-center gap-2 text-sm font-medium">Trạng thái
-          <select aria-label="Trạng thái xử lý" className="rounded-lg border border-input bg-background px-3 py-2 text-foreground"
-            value={status} disabled={saving} onChange={event => {
+          <PreschoolSelect
+            aria-label="Trạng thái xử lý"
+            value={status}
+            disabled={saving}
+            onChange={event => {
               const next = event.target.value;
               if (next === 'open' || next === 'history' || next === 'all') setStatus(next);
               setPage(1); setSelectedId(null); setSaveError('');
-            }}>
-            <option value="open">Chờ xử lý</option><option value="history">Lịch sử đã xử lý</option><option value="all">Tất cả</option>
-          </select></label>
+            }}
+            wrapperClassName="min-w-[170px]"
+            className="py-1.5 px-3 text-xs font-semibold"
+          >
+            <option value="open">Chờ xử lý</option>
+            <option value="history">Lịch sử đã xử lý</option>
+            <option value="all">Tất cả</option>
+          </PreschoolSelect>
+        </label>
         <span className="text-sm text-muted-foreground">{data ? `${data.total} hồ sơ · Trang ${data.page}/${data.pages}` : '—'}</span>
       </div>
       {saved && <div role="status" className="m-5 space-y-3 rounded-xl border border-primary/30 bg-primary/5 p-4">

@@ -1,0 +1,60 @@
+{
+  "source": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+  "branch": "codex/preschool-full-audit-20261020",
+  "sourceFiles": 118,
+  "dashboardPages": 19,
+  "portalPages": 1,
+  "apiRouteFiles": 20,
+  "productFiles": 75,
+  "readOnlyBrowser": {
+    "dashboardRendered": 19,
+    "total": 19,
+    "uncaughtErrors": 0,
+    "portalInvalidTokenStatus": 401
+  },
+  "education": {
+    "exitCode": 1,
+    "suites": {
+      "total": 55,
+      "passed": 45,
+      "failed": 10,
+      "pending": 0
+    },
+    "tests": {
+      "total": 534,
+      "passed": 450,
+      "failed": 84,
+      "pending": 0
+    }
+  },
+  "healthcare": {
+    "exitCode": 1,
+    "guard": "PASS",
+    "architecture": {
+      "suites": 2,
+      "tests": 9,
+      "result": "PASS"
+    },
+    "conformance": {
+      "suites": 1,
+      "tests": 7,
+      "result": "PASS"
+    },
+    "kernel": {
+      "suitesPassed": 39,
+      "suitesFailed": 18,
+      "suitesSkipped": 4,
+      "testsPassed": 374,
+      "testsFailed": 151,
+      "testsSkipped": 5
+    }
+  },
+  "businessDbWrites": 0,
+  "fixturesCreated": 0,
+  "committed": false,
+  "pushed": false,
+  "overall": "NOT_READY",
+  "security": "FAIL",
+  "authenticatedBrowserWriteDbE2e": "BLOCKED",
+  "productionIdentity": "NOT_PROVEN"
+}

@@ -1,0 +1,29 @@
+
+Running 1 test using 1 worker
+
+AUTOMOVE_DASHBOARD_STAGE=booking persistence
+AUTOMOVE_CHAIN_CLEANUP=AUTH_ZERO_ACTIVE_ACTOR_ZERO_DOCUMENTS_ZERO_TWO_ARCHIVED_TENANTS_HISTORY_RETAINED
+AUTOMOVE_DASHBOARD_FIXTURE_AUTH_REMOVED_AND_TENANT_ARCHIVED
+  ✘  1 [chromium] › e2e/tests/42-automove-dashboard-sales-chain.spec.ts:12:5 › AutoMove actual dashboard: login to booking, deposit and explicit recognition (37.0s)
+
+
+  1) [chromium] › e2e/tests/42-automove-dashboard-sales-chain.spec.ts:12:5 › AutoMove actual dashboard: login to booking, deposit and explicit recognition 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m200[39m
+    Received: [31m500[39m
+
+      126 |     await modal.getByRole('button', { name: 'Tạo Booking', exact: true }).click();
+      127 |     const createdBookingResponse = await bookingResponse;
+    > 128 |     expect(createdBookingResponse.status()).toBe(200);
+          |                                             ^
+      129 |     const booking = (await db.query('select * from public.auto_bookings where tenant_id=$1 and vehicle_id=$2', [tenantId, vehicleId])).rows;
+      130 |     expect(booking).toHaveLength(1);
+      131 |     const bookingId: string = booking[0].id;
+        at /home/runner/work/bella-ai-platform/bella-ai-platform/e2e/tests/42-automove-dashboard-sales-chain.spec.ts:128:45
+
+    Error Context: .cache/automove-rc/9b4ec3c3f2f044ad2dae5ffc6d9693afdf626179/2026-10-20T21-13-15-032Z/browser/42-automove-dashboard-sale-ff7e2-it-and-explicit-recognition-chromium/error-context.md
+
+  1 failed
+    [chromium] › e2e/tests/42-automove-dashboard-sales-chain.spec.ts:12:5 › AutoMove actual dashboard: login to booking, deposit and explicit recognition 

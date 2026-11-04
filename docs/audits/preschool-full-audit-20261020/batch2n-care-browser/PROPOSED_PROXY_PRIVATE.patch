@@ -1,0 +1,44 @@
+===================================================================
+--- a/src/proxy.ts	
++++ b/src/proxy.ts	
+@@ -19,8 +19,9 @@
+   const isKtvRoute = pathname.startsWith('/ktv');
+   const isStudentRoute = pathname.startsWith('/student');
+   const isLoginRoute = pathname === '/login';
+   const isApiRoute = pathname.startsWith('/api/');
++  const isPrivateCareRoute = pathname === '/api/education/care/bulk';
+ 
+   let response = NextResponse.next({
+     request: {
+       headers: request.headers,
+@@ -42,9 +43,9 @@
+     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+   }
+   // Internal API routes - No cache (dynamic data)
+   else if (pathname.startsWith('/api/')) {
+-    response.headers.set('Cache-Control', 'no-store, must-revalidate');
++    response.headers.set('Cache-Control', isPrivateCareRoute ? 'private, no-store' : 'no-store, must-revalidate');
+   }
+ 
+   // Static assets - Long cache
+   if (pathname.startsWith('/_next/static') || pathname.match(/\.(jpg|jpeg|png|gif|ico|svg|webp|woff|woff2)$/)) {
+@@ -124,8 +125,9 @@
+             request: {
+               headers: request.headers,
+             },
+           });
++          if (isPrivateCareRoute) response.headers.set('Cache-Control', 'private, no-store');
+           response.cookies.set({ name, value, ...options });
+         },
+         remove(name: string, options: CookieOptions) {
+           request.cookies.set({ name, value: '', ...options });
+@@ -133,8 +135,9 @@
+             request: {
+               headers: request.headers,
+             },
+           });
++          if (isPrivateCareRoute) response.headers.set('Cache-Control', 'private, no-store');
+           response.cookies.set({ name, value: '', ...options });
+         },
+       },
+     }

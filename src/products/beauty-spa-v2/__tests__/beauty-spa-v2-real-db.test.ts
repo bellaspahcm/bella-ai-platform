@@ -987,7 +987,7 @@ describeWithRealSupabase('Bella Beauty Spa v2 Real DB business proof', () => {
     expect(completed.status).toBe('COMPLETED');
 
     const financeService = new SemanticReceivableChargeService(
-      new SupabaseReceivableChargeGateway(seedClient),
+      new SupabaseReceivableChargeGateway(seedClient, 'service_role'),
     );
     const matchedReceivable = await financeService.recognizeServiceReceivable({
       tenantId: tenantA,

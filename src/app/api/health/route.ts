@@ -17,8 +17,8 @@ import { getHealthRuntimeEnvironment } from './runtime-environment';
  * Server-Timing instrumentation (Bước 2.5 — K6-2 → K6-3 transition):
  * Breaks down TTFB into segments so we can see inside the 129ms black-box:
  *   next_handler    → time from function entry to first await
- *   db_client_init  → time to validate the private DB probe configuration
- *   db_query        → bounded PostgreSQL read-only connectivity and cleanup
+ *   db_client_init  → time to validate the Supabase health probe configuration
+ *   db_query        → bounded Supabase Data API round trip executing a constant DB probe
  *   serialization   → time to build and serialize the JSON response
  *
  * Visible in:

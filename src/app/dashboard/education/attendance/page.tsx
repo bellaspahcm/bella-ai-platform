@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import PreschoolAttendance from './preschool-attendance';
+import { PreschoolSelect } from '@/components/ui/PreschoolSelect';
 import {
   CalendarCheck,
   ArrowLeft,
@@ -136,7 +137,9 @@ const STUDENT_NAMES_BY_ID: Record<string, string> = {
 function AttendancePageContent() {
   const searchParams = useSearchParams();
   const studentParam = searchParams ? searchParams.get('student') : null;
+  const courseParam = searchParams ? searchParams.get('courseId') : null;
   const [classrooms, setClassrooms] = useState<readonly ClassroomOverviewItem[]>([]);
+  const [userRole, setUserRole] = useState<'admin' | 'teacher' | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [schoolDay, setSchoolDay] = useState(() => todayLocalDate());
   const [roster, setRoster] = useState<readonly AttendanceRosterItem[]>([]);
@@ -292,10 +295,26 @@ function AttendancePageContent() {
           throw new Error(payload.error ?? 'Không tải được danh sách lớp');
         }
 
-        const loadedClassrooms = (payload.classrooms ?? []) as ClassroomOverviewItem[];
+        const rawClassrooms = (payload.classrooms ?? []) as ClassroomOverviewItem[];
+        const loadedClassrooms = rawClassrooms.map((c) => ({
+          ...c,
+          gradeKey: c.gradeKey ?? (
+            c.name.toLowerCase().includes('nhà trẻ') || (c.code?.toUpperCase().startsWith('NHA-TRE') ?? false) ? 'nursery' :
+            c.name.toLowerCase().includes('mầm') || (c.code?.toUpperCase().startsWith('MAM') ?? false) ? 'mam' :
+            c.name.toLowerCase().includes('chồi') || (c.code?.toUpperCase().startsWith('CHOI') ?? false) ? 'choi' :
+            c.name.toLowerCase().includes('lá') || (c.code?.toUpperCase().startsWith('LA') ?? false) ? 'la' : null
+          ),
+          maxStudents: c.maxStudents ?? null,
+        }));
         if (active) {
+          if (payload.role === 'admin' || payload.role === 'teacher') {
+            setUserRole(payload.role);
+          }
           setClassrooms(loadedClassrooms);
-          setSelectedCourseId((current) => current || loadedClassrooms[0]?.id || '');
+          const preferredCourseId = (courseParam && loadedClassrooms.some(c => c.id === courseParam))
+            ? courseParam
+            : (loadedClassrooms[0]?.id || '');
+          setSelectedCourseId((current) => current || preferredCourseId);
         }
       } catch (loadError) {
         if (active) setError(loadError instanceof Error ? loadError.message : 'Không tải được danh sách lớp');
@@ -306,7 +325,7 @@ function AttendancePageContent() {
 
     void loadClassrooms();
     return () => { active = false; };
-  }, []);
+  }, [courseParam]);
 
   const refreshRoster = useCallback(async (): Promise<boolean> => {
     const requestVersion = ++rosterRequestVersion.current;
@@ -456,9 +475,21 @@ function AttendancePageContent() {
                 <CalendarCheck className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                  Điểm Danh &amp; Đưa Đón Bé An Toàn
-                </h1>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                    Điểm Danh &amp; Đưa Đón Bé An Toàn
+                  </h1>
+                  {userRole === 'admin' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                      <ShieldCheck className="w-3 h-3" /> Toàn trường (Admin)
+                    </span>
+                  )}
+                  {userRole === 'teacher' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                      <CheckCircle2 className="w-3 h-3" /> Lớp phân công (Giáo viên)
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   Ghi nhận điểm danh hằng ngày từ danh sách học sinh đã enrollment thật
                 </p>
@@ -499,12 +530,30 @@ function AttendancePageContent() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
               <Link
                 href={`/dashboard/education/enrollments/${studentParam}`}
                 className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
               >
                 Xem Hồ Sơ 360°
+              </Link>
+              <Link
+                href={`/dashboard/education/grades?student=${studentParam}`}
+                className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+              >
+                Học Tập &amp; Hoạt Động
+              </Link>
+              <Link
+                href={`/dashboard/education/care?student=${studentParam}`}
+                className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+              >
+                Chăm Sóc &amp; Nuôi Dưỡng
+              </Link>
+              <Link
+                href={`/dashboard/education/communication?student=${studentParam}`}
+                className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+              >
+                Sổ Liên Lạc &amp; Trao Đổi
               </Link>
               <button
                 type="button"
@@ -728,16 +777,17 @@ function AttendancePageContent() {
             </button>
 
             {/* Handover filter */}
-            <select
+            <PreschoolSelect
               value={handoverFilter}
               aria-label="Lọc đưa đón"
               onChange={(e) => setHandoverFilter(e.target.value as typeof handoverFilter)}
-              className="px-2.5 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none"
+              className="py-1.5 text-[11px]"
+              wrapperClassName="shrink-0"
             >
               <option value="all">Đưa đón: Tất cả</option>
               <option value="handed_over">Đã bàn giao</option>
               <option value="pending">Chưa bàn giao</option>
-            </select>
+            </PreschoolSelect>
 
             {(search || statusFilter !== 'all' || handoverFilter !== 'all') && (
               <button
@@ -797,13 +847,28 @@ function AttendancePageContent() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50 text-xs text-gray-700 dark:text-gray-300">
-                {loadingRoster ? (
+                {loadingClassrooms ? (
                   <tr>
                     <td colSpan={4} className="py-8 px-5 text-center text-gray-500">
-                      <span className="inline-flex items-center gap-2">
+                      <span className="inline-flex items-center gap-2 text-primary font-semibold">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Đang tải danh sách lớp học...
+                      </span>
+                    </td>
+                  </tr>
+                ) : loadingRoster ? (
+                  <tr>
+                    <td colSpan={4} className="py-8 px-5 text-center text-gray-500">
+                      <span className="inline-flex items-center gap-2 text-primary font-semibold">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Đang tải danh sách thật...
                       </span>
+                    </td>
+                  </tr>
+                ) : !selectedCourseId ? (
+                  <tr>
+                    <td colSpan={4} className="py-8 px-5 text-center text-gray-500">
+                      Vui lòng chọn một lớp học để xem danh sách học sinh
                     </td>
                   </tr>
                 ) : filteredRoster.length === 0 ? (
@@ -919,7 +984,7 @@ function AttendancePageContent() {
             <div className="space-y-3">
               {paginatedHandoverRoster.length === 0 ? (
                 <div className="py-8 text-center text-xs text-gray-500 dark:text-gray-400">
-                  {loadingRoster ? 'Đang tải danh sách...' : 'Không có học sinh nào trong lớp/ngày này'}
+                  {loadingClassrooms ? 'Đang tải danh sách lớp...' : loadingRoster ? 'Đang tải danh sách học sinh...' : !selectedCourseId ? 'Vui lòng chọn lớp học' : 'Không có học sinh nào trong lớp/ngày này'}
                 </div>
               ) : (
                 paginatedHandoverRoster.map((row) => {
@@ -1050,21 +1115,22 @@ function PaginationControl({
           <strong className="text-slate-700 dark:text-slate-200">{startItem}–{endItem}</strong> / <strong className="text-slate-700 dark:text-slate-200">{totalItems}</strong> {itemLabel}
         </span>
         {onPageSizeChange && totalItems > 0 && (
-          <select
-            value={pageSize}
-            aria-label="Số lượng mỗi trang"
-            onChange={(e) => {
-              onPageSizeChange(Number(e.target.value));
-              onPageChange(1);
-            }}
-            className="ml-1 px-2 py-0.5 text-[11px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none"
-          >
-            {pageSizeOptions.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt >= 50 ? 'Tất cả' : `${opt}/trang`}
-              </option>
-            ))}
-          </select>
+          <PreschoolSelect
+              value={pageSize}
+              aria-label="Số lượng mỗi trang"
+              onChange={(e) => {
+                onPageSizeChange(Number(e.target.value));
+                onPageChange(1);
+              }}
+              className="py-1 text-[11px]"
+              wrapperClassName="ml-1 shrink-0"
+            >
+              {pageSizeOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt >= 50 ? 'Tất cả' : `${opt}/trang`}
+                </option>
+              ))}
+            </PreschoolSelect>
         )}
       </div>
 
@@ -1119,6 +1185,7 @@ function PaginationControl({
     </div>
   );
 }
+// Named export preserved for unit test compatibility.
 export function LegacyAttendancePage() {
   return (
     <Suspense
@@ -1133,6 +1200,18 @@ export function LegacyAttendancePage() {
   );
 }
 
+// Default export: full modern Preschool Attendance dashboard.
 export default function AttendancePage() {
-  return <PreschoolAttendance legacy={<LegacyAttendancePage />} />;
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <AttendancePageContent />
+    </Suspense>
+  );
 }
+

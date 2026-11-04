@@ -1,0 +1,7 @@
+FAIL src/platform/healthcare/__tests__/laboratory-engine.integration.test.ts
+  ● Laboratory Engine Integration Tests (6 Gates) › Gate 6 — Concurrent Verification: should defend against race conditions and enforce exactly one verification update
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 5 passed, 6 total
+Snapshots:   0 total
+Time:        1.814 s
+Ran all test suites within paths "src/platform/healthcare/__tests__/laboratory-engine.integration.test.ts".

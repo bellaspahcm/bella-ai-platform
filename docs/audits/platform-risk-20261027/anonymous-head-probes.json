@@ -1,0 +1,61 @@
+{
+  "projectRef": "lvnvkpyxtuilhrabtlwv",
+  "scope": "Read-only anonymous HEAD aggregate only; no business rows returned",
+  "results": [
+    {
+      "table": "auto_bookings_history",
+      "startedUtc": "2026-10-27T04:02:10.427Z",
+      "endedUtc": "2026-10-27T04:02:11.456Z",
+      "method": "HEAD",
+      "projection": "tenant_id",
+      "credentialClass": "public-anon",
+      "httpStatus": 200,
+      "contentRange": "0-59/60",
+      "bodyRetained": false
+    },
+    {
+      "table": "auto_customer_journeys_history",
+      "startedUtc": "2026-10-27T04:02:11.456Z",
+      "endedUtc": "2026-10-27T04:02:11.709Z",
+      "method": "HEAD",
+      "projection": "tenant_id",
+      "credentialClass": "public-anon",
+      "httpStatus": 200,
+      "contentRange": "0-3/4",
+      "bodyRetained": false
+    },
+    {
+      "table": "auto_vehicles_history",
+      "startedUtc": "2026-10-27T04:02:11.709Z",
+      "endedUtc": "2026-10-27T04:02:12.004Z",
+      "method": "HEAD",
+      "projection": "tenant_id",
+      "credentialClass": "public-anon",
+      "httpStatus": 200,
+      "contentRange": "*/0",
+      "bodyRetained": false
+    },
+    {
+      "table": "hc_temporal_events",
+      "startedUtc": "2026-10-27T04:02:12.004Z",
+      "endedUtc": "2026-10-27T04:02:12.370Z",
+      "method": "HEAD",
+      "projection": "tenant_id",
+      "credentialClass": "public-anon",
+      "httpStatus": 206,
+      "contentRange": "0-999/2111",
+      "bodyRetained": false
+    },
+    {
+      "table": "platform_metric_events_2026_10",
+      "startedUtc": "2026-10-27T04:02:12.370Z",
+      "endedUtc": "2026-10-27T04:02:12.732Z",
+      "method": "HEAD",
+      "projection": "tenant_id",
+      "credentialClass": "public-anon",
+      "httpStatus": 404,
+      "contentRange": null,
+      "bodyRetained": false
+    }
+  ]
+}

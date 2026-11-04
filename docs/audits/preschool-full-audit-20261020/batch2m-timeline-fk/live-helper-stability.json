@@ -1,0 +1,18 @@
+{
+  "at": "2026-10-21T02:26:43.416Z",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "readOnly": true,
+  "helpers": [
+    {
+      "function": "auth.uid()",
+      "provolatile": "s",
+      "prosecdef": false
+    },
+    {
+      "function": "get_auth_tenant_id()",
+      "provolatile": "s",
+      "prosecdef": true
+    }
+  ],
+  "result": "PASS_LIVE_STABLE_HELPERS_ONLY"
+}

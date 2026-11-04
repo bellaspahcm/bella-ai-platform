@@ -1,0 +1,6 @@
+{
+  "command": "npm run healthcare:verify",
+  "credentialsSupplied": false,
+  "finishedAt": "2026-10-21T03:37:29.8751481Z",
+  "actualNativeExitCode": 1
+}

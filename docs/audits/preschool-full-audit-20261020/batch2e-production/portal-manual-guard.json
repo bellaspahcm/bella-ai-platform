@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-10-20T22:43:38.652Z",
+  "command": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "scripts/architecture/git-pre-commit-guard.js"
+  ],
+  "exitCode": 0,
+  "purpose": "Existing filename-only guard over exact23 changed paths via baseline temporary index versus sealed HEAD; reverse delta has identical protected path set. Not historical pre-commit execution",
+  "files": [
+    "docs/audits/preschool-full-audit-20261020/batch2h-parent-access/ARCHITECTURE_GATE_RESULT.md",
+    "docs/audits/preschool-full-audit-20261020/batch2h-parent-access/FINAL_REPORT.md",
+    "docs/audits/preschool-full-audit-20261020/batch2h-parent-access/SPEC.md",
+    "docs/audits/preschool-full-audit-20261020/batch2h-parent-access/jest-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2h-parent-access/jest-results.json",
+    "docs/audits/preschool-full-audit-20261020/batch2h-parent-access/lint-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2h-parent-access/local-http.json",
+    "docs/audits/preschool-full-audit-20261020/batch2h-parent-access/review-results.json",
+    "docs/audits/preschool-full-audit-20261020/batch2h-parent-access/secrets-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2h-parent-access/source-manifest.json",
+    "docs/audits/preschool-full-audit-20261020/batch2h-parent-access/typecheck-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2h-parent-access/verification.json",
+    "docs/products/bella-preschool/AUTHORIZATION_CONTRACT.md",
+    "src/app/api/education/portal/[token]/chat/route.ts",
+    "src/app/api/education/portal/[token]/copilot/route.ts",
+    "src/app/api/education/portal/[token]/route.ts",
+    "src/app/api/education/portal/__tests__/access.test.ts",
+    "src/app/api/education/portal/token/__tests__/access.test.ts",
+    "src/app/api/education/portal/token/route.ts",
+    "src/products/bella-education/__tests__/preschool-parent-portal-security.test.ts",
+    "src/products/bella-education/__tests__/preschool-parent-portal.service.test.ts",
+    "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+    "src/products/bella-education/parent-portal/services/preschool-parent-portal.service.ts"
+  ],
+  "initialCommitHook": "NOT_RUN: configured .husky/_ shim was absent",
+  "normalPrepare": "npm run prepare native0 installed existing ignored Husky runtime, no tracked guard/policy/config value changes",
+  "hookShimNowPresent": true,
+  "realIndexUnchanged": true,
+  "headUnchanged": true,
+  "sourceCommit": "daf358e7a579f042a7417a7055e4f10fd02c2826",
+  "result": "PASS"
+}

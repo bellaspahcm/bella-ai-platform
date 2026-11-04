@@ -9,9 +9,11 @@
  * Historical health is read-only; medication is outside Preschool operations.
  */
 
-import { useState, useRef, useEffect, useMemo, useCallback, type ChangeEvent } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback, Suspense, type ChangeEvent } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { PreschoolSelect } from '@/components/ui/PreschoolSelect';
 import {
   ArrowLeft,
   Heart,
@@ -38,6 +40,8 @@ import {
   AlertCircle,
   Sparkles,
 } from 'lucide-react';
+import WeeklyMenuEditorModal from './WeeklyMenuEditorModal';
+import type { PreschoolWeeklyMenuDTO } from '@/products/bella-education/analytics/domain/preschool-analytics.types';
 import { saveCareRecords } from './care-save';
 import { useUser } from '@/lib/user-context';
 
@@ -128,6 +132,7 @@ function isCareRosterEntry(value: unknown): value is CareRosterEntry {
 /** Derived view model for care roster display */
 interface StudentCareItem {
   readonly id: string;
+  readonly studentCode?: string | null;
   readonly enrollmentId: string;
   readonly name: string;
   readonly avatarFallbackBg: string;
@@ -233,6 +238,7 @@ function mapCareRosterEntryToCareItem(entry: CareRosterEntry, index: number): St
 
     return {
       id: entry.studentPartyId,
+      studentCode: entry.studentCode ?? null,
       enrollmentId: entry.enrollmentId,
       name: safeName,
       avatarFallbackBg: getAvatarColor(index),
@@ -276,6 +282,7 @@ function mapCareRosterEntryToCareItem(entry: CareRosterEntry, index: number): St
 
   return {
     id: entry.studentPartyId,
+    studentCode: entry.studentCode ?? null,
     enrollmentId: entry.enrollmentId,
     name: safeName,
     avatarFallbackBg: getAvatarColor(index),
@@ -392,14 +399,19 @@ function LegacyCareView() {
 
 // ── Main Page Component ───────────────────────────────────────────────────────
 
-export default function CarePage() {
+function CarePageContent() {
   const { product, isLoading: isIdentityLoading } = useUser();
   const isPreschoolTenant = product?.productKey === 'bella_preschool';
+  const searchParams = useSearchParams();
+  const studentParam = searchParams ? searchParams.get('student') : null;
+  const [studentContextActive, setStudentContextActive] = useState(false);
   const [courses, setCourses] = useState<readonly CourseOption[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [selectedDate, setSelectedDate] = useState(() => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date()));
   const [activeTab, setActiveTab] = useState<CareTabKey>('overview');
   const [searchQuery, setSearchQuery] = useState('');
+  const studentContextGeneration = useRef(0);
+
   const [statusFilter, setStatusFilter] = useState<'all' | 'alert' | 'good'>('all');
   const [selectedStudentIds, setSelectedStudentIds] = useState<readonly string[]>([]);
   const [activeMenuStudentId, setActiveMenuStudentId] = useState<string | null>(null);
@@ -426,8 +438,54 @@ export default function CarePage() {
   const [quickNote, setQuickNote] = useState('');
   const [isSavingQuick, setIsSavingQuick] = useState(false);
 
+  useEffect(() => {
+    studentContextGeneration.current += 1;
+    setSearchQuery(studentParam?.trim() ?? '');
+    setStudentContextActive(Boolean(studentParam?.trim()));
+    setSelectedStudentIds([]);
+    setActiveMenuStudentId(null);
+    setEditingStudent(null);
+    setSelectedStudentForDetail(null);
+    setIsQuickRecordModalOpen(false);
+    setQuickMeal('ALL');
+    setQuickNap('DEEP');
+    setQuickHygiene('TOILET');
+    setQuickNote('');
+  }, [studentParam]);
+
   // Feedback Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Weekly Nutrition Menu Management
+  const [isWeeklyMenuModalOpen, setIsWeeklyMenuModalOpen] = useState(false);
+  const [currentWeeklyMenu, setCurrentWeeklyMenu] = useState<PreschoolWeeklyMenuDTO | null>(null);
+
+  const fetchWeeklyMenu = useCallback(async (targetDate: string) => {
+    try {
+      const res = await fetch(`/api/education/nutrition/weekly-menu?date=${targetDate}`, { cache: 'no-store' });
+      if (res.ok) {
+        const data: unknown = await res.json();
+        if (data && typeof data === 'object' && 'success' in data && data.success && 'menu' in data) {
+          setCurrentWeeklyMenu((data as { menu: PreschoolWeeklyMenuDTO | null }).menu);
+        }
+      }
+    } catch {
+      // Ignore network noise
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'meal' && selectedCourseId) {
+      void fetchWeeklyMenu(selectedDate);
+    }
+  }, [activeTab, selectedCourseId, selectedDate, fetchWeeklyMenu]);
+
+  const todayMenuDay = useMemo(() => {
+    if (!currentWeeklyMenu?.days) return null;
+    const parts = selectedDate.split('-');
+    const targetFormatted = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : '';
+    return currentWeeklyMenu.days.find((d) => d.dateStr === targetFormatted) || null;
+  }, [currentWeeklyMenu, selectedDate]);
 
   // Live roster from API
   const [roster, setRoster] = useState<readonly StudentCareItem[]>([]);
@@ -518,9 +576,22 @@ export default function CarePage() {
   const hygienePct = totalCount > 0 ? Math.round((roster.filter((s) => s.hygieneStatus === 'good').length / totalCount) * 100) : 0;
 
   // ── Filter roster ──────────────────────────────────────────────────────────
+  const studentContextMatches = useMemo(() => {
+    const selector = studentParam?.trim().toLowerCase();
+    if (!selector) return [];
+    const partyMatch = roster.find(student => student.id.toLowerCase() === selector);
+    if (partyMatch) return [partyMatch];
+    const codeMatches = roster.filter(student => student.studentCode?.toLowerCase() === selector);
+    return codeMatches.length === 1 ? codeMatches : [];
+  }, [roster, studentParam]);
+  const studentContextLabel = studentContextMatches.length === 1
+    ? studentContextMatches[0].name : studentParam ?? '';
+
   const filteredStudents = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
-    return roster.filter((s) => {
+    const inStudentContext = studentContextActive && Boolean(studentParam?.trim());
+    const q = inStudentContext ? '' : searchQuery.toLowerCase().trim();
+    const candidates = inStudentContext ? studentContextMatches : roster;
+    return candidates.filter((s) => {
       const matchesSearch =
         !q ||
         s.name.toLowerCase().includes(q) ||
@@ -531,7 +602,7 @@ export default function CarePage() {
         (statusFilter === 'good' && !s.isAlert);
       return matchesSearch && matchesStatus;
     });
-  }, [roster, searchQuery, statusFilter]);
+  }, [roster, searchQuery, statusFilter, studentContextActive, studentParam, studentContextMatches]);
 
   // ── Pagination ─────────────────────────────────────────────────────────────
   const totalPages = Math.max(1, Math.ceil(filteredStudents.length / PAGE_SIZE));
@@ -607,6 +678,7 @@ export default function CarePage() {
   // A server acknowledgement precedes every persisted UI success state.
   const handleSaveStudentCare = async () => {
     if (!editingStudent || isSavingCare || isSavingQuick) return;
+    const contextGeneration = studentContextGeneration.current;
     setIsSavingCare(true); setSaveError(null); setToastMessage(null);
     try {
       await saveCareRecords(selectedCourseId, selectedDate, [{
@@ -617,15 +689,17 @@ export default function CarePage() {
         note: editGeneralNote.trim(),
       }]);
       await loadRoster(selectedCourseId, selectedDate);
+      if (contextGeneration !== studentContextGeneration.current) return;
       setEditingStudent(null); setSelectedStudentForDetail(null);
       setToastMessage('Đã lưu nhật ký chăm sóc.');
     } catch {
-      setSaveError('Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.');
+      if (contextGeneration === studentContextGeneration.current) setSaveError('Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.');
     } finally { setIsSavingCare(false); }
   };
 
   const handleSaveQuickRecord = async () => {
     if (isSavingQuick || isSavingCare) return;
+    const contextGeneration = studentContextGeneration.current;
     setIsSavingQuick(true); setSaveError(null); setToastMessage(null);
     const ids = selectedStudentIds.length ? selectedStudentIds : roster.map(student => student.id);
     try {
@@ -634,10 +708,11 @@ export default function CarePage() {
         hygiene: { type: quickHygiene === 'ABNORMAL' ? 'BOWEL_MOVEMENT' : quickHygiene, notes: '' }, note: quickNote.trim(),
       })));
       await loadRoster(selectedCourseId, selectedDate);
+      if (contextGeneration !== studentContextGeneration.current) return;
       setIsQuickRecordModalOpen(false); setSelectedStudentIds([]);
       setToastMessage(`Đã lưu chăm sóc cho ${ids.length} trẻ.`);
     } catch {
-      setSaveError('Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.');
+      if (contextGeneration === studentContextGeneration.current) setSaveError('Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.');
     } finally { setIsSavingQuick(false); }
   };
 
@@ -685,19 +760,20 @@ export default function CarePage() {
         {/* Right: Class Selector + Date Picker */}
         <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
           <div className="bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs shadow-2xs">
-            <select
+            <PreschoolSelect
               aria-label="Lớp chăm sóc"
               disabled={isSavingCare || isSavingQuick}
               value={selectedCourseId}
               onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedCourseId(e.target.value)}
-              className="bg-transparent font-bold text-slate-800 dark:text-slate-200 outline-none cursor-pointer pr-1 text-xs"
+              className="py-1 text-xs font-bold"
+              wrapperClassName="shrink-0"
             >
               {courses.map((course) => (
                 <option key={course.id} value={course.id}>
                   {course.name}
                 </option>
               ))}
-            </select>
+            </PreschoolSelect>
           </div>
 
           <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs shadow-2xs">
@@ -854,6 +930,61 @@ export default function CarePage() {
         </div>
       </div>
 
+      {/* Active Student Context Banner */}
+      {studentParam && studentContextActive && (
+        <div className="p-4 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/50 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-[#0e5c43] text-white flex items-center justify-center font-bold shrink-0">
+              <Heart className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-extrabold text-slate-900 dark:text-white">
+                Đang lọc nhật ký chăm sóc theo học sinh: <span className="text-[#0e5c43] underline decoration-[#0e5c43]/40 font-bold">{studentContextLabel}</span> ({studentParam})
+              </p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Bộ lọc tìm kiếm đã được áp dụng. Bạn có thể theo dõi bữa ăn, giấc ngủ, vệ sinh hoặc chuyển nhanh sang các nghiệp vụ liên quan.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <Link
+              href={`/dashboard/education/enrollments/${studentParam}`}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+            >
+              Xem Hồ Sơ 360°
+            </Link>
+            <Link
+              href={`/dashboard/education/grades?student=${studentParam}`}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+            >
+              Học Tập &amp; Hoạt Động
+            </Link>
+            <Link
+              href={`/dashboard/education/attendance?student=${studentParam}`}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+            >
+              Điểm Danh &amp; Đón Trả
+            </Link>
+            <Link
+              href={`/dashboard/education/communication?student=${studentParam}`}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+            >
+              Sổ Liên Lạc &amp; Trao Đổi
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setStudentContextActive(false);
+              }}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-[#0e5c43] text-white hover:bg-[#0a4633] transition-all shadow-2xs"
+            >
+              Xem tất cả trẻ
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── 5. MAIN ROSTER TABLE CARD ── */}
       <div className="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 p-5 sm:p-6 shadow-xs space-y-4" ref={menuRef}>
         {/* Table Toolbar */}
@@ -890,22 +1021,35 @@ export default function CarePage() {
               <input
                 type="text"
                 placeholder="Tìm tên trẻ..."
-                value={searchQuery}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                value={studentContextActive ? studentContextLabel : searchQuery}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => { setSearchQuery(e.target.value); setStudentContextActive(false); }}
                 className="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-[#f8fafc] dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#0e5c43]"
               />
             </div>
 
             {/* Status Selector */}
-            <select
+            <PreschoolSelect
               value={statusFilter}
               onChange={(e: ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value as 'all' | 'alert' | 'good')}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 outline-none cursor-pointer"
+              aria-label="Lọc trạng thái chăm sóc"
+              className="py-1.5 text-xs font-medium"
+              wrapperClassName="shrink-0"
             >
               <option value="all">Tất cả trạng thái</option>
               <option value="alert">Cần chú ý</option>
               <option value="good">Bình thường</option>
-            </select>
+            </PreschoolSelect>
+
+            {/* Weekly Menu CTA */}
+            <button
+              type="button"
+              onClick={() => setIsWeeklyMenuModalOpen(true)}
+              className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+              title="Thiết lập và xem thực đơn tuần"
+            >
+              <Utensils className="w-3.5 h-3.5 text-[#0e5c43] dark:text-emerald-400" />
+              <span>Quản lý thực đơn</span>
+            </button>
 
             {/* Quick Record CTA */}
             <button
@@ -919,6 +1063,51 @@ export default function CarePage() {
             </button>
           </div>
         </div>
+
+        {/* Nutrition Menu Banner Card (shown in meal tab) */}
+        {activeTab === 'meal' && (
+          <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/40 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#0e5c43] text-white flex items-center justify-center font-bold shrink-0 shadow-2xs">
+                <Utensils className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-black text-slate-900 dark:text-white">
+                    {todayMenuDay ? `Thực đơn hôm nay (${todayMenuDay.dayLabel})` : 'Thực đơn tuần này'}
+                  </span>
+                  {currentWeeklyMenu && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+                      {currentWeeklyMenu.status === 'PUBLISHED' ? 'Đã ban hành' : 'Dự thảo'} • Tuần {currentWeeklyMenu.weekNumber}
+                    </span>
+                  )}
+                  {todayMenuDay?.caloriesKcal && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">
+                      {todayMenuDay.caloriesKcal} Kcal
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 line-clamp-1">
+                  {todayMenuDay
+                    ? `Món chính: ${todayMenuDay.summaryDishes}`
+                    : currentWeeklyMenu
+                    ? `Đã thiết lập thực đơn tuần (${currentWeeklyMenu.startDate} → ${currentWeeklyMenu.endDate}). Chọn xem chi tiết.`
+                    : 'Chưa có thực đơn tuần cho khoảng thời gian này. Bấm để thiết lập và công bố cho phụ huynh.'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsWeeklyMenuModalOpen(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{currentWeeklyMenu ? 'Quản lý thực đơn tuần' : 'Thiết lập thực đơn ngay'}</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Tab-specific context banner (shown for non-overview tabs) */}
         {activeTab !== 'overview' && (
@@ -1134,6 +1323,21 @@ export default function CarePage() {
                               <Plus className="w-3.5 h-3.5 text-slate-500" />
                               <span>Ghi nhận nhanh</span>
                             </button>
+                            <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
+                            <Link
+                              href={`/dashboard/education/enrollments/${student.studentCode || student.id}`}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-xs"
+                            >
+                              <Users className="w-3.5 h-3.5 text-slate-500" />
+                              <span>Xem Hồ Sơ 360°</span>
+                            </Link>
+                            <Link
+                              href={`/dashboard/education/grades?student=${student.studentCode || student.id}`}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-xs"
+                            >
+                              <Sparkles className="w-3.5 h-3.5 text-slate-500" />
+                              <span>Học Tập &amp; Hoạt Động</span>
+                            </Link>
                           </div>
                         )}
                       </td>
@@ -1323,30 +1527,32 @@ export default function CarePage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="care-meal" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Bữa ăn</label>
-                  <select
+                  <PreschoolSelect
                     id="care-meal"
                     value={quickMeal}
                     onChange={(e) => setQuickMeal(e.target.value as 'ALL' | 'HALF' | 'FEW' | 'NONE')}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                    wrapperClassName="w-full"
+                    className="w-full text-xs font-semibold py-2"
                   >
                     <option value="ALL">Ăn hết khẩu phần</option>
                     <option value="HALF">Ăn 1/2 khẩu phần</option>
                     <option value="FEW">Ăn ít khẩu phần</option>
                     <option value="NONE">Không ăn / Bỏ bữa</option>
-                  </select>
+                  </PreschoolSelect>
                 </div>
                 <div>
                   <label htmlFor="care-nap" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Giấc ngủ trưa</label>
-                  <select
+                  <PreschoolSelect
                     id="care-nap"
                     value={quickNap}
                     onChange={(e) => setQuickNap(e.target.value as 'DEEP' | 'RESTLESS' | 'REFUSED')}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                    wrapperClassName="w-full"
+                    className="w-full text-xs font-semibold py-2"
                   >
                     <option value="DEEP">Ngủ ngoan (120 phút)</option>
                     <option value="RESTLESS">Ngủ ít (60 phút)</option>
                     <option value="REFUSED">Khó ngủ / Không ngủ</option>
-                  </select>
+                  </PreschoolSelect>
                 </div>
               </div>
 
@@ -1358,16 +1564,17 @@ export default function CarePage() {
                 </div>
                 <div>
                   <label htmlFor="care-hygiene" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Vệ sinh cá nhân</label>
-                  <select
+                  <PreschoolSelect
                     id="care-hygiene"
                     value={quickHygiene}
                     onChange={(e) => setQuickHygiene(e.target.value as 'TOILET' | 'DIAPER' | 'ABNORMAL')}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                    wrapperClassName="w-full"
+                    className="w-full text-xs font-semibold py-2"
                   >
                     <option value="TOILET">Bình thường / Tốt</option>
                     <option value="DIAPER">Đã thay tã / quần áo</option>
                     <option value="ABNORMAL">Tiêu chảy / Bất thường</option>
-                  </select>
+                  </PreschoolSelect>
                 </div>
               </div>
 
@@ -1456,6 +1663,20 @@ export default function CarePage() {
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <Link
+                href={`/dashboard/education/enrollments/${selectedStudentForDetail.studentCode || selectedStudentForDetail.id}`}
+                className="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors inline-flex items-center gap-1.5"
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Hồ Sơ 360°</span>
+              </Link>
+              <Link
+                href={`/dashboard/education/grades?student=${selectedStudentForDetail.studentCode || selectedStudentForDetail.id}`}
+                className="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors inline-flex items-center gap-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Học Tập</span>
+              </Link>
               <button
                 type="button"
                 onClick={() => setSelectedStudentForDetail(null)}
@@ -1663,6 +1884,17 @@ export default function CarePage() {
         </div>
       )}
 
+      {/* ── 12. WEEKLY NUTRITION MENU EDITOR MODAL ── */}
+      <WeeklyMenuEditorModal
+        isOpen={isWeeklyMenuModalOpen}
+        onClose={() => setIsWeeklyMenuModalOpen(false)}
+        initialDate={selectedDate}
+        onSaved={(savedMenu) => {
+          setCurrentWeeklyMenu(savedMenu);
+          setToastMessage('Thực đơn dinh dưỡng tuần đã được cập nhật thành công!');
+        }}
+      />
+
       {/* ── 11. FLOATING TOAST NOTIFICATION ── */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-[#0e5c43] text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 animate-in slide-in-from-bottom-4 duration-200 text-xs font-bold border border-emerald-500/30">
@@ -1678,5 +1910,19 @@ export default function CarePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CarePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-[#0e5c43]" />
+        </div>
+      }
+    >
+      <CarePageContent />
+    </Suspense>
   );
 }

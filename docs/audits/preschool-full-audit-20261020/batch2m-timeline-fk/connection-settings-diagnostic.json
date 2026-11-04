@@ -1,0 +1,13 @@
+{
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "at": "2026-10-21T02:12:02.042Z",
+  "readOnly": true,
+  "settings": {
+    "statement_timeout": "2min",
+    "lock_timeout": "0",
+    "application_name": "Supavisor",
+    "server_version_num": "170006"
+  },
+  "result": "PASS_CONNECT_AND_METADATA_ONLY",
+  "durationMs": 688
+}

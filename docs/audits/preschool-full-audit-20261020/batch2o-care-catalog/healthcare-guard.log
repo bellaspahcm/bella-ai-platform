@@ -1,0 +1,12 @@
+
+> bella-spa-erp@0.1.0 healthcare:guard
+> npx tsx scripts/healthcare/architecture-guard.ts
+
+
+[36m===============================================================[0m
+[36m   BELLA HEALTHCARE OS — AUTOMATED MACHINE ARCHITECTURE GUARD   [0m
+[36m===============================================================[0m
+
+[32m✔ ARCHITECTURE GUARD PASSED: ZERO VIOLATIONS DETECTED.[0m
+[32m  Healthcare OS Kernel Candidate Freeze H1–H12 Integrity Confirmed.[0m
+

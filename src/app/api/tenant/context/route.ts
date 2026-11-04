@@ -255,6 +255,55 @@ type TenantRow = Database['public']['Tables']['tenants']['Row'];
  */
 export async function GET(request: NextRequest) {
   try {
+    // ──────────────────────────────────────────────────────────────────────────
+    // DEV MOCK BYPASS — mirrors proxy.ts `isMockDev` pattern.
+    // Only active when NODE_ENV=development AND mock_user_email cookie is set.
+    // Uses service_role key (same as middleware) to resolve user + tenant.
+    // ──────────────────────────────────────────────────────────────────────────
+    if (process.env.NODE_ENV === 'development') {
+      const cookieStore = await cookies();
+      const mockEmail = cookieStore.get('mock_user_email')?.value;
+      if (mockEmail) {
+        const { getSupabaseAdminKey, getSupabaseAdminUrl } = await import('@/lib/supabase-admin-env');
+        const adminKey = getSupabaseAdminKey();
+        const adminUrl = getSupabaseAdminUrl();
+        if (adminKey && adminUrl) {
+          const { createClient: createAdmin } = await import('@supabase/supabase-js');
+          const adminClient = createAdmin<Database>(adminUrl, adminKey, {
+            auth: { persistSession: false, autoRefreshToken: false },
+          });
+          // Resolve user row by email (service role — same as middleware)
+          const { data: userRow } = await adminClient
+            .from('users')
+            .select('tenant_id')
+            .eq('email', mockEmail)
+            .single();
+          if (userRow?.tenant_id) {
+            const { data: tenant } = await adminClient
+              .from('tenants')
+              .select('*')
+              .eq('id', userRow.tenant_id)
+              .eq('status', 'active')
+              .single();
+            if (tenant) {
+              return NextResponse.json(transformTenantRowToContext(tenant as TenantRow), {
+                status: 200,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Cache-Control': 'no-store, no-cache, must-revalidate',
+                },
+              });
+            }
+          }
+          // If mock user/tenant not found, fall through to 401
+          return NextResponse.json(
+            { error: 'Dev mock: email not found or no active tenant — check mock_user_email cookie' },
+            { status: 401 },
+          );
+        }
+      }
+    }
+
     const supabase = await createRouteHandlerClient();
     const { user, authError, queryClient } = await resolveAuthenticatedUser(request, supabase);
     if (authError || !user) {

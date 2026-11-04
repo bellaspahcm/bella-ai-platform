@@ -1,0 +1,620 @@
+diff --git a/src/app/api/education/courses/[id]/route.ts b/src/app/api/education/courses/[id]/route.ts
+index 3d5e68bac..cf4ed0226 100644
+--- a/src/app/api/education/courses/[id]/route.ts
++++ b/src/app/api/education/courses/[id]/route.ts
+@@ -1,60 +1,19 @@
+ import { NextResponse } from 'next/server';
+-import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
+-import { createClient } from '@/lib/supabase-server';
+-import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
+ import { TeacherAssignmentContractImpl } from '@/platform/education/contracts/teacher-assignment.contract.impl';
+-import { getCurrentUser } from '@/services/user-actions';
+-import type { Database } from '@/types/database.types';
++import { COURSE_PRIVATE_HEADERS, resolveCourseReadContext } from '../request-context';
+ 
+-type EducationCourseDetailClient = SupabaseClient<Database>;
++export const dynamic = 'force-dynamic';
+ const ROSTER_ENROLLMENT_STATUSES = ['active', 'pending'] as const;
+ 
+-function getDevMockEmail(request: Request): string {
+-  if (process.env.NODE_ENV !== 'development') return '';
+-  return request.headers.get('x-mock-user-email')?.trim() ?? '';
+-}
+-
+-function createDevMockClient(mockEmail: string): EducationCourseDetailClient | null {
+-  if (!mockEmail) return null;
+-  const adminUrl = getSupabaseAdminUrl();
+-  const adminKey = getSupabaseAdminKey();
+-  if (!adminUrl || !adminKey) return null;
+-
+-  return createSupabaseClient<Database>(adminUrl, adminKey, {
+-    auth: { persistSession: false, autoRefreshToken: false },
+-  });
+-}
+-
+-async function getTenantIdForCourseDetail(
+-  supabase: EducationCourseDetailClient,
+-  request: Request,
+-): Promise<string> {
+-  const { searchParams } = new URL(request.url);
+-  const explicitTenantId = searchParams.get('tenantId');
+-  if (explicitTenantId) return explicitTenantId;
+-
+-  const mockEmail = getDevMockEmail(request);
+-  if (mockEmail) {
+-    const { data: mockUser } = await supabase
+-      .from('users')
+-      .select('tenant_id')
+-      .eq('email', mockEmail)
+-      .maybeSingle();
+-    if (mockUser?.tenant_id) return mockUser.tenant_id;
+-  }
+-
+-  const currentUser = await getCurrentUser();
+-  return currentUser?.tenant_id || '00000000-0000-0000-0000-000000000001';
+-}
+-
+ export async function GET(
+   request: Request,
+   { params }: { params: Promise<{ id: string }> }
+ ) {
+   try {
++    const context = await resolveCourseReadContext(request);
++    if (!context.allowed) return context.response;
++    const { supabase, tenantId } = context;
+     const { id: courseId } = await params;
+-    const supabase = createDevMockClient(getDevMockEmail(request)) ?? await createClient();
+-    const tenantId = await getTenantIdForCourseDetail(supabase, request);
+ 
+     // 1. Fetch Course details
+     const { data: course, error: courseErr } = await supabase
+@@ -65,7 +24,7 @@ export async function GET(
+       .single();
+ 
+     if (courseErr || !course) {
+-      return NextResponse.json({ success: false, error: 'Lớp học không tồn tại' }, { status: 404 });
++      return NextResponse.json({ success: false, error: 'Lớp học không tồn tại' }, { status: 404, headers: COURSE_PRIVATE_HEADERS });
+     }
+ 
+     // 2. Fetch Assigned Teachers via Public Contract
+@@ -78,6 +37,7 @@ export async function GET(
+       const { data: parties } = await supabase
+         .from('party_parties')
+         .select('id, display_name')
++        .eq('tenant_id', tenantId)
+         .in('id', partyIds);
+ 
+       const partyMap = new Map((parties || []).map(p => [p.id, p.display_name]));
+@@ -172,9 +132,9 @@ export async function GET(
+         teacherSummary: teacherList.map(t => `${t.name} (${t.roleDisplay})`).join(' & ') || 'Chưa phân công GVN',
+         roster: studentRoster,
+       },
+-    });
++    }, { headers: COURSE_PRIVATE_HEADERS });
+   } catch (err) {
+     const message = err instanceof Error ? err.message : 'Unknown error';
+-    return NextResponse.json({ success: false, error: message }, { status: 500 });
++    return NextResponse.json({ success: false, error: message }, { status: 500, headers: COURSE_PRIVATE_HEADERS });
+   }
+ }
+diff --git a/src/app/api/education/courses/__tests__/route.test.ts b/src/app/api/education/courses/__tests__/route.test.ts
+index 19b873264..827b42d30 100644
+--- a/src/app/api/education/courses/__tests__/route.test.ts
++++ b/src/app/api/education/courses/__tests__/route.test.ts
+@@ -1,12 +1,21 @@
+ import { describe, expect, it, jest, beforeEach } from '@jest/globals';
+ 
+-const mockFrom = jest.fn();
+-const mockGetCurrentUser = jest.fn();
+-const mockGetCourseTeachers = jest.fn();
++const mockFrom = jest.fn<(table: string) => unknown>();
++const mockGetAuthUser = jest.fn<() => Promise<{
++  data: { user: { id: string } | null };
++  error: { message: string } | null;
++}>>();
++const mockGetCurrentUser = jest.fn<() => Promise<{
++  id: string;
++  tenant_id: string;
++  status: string;
++} | null>>();
++const mockGetCourseTeachers = jest.fn<() => Promise<unknown[]>>();
+ 
+ jest.mock('@/lib/supabase-server', () => ({
+   createClient: () => ({
+     from: mockFrom,
++    auth: { getUser: mockGetAuthUser },
+   }),
+ }));
+ 
+@@ -25,11 +34,13 @@ const { GET, POST } = require('../route') as typeof import('../route');
+ 
+ const tenantId = '00000000-0000-0000-0000-0000000000aa';
+ const courseId = '00000000-0000-0000-0000-0000000000cc';
++const authUserId = '00000000-0000-0000-0000-0000000000dd';
+ 
+ describe('/api/education/courses canonical classroom route', () => {
+   beforeEach(() => {
+     jest.clearAllMocks();
+-    mockGetCurrentUser.mockResolvedValue({ tenant_id: tenantId });
++    mockGetAuthUser.mockResolvedValue({ data: { user: { id: authUserId } }, error: null });
++    mockGetCurrentUser.mockResolvedValue({ id: authUserId, tenant_id: tenantId, status: 'active' });
+     mockGetCourseTeachers.mockResolvedValue([]);
+   });
+ 
+@@ -139,6 +150,7 @@ describe('/api/education/courses canonical classroom route', () => {
+     })]);
+     expect(queriedTables[0]).toBe('edu_courses');
+     expect(queriedTables).toContain('courses');
++    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+   });
+ 
+   it('correctly maps gradeKey for all preschool grades including nursery (Nhà Trẻ)', async () => {
+@@ -271,24 +283,14 @@ describe('/api/education/courses canonical classroom route', () => {
+       throw new Error(`Unexpected table access in courses POST test: ${table}`);
+     });
+ 
+-    const post: (request: Request) => Promise<Response> = POST;
+-    const response = await post(new Request('http://localhost/api/education/courses', {
+-      method: 'POST',
+-      headers: { 'Content-Type': 'application/json' },
+-      body: JSON.stringify({
+-        tenantId,
+-        courseCode: 'MAM-A1',
+-        courseName: 'Lớp Mầm A1',
+-        maxStudents: 25,
+-        room: 'Phòng 105',
+-      }),
+-    }));
++    const response = await POST();
+     const body = await response.json();
+ 
+     expect(response.status).toBe(503);
+     expect(body.success).toBe(false);
+     expect(body.error).toBe('COURSE_AUTHORIZATION_NOT_READY');
+     expect(mockGetCurrentUser).not.toHaveBeenCalled();
++    expect(mockGetAuthUser).not.toHaveBeenCalled();
+     expect(mockFrom).not.toHaveBeenCalled();
+     expect(mockGetCourseTeachers).not.toHaveBeenCalled();
+     expect(deletedCourseIds).toEqual([]);
+diff --git a/src/app/api/education/courses/route.ts b/src/app/api/education/courses/route.ts
+index 384615063..67c5eb7db 100644
+--- a/src/app/api/education/courses/route.ts
++++ b/src/app/api/education/courses/route.ts
+@@ -1,13 +1,10 @@
+ import { NextResponse } from 'next/server';
+-import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
+ import { getLocalDateString } from '@bella/shared';
+-import { createClient } from '@/lib/supabase-server';
+-import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
+ import { TeacherAssignmentContractImpl } from '@/platform/education/contracts/teacher-assignment.contract.impl';
+-import { getCurrentUser } from '@/services/user-actions';
+ import type { Database } from '@/types/database.types';
++import { COURSE_PRIVATE_HEADERS, resolveCourseReadContext } from './request-context';
+ 
+-type EducationCoursesClient = SupabaseClient<Database>;
++export const dynamic = 'force-dynamic';
+ type EduCourseRow = Pick<
+   Database['public']['Tables']['edu_courses']['Row'],
+   'id' | 'course_code' | 'title' | 'status' | 'max_students' | 'current_enrollment' | 'created_at'
+@@ -43,22 +40,6 @@ export interface ClassroomOverviewItem {
+   };
+ }
+ 
+-function getDevMockEmail(request: Request): string {
+-  if (process.env.NODE_ENV !== 'development') return '';
+-  return request.headers.get('x-mock-user-email')?.trim() ?? '';
+-}
+-
+-function createAdminOperationClient(): EducationCoursesClient | null {
+-  if (process.env.NODE_ENV === 'test') return null;
+-  const adminUrl = getSupabaseAdminUrl();
+-  const adminKey = getSupabaseAdminKey();
+-  if (!adminUrl || !adminKey) return null;
+-
+-  return createSupabaseClient<Database>(adminUrl, adminKey, {
+-    auth: { persistSession: false, autoRefreshToken: false },
+-  });
+-}
+-
+ function readMetadataString(metadata: CourseProjectionRow['metadata'], key: string): string {
+   if (!metadata || Array.isArray(metadata) || typeof metadata !== 'object') {
+     return '';
+@@ -69,40 +50,11 @@ function readMetadataString(metadata: CourseProjectionRow['metadata'], key: stri
+   return typeof value === 'string' ? value : '';
+ }
+ 
+-async function getTenantIdForCourses(
+-  supabase: EducationCoursesClient,
+-  request: Request,
+-): Promise<string> {
+-  const { searchParams } = new URL(request.url);
+-  const explicitTenantId = searchParams.get('tenantId');
+-  if (explicitTenantId) return explicitTenantId;
+-
+-  const mockEmail = getDevMockEmail(request);
+-  if (mockEmail) {
+-    const { data: mockUser } = await supabase
+-      .from('users')
+-      .select('tenant_id')
+-      .eq('email', mockEmail)
+-      .maybeSingle();
+-    if (mockUser?.tenant_id) return mockUser.tenant_id;
+-  }
+-
+-  const currentUser = await getCurrentUser();
+-  if (currentUser?.tenant_id && currentUser.tenant_id !== '00000000-0000-0000-0000-000000000001') {
+-    return currentUser.tenant_id;
+-  }
+-
+-  if (process.env.NODE_ENV === 'development') {
+-    return 'ed100000-0000-0000-0000-000000000001';
+-  }
+-
+-  return currentUser?.tenant_id || '00000000-0000-0000-0000-000000000001';
+-}
+-
+ export async function GET(request: Request) {
+   try {
+-    const supabase = createAdminOperationClient() ?? await createClient();
+-    const tenantId = await getTenantIdForCourses(supabase, request);
++    const context = await resolveCourseReadContext(request);
++    if (!context.allowed) return context.response;
++    const { supabase, tenantId } = context;
+ 
+     const { searchParams } = new URL(request.url);
+     const targetDate = searchParams.get('date') || getLocalDateString(new Date()) || '2026-10-18';
+@@ -115,7 +67,7 @@ export async function GET(request: Request) {
+       .order('created_at', { ascending: false });
+ 
+     if (courseErr) {
+-      return NextResponse.json({ success: false, error: courseErr.message }, { status: 500 });
++      return NextResponse.json({ success: false, error: courseErr.message }, { status: 500, headers: COURSE_PRIVATE_HEADERS });
+     }
+ 
+     const teacherContract = new TeacherAssignmentContractImpl(supabase);
+@@ -130,7 +82,7 @@ export async function GET(request: Request) {
+       : { data: [] as CourseProjectionRow[], error: null };
+ 
+     if (projectionErr) {
+-      return NextResponse.json({ success: false, error: projectionErr.message }, { status: 500 });
++      return NextResponse.json({ success: false, error: projectionErr.message }, { status: 500, headers: COURSE_PRIVATE_HEADERS });
+     }
+ 
+     const projectionByCourseId = new Map(
+@@ -156,6 +108,7 @@ export async function GET(request: Request) {
+         const { data: parties } = await supabase
+           .from('party_parties')
+           .select('id, display_name')
++          .eq('tenant_id', tenantId)
+           .in('id', partyIds);
+ 
+         const partyMap = new Map((parties || []).map(p => [p.id, p.display_name]));
+@@ -305,10 +258,10 @@ export async function GET(request: Request) {
+       });
+     }
+ 
+-    return NextResponse.json({ success: true, classrooms });
++    return NextResponse.json({ success: true, classrooms }, { headers: COURSE_PRIVATE_HEADERS });
+   } catch (err) {
+     const message = err instanceof Error ? err.message : 'Unknown error';
+-    return NextResponse.json({ success: false, error: message }, { status: 500 });
++    return NextResponse.json({ success: false, error: message }, { status: 500, headers: COURSE_PRIVATE_HEADERS });
+   }
+ }
+ 
+
+diff --git a/src/app/api/education/courses/request-context.ts b/src/app/api/education/courses/request-context.ts
+new file mode 100644
+index 000000000..f90418762
+--- /dev/null
++++ b/src/app/api/education/courses/request-context.ts
+@@ -0,0 +1,44 @@
++import { NextResponse } from 'next/server';
++import { createClient } from '@/lib/supabase-server';
++import { getCurrentUser } from '@/services/user-actions';
++
++export const COURSE_PRIVATE_HEADERS = { 'Cache-Control': 'private, no-store' };
++
++type CourseReadContext =
++  | {
++    allowed: true;
++    supabase: Awaited<ReturnType<typeof createClient>>;
++    tenantId: string;
++  }
++  | { allowed: false; response: NextResponse };
++
++function deny(status: 401 | 403, error: string): CourseReadContext {
++  return {
++    allowed: false,
++    response: NextResponse.json({ success: false, error }, {
++      status,
++      headers: COURSE_PRIVATE_HEADERS,
++    }),
++  };
++}
++
++export async function resolveCourseReadContext(request: Request): Promise<CourseReadContext> {
++  const supabase = await createClient();
++  const { data: { user }, error } = await supabase.auth.getUser();
++  if (error || !user) return deny(401, 'COURSE_UNAUTHENTICATED');
++
++  // Verify Auth before calling the profile resolver, which has a development mock path.
++  const profile = await getCurrentUser();
++  const tenantId = profile?.tenant_id?.trim();
++  if (!profile || profile.id !== user.id || !('status' in profile) || profile.status !== 'active' || !tenantId) {
++    return deny(403, 'COURSE_ACCESS_DENIED');
++  }
++
++  const requestedTenants = new URL(request.url).searchParams.getAll('tenantId');
++  if (requestedTenants.some((requestedTenant) => requestedTenant !== tenantId)) {
++    return deny(403, 'TENANT_ISOLATION_VIOLATION');
++  }
++
++  // RLS remains authoritative for these reads; this does not establish a full role/branch matrix.
++  return { allowed: true, supabase, tenantId };
++}
+
+diff --git a/src/app/api/education/courses/__tests__/access.test.ts b/src/app/api/education/courses/__tests__/access.test.ts
+new file mode 100644
+index 000000000..d7f669dc2
+--- /dev/null
++++ b/src/app/api/education/courses/__tests__/access.test.ts
+@@ -0,0 +1,164 @@
++import { beforeEach, describe, expect, it, jest } from '@jest/globals';
++
++interface AuthResult {
++  data: { user: { id: string } | null };
++  error: { message: string } | null;
++}
++
++interface Profile {
++  id: string;
++  tenant_id: string | null;
++  status: string;
++}
++
++const mockGetUser = jest.fn<() => Promise<AuthResult>>();
++const mockGetCurrentUser = jest.fn<() => Promise<Profile | null>>();
++const mockFrom = jest.fn<(table: string) => unknown>();
++const mockGetCourseTeachers = jest.fn<() => Promise<unknown[]>>();
++const mockClient = { auth: { getUser: mockGetUser }, from: mockFrom };
++
++jest.mock('@/lib/supabase-server', () => ({ createClient: () => mockClient }));
++jest.mock('@/services/user-actions', () => ({ getCurrentUser: mockGetCurrentUser }));
++jest.mock('@/platform/education/contracts/teacher-assignment.contract.impl', () => ({
++  TeacherAssignmentContractImpl: jest.fn().mockImplementation(() => ({
++    getCourseTeachers: mockGetCourseTeachers,
++  })),
++}));
++
++const { GET: listCourses } = require('../route') as typeof import('../route');
++const { GET: getCourse } = require('../[id]/route') as typeof import('../[id]/route');
++const { resolveCourseReadContext } = require('../request-context') as typeof import('../request-context');
++
++const userId = '00000000-0000-0000-0000-000000000011';
++const tenantId = '00000000-0000-0000-0000-000000000022';
++const foreignTenantId = '00000000-0000-0000-0000-000000000033';
++const courseId = '00000000-0000-0000-0000-000000000044';
++const profile: Profile = { id: userId, tenant_id: tenantId, status: 'active' };
++const handlers: ReadonlyArray<readonly [string, (request: Request) => Promise<Response>]> = [
++  ['list', (request) => listCourses(request)],
++  ['detail', (request) => getCourse(request, { params: Promise.resolve({ id: courseId }) })],
++];
++
++beforeEach(() => {
++  jest.clearAllMocks();
++  mockGetUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
++  mockGetCurrentUser.mockResolvedValue(profile);
++  mockGetCourseTeachers.mockResolvedValue([]);
++});
++
++for (const [label, invoke] of handlers) {
++  describe(`Courses ${label} request boundary`, () => {
++    async function expectDenied(request: Request, status: number, error: string) {
++      const response = await invoke(request);
++      expect(response.status).toBe(status);
++      expect(await response.json()).toEqual({ success: false, error });
++      expect(response.headers.get('Cache-Control')).toBe('private, no-store');
++      expect(mockFrom).not.toHaveBeenCalled();
++      expect(mockGetCourseTeachers).not.toHaveBeenCalled();
++    }
++
++    it('rejects anonymous tenant and mock-role selectors before profile or classroom reads', async () => {
++      mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
++      await expectDenied(new Request(`http://localhost/api/education/courses?tenantId=${tenantId}`, {
++        headers: { 'x-mock-user-email': 'admin@example.test', 'x-mock-role': 'admin' },
++      }), 401, 'COURSE_UNAUTHENTICATED');
++      expect(mockGetCurrentUser).not.toHaveBeenCalled();
++    });
++
++    it('rejects an Auth validation error even if a user object was returned', async () => {
++      mockGetUser.mockResolvedValue({ data: { user: { id: userId } }, error: { message: 'Invalid token' } });
++      await expectDenied(new Request('http://localhost/api/education/courses'), 401, 'COURSE_UNAUTHENTICATED');
++      expect(mockGetCurrentUser).not.toHaveBeenCalled();
++    });
++
++    it.each([
++      ['missing', null],
++      ['inactive', { ...profile, status: 'inactive' }],
++      ['foreign Auth subject', { ...profile, id: 'another-auth-user' }],
++      ['missing tenant', { ...profile, tenant_id: null }],
++      ['blank tenant', { ...profile, tenant_id: '  ' }],
++    ] as const)('rejects a %s profile before classroom reads', async (_label, invalidProfile) => {
++      mockGetCurrentUser.mockResolvedValue(invalidProfile);
++      await expectDenied(new Request('http://localhost/api/education/courses'), 403, 'COURSE_ACCESS_DENIED');
++    });
++
++    it('rejects a foreign tenant selector instead of switching the data client tenant', async () => {
++      await expectDenied(new Request(`http://localhost/api/education/courses?tenantId=${foreignTenantId}`), 403, 'TENANT_ISOLATION_VIOLATION');
++    });
++
++    it('rejects a conflicting duplicate selector even when the first tenant matches', async () => {
++      await expectDenied(new Request(`http://localhost/api/education/courses?tenantId=${tenantId}&tenantId=${foreignTenantId}`), 403, 'TENANT_ISOLATION_VIOLATION');
++    });
++  });
++}
++
++describe('Courses verified session reads', () => {
++  it('returns the same session client after Auth/profile and matching selector validation', async () => {
++    const context = await resolveCourseReadContext(new Request(`http://localhost/api/education/courses?tenantId=${tenantId}`));
++    expect(context.allowed).toBe(true);
++    if (!context.allowed) throw new Error('Expected verified read context');
++    expect(context.supabase).toBe(mockClient);
++    expect(context.tenantId).toBe(tenantId);
++    expect(mockFrom).not.toHaveBeenCalled();
++  });
++
++  it('reads the existing detail projection through the session client scoped to the verified tenant', async () => {
++    const filters: Array<{ table: string; column: string; value: string }> = [];
++    mockFrom.mockImplementation((table: string) => {
++      const chain = {
++        select: () => chain,
++        eq: (column: string, value: string) => {
++          filters.push({ table, column, value });
++          return chain;
++        },
++        single: async () => ({ data: {
++          course_id: courseId, course_code: 'MAM-1', course_name: 'Lớp Mầm',
++          description: 'Khối Mầm', metadata: { room: 'Phòng 3' }, duration_weeks: 25,
++        }, error: null }),
++        in: async () => ({ data: [], error: null }),
++      };
++      return chain;
++    });
++    const response = await getCourse(new Request(`http://localhost/api/education/courses/${courseId}?tenantId=${tenantId}`), {
++      params: Promise.resolve({ id: courseId }),
++    });
++    expect(response.status).toBe(200);
++    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
++    expect((await response.json()).classroom).toEqual(expect.objectContaining({
++      id: courseId, code: 'MAM-1', name: 'Lớp Mầm', room: 'Phòng 3',
++      currentStudents: 0, maxStudents: 25, teachers: [], roster: [],
++    }));
++    expect(filters).toContainEqual({ table: 'courses', column: 'tenant_id', value: tenantId });
++    expect(filters).toContainEqual({ table: 'edu_enrollments', column: 'tenant_id', value: tenantId });
++  });
++
++  it('adds the verified tenant fence to teacher Party reads in both handlers', async () => {
++    mockGetCourseTeachers.mockResolvedValue([{ teacherPartyId: 'teacher-party', role: 'lead_teacher' }]);
++    const filters: Array<{ table: string; column: string; value: string }> = [];
++    const values: Record<string, unknown[]> = {
++      edu_courses: [{ id: courseId, course_code: 'MAM-1', title: 'Lớp Mầm', status: 'active', max_students: 25, current_enrollment: 0 }],
++      courses: [{ course_id: courseId, course_name: 'Lớp Mầm', metadata: {}, status: 'active' }],
++      party_parties: [{ id: 'teacher-party', display_name: 'Giáo viên' }],
++      edu_enrollments: [],
++    };
++    mockFrom.mockImplementation((table: string) => {
++      const result = { data: values[table] ?? [], error: null, count: 0 };
++      const chain = {
++        select: () => chain,
++        eq: (column: string, value: string) => { filters.push({ table, column, value }); return chain; },
++        in: async () => result,
++        order: async () => result,
++        single: async () => ({ data: values[table]?.[0] ?? null, error: null }),
++      };
++      return chain;
++    });
++    const list = await listCourses(new Request('http://localhost/api/education/courses'));
++    expect(list.status).toBe(200);
++    const detail = await getCourse(new Request(`http://localhost/api/education/courses/${courseId}`), { params: Promise.resolve({ id: courseId }) });
++    expect(detail.status).toBe(200);
++    expect(filters.filter((filter) => filter.table === 'party_parties')).toEqual([
++      { table: 'party_parties', column: 'tenant_id', value: tenantId },
++      { table: 'party_parties', column: 'tenant_id', value: tenantId },
++    ]);
++  });
++});
+
+diff --git a/docs/audits/preschool-full-audit-20261020/batch2b/build-rpc.cjs b/docs/audits/preschool-full-audit-20261020/batch2b/build-rpc.cjs
+new file mode 100644
+index 000000000..88dedac41
+--- /dev/null
++++ b/docs/audits/preschool-full-audit-20261020/batch2b/build-rpc.cjs
+@@ -0,0 +1,19 @@
++const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');const d=__dirname,old=path.join(d,'../batch2a-rpc-20261021'),read=f=>JSON.parse(fs.readFileSync(f,'utf8').replace(/^\uFEFF/,'')),canon=x=>Array.isArray(x)?x.map(canon):x&&typeof x==='object'?Object.fromEntries(Object.keys(x).sort().map(k=>[k,canon(x[k])])):x,lit=s=>"'"+s.replaceAll("'","''")+"'",q=s=>'"'+s.replaceAll('"','""')+'"';
++const current=read(path.join(d,'pre-catalog-cli.json')).rows[0].evidence;
++assert.deepEqual(canon(current.tables),canon(read(path.join(old,'expected-post-fingerprint.json'))));
++assert.deepEqual(canon(current.rpc),canon(read(path.join(old,'rpc-expected-post.json'))));
++const keep=['postgres','service_role','bella_migration_executor'];
++const revoked=current.rpc.function_grants.filter(g=>!keep.includes(g.grantee)).map(g=>g.grantee);
++assert.equal(revoked.length,29);assert(!revoked.includes('PUBLIC'));assert(!current.rpc.roles.find(r=>r.name==='anon').execute);
++assert(current.rpc.roles.filter(r=>keep.includes(r.name)).every(r=>r.execute));
++const expected=structuredClone(current);expected.rpc.function_grants=expected.rpc.function_grants.filter(g=>keep.includes(g.grantee));
++expected.rpc.function.acl='{'+expected.rpc.function.acl.slice(1,-1).split(',').filter(entry=>keep.includes(entry.split('=')[0])).join(',')+'}';
++for(const r of expected.rpc.roles)r.execute=keep.includes(r.name)||r.superuser;
++for(const f of expected.rpc.dynamic_candidates)if(f.name==='exec_sql')f.acl=expected.rpc.function.acl;
++const tableQuery=fs.readFileSync(path.join(old,'fingerprint-query.sql'),'utf8').trim().replace(/;$/,'');const rpcQuery=fs.readFileSync(path.join(old,'rpc-fingerprint-query.sql'),'utf8').trim().replace(/;$/,'');
++const query=`SELECT jsonb_build_object('tables',(SELECT evidence FROM (${tableQuery}) t),'rpc',(SELECT evidence FROM (${rpcQuery}) r)) AS evidence`;
++function guard(x,label){return `DO $${label}$ DECLARE actual jsonb; BEGIN SELECT evidence INTO actual FROM (${query}) combined; IF actual IS DISTINCT FROM ${lit(JSON.stringify(x))}::jsonb THEN RAISE EXCEPTION '${label}: exact catalog drift'; END IF; END $${label}$;\n`;}
++const delta=`REVOKE EXECUTE ON FUNCTION public.exec_sql(text) FROM ${revoked.map(q).join(',')};\n`;
++const artifact=`-- Owner requested fix 2026-10-21. Exact one-RPC ACL change;32-table catalog held constant.\n-- Target lvnvkpyxtuilhrabtlwv. No table/policy/body/role/schema/data mutation.\nBEGIN; SET LOCAL lock_timeout='5s'; SET LOCAL statement_timeout='30s';\n${guard(current,'rpc_precondition')}-- CHANGE_BEGIN\n${delta}-- CHANGE_END\n${guard(expected,'rpc_postcondition')}SELECT jsonb_build_object('result','RPC_CLIENT_EXECUTION_DENIED','removed_direct_role_grants',29,'anonymous_execute',has_function_privilege('anon','public.exec_sql(text)','EXECUTE'),'authenticated_execute',has_function_privilege('authenticated','public.exec_sql(text)','EXECUTE'),'transaction_id',txid_current()::text) AS evidence;\nCOMMIT;\n`;
++fs.writeFileSync(path.join(d,'pre-catalog.json'),JSON.stringify(current,null,2)+'\n');fs.writeFileSync(path.join(d,'expected-post-catalog.json'),JSON.stringify(expected,null,2)+'\n');fs.writeFileSync(path.join(d,'catalog-query.sql'),query+';\n');fs.writeFileSync(path.join(d,'verify-catalog-readonly.sql'),"BEGIN READ ONLY; SET LOCAL statement_timeout='20s';\n"+query+';\nROLLBACK;\n');fs.writeFileSync(path.join(d,'EXECUTE_RPC_MAINTENANCE_ONLY.sql'),artifact);
++fs.writeFileSync(path.join(d,'execution-manifest.json'),JSON.stringify({target:'lvnvkpyxtuilhrabtlwv',source:'339c89250d87964ba8d58860a5ecdbc0bdde4956',rpc:'public.exec_sql(text)',keptExistingDirectPrincipals:keep,revoked,delta,sha256:crypto.createHash('sha256').update(artifact).digest('hex'),authority:'Owner fix chuẩn đi 2026-10-21; RPC EXECUTE boundary already separately approved',canonicalSource:'Live function comment and original migration-helper declaration: service role migration scripts only; prior explicit migration executor grant preserved',newEffectivePrivileges:0,tableChanges:0,bodyChanges:0,policyChanges:0,membershipChanges:0},null,2)+'\n');console.log(JSON.stringify({rpcGrantsRevoked:revoked.length,artifactSha256:crypto.createHash('sha256').update(artifact).digest('hex'),tablesHeldConstant:32}));
+
+diff --git a/supabase/migrations/20261021030000_restrict_exec_sql_client_execution.sql b/supabase/migrations/20261021030000_restrict_exec_sql_client_execution.sql
+new file mode 100644
+index 000000000..11a4630bb
+--- /dev/null
++++ b/supabase/migrations/20261021030000_restrict_exec_sql_client_execution.sql
+@@ -0,0 +1,61 @@
++-- exec_sql is a maintenance helper, never an application-client capability.
++-- Preserve the existing owner/service_role/bella_migration_executor grants.
++-- The production delta was independently rehearsed and verified in Batch2B.
++-- Replaying this migration does not grant new privileges or change its body.
++DO $rpc_client_boundary$
++DECLARE
++  client_role text;
++  reviewed_clients text[] := ARRAY[
++    'anon', 'authenticated', 'authenticator', 'bella_developer',
++    'cli_login_postgres', 'dashboard_user', 'pg_checkpoint',
++    'pg_create_subscription', 'pg_database_owner', 'pg_execute_server_program',
++    'pg_maintain', 'pg_monitor', 'pg_read_all_data', 'pg_read_all_settings',
++    'pg_read_all_stats', 'pg_read_server_files', 'pg_signal_backend',
++    'pg_stat_scan_tables', 'pg_use_reserved_connections', 'pg_write_all_data',
++    'pg_write_server_files', 'pgbouncer', 'supabase_auth_admin',
++    'supabase_etl_admin', 'supabase_privileged_role', 'supabase_read_only_user',
++    'supabase_realtime_admin', 'supabase_replication_admin',
++    'supabase_storage_admin', 'verification_executor'
++  ];
++  maintenance_roles text[] := ARRAY['postgres', 'service_role', 'bella_migration_executor'];
++BEGIN
++  IF to_regprocedure('public.exec_sql(text)') IS NULL THEN
++    RETURN;
++  END IF;
++
++  IF EXISTS (
++    SELECT 1 FROM pg_proc p
++    CROSS JOIN LATERAL aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
++    WHERE p.oid = 'public.exec_sql(text)'::regprocedure
++      AND a.grantee <> 0
++      AND pg_get_userbyid(a.grantee) <> ALL(maintenance_roles || reviewed_clients)
++  ) THEN
++    RAISE EXCEPTION 'Unreviewed exec_sql grantee; review before changing privileges';
++  END IF;
++
++  REVOKE EXECUTE ON FUNCTION public.exec_sql(text) FROM PUBLIC;
++  FOREACH client_role IN ARRAY reviewed_clients LOOP
++    IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname = client_role) THEN
++      EXECUTE format('REVOKE EXECUTE ON FUNCTION public.exec_sql(text) FROM %I', client_role);
++    END IF;
++  END LOOP;
++
++  -- Reviewed client roles may inherit one another. Finish all direct revokes first.
++  FOREACH client_role IN ARRAY reviewed_clients LOOP
++    IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname = client_role) THEN
++      IF has_function_privilege(client_role, 'public.exec_sql(text)', 'EXECUTE') THEN
++        RAISE EXCEPTION 'Unreviewed inherited exec_sql privilege for %', client_role;
++      END IF;
++    END IF;
++  END LOOP;
++
++  IF EXISTS (
++    SELECT 1 FROM pg_proc p
++    CROSS JOIN LATERAL aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
++    WHERE p.oid = 'public.exec_sql(text)'::regprocedure
++      AND (a.grantee = 0 OR pg_get_userbyid(a.grantee) <> ALL(maintenance_roles))
++  ) THEN
++    RAISE EXCEPTION 'Unexpected exec_sql privileges remain';
++  END IF;
++END;
++$rpc_client_boundary$;

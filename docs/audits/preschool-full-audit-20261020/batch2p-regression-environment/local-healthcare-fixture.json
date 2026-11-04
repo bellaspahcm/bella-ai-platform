@@ -1,0 +1,12 @@
+{
+  "capturedAt": "2026-10-21T05:10:26.246Z",
+  "project": "bella-preschool-regression-20261021",
+  "source": "src/platform/healthcare/__tests__/fixtures/healthcare-test-fixtures.ts",
+  "sourceSha256": "4ce9067029e156f90f69ae13a30f83c9f9d7cd28d64ca2573846d1ef8432f300",
+  "declaredTenantId": "00000000-0000-0000-0000-000000000001",
+  "insertedRows": 1,
+  "syntheticOnly": true,
+  "productionAccess": false,
+  "e2eAccess": false,
+  "result": "PASS_DECLARED_LOCAL_HEALTHCARE_FIXTURE"
+}

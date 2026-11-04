@@ -1,0 +1,277 @@
+{
+  "capturedAt": "2026-10-20T22:43:39.159Z",
+  "baseline": "30134055d1ff5b846584e57833816f076034cdea",
+  "groups": [
+    {
+      "group": "copilot",
+      "root": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-courses-auth-20261021\\BELLA SPA ERP",
+      "branch": "codex/preschool-api-identity-20261021",
+      "files": [
+        {
+          "file": "src/app/api/education/ai/copilot/route.ts",
+          "sha256": "1bdf67a02007fafd5b83f5cd1d63a2f463d946274db7a318413d601b9ec55093"
+        },
+        {
+          "file": "src/app/api/education/ai/copilot/__tests__/access.test.ts",
+          "sha256": "2f8477976b146bb4ad7437be765eefef93df6646f312363563f8b037dd39f0ce"
+        },
+        {
+          "file": "src/products/bella-education/__tests__/preschool-ai-copilot.test.ts",
+          "sha256": "e1abec8c42af029ab1fb90f3438c412ef1b4429e58c766a2ba951dff1a133fd5"
+        },
+        {
+          "file": "src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts",
+          "sha256": "5debe241b20de55cebcdd2e33a8ff9e98c562dd66d172c3420963184e0fa76c3"
+        }
+      ],
+      "tests": {
+        "suites": 3,
+        "passedSuites": 3,
+        "failedSuites": 0,
+        "total": 78,
+        "passed": 78,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      "commands": {
+        "jest": 0,
+        "lint": 0,
+        "typecheck": 0,
+        "secrets": 0
+      },
+      "localHttp": {
+        "report": "local-http.json",
+        "rawResult": "FAIL",
+        "probes": 4,
+        "listenerStopped": true,
+        "assessment": {
+          "verifiedAt": "2026-10-20T22:12:46.0442717Z",
+          "sourceResultFile": "local-http.json",
+          "rawHarnessExitCode": 1,
+          "rawExactCacheLiteralCheck": "FAIL",
+          "applicationResponseStatusAndCode": "PASS",
+          "actualRequests": 4,
+          "allNoStore": true,
+          "listenerStopped": true,
+          "scope": "Actual local development HTTP denial and effective no-store semantics; exact header literal differs due Next development handling",
+          "privateLiteral": "Not uniformly emitted by Next development runtime",
+          "nextVersion": "16.3.8"
+        }
+      },
+      "independentReview": "COMPLETED_SOURCE_ONLY"
+    },
+    {
+      "group": "medication",
+      "root": "C:\\Users\\DELL\\.codex\\worktrees\\shared-identity-containment-20261021\\BELLA SPA ERP",
+      "branch": "codex/preschool-disable-medication-20261021",
+      "files": [
+        {
+          "file": "src/app/api/education/care/medication/route.ts",
+          "sha256": "e5afbc3baf062f6ef75acb313437f66c7cc7ad3ccd83037401d61767ffde3b07"
+        },
+        {
+          "file": "src/app/api/education/care/medication/__tests__/route.test.ts",
+          "sha256": "96654afac152045defaedb8b9825d6b104b1a9e3f7a47f4048beda8aac053ef9"
+        }
+      ],
+      "tests": {
+        "suites": 1,
+        "passedSuites": 1,
+        "failedSuites": 0,
+        "total": 5,
+        "passed": 5,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      "commands": {
+        "jest": 0,
+        "lint": 0,
+        "typecheck": 0,
+        "secrets": 0
+      },
+      "localHttp": {
+        "report": "local-http.json",
+        "rawResult": "FAIL",
+        "probes": 4,
+        "listenerStopped": true,
+        "assessment": {
+          "verifiedAt": "2026-10-20T22:12:46.3661520Z",
+          "sourceResultFile": "local-http.json",
+          "rawHarnessExitCode": 1,
+          "rawExactCacheLiteralCheck": "FAIL",
+          "applicationResponseStatusAndCode": "PASS",
+          "actualRequests": 4,
+          "allNoStore": true,
+          "listenerStopped": true,
+          "scope": "Actual local development HTTP denial and effective no-store semantics; exact header literal differs due Next development handling",
+          "privateLiteral": "Not uniformly emitted by Next development runtime",
+          "nextVersion": "16.3.8"
+        }
+      },
+      "independentReview": "COMPLETED_SOURCE_ONLY"
+    },
+    {
+      "group": "care",
+      "root": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-care-authorization-20261021\\BELLA SPA ERP",
+      "branch": "codex/preschool-care-auth-20261021",
+      "files": [
+        {
+          "file": "src/app/api/education/care/bulk/route.ts",
+          "sha256": "24521e3c938f635aece374805df67e1043e084f755af2a4107008b62f3235bd2"
+        },
+        {
+          "file": "src/app/api/education/care/bulk/request-context.ts",
+          "sha256": "6401e000c735c892c1a12461ef0718b885af99c283af5f40ba1f0e2a3cd60264"
+        },
+        {
+          "file": "src/app/api/education/care/bulk/__tests__/access.test.ts",
+          "sha256": "75b68de23c1a243bc721ac5c8fb2c052b9008045fc44870da98cc9e7f12066fb"
+        }
+      ],
+      "tests": {
+        "suites": 1,
+        "passedSuites": 1,
+        "failedSuites": 0,
+        "total": 67,
+        "passed": 67,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      "commands": {
+        "jest": 0,
+        "lint": 0,
+        "typecheck": 0,
+        "secrets": 0
+      },
+      "localHttp": {
+        "report": "local-http.json",
+        "rawResult": "PASS",
+        "probes": 4,
+        "listenerStopped": true,
+        "assessment": null
+      },
+      "independentReview": "COMPLETED_SOURCE_ONLY",
+      "reviewCompletedAt": "2026-10-20T22:41:00.292Z"
+    },
+    {
+      "group": "portal",
+      "root": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-parent-access-20261021\\BELLA SPA ERP",
+      "branch": "codex/preschool-parent-access-20261021",
+      "files": [
+        {
+          "file": "src/app/api/education/portal/token/route.ts",
+          "sha256": "dda3766e3383cf1efe103573da63b59009ad20e1a7a2ff4ac34ae6a2af0d6eea"
+        },
+        {
+          "file": "src/products/bella-education/parent-portal/services/preschool-parent-portal.service.ts",
+          "sha256": "e7ff28f62f0fdd33181343ac884b66ba0f883056b3c54ad2876eb71c41da65dd"
+        },
+        {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "sha256": "2786a392ff4025d3ab3018c396398d6757e1866ff5f4ef25b238eff46143f389"
+        },
+        {
+          "file": "src/app/api/education/portal/[token]/route.ts",
+          "sha256": "c4cb01bc90440f12f685e56ee11877415e68830f0261d93385851f5a7272f436"
+        },
+        {
+          "file": "src/app/api/education/portal/[token]/chat/route.ts",
+          "sha256": "6b7bb063ad2f94b68edc6e041b6187fd3843eae887c1900035d5d021c159fb7b"
+        },
+        {
+          "file": "src/app/api/education/portal/[token]/copilot/route.ts",
+          "sha256": "da09ab3cd35cdb2bda05fc8fae603cfce721ec6e0afa1dcfea2c29efd5cc327c"
+        },
+        {
+          "file": "src/products/bella-education/__tests__/preschool-parent-portal.service.test.ts",
+          "sha256": "dc15b3d61c846d9bcf5fd0c879481d9033381122f7061e5800b8ce7522430d42"
+        },
+        {
+          "file": "src/app/api/education/portal/token/__tests__/access.test.ts",
+          "sha256": "e5744f66509eb233c7eec800492c25ed2e3592a852637592d57fdbb82e9137db"
+        },
+        {
+          "file": "src/app/api/education/portal/__tests__/access.test.ts",
+          "sha256": "1ffe1c56bb67cf1b8f19469d59df3c56cd7805905afcef7f36bf6a1bc38801d5"
+        },
+        {
+          "file": "src/products/bella-education/__tests__/preschool-parent-portal-security.test.ts",
+          "sha256": "8582a3d29af44a487139b114d24238d0835d9745b968065eaebc6fff58ea5f91"
+        }
+      ],
+      "tests": {
+        "suites": 4,
+        "passedSuites": 4,
+        "failedSuites": 0,
+        "total": 104,
+        "passed": 104,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      "commands": {
+        "jest": 0,
+        "lint": 0,
+        "typecheck": 0,
+        "secrets": 0
+      },
+      "localHttp": {
+        "report": "local-http.json",
+        "rawResult": "PASS",
+        "probes": 8,
+        "listenerStopped": true,
+        "assessment": null
+      },
+      "independentReview": "COMPLETED_SOURCE_ONLY",
+      "reviewCompletedAt": "2026-10-20T22:41:46.399Z"
+    },
+    {
+      "group": "announcements",
+      "root": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-announcement-auth-20261021\\BELLA SPA ERP",
+      "branch": "codex/preschool-announcement-auth-20261021",
+      "files": [
+        {
+          "file": "src/app/api/education/announcements/route.ts",
+          "sha256": "54ddbcb0874218c2a1ea15c3b19e3234f132ffb1c5edc865460d9eec25c129b2"
+        },
+        {
+          "file": "src/app/api/education/announcements/__tests__/access.test.ts",
+          "sha256": "e80ce6f9c6ad63dfbb378f9742ac2b64f14c06712f27ed4737ff67d5033b96fc"
+        }
+      ],
+      "tests": {
+        "suites": 1,
+        "passedSuites": 1,
+        "failedSuites": 0,
+        "total": 32,
+        "passed": 32,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      "commands": {
+        "jest": 0,
+        "lint": 0,
+        "typecheck": 0,
+        "secrets": 0
+      },
+      "localHttp": {
+        "report": "local-http.json",
+        "rawResult": "PASS",
+        "probes": 2,
+        "listenerStopped": true,
+        "assessment": null
+      },
+      "independentReview": "COMPLETED_SOURCE_ONLY",
+      "reviewCompletedAt": "2026-10-20T22:43:39.159Z"
+    }
+  ],
+  "totalFocusedTests": 286,
+  "sourceRollout": "NOT_RUN",
+  "batch2b": "IN_PROGRESS",
+  "authenticatedAccessRegression": "NOT_PROVEN",
+  "preschoolGoLive": "NOT_READY"
+}

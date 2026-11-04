@@ -265,10 +265,52 @@ const HEALTHCARE_VOCABULARY: ModuleVocabulary = {
 };
 
 /**
+ * Vocabulary for Education / Preschool domain
+ */
+const EDUCATION_VOCABULARY: ModuleVocabulary = {
+  worker: {
+    singular: 'Giáo viên',
+    plural: 'Giáo viên',
+    short: 'GV',
+    role: 'Giáo viên',
+  },
+  workUnit: {
+    singular: 'Tiết học',
+    plural: 'Các tiết học',
+    action: 'Điểm danh và Đứng lớp',
+  },
+  service: {
+    singular: 'Khóa học / Lớp',
+    plural: 'Các lớp học',
+  },
+  booking: {
+    singular: 'Hồ sơ nhập học',
+    plural: 'Hồ sơ nhập học',
+    action: 'Tiếp nhận trẻ',
+  },
+  package: {
+    singular: 'Kỳ học / Gói học phí',
+    plural: 'Các kỳ học',
+  },
+  customer: {
+    singular: 'Phụ huynh và Trẻ',
+    plural: 'Phụ huynh và Trẻ',
+    context: 'trẻ mầm non',
+  },
+  serviceHistory: {
+    label: 'Nhật ký sinh hoạt và Chăm sóc',
+    emptyState: 'Chưa có nhật ký sinh hoạt hoặc chăm sóc nào',
+  },
+};
+/**
  * Get vocabulary for a specific module
  * Returns neutral vocabulary when moduleKey is null/undefined (before tenant data loads)
  */
 export function getModuleVocabulary(moduleKey: TenantModuleKey | null | undefined): ModuleVocabulary {
+  if (moduleKey === 'bella_education') {
+    return EDUCATION_VOCABULARY;
+  }
+
   if (moduleKey === 'bella_healthcare') {
     return HEALTHCARE_VOCABULARY;
   }

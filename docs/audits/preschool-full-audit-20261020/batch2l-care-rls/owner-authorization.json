@@ -1,0 +1,18 @@
+{
+  "recordedAt": "2026-10-21T00:01:38.756Z",
+  "humanDecision": "Duyệt 6 relation E2E; giữ sửa đổi nếu PASS",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "productionAuthorized": false,
+  "relations": [
+    "edu_courses",
+    "edu_enrollments",
+    "party_parties",
+    "edu_attendance_daily_state",
+    "edu_daily_care_sessions",
+    "edu_daily_care_records"
+  ],
+  "sqlSha256": "612277fd1d8aa49bd868e07652b10d89fce79fb5e6d567f1de9f18e70feac37e",
+  "postReviewDelta": "Only stronger effective-service postconditions; same six operations/scope",
+  "keepOnPass": true,
+  "failedExecutionRecoveryRequired": true
+}

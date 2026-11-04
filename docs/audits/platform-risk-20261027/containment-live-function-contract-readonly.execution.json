@@ -1,0 +1,8 @@
+{
+  "command": "supabase db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-live-function-contract-readonly.sql -o json",
+  "startedUtc": "2026-10-27T04:55:19.6345184Z",
+  "endedUtc": "2026-10-27T04:55:21.5131227Z",
+  "exitCode": 0,
+  "querySha256": "aa099bd608793698bb060092daa0b926e71087af51d5fcae2f413c15066b3ceb",
+  "outputFile": "containment-live-function-contract-readonly.stdout.log"
+}

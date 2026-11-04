@@ -61,7 +61,7 @@ const portalRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 const portalText = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
 export const isPortalUuid = (value: unknown): value is string =>
-  typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 
 export function isParentPortalAnnouncementFeed(value: unknown): value is ParentPortalAnnouncementFeed {
   return portalRecord(value) && isPortalUuid(value.tenantId) && Array.isArray(value.announcements)
@@ -272,4 +272,93 @@ export interface ParentPortalPayload {
   readonly threadId?: string;
   readonly aiDailyDigest?: ParentPortalDailyDigest | null;
   readonly serverTime: string;
+}
+
+export interface PortalTuitionInvoice {
+  readonly id: string;
+  readonly invoiceNumber: string;
+  readonly billingPeriodName: string | null;
+  readonly netAmount: number;
+  readonly paidAmount: number;
+  readonly outstandingAmount: number;
+  readonly settlementStatus: 'PAID' | 'UNPAID' | 'PARTIALLY_PAID';
+  readonly invoiceStatus: string;
+  readonly issuedAt: string;
+  readonly dueDate: string | null;
+}
+
+export interface PortalTuitionSummary {
+  readonly invoices: readonly PortalTuitionInvoice[];
+  readonly latestInvoice: PortalTuitionInvoice | null;
+  readonly totalDue: number;
+  readonly totalPaid: number;
+  readonly totalOutstanding: number;
+  readonly vietQrPayload?: ParentPortalVietQrPayload;
+}
+
+export interface PortalAttendanceHistoryItem {
+  readonly id: string;
+  readonly schoolDay: string;
+  readonly dayLabel: string;
+  readonly status: 'present' | 'absent' | 'excused' | 'late';
+  readonly statusLabel: string;
+  readonly rollCallTime: string | null;
+}
+
+export interface PortalAttendanceSummary {
+  readonly history: readonly PortalAttendanceHistoryItem[];
+  readonly totalMarked: number;
+  readonly presentCount: number;
+  readonly attendanceRatePercent: number | null;
+}
+
+export interface PortalCareMealItem {
+  readonly mealName: string;
+  readonly foodName?: string | null;
+  readonly portion: string;
+  readonly note?: string | null;
+  readonly time?: string | null;
+}
+
+export interface PortalCareNapDetails {
+  readonly timeRange?: string | null;
+  readonly durationText?: string | null;
+  readonly quality: string;
+  readonly note?: string | null;
+}
+
+export interface PortalCareHealthDetails {
+  readonly temperature?: number | string | null;
+  readonly condition?: string | null;
+  readonly checkedAt?: string | null;
+  readonly note?: string | null;
+}
+
+export interface PortalCareHygieneItem {
+  readonly type: string;
+  readonly detail: string;
+  readonly note?: string | null;
+}
+
+export interface PortalCareDayRecord {
+  readonly id: string;
+  readonly date: string;
+  readonly dayLabel: string;
+  readonly morningCondition?: string | null;
+  readonly meals: readonly PortalCareMealItem[];
+  readonly nap: PortalCareNapDetails | null;
+  readonly health: PortalCareHealthDetails | null;
+  readonly hygiene: readonly PortalCareHygieneItem[];
+}
+
+export interface PortalCareSummary {
+  readonly today: string;
+  readonly selectedDate: string;
+  readonly hasTodayRecord: boolean;
+  readonly currentRecord: PortalCareDayRecord | null;
+  readonly latestRecord: PortalCareDayRecord | null;
+  readonly availableDates: readonly string[];
+  readonly overviewMealText: string;
+  readonly overviewNapText: string;
+  readonly overviewHealthText: string;
 }

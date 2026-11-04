@@ -1,0 +1,14 @@
+{
+  "sourceFiles": 245,
+  "anyTypes": [
+    {
+      "file": "src/products/bella-education/analytics/events/preschool-analytics-events.ts",
+      "line": 26
+    }
+  ],
+  "crossIndustry": [],
+  "internalKernel": [],
+  "browserDb": [
+    "src/app/dashboard/education/scheduling/page.tsx"
+  ]
+}

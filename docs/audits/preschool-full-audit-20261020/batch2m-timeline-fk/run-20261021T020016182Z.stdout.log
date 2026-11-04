@@ -1,0 +1,6 @@
+{"stage":"TIMELINE_PREPARATION","result":"PASS"}
+{"stage":"PRIOR_FIXTURE_CLEANUP","result":"PASS"}
+{"stage":"PREPARATION","result":"PASS"}
+{"stage":"FIXTURE_AND_AUTH","result":"PASS"}
+{"stage":"OWN_NEXT_START","result":"PASS"}
+{"result":"FAIL","counts":{"PASS":18,"FAIL":2,"NOT_PROVEN":3},"cleanup":"PASS_OWNED_FIXTURES_REMOVED_AUTHORITY_REVOKED","recovery":{"attempted":true,"restored":true,"baselineSha256":"cf639778a9bbe44474f52760ac4417f8e3f4751f1db0bb2c80c1af2875664e3e","droppedEmptyOwnedRelations":3,"cascadeUsed":false},"primaryFailure":"UNCLASSIFIED_FAILURE","cleanupFailures":0,"report":"C:\\Users\\DELL\\.codex\\worktrees\\preschool-real-auth-acceptance-20261021\\BELLA SPA ERP\\docs\\audits\\preschool-full-audit-20261020\\batch2m-timeline-fk\\care-rls-results-2026-10-21T02-00-16-750Z.json","exitCode":1}

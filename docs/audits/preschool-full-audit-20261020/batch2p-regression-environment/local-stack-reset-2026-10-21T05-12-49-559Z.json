@@ -1,0 +1,15 @@
+{
+  "capturedAt": "2026-10-21T05:12:49.558Z",
+  "project": "bella-preschool-regression-20261021",
+  "command": "supabase stop --workdir [owned sandbox] --no-backup",
+  "actualNativeExitCode": 0,
+  "ownedContainersRemoved": 4,
+  "foreignContainersUnchanged": [
+    "7726cccd8d41",
+    "a9929c8258ab",
+    "c3078034b1a6",
+    "f9a43026f1ee"
+  ],
+  "rowsRecoveredBy": "DISPOSABLE_STACK_REMOVAL_NO_TRIGGER_OR_POLICY_BYPASS",
+  "result": "PASS_OWNED_STACK_RESET"
+}

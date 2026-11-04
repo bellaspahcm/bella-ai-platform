@@ -1,0 +1,65 @@
+{
+  "startedAt": "2026-10-21T00:13:49.996Z",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "baseline": "4a7a855e3472dcfd86649b18f27671ccbe7188a1",
+  "scope": "Exact six-relation E2E preparation and real Auth Care acceptance; no Production or Go-Live proof",
+  "checks": [
+    {
+      "name": "PREPARATION",
+      "result": "FAIL",
+      "code": "42725"
+    },
+    {
+      "name": "RUN_ABORT",
+      "result": "FAIL",
+      "code": "42725"
+    }
+  ],
+  "cleanup": {
+    "failures": [],
+    "result": "NOT_RUN_NO_FIXTURES"
+  },
+  "recovery": {
+    "attempted": false
+  },
+  "databaseTls": {
+    "rejectUnauthorized": true,
+    "servernameVerified": true,
+    "vendorCaFingerprint256": "80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA",
+    "reusedHelper": "scripts/bdgf/database-connection.mjs"
+  },
+  "sqlSha256": "612277fd1d8aa49bd868e07652b10d89fce79fb5e6d567f1de9f18e70feac37e",
+  "preflightSha256": "d9923c014dff5d0752f769f36f72087a6fe1df1b57ad7ae74faf7d86174508a4",
+  "harnessSha256": "cc814071083be17daff3ccea827a9d8c62305431430a419ba8e69278e717dc95",
+  "retentionRequested": true,
+  "sourceBefore": {
+    "head": "4a7a855e3472dcfd86649b18f27671ccbe7188a1",
+    "tree": "f34b3482fc6a3bd453cb8c9f9e3bf55963d568ba",
+    "ancestor": true,
+    "changed": [],
+    "untracked": [],
+    "sha256": "bcc1d726049eb7d188214b027057fbb48543bf0e9f765996733d759381c012d8",
+    "environmentFiles": []
+  },
+  "sourceAfter": {
+    "head": "4a7a855e3472dcfd86649b18f27671ccbe7188a1",
+    "tree": "f34b3482fc6a3bd453cb8c9f9e3bf55963d568ba",
+    "ancestor": true,
+    "changed": [],
+    "untracked": [],
+    "sha256": "bcc1d726049eb7d188214b027057fbb48543bf0e9f765996733d759381c012d8",
+    "environmentFiles": []
+  },
+  "finishedAt": "2026-10-21T00:14:04.674Z",
+  "durationMs": 14678,
+  "counts": {
+    "PASS": 0,
+    "FAIL": 2,
+    "NOT_PROVEN": 0
+  },
+  "primaryFailure": "42725",
+  "functionalAcceptance": "FAIL",
+  "result": "FAIL",
+  "exitCode": 1,
+  "remainingProof": "Browser E2E, broad mandatory regression, Production deployment and Go-Live are not established by this harness."
+}

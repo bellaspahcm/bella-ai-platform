@@ -1,0 +1,7 @@
+
+> bella-spa-erp@0.1.0 typecheck:changed
+> node scripts/ci-run-typecheck.mjs changed
+
+
+> node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile .cache/tsbuildinfo/education.tsbuildinfo
+TypeScript scope "education" passed with zero diagnostics.

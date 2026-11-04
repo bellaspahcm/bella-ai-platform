@@ -1,0 +1,1779 @@
+{
+  "checkedAt": "2026-10-20T23:08:49.978Z",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "readOnly": true,
+  "relations": [
+    {
+      "relname": "edu_courses",
+      "relkind": "r",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false,
+      "auth_select": false,
+      "auth_insert": false
+    },
+    {
+      "relname": "edu_enrollments",
+      "relkind": "r",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false,
+      "auth_select": false,
+      "auth_insert": false
+    },
+    {
+      "relname": "org_relationships",
+      "relkind": "r",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false,
+      "auth_select": true,
+      "auth_insert": true
+    },
+    {
+      "relname": "org_units",
+      "relkind": "r",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false,
+      "auth_select": true,
+      "auth_insert": true
+    },
+    {
+      "relname": "party_parties",
+      "relkind": "r",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false,
+      "auth_select": false,
+      "auth_insert": false
+    },
+    {
+      "relname": "people_directory",
+      "relkind": "r",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false,
+      "auth_select": true,
+      "auth_insert": true
+    },
+    {
+      "relname": "preschool_chain_course_branch_assignments",
+      "relkind": "r",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false,
+      "auth_select": true,
+      "auth_insert": true
+    },
+    {
+      "relname": "students",
+      "relkind": "r",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false,
+      "auth_select": true,
+      "auth_insert": true
+    },
+    {
+      "relname": "tenants",
+      "relkind": "r",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false,
+      "auth_select": true,
+      "auth_insert": true
+    },
+    {
+      "relname": "user_org_unit_access",
+      "relkind": "v",
+      "relrowsecurity": false,
+      "relforcerowsecurity": false,
+      "auth_select": true,
+      "auth_insert": false
+    },
+    {
+      "relname": "users",
+      "relkind": "r",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false,
+      "auth_select": true,
+      "auth_insert": false
+    }
+  ],
+  "policies": [
+    {
+      "tablename": "edu_courses",
+      "policyname": "edu_courses_tenant_isolation",
+      "roles": "{public}",
+      "cmd": "ALL",
+      "qual": "(tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid)",
+      "with_check": null
+    },
+    {
+      "tablename": "edu_enrollments",
+      "policyname": "edu_enrollments_tenant_isolation",
+      "roles": "{public}",
+      "cmd": "ALL",
+      "qual": "(tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid)",
+      "with_check": null
+    },
+    {
+      "tablename": "org_relationships",
+      "policyname": "org_relationships_admin_write",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "qual": "(is_hq_super_admin() OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text])))))))",
+      "with_check": null
+    },
+    {
+      "tablename": "org_relationships",
+      "policyname": "org_relationships_tenant_read",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(is_hq_super_admin() OR (tenant_id = get_auth_tenant_id()))",
+      "with_check": null
+    },
+    {
+      "tablename": "org_units",
+      "policyname": "org_units_admin_write",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "qual": "(is_hq_super_admin() OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text])))))))",
+      "with_check": null
+    },
+    {
+      "tablename": "org_units",
+      "policyname": "org_units_tenant_read",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(is_hq_super_admin() OR (tenant_id = get_auth_tenant_id()))",
+      "with_check": null
+    },
+    {
+      "tablename": "party_parties",
+      "policyname": "tenant_isolation_parties",
+      "roles": "{public}",
+      "cmd": "ALL",
+      "qual": "(tenant_id = get_auth_tenant_id())",
+      "with_check": null
+    },
+    {
+      "tablename": "people_directory",
+      "policyname": "people_directory_admin_write",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "qual": "(is_hq_super_admin() OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text])))))))",
+      "with_check": null
+    },
+    {
+      "tablename": "people_directory",
+      "policyname": "people_directory_tenant_read",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(is_hq_super_admin() OR (tenant_id = get_auth_tenant_id()))",
+      "with_check": null
+    },
+    {
+      "tablename": "preschool_chain_course_branch_assignments",
+      "policyname": "preschool_chain_course_branch_assignments_tenant_isolation",
+      "roles": "{public}",
+      "cmd": "ALL",
+      "qual": "(tenant_id = get_auth_tenant_id())",
+      "with_check": "(tenant_id = get_auth_tenant_id())"
+    },
+    {
+      "tablename": "students",
+      "policyname": "Students admin manage scoped tenant data",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "qual": "(is_hq_super_admin() OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text, 'admin_staff'::text])))))))",
+      "with_check": "(is_hq_super_admin() OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text, 'admin_staff'::text])))))))"
+    },
+    {
+      "tablename": "students",
+      "policyname": "Students read own or scoped tenant data",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(is_hq_super_admin() OR (user_id = auth.uid()) OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text, 'admin_staff'::text, 'hr'::text, 'accountant'::text])))))))",
+      "with_check": null
+    },
+    {
+      "tablename": "students",
+      "policyname": "students_service_role",
+      "roles": "{service_role}",
+      "cmd": "ALL",
+      "qual": "true",
+      "with_check": null
+    },
+    {
+      "tablename": "tenants",
+      "policyname": "Admin can update their own tenant",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE",
+      "qual": "(id = ( SELECT users.tenant_id\n   FROM users\n  WHERE ((users.id = auth.uid()) AND (users.role = 'admin'::text))))",
+      "with_check": "(id = ( SELECT users.tenant_id\n   FROM users\n  WHERE ((users.id = auth.uid()) AND (users.role = 'admin'::text))))"
+    },
+    {
+      "tablename": "tenants",
+      "policyname": "Tenant read tenants",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "((get_auth_tenant_id() IS NULL) OR (id = get_auth_tenant_id()))",
+      "with_check": null
+    },
+    {
+      "tablename": "tenants",
+      "policyname": "Tenant update tenants",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE",
+      "qual": "((get_auth_tenant_id() IS NULL) OR (is_admin() AND (id = get_auth_tenant_id())))",
+      "with_check": "((get_auth_tenant_id() IS NULL) OR (is_admin() AND (id = get_auth_tenant_id())))"
+    },
+    {
+      "tablename": "tenants",
+      "policyname": "platform_active_hq_tenant_select",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "is_hq_super_admin()",
+      "with_check": null
+    },
+    {
+      "tablename": "tenants",
+      "policyname": "platform_active_hq_tenant_update",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE",
+      "qual": "is_hq_super_admin()",
+      "with_check": "is_hq_super_admin()"
+    },
+    {
+      "tablename": "users",
+      "policyname": "Admin quản lý users chi nhánh",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "qual": "((is_admin() OR is_hr() OR is_accountant()) AND (tenant_id = get_auth_tenant_id()))",
+      "with_check": null
+    },
+    {
+      "tablename": "users",
+      "policyname": "Admins can view all users in tenant",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "((current_user_role() = 'admin'::text) AND (tenant_id = current_tenant_id()))",
+      "with_check": null
+    },
+    {
+      "tablename": "users",
+      "policyname": "Admins manage tenant users",
+      "roles": "{public}",
+      "cmd": "ALL",
+      "qual": "((current_user_role() = 'admin'::text) AND (tenant_id = current_tenant_id()))",
+      "with_check": null
+    },
+    {
+      "tablename": "users",
+      "policyname": "Tenant view users",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(is_hq_super_admin() OR (tenant_id = get_auth_tenant_id()))",
+      "with_check": null
+    },
+    {
+      "tablename": "users",
+      "policyname": "User tự xem và sửa chính mình",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "qual": "(id = auth.uid())",
+      "with_check": null
+    },
+    {
+      "tablename": "users",
+      "policyname": "Users can view own profile",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(auth.uid() = id)",
+      "with_check": null
+    },
+    {
+      "tablename": "users",
+      "policyname": "Users can view their own profile",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(auth.uid() = id)",
+      "with_check": null
+    }
+  ],
+  "columns": [
+    {
+      "table_name": "edu_courses",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "edu_courses",
+      "column_name": "tenant_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "edu_courses",
+      "column_name": "course_code",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "edu_courses",
+      "column_name": "title",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "edu_courses",
+      "column_name": "status",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "'active'::text"
+    },
+    {
+      "table_name": "edu_courses",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "edu_courses",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "edu_courses",
+      "column_name": "max_students",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "edu_courses",
+      "column_name": "current_enrollment",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "column_default": "0"
+    },
+    {
+      "table_name": "edu_courses",
+      "column_name": "prerequisite_course_codes",
+      "data_type": "ARRAY",
+      "is_nullable": "YES",
+      "column_default": "'{}'::text[]"
+    },
+    {
+      "table_name": "edu_enrollments",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "edu_enrollments",
+      "column_name": "tenant_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "edu_enrollments",
+      "column_name": "student_party_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "edu_enrollments",
+      "column_name": "course_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "edu_enrollments",
+      "column_name": "status",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "'pending'::text"
+    },
+    {
+      "table_name": "edu_enrollments",
+      "column_name": "enrolled_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "edu_enrollments",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "edu_enrollments",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "edu_enrollments",
+      "column_name": "request_id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "org_relationships",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "org_relationships",
+      "column_name": "tenant_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "org_relationships",
+      "column_name": "from_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "org_relationships",
+      "column_name": "from_type",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "org_relationships",
+      "column_name": "to_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "org_relationships",
+      "column_name": "to_type",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "org_relationships",
+      "column_name": "rel_type",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "org_relationships",
+      "column_name": "role",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "org_relationships",
+      "column_name": "since",
+      "data_type": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "org_relationships",
+      "column_name": "until",
+      "data_type": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "org_relationships",
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "NO",
+      "column_default": "'{}'::jsonb"
+    },
+    {
+      "table_name": "org_relationships",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "org_units",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "org_units",
+      "column_name": "tenant_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "org_units",
+      "column_name": "unit_type",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "org_units",
+      "column_name": "name",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "org_units",
+      "column_name": "code",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "org_units",
+      "column_name": "parent_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "org_units",
+      "column_name": "is_active",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "column_default": "true"
+    },
+    {
+      "table_name": "org_units",
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "NO",
+      "column_default": "'{}'::jsonb"
+    },
+    {
+      "table_name": "org_units",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "org_units",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "tenant_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "party_type",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "display_name",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "legal_name",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "tax_code",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "dob",
+      "data_type": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "gender",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "blood_type",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "version",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": "1"
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "created_by",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "updated_by",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "party_parties",
+      "column_name": "deleted_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "people_directory",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "people_directory",
+      "column_name": "tenant_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "people_directory",
+      "column_name": "user_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "people_directory",
+      "column_name": "person_type",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "people_directory",
+      "column_name": "display_name",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "people_directory",
+      "column_name": "is_active",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "column_default": "true"
+    },
+    {
+      "table_name": "people_directory",
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "NO",
+      "column_default": "'{}'::jsonb"
+    },
+    {
+      "table_name": "people_directory",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "people_directory",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "preschool_chain_course_branch_assignments",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "preschool_chain_course_branch_assignments",
+      "column_name": "tenant_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "preschool_chain_course_branch_assignments",
+      "column_name": "course_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "preschool_chain_course_branch_assignments",
+      "column_name": "branch_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "preschool_chain_course_branch_assignments",
+      "column_name": "assigned_by",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "preschool_chain_course_branch_assignments",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "preschool_chain_course_branch_assignments",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "students",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "students",
+      "column_name": "tenant_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "user_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "course_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "full_name",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "phone",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "email",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "enrollment_status",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "'active'::text"
+    },
+    {
+      "table_name": "students",
+      "column_name": "tuition_total",
+      "data_type": "numeric",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_name": "students",
+      "column_name": "tuition_paid",
+      "data_type": "numeric",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_name": "students",
+      "column_name": "enrolled_at",
+      "data_type": "date",
+      "is_nullable": "NO",
+      "column_default": "CURRENT_DATE"
+    },
+    {
+      "table_name": "students",
+      "column_name": "graduated_at",
+      "data_type": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "notes",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "students",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "students",
+      "column_name": "person_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "student_code",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "academic_status",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "enrollment_type",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "program_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "enrollment_date",
+      "data_type": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "expected_graduation_date",
+      "data_type": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "actual_graduation_date",
+      "data_type": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "current_level",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "gpa",
+      "data_type": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "total_credits",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "emergency_contact_name",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "emergency_contact_phone",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "emergency_contact_relationship",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "created_by",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "updated_by",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "party_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "students",
+      "column_name": "student_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "name",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "parent_tenant_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "franchise_agreement_date",
+      "data_type": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "royalty_rate",
+      "data_type": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "contact_name",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "contact_phone",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "address",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "status",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": "'active'::text"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "zalo_app_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "zalo_secret_key",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "zalo_oa_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "zalo_access_token",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "zalo_refresh_token",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "zalo_token_expires_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "zalo_template_reminder_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "zalo_template_birthday_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "zalo_auto_scan",
+      "data_type": "boolean",
+      "is_nullable": "YES",
+      "column_default": "true"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "email",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "qr_bank_code",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "qr_account_number",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "qr_account_name",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "salary_config",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": "'{\"bonus_4_star\": 10000, \"bonus_5_star\": 50000, \"bonus_4_5_star\": 30000, \"kpi_bonus_amount\": 1000000, \"kpi_target_sessions\": 30}'::jsonb"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "subscription_tier",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": "'free_trial'::character varying"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "subscription_expires_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": "(now() + '30 days'::interval)"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "sms_allotment_used",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "column_default": "0"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "role_permissions",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": "'{\"ktv_lead\": {\"crm\": true, \"chat\": true, \"audit\": false, \"salary\": false, \"finance\": false, \"bookings\": true, \"services\": true, \"sessions\": true, \"settings\": false, \"customers\": false, \"dashboard\": true, \"inventory\": false, \"reconciliation\": false}}'::jsonb"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "royalty_type",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": "'percentage'::character varying"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "royalty_fixed_amount",
+      "data_type": "numeric",
+      "is_nullable": "YES",
+      "column_default": "0.00"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "internal_clearing_rate",
+      "data_type": "numeric",
+      "is_nullable": "YES",
+      "column_default": "150000.00"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "tenant_lat",
+      "data_type": "double precision",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "tenant_lon",
+      "data_type": "double precision",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "gps_threshold_m",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "column_default": "200"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "accounting_mode",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": "'SIMPLE'::text"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "logo_url",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "enabled_modules",
+      "data_type": "jsonb",
+      "is_nullable": "NO",
+      "column_default": "'{\"babycare\": true, \"beauty_spa\": false, \"student_training\": false}'::jsonb"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "brand_theme",
+      "data_type": "jsonb",
+      "is_nullable": "NO",
+      "column_default": "'{}'::jsonb"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "product_key",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "commission_config",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": "'{}'::jsonb"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": "'{}'::jsonb"
+    },
+    {
+      "table_name": "user_org_unit_access",
+      "column_name": "user_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "user_org_unit_access",
+      "column_name": "tenant_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "user_org_unit_access",
+      "column_name": "org_unit_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "user_org_unit_access",
+      "column_name": "root_org_unit_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "user_org_unit_access",
+      "column_name": "relationship_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "user_org_unit_access",
+      "column_name": "access_source",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "users",
+      "column_name": "email",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "full_name",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "phone",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "role",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "avatar_url",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "status",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": "'active'::text"
+    },
+    {
+      "table_name": "users",
+      "column_name": "tenant_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "users",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "users",
+      "column_name": "base_salary",
+      "data_type": "numeric",
+      "is_nullable": "YES",
+      "column_default": "6000000"
+    },
+    {
+      "table_name": "users",
+      "column_name": "hire_date",
+      "data_type": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "resignation_date",
+      "data_type": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "position_tier",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "'junior'::text"
+    },
+    {
+      "table_name": "users",
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": "'{}'::jsonb"
+    }
+  ],
+  "constraints": [
+    {
+      "relname": "edu_courses",
+      "conname": "chk_edu_courses_capacity",
+      "definition": "CHECK (((max_students IS NULL) OR (current_enrollment <= max_students)))"
+    },
+    {
+      "relname": "edu_courses",
+      "conname": "chk_edu_courses_current_enrollment",
+      "definition": "CHECK ((current_enrollment >= 0))"
+    },
+    {
+      "relname": "edu_courses",
+      "conname": "chk_edu_courses_max_students",
+      "definition": "CHECK (((max_students IS NULL) OR (max_students > 0)))"
+    },
+    {
+      "relname": "edu_courses",
+      "conname": "edu_courses_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "relname": "edu_courses",
+      "conname": "edu_courses_status_check",
+      "definition": "CHECK ((status = ANY (ARRAY['draft'::text, 'active'::text, 'archived'::text])))"
+    },
+    {
+      "relname": "edu_courses",
+      "conname": "edu_courses_tenant_id_fkey",
+      "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT"
+    },
+    {
+      "relname": "edu_courses",
+      "conname": "uq_edu_courses_code",
+      "definition": "UNIQUE (tenant_id, course_code)"
+    },
+    {
+      "relname": "edu_enrollments",
+      "conname": "edu_enrollments_course_id_fkey",
+      "definition": "FOREIGN KEY (course_id) REFERENCES edu_courses(id) ON DELETE RESTRICT"
+    },
+    {
+      "relname": "edu_enrollments",
+      "conname": "edu_enrollments_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "relname": "edu_enrollments",
+      "conname": "edu_enrollments_status_check",
+      "definition": "CHECK ((status = ANY (ARRAY['pending'::text, 'active'::text, 'completed'::text, 'cancelled'::text])))"
+    },
+    {
+      "relname": "edu_enrollments",
+      "conname": "edu_enrollments_student_party_id_fkey",
+      "definition": "FOREIGN KEY (student_party_id) REFERENCES party_parties(id) ON DELETE RESTRICT"
+    },
+    {
+      "relname": "edu_enrollments",
+      "conname": "edu_enrollments_tenant_id_fkey",
+      "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT"
+    },
+    {
+      "relname": "edu_enrollments",
+      "conname": "uq_edu_enrollments_request_id",
+      "definition": "UNIQUE (tenant_id, request_id)"
+    },
+    {
+      "relname": "edu_enrollments",
+      "conname": "uq_edu_enrollments_student_course",
+      "definition": "UNIQUE (tenant_id, student_party_id, course_id)"
+    },
+    {
+      "relname": "org_relationships",
+      "conname": "org_relationships_from_type_check",
+      "definition": "CHECK ((from_type = ANY (ARRAY['unit'::text, 'person'::text])))"
+    },
+    {
+      "relname": "org_relationships",
+      "conname": "org_relationships_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "relname": "org_relationships",
+      "conname": "org_relationships_rel_type_check",
+      "definition": "CHECK ((rel_type = ANY (ARRAY['belongs_to'::text, 'manages'::text, 'participates_in'::text, 'reports_to'::text, 'collaborates_with'::text])))"
+    },
+    {
+      "relname": "org_relationships",
+      "conname": "org_relationships_tenant_id_fkey",
+      "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+    },
+    {
+      "relname": "org_relationships",
+      "conname": "org_relationships_to_type_check",
+      "definition": "CHECK ((to_type = ANY (ARRAY['unit'::text, 'person'::text])))"
+    },
+    {
+      "relname": "org_relationships",
+      "conname": "uq_org_relationship",
+      "definition": "UNIQUE (tenant_id, from_id, to_id, rel_type)"
+    },
+    {
+      "relname": "org_units",
+      "conname": "org_units_parent_id_fkey",
+      "definition": "FOREIGN KEY (parent_id) REFERENCES org_units(id) ON DELETE SET NULL"
+    },
+    {
+      "relname": "org_units",
+      "conname": "org_units_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "relname": "org_units",
+      "conname": "org_units_tenant_id_fkey",
+      "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+    },
+    {
+      "relname": "org_units",
+      "conname": "org_units_unit_type_check",
+      "definition": "CHECK ((unit_type = ANY (ARRAY['company'::text, 'region'::text, 'branch'::text, 'department'::text, 'team'::text, 'project'::text, 'task_force'::text, 'committee'::text])))"
+    },
+    {
+      "relname": "org_units",
+      "conname": "uq_org_unit_code",
+      "definition": "UNIQUE (tenant_id, code)"
+    },
+    {
+      "relname": "party_parties",
+      "conname": "party_parties_gender_check",
+      "definition": "CHECK ((gender = ANY (ARRAY['male'::text, 'female'::text, 'other'::text])))"
+    },
+    {
+      "relname": "party_parties",
+      "conname": "party_parties_party_type_check",
+      "definition": "CHECK ((party_type = ANY (ARRAY['person'::text, 'organization'::text])))"
+    },
+    {
+      "relname": "party_parties",
+      "conname": "party_parties_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "relname": "party_parties",
+      "conname": "party_parties_tenant_id_fkey",
+      "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+    },
+    {
+      "relname": "people_directory",
+      "conname": "people_directory_person_type_check",
+      "definition": "CHECK ((person_type = ANY (ARRAY['employee'::text, 'broker'::text, 'agency'::text, 'partner'::text, 'consultant'::text, 'contractor'::text])))"
+    },
+    {
+      "relname": "people_directory",
+      "conname": "people_directory_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "relname": "people_directory",
+      "conname": "people_directory_tenant_id_fkey",
+      "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+    },
+    {
+      "relname": "people_directory",
+      "conname": "people_directory_user_id_fkey",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL"
+    },
+    {
+      "relname": "preschool_chain_course_branch_assignments",
+      "conname": "preschool_chain_course_branch_assignments_branch_id_fkey",
+      "definition": "FOREIGN KEY (branch_id) REFERENCES org_units(id) ON DELETE RESTRICT"
+    },
+    {
+      "relname": "preschool_chain_course_branch_assignments",
+      "conname": "preschool_chain_course_branch_assignments_course_id_fkey",
+      "definition": "FOREIGN KEY (course_id) REFERENCES edu_courses(id) ON DELETE RESTRICT"
+    },
+    {
+      "relname": "preschool_chain_course_branch_assignments",
+      "conname": "preschool_chain_course_branch_assignments_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "relname": "preschool_chain_course_branch_assignments",
+      "conname": "preschool_chain_course_branch_assignments_tenant_id_fkey",
+      "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT"
+    },
+    {
+      "relname": "preschool_chain_course_branch_assignments",
+      "conname": "uq_preschool_chain_course_branch_assignment",
+      "definition": "UNIQUE (tenant_id, course_id)"
+    },
+    {
+      "relname": "students",
+      "conname": "students_course_id_fkey",
+      "definition": "FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE RESTRICT"
+    },
+    {
+      "relname": "students",
+      "conname": "students_enrollment_status_check",
+      "definition": "CHECK ((enrollment_status = ANY (ARRAY['active'::text, 'paused'::text, 'graduated'::text, 'withdrawn'::text])))"
+    },
+    {
+      "relname": "students",
+      "conname": "students_paid_not_above_total",
+      "definition": "CHECK ((tuition_paid <= tuition_total))"
+    },
+    {
+      "relname": "students",
+      "conname": "students_party_id_fkey",
+      "definition": "FOREIGN KEY (party_id) REFERENCES party_parties(id) ON DELETE RESTRICT"
+    },
+    {
+      "relname": "students",
+      "conname": "students_person_fk",
+      "definition": "FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE"
+    },
+    {
+      "relname": "students",
+      "conname": "students_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "relname": "students",
+      "conname": "students_tenant_id_fkey",
+      "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+    },
+    {
+      "relname": "students",
+      "conname": "students_tuition_paid_check",
+      "definition": "CHECK ((tuition_paid >= (0)::numeric))"
+    },
+    {
+      "relname": "students",
+      "conname": "students_tuition_total_check",
+      "definition": "CHECK ((tuition_total >= (0)::numeric))"
+    },
+    {
+      "relname": "students",
+      "conname": "students_unique_user_course",
+      "definition": "UNIQUE (user_id, course_id)"
+    },
+    {
+      "relname": "students",
+      "conname": "students_user_id_fkey",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "relname": "tenants",
+      "conname": "tenants_accounting_mode_check",
+      "definition": "CHECK ((accounting_mode = ANY (ARRAY['SIMPLE'::text, 'PROFESSIONAL'::text])))"
+    },
+    {
+      "relname": "tenants",
+      "conname": "tenants_parent_tenant_id_fkey",
+      "definition": "FOREIGN KEY (parent_tenant_id) REFERENCES tenants(id)"
+    },
+    {
+      "relname": "tenants",
+      "conname": "tenants_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "relname": "tenants",
+      "conname": "tenants_royalty_type_check",
+      "definition": "CHECK (((royalty_type)::text = ANY (ARRAY[('fixed'::character varying)::text, ('percentage'::character varying)::text])))"
+    },
+    {
+      "relname": "tenants",
+      "conname": "tenants_status_check",
+      "definition": "CHECK ((status = ANY (ARRAY['active'::text, 'suspended'::text, 'terminated'::text])))"
+    },
+    {
+      "relname": "users",
+      "conname": "users_email_key",
+      "definition": "UNIQUE (email)"
+    },
+    {
+      "relname": "users",
+      "conname": "users_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "relname": "users",
+      "conname": "users_position_tier_check",
+      "definition": "CHECK ((position_tier = ANY (ARRAY['junior'::text, 'senior'::text, 'lead'::text])))"
+    },
+    {
+      "relname": "users",
+      "conname": "users_role_check",
+      "definition": "CHECK ((role = ANY (ARRAY['admin'::text, 'ktv_lead'::text, 'ktv'::text, 'admin_staff'::text, 'accountant'::text, 'hr'::text, 'student'::text])))"
+    },
+    {
+      "relname": "users",
+      "conname": "users_tenant_id_fkey",
+      "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id)"
+    }
+  ]
+}

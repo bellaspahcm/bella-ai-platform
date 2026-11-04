@@ -1,0 +1,20 @@
+{
+  "checkedAtUtc": "2026-10-27T04:28:50.6588597+00:00",
+  "jsonFilesChecked": 50,
+  "jsonErrors": [],
+  "markdownFilesLinkChecked": [
+    "REPORT.md",
+    "INDEPENDENT_REVIEW.md",
+    "CONTAINMENT_DECISION_REQUIRED.md"
+  ],
+  "linkErrors": [],
+  "markdownSqlFilesWhitespaceChecked": 13,
+  "trailingWhitespace": [],
+  "tableOnlyProposalContainsExecutableSql": false,
+  "gitDiffCheckExit": 0,
+  "gitDiffCheckOutput": "",
+  "candidatePackageHashesMatch": true,
+  "testsRun": false,
+  "remoteMutation": "NONE",
+  "result": "PASS"
+}

@@ -1,0 +1,57 @@
+[
+  {
+    "endpoint": "rpc:get_booking_as_of",
+    "http_status": 401,
+    "denied": true
+  },
+  {
+    "endpoint": "rpc:get_journey_as_of",
+    "http_status": 401,
+    "denied": true
+  },
+  {
+    "endpoint": "rpc:get_temporal_vehicle_inventory",
+    "http_status": 401,
+    "denied": true
+  },
+  {
+    "endpoint": "rpc:get_vehicle_as_of",
+    "http_status": 401,
+    "denied": true
+  },
+  {
+    "endpoint": "rpc:get_vehicle_status_history",
+    "http_status": 401,
+    "denied": true
+  },
+  {
+    "endpoint": "rpc:reconstruct_temporal_state_at",
+    "http_status": 401,
+    "denied": true
+  },
+  {
+    "endpoint": "table:auto_bookings_history",
+    "http_status": 401,
+    "denied": true
+  },
+  {
+    "endpoint": "table:auto_customer_journeys_history",
+    "http_status": 401,
+    "denied": true
+  },
+  {
+    "endpoint": "table:auto_vehicles_history",
+    "http_status": 401,
+    "denied": true
+  },
+  {
+    "endpoint": "table:hc_temporal_events",
+    "http_status": 401,
+    "denied": true
+  },
+  {
+    "endpoint": "table:hc_temporal_snapshots",
+    "http_status": 401,
+    "denied": true
+  }
+]

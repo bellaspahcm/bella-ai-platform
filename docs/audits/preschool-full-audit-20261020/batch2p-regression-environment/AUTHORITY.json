@@ -1,0 +1,11 @@
+{
+  "capturedAt": "2026-10-21T04:40:51.6690532Z",
+  "source": "Direct human reply to sandbox owner decision in current conversation",
+  "verbatimReply": "Duyệt sandbox local đúng đề xuất (khuyến nghị)",
+  "proposalSha256": "709195c98c9a965432823573cfd510dfb2c8f03d249978f0801069d131ca03f5",
+  "localProject": "bella-preschool-regression-20261021",
+  "e2eChangesAuthorized": false,
+  "productionChangesAuthorized": false,
+  "kernelChangesAuthorized": false,
+  "automaticMigrationOrDemoSeedAuthorized": false
+}

@@ -1,0 +1,11 @@
+{
+  "mode": "typecheck",
+  "command": "C:\\Program Files\\nodejs\\node.exe scripts/ci-run-typecheck.mjs changed",
+  "startedAt": "2026-10-20T20:19:29.827Z",
+  "finishedAt": "2026-10-20T20:19:33.629Z",
+  "exitCode": 0,
+  "signal": null,
+  "errorCode": null,
+  "networkConfig": "Process-scoped offline localhost endpoint and synthetic keys; no production DB business tests",
+  "rawLog": "typecheck.log"
+}

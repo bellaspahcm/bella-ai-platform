@@ -1,0 +1,8 @@
+{
+  "command": "npm audit --package-lock-only --json",
+  "startedUtc": "2026-10-27T03:57:58.6881267Z",
+  "endedUtc": "2026-10-27T03:58:02.4340743Z",
+  "exitCode": 1,
+  "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "lockfileSha256": "fe06acc8edf864f2512c97388bf93282a2c9831354b3c62750b4b6659741cbbf"
+}

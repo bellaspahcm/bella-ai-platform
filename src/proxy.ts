@@ -239,6 +239,11 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isLoginRoute) {
+    if (request.nextUrl.searchParams.get('logout') === 'true' || request.nextUrl.searchParams.get('reset') === 'true') {
+      const res = NextResponse.next();
+      res.cookies.delete('mock_user_email');
+      return res;
+    }
     const targetUrl = new URL(
       role === 'student' ? '/student/dashboard' : role === 'ktv' ? '/ktv/dashboard' : '/dashboard',
       request.url,

@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-10-20T23:42:37.144Z",
+  "harnessSha256": "af7108743be5adcd35e6ac92ae9171193ec4d1673778610f567a7e775eb249fe",
+  "scope": "Actual cleanup function with fake DB/Auth; not real Auth/RLS evidence",
+  "networkRequests": 0,
+  "laterOwnedProfileAttempted": true,
+  "laterOwnedProfileDeleted": true,
+  "failuresRetained": 2,
+  "residualDetected": true,
+  "result": "PASS"
+}

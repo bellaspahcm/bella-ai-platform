@@ -1,0 +1,7 @@
+{
+  "capturedAt": "2026-10-21T03:53:20.466Z",
+  "credentialPatternScan": "PASS_PATTERNS_ONLY",
+  "findings": [],
+  "snapshotsVerified": 5,
+  "limitations": "Pattern scan is not a universal secret or sensitive-data proof; evidence producers omit credentials and row payloads."
+}

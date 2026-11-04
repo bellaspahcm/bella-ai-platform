@@ -1,0 +1,5 @@
+
+> node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile .cache/tsbuildinfo/education.tsbuildinfo
+TypeScript scope "education" passed with zero diagnostics.
+
+COMMAND_EXIT_CODE=0

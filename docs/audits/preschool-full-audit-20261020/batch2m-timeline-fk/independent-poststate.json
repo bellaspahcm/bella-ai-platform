@@ -1,0 +1,117 @@
+{
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "startedAt": "2026-10-21T02:32:54.039Z",
+  "readOnly": true,
+  "sourceReport": "care-rls-results-2026-10-21T02-26-08-047Z.json",
+  "sourceHarnessSha256": "cf6668792ab9779d5019aa01039e259baffd681dbba7248d96f7d7e84275cbb9",
+  "requests": [
+    {
+      "table": "edu_courses",
+      "role": "anon",
+      "status": 401,
+      "code": "42501",
+      "requestedLimit": 0
+    },
+    {
+      "table": "edu_courses",
+      "role": "service_role",
+      "status": 200,
+      "code": null,
+      "requestedLimit": 0
+    },
+    {
+      "table": "edu_enrollments",
+      "role": "anon",
+      "status": 401,
+      "code": "42501",
+      "requestedLimit": 0
+    },
+    {
+      "table": "edu_enrollments",
+      "role": "service_role",
+      "status": 200,
+      "code": null,
+      "requestedLimit": 0
+    },
+    {
+      "table": "party_parties",
+      "role": "anon",
+      "status": 401,
+      "code": "42501",
+      "requestedLimit": 0
+    },
+    {
+      "table": "party_parties",
+      "role": "service_role",
+      "status": 200,
+      "code": null,
+      "requestedLimit": 0
+    },
+    {
+      "table": "edu_attendance_daily_state",
+      "role": "anon",
+      "status": 401,
+      "code": "42501",
+      "requestedLimit": 0
+    },
+    {
+      "table": "edu_attendance_daily_state",
+      "role": "service_role",
+      "status": 200,
+      "code": null,
+      "requestedLimit": 0
+    },
+    {
+      "table": "edu_daily_care_sessions",
+      "role": "anon",
+      "status": 401,
+      "code": "42501",
+      "requestedLimit": 0
+    },
+    {
+      "table": "edu_daily_care_sessions",
+      "role": "service_role",
+      "status": 200,
+      "code": null,
+      "requestedLimit": 0
+    },
+    {
+      "table": "edu_daily_care_records",
+      "role": "anon",
+      "status": 401,
+      "code": "42501",
+      "requestedLimit": 0
+    },
+    {
+      "table": "edu_daily_care_records",
+      "role": "service_role",
+      "status": 200,
+      "code": null,
+      "requestedLimit": 0
+    }
+  ],
+  "catalogSha256": "9afc1e07426e3c7c27bf697c3e4f1877c5affe876cc96505e471f6a08d31d5d2",
+  "controlsUnchanged": true,
+  "residualCounts": {
+    "edu_daily_care_records": 0,
+    "edu_daily_care_sessions": 0,
+    "edu_attendance_daily_state": 0,
+    "edu_enrollments": 0,
+    "preschool_chain_course_branch_assignments": 0,
+    "party_parties": 0,
+    "edu_courses": 0,
+    "org_relationships": 0,
+    "people_directory": 0,
+    "org_units": 0,
+    "auth_users": 0,
+    "public_users": 0
+  },
+  "newRelationTotals": {
+    "edu_attendance_daily_state": 0,
+    "edu_daily_care_sessions": 0,
+    "edu_daily_care_records": 0
+  },
+  "terminatedTenantShells": 2,
+  "result": "PASS_POSTSTATE_ONLY",
+  "finishedAt": "2026-10-21T02:33:18.166Z"
+}

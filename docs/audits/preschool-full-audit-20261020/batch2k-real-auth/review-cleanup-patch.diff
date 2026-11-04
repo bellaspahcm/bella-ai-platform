@@ -1,0 +1,93 @@
+diff --git a/docs/audits/preschool-full-audit-20261020/batch2k-real-auth/harness-reviewed-d14ecb89b7c9c53444a59169dd5a313f6c241ddd84cbfd7e36cc11b7d25de0e6.txt b/scripts/verify-preschool-real-auth-acceptance.cjs
+index cbbb8d099..1cebdba49 100644
+--- a/docs/audits/preschool-full-audit-20261020/batch2k-real-auth/harness-reviewed-d14ecb89b7c9c53444a59169dd5a313f6c241ddd84cbfd7e36cc11b7d25de0e6.txt
++++ b/scripts/verify-preschool-real-auth-acceptance.cjs
+@@ -46,6 +46,7 @@ const wait = ms => new Promise(resolveWait => setTimeout(resolveWait, ms));
+ function fail(code) { const error = new Error(code); error.acceptanceCode = code; throw error; }
+ function must(value, code) { if (!value) fail(code); }
+ function safeCode(error) {
++  if (error?.message === 'Query read timeout') return 'QUERY_READ_TIMEOUT';
+   const code = error?.acceptanceCode || error?.code;
+   return typeof code === 'string' && /^[A-Z0-9_]{2,80}$/.test(code) ? code : 'UNCLASSIFIED_FAILURE';
+ }
+@@ -110,7 +111,7 @@ async function remoteFetch(input, init = {}) {
+   const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
+   must(url.origin === API && !url.username && !url.password, 'AUTH_OR_REST_TARGET_REJECTED');
+   const timeout = AbortSignal.timeout(25_000);
+-  return fetch(input, { ...init, signal: init.signal ? AbortSignal.any([init.signal, timeout]) : timeout });
++  return fetch(input, { ...init, redirect: 'error', signal: init.signal ? AbortSignal.any([init.signal, timeout]) : timeout });
+ }
+ async function catalog() {
+   await db.query('begin read only');
+@@ -311,7 +312,16 @@ async function verifyRls() {
+       const count = actor.role === 'accountant' ? 0 : 1;
+       must(!result.error && result.data?.length === count && result.data.every(row => row.user_id === actor.id
+         && row.tenant_id === fixture.tenant && row.org_unit_id === fixture.branch), 'PROJECTION_SCOPE_FAILED');
+-      return { allowedOwn: count, forbiddenOther: 0, positiveControl: actor.role !== 'accountant' };
++      const other = fixtures.find(item => item !== fixture);
++      const otherAdmin = other.actors.find(item => item.role === 'admin');
++      // Query a real foreign actor/branch pair. Filtering only by the caller's
++      // actor ID would exclude the foreign sentinel before RLS is exercised.
++      // The other admin's own iteration provides its positive control.
++      const foreign = await actor.client.from('user_org_unit_access').select('user_id,org_unit_id')
++        .eq('user_id', otherAdmin.id).eq('org_unit_id', other.branch);
++      must(!foreign.error && foreign.data?.length === 0, 'PROJECTION_FOREIGN_ACTOR_VISIBLE');
++      return { allowedOwn: count, forbiddenOther: foreign.data.length,
++        foreignActorAndBranchExplicitlyQueried: true, positiveControl: actor.role !== 'accountant' };
+     });
+   }
+   for (const table of ['edu_courses', 'edu_enrollments', 'party_parties']) {
+@@ -377,9 +387,11 @@ async function verifyHttp() {
+       `/api/education/courses?tenantId=${fixture.tenant}&tenantId=${other.tenant}`, 'GET', undefined, 403, 'TENANT_ISOLATION_VIOLATION');
+     const ownCourses = await http(administrator, '/api/education/courses');
+     const deniedAcl = catalogBefore.relations.find(item => item.name === 'edu_courses')?.auth_select === false;
+-    add(`COURSE_OWN_HTTP_${fixture.index}`, 'NOT_PROVEN', { status: ownCourses.status,
+-      code: ownCourses.status === 500 && deniedAcl && /permission denied/i.test(ownCourses.json?.error || '')
+-        ? 'AUTHENTICATED_SELECT_ACL_MISSING' : 'COURSE_PREREQUISITE_UNPROVEN' });
++    const knownMissingAcl = ownCourses.status === 500 && deniedAcl
++      && ownCourses.json?.success === false && /permission denied/i.test(ownCourses.json?.error || '')
++      && !Array.isArray(ownCourses.json?.classrooms);
++    add(`COURSE_OWN_HTTP_${fixture.index}`, knownMissingAcl ? 'NOT_PROVEN' : 'FAIL', { status: ownCourses.status,
++      code: knownMissingAcl ? 'AUTHENTICATED_SELECT_ACL_MISSING' : 'UNEXPECTED_COURSE_RESPONSE' });
+   }
+   for (const [index, actor] of [null, ...fixtures[0].actors].entries()) {
+     await expected(`MEDICATION_DISABLED_${index}`, actor, '/api/education/care/medication', 'POST', '{', 410, 'PRESCHOOL_MEDICATION_DISABLED');
+@@ -403,11 +415,15 @@ async function stopServer() {
+   if (!server) return;
+   if (!serverExit) {
+     if (process.platform === 'win32') {
+-      try { execFileSync('taskkill.exe', ['/PID', String(server.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore', timeout: 20_000 }); }
++      try {
++        execFileSync('taskkill.exe', ['/PID', String(server.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore', timeout: 20_000 });
++        report.processTreeKillExitCode = 0;
++      }
+       catch { if (!serverExit && server.exitCode === null) fail('OWN_NEXT_PROCESS_TREE_STOP_FAILED'); }
+     } else { try { process.kill(-server.pid, 'SIGTERM'); } catch { /* Verify listener below. */ } }
+   }
+   for (let index = 0; index < 40 && await listening(); index++) await wait(250);
++  await wait(100); // Allow the child exit event to record its actual code after taskkill.
+   const closed = !await listening();
+   report.server = { ...report.server, exit: serverExit || { code: server.exitCode, signal: server.signalCode },
+     stdoutBytes, stderrBytes, rawLogsSaved: false, listenerClosed: closed };
+@@ -453,7 +469,6 @@ async function cleanup() {
+       await attempt('DELETE_OWN_BRANCHES', () => db.query('delete from public.org_units where id=any($1::uuid[]) and tenant_id=any($2::uuid[])', [fixtures.map(item => item.branch), fixtures.map(item => item.tenant)]));
+     }
+     if (authCreated.length) {
+-      await attempt('DELETE_OWN_PROFILES', () => db.query('delete from public.users where id=any($1::uuid[])', [authCreated]));
+       await attempt('REVOKE_RESIDUAL_PROFILE_AUTHORITY', () => db.query("update public.users set status='inactive' where id=any($1::uuid[]) and status is distinct from 'inactive'", [authCreated]));
+     }
+     // Tenant insert creates immutable audit history. Preserve that history and
+@@ -463,6 +478,13 @@ async function cleanup() {
+   if (admin) for (const id of [...authCreated].reverse()) await attempt('DELETE_OWN_AUTH_USER', async () => {
+     const result = await admin.auth.admin.deleteUser(id); must(!result.error, 'AUTH_FIXTURE_DELETE_FAILED');
+   });
++  if (connected && authCreated.length) await attempt('DELETE_RESIDUAL_OWN_PROFILES', async () => {
++    // Auth deletion is the canonical owner lifecycle and may cascade the profile.
++    // Do not issue a bulk profile DELETE before it: its many FK checks can outlive
++    // the bounded query window. Only delete an owned residual, one UUID at a time.
++    const residual = await db.query('select id from public.users where id=any($1::uuid[])', [authCreated]);
++    for (const row of residual.rows) await db.query('delete from public.users where id=$1', [row.id]);
++  });
+   if (connected && authCreated.length) await attempt('RESIDUAL_READBACK', async () => {
+     const result = await db.query(`select
+       (select count(*)::int from auth.users where id=any($1::uuid[])) as auth_users,

@@ -1,0 +1,34 @@
+{
+  "report": "REPORT.md",
+  "findings": 13,
+  "P1": 9,
+  "P2": 4,
+  "education": {
+    "suites": 140,
+    "tests": 2032,
+    "passed": 2032
+  },
+  "supplementalSecurity": {
+    "suites": 6,
+    "tests": 60,
+    "passed": 58,
+    "failed": 2,
+    "classifications": [
+      "ENVIRONMENT",
+      "TEST_PORTABILITY / FIXTURE_FORMAT"
+    ]
+  },
+  "diagnosticProbes": {
+    "tests": 9,
+    "reproduced": 9,
+    "meaning": "confirmed current unsafe behavior, not business acceptance"
+  },
+  "typecheckExit": 0,
+  "sourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+  "workingTree": "?? docs/audits/preschool-operations-20261031/",
+  "brokenReportLinks": [],
+  "sourceHashDrift": [],
+  "jsonArtifactsValidated": 14,
+  "runtimeDbRlsBrowserProduction": "NOT_PROVEN",
+  "applicationChangesByAudit": 0
+}

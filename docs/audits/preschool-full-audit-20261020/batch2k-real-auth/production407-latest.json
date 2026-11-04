@@ -1,0 +1,384 @@
+{
+  "checkedAt": "2026-10-20T23:10:26.384Z",
+  "project": "prj_Rgncynqz8ptznREGggMxPfjwoikW",
+  "source": "ecfaf23ab06d043c5f2caec38ea67856705b6c26",
+  "branch": "main",
+  "productionMutation": "NOT_PERFORMED",
+  "deploymentInitiated": false,
+  "protectionConfigurationChanged": false,
+  "realSupabaseUserSession": false,
+  "businessRowContentsSaved": false,
+  "commands": [
+    {
+      "route": "/v9/projects/prj_Rgncynqz8ptznREGggMxPfjwoikW",
+      "method": "GET",
+      "exitCode": 0
+    },
+    {
+      "route": "/v13/deployments/dpl_BfU1Mv62WBuJ52Xwqcvjc2xFB4r9",
+      "method": "GET",
+      "exitCode": 0
+    },
+    {
+      "route": "/v13/deployments/dpl_BfU1Mv62WBuJ52Xwqcvjc2xFB4r9",
+      "method": "GET",
+      "exitCode": 0
+    },
+    {
+      "route": "/v9/projects/prj_Rgncynqz8ptznREGggMxPfjwoikW",
+      "method": "GET",
+      "exitCode": 0
+    }
+  ],
+  "result": "PASS",
+  "production": {
+    "id": "dpl_BfU1Mv62WBuJ52Xwqcvjc2xFB4r9",
+    "source": "ecfaf23ab06d043c5f2caec38ea67856705b6c26",
+    "readyState": "READY",
+    "target": "production",
+    "canonicalAliasAssigned": true
+  },
+  "deployment": {
+    "id": "dpl_BfU1Mv62WBuJ52Xwqcvjc2xFB4r9",
+    "source": "ecfaf23ab06d043c5f2caec38ea67856705b6c26",
+    "readyState": "READY",
+    "target": "production",
+    "canonicalAliasAssigned": true,
+    "url": "https://bella-spa-erp.vercel.app"
+  },
+  "existingVercelAutomationAccess": true,
+  "tests": [
+    {
+      "method": "POST",
+      "resource": "/api/education/ai/copilot",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/ai/copilot",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/care/medication",
+      "spoof": false,
+      "status": 410,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "message",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/care/medication",
+      "spoof": true,
+      "status": 410,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "message",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/care/bulk",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/care/bulk",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/care/bulk",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/care/bulk",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/portal/token",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/portal/token",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/portal/invalid",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/portal/invalid",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/portal/invalid/chat",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/portal/invalid/chat",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/portal/invalid/copilot",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/portal/invalid/copilot",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/announcements",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "resource": "/api/education/announcements",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/courses",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/courses",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/courses/00000000-0000-4000-8000-000000000099",
+      "spoof": false,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "resource": "/api/education/courses/00000000-0000-4000-8000-000000000099",
+      "spoof": true,
+      "status": 401,
+      "expectedCodeMatched": true,
+      "responseKeys": [
+        "error",
+        "success"
+      ],
+      "approvedErrorShapeMatched": true,
+      "applicationDenial": true,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    }
+  ],
+  "productionSourceStable": true,
+  "productionTargetUnchangedDuringProbes": true
+}

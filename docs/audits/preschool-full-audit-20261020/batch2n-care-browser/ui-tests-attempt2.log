@@ -1,0 +1,893 @@
+  console.log
+    ◇ injected env (0) from .env.local // tip: ⌁ auth for agents [www.vestauth.com]
+
+      at _log (../../preschool-care-authorization-20261021/BELLA SPA ERP/node_modules/dotenv/lib/main.js:131:11)
+
+  console.log
+    [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+FAIL src/app/dashboard/education/care/__tests__/page.test.tsx
+  ● A denied save keeps the quick editor and a visible error without claiming success
+
+    Found multiple elements with the role "alert"
+
+    Here are the matching elements:
+
+    Ignored nodes: comments, script, style
+    <p
+      class="text-rose-700 dark:text-rose-300"
+      role="alert"
+    >
+      Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.
+    </p>
+
+    Ignored nodes: comments, script, style
+    <p
+      class="text-xs text-rose-700 dark:text-rose-200"
+      role="alert"
+    >
+      Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.
+    </p>
+
+    (If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+    Ignored nodes: comments, script, style
+    <div
+      aria-describedby="care-draft-notice"
+      aria-labelledby="care-quick-record-title"
+      aria-modal="true"
+      class="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-5 relative"
+      role="dialog"
+    >
+      <button
+        aria-label="Đóng ghi nhận nhanh"
+        class="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-x w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M18 6 6 18"
+          />
+          <path
+            d="m6 6 12 12"
+          />
+        </svg>
+      </button>
+      <div
+        class="space-y-1"
+      >
+        <span
+          class="text-[11px] font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400"
+        >
+          Nhật ký chăm sóc mầm non
+        </span>
+        <h3
+          class="text-lg font-extrabold text-slate-900 dark:text-white"
+          id="care-quick-record-title"
+        >
+          Ghi Nhận Chăm Sóc Nhanh
+        </h3>
+        <p
+          class="text-xs text-slate-500 dark:text-slate-400"
+          id="care-draft-notice"
+        >
+          Cập nhật bữa ăn, giấc ngủ, vệ sinh và ghi chú theo lớp hoặc các trẻ đã chọn
+        </p>
+      </div>
+      <div
+        class="space-y-4 text-xs"
+      >
+        <div>
+          <label
+            class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+          >
+            Phạm vi áp dụng
+          </label>
+          <div
+            class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between"
+          >
+            <span>
+              Toàn bộ lớp: Synthetic class A (1 bé)
+            </span>
+          </div>
+        </div>
+        <p
+          class="text-rose-700 dark:text-rose-300"
+          role="alert"
+        >
+          Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.
+        </p>
+        <div
+          class="grid grid-cols-2 gap-3"
+        >
+          <div>
+            <label
+              class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+              for="care-meal"
+            >
+              Bữa ăn
+            </label>
+            <select
+              class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+              id="care-meal"
+            >
+              <option
+                value="ALL"
+              >
+                Ăn hết khẩu phần
+              </option>
+              <option
+                value="HALF"
+              >
+                Ăn 1/2 khẩu phần
+              </option>
+              <option
+                value="FEW"
+              >
+                Ăn ít khẩu phần
+              </option>
+              <option
+                value="NONE"
+              >
+                Không ăn / Bỏ bữa
+              </option>
+            </select>
+          </div>
+          <div>
+            <label
+              class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+              for="care-nap"
+            >
+              Giấc ngủ trưa
+            </label>
+            <select
+              class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+              id="care-nap"
+            >
+              <option
+                value="DEEP"
+              >
+                Ngủ ngoan (120 phút)
+              </option>
+              <option
+                value="RESTLESS"
+              >
+                Ngủ ít (60 phút)
+              </option>
+              <option
+                value="REFUSED"
+              >
+                Khó ngủ / Không ngủ
+              </option>
+            </select>
+          </div>
+        </div>
+        <div
+          class="grid grid-cols-2 gap-3"
+        >
+          <div>
+            <p
+              id="care-health-held"
+            >
+              Ghi nhận sức khỏe hiện chưa khả dụng. Dữ liệu lịch sử được giữ nguyên.
+            </p>
+            <label
+              class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+              for="care-health"
+            >
+              Thân nhiệt & Sức khỏe
+            </label>
+            <input
+              aria-describedby="care-health-held"
+              class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800"
+              disabled=""
+              id="care-health"
+              readonly=""
+              value="Chưa khả dụng"
+            />
+          </div>
+          <div>
+            <label
+              class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+              for="care-hygiene"
+            >
+              Vệ sinh cá nhân
+            </label>
+            <select
+              class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+              id="care-hygiene"
+            >
+              <option
+                value="TOILET"
+              >
+                Bình thường / Tốt
+              </option>
+              <option
+                value="DIAPER"
+              >
+                Đã thay tã / quần áo
+              </option>
+              <option
+                value="ABNORMAL"
+              >
+                Tiêu chảy / Bất thường
+              </option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label
+            class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+            for="care-note"
+          >
+            Ghi chú cho phụ huynh / giáo viên ca sau
+          </label>
+          <textarea
+            class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+            id="care-note"
+            placeholder="Ghi chú thêm (ví dụ: Bé vui vẻ, ăn ngoan...)"
+            rows="2"
+          >
+            Synthetic unsaved draft
+          </textarea>
+        </div>
+      </div>
+      <p
+        class="text-xs text-rose-700 dark:text-rose-200"
+        role="alert"
+      >
+        Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.
+      </p>
+      <div
+        class="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-800"
+      >
+        <button
+          class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
+          type="button"
+        >
+          Hủy bỏ
+        </button>
+        <button
+          class="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-check w-4 h-4"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M20 6 9 17l-5-5"
+            />
+          </svg>
+          <span>
+            Lưu Ghi Nhận
+          </span>
+        </button>
+      </div>
+    </div>
+
+      51 |   fireEvent.change(within(dialog).getByLabelText('Ghi chú cho phụ huynh / giáo viên ca sau'), { target: { value: 'Synthetic unsaved draft' } });
+      52 |   fireEvent.click(within(dialog).getByRole('button', { name: 'Lưu Ghi Nhận' }));
+    > 53 |   expect(await within(dialog).findByRole('alert')).toHaveTextContent('Chưa xác nhận lưu đầy đủ');
+         |                               ^
+      54 |   expect(dialog).toBeVisible();
+      55 |   expect(within(dialog).getByLabelText('Ghi chú cho phụ huynh / giáo viên ca sau')).toHaveValue('Synthetic unsaved draft');
+      56 |   expect(screen.queryByText('Đã lưu chăm sóc cho 1 trẻ.')).not.toBeInTheDocument();
+
+      at waitForWrapper (../../preschool-care-authorization-20261021/BELLA SPA ERP/node_modules/@testing-library/dom/dist/wait-for.js:163:27)
+      at ../../preschool-care-authorization-20261021/BELLA SPA ERP/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+      at findByRole (src/app/dashboard/education/care/__tests__/page.test.tsx:53:31)
+
+  ● A partial save keeps the quick editor and a visible error without claiming success
+
+    Found multiple elements with the role "alert"
+
+    Here are the matching elements:
+
+    Ignored nodes: comments, script, style
+    <p
+      class="text-rose-700 dark:text-rose-300"
+      role="alert"
+    >
+      Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.
+    </p>
+
+    Ignored nodes: comments, script, style
+    <p
+      class="text-xs text-rose-700 dark:text-rose-200"
+      role="alert"
+    >
+      Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.
+    </p>
+
+    (If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+    Ignored nodes: comments, script, style
+    <div
+      aria-describedby="care-draft-notice"
+      aria-labelledby="care-quick-record-title"
+      aria-modal="true"
+      class="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-5 relative"
+      role="dialog"
+    >
+      <button
+        aria-label="Đóng ghi nhận nhanh"
+        class="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-x w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M18 6 6 18"
+          />
+          <path
+            d="m6 6 12 12"
+          />
+        </svg>
+      </button>
+      <div
+        class="space-y-1"
+      >
+        <span
+          class="text-[11px] font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400"
+        >
+          Nhật ký chăm sóc mầm non
+        </span>
+        <h3
+          class="text-lg font-extrabold text-slate-900 dark:text-white"
+          id="care-quick-record-title"
+        >
+          Ghi Nhận Chăm Sóc Nhanh
+        </h3>
+        <p
+          class="text-xs text-slate-500 dark:text-slate-400"
+          id="care-draft-notice"
+        >
+          Cập nhật bữa ăn, giấc ngủ, vệ sinh và ghi chú theo lớp hoặc các trẻ đã chọn
+        </p>
+      </div>
+      <div
+        class="space-y-4 text-xs"
+      >
+        <div>
+          <label
+            class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+          >
+            Phạm vi áp dụng
+          </label>
+          <div
+            class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between"
+          >
+            <span>
+              Toàn bộ lớp: Synthetic class A (1 bé)
+            </span>
+          </div>
+        </div>
+        <p
+          class="text-rose-700 dark:text-rose-300"
+          role="alert"
+        >
+          Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.
+        </p>
+        <div
+          class="grid grid-cols-2 gap-3"
+        >
+          <div>
+            <label
+              class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+              for="care-meal"
+            >
+              Bữa ăn
+            </label>
+            <select
+              class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+              id="care-meal"
+            >
+              <option
+                value="ALL"
+              >
+                Ăn hết khẩu phần
+              </option>
+              <option
+                value="HALF"
+              >
+                Ăn 1/2 khẩu phần
+              </option>
+              <option
+                value="FEW"
+              >
+                Ăn ít khẩu phần
+              </option>
+              <option
+                value="NONE"
+              >
+                Không ăn / Bỏ bữa
+              </option>
+            </select>
+          </div>
+          <div>
+            <label
+              class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+              for="care-nap"
+            >
+              Giấc ngủ trưa
+            </label>
+            <select
+              class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+              id="care-nap"
+            >
+              <option
+                value="DEEP"
+              >
+                Ngủ ngoan (120 phút)
+              </option>
+              <option
+                value="RESTLESS"
+              >
+                Ngủ ít (60 phút)
+              </option>
+              <option
+                value="REFUSED"
+              >
+                Khó ngủ / Không ngủ
+              </option>
+            </select>
+          </div>
+        </div>
+        <div
+          class="grid grid-cols-2 gap-3"
+        >
+          <div>
+            <p
+              id="care-health-held"
+            >
+              Ghi nhận sức khỏe hiện chưa khả dụng. Dữ liệu lịch sử được giữ nguyên.
+            </p>
+            <label
+              class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+              for="care-health"
+            >
+              Thân nhiệt & Sức khỏe
+            </label>
+            <input
+              aria-describedby="care-health-held"
+              class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800"
+              disabled=""
+              id="care-health"
+              readonly=""
+              value="Chưa khả dụng"
+            />
+          </div>
+          <div>
+            <label
+              class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+              for="care-hygiene"
+            >
+              Vệ sinh cá nhân
+            </label>
+            <select
+              class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+              id="care-hygiene"
+            >
+              <option
+                value="TOILET"
+              >
+                Bình thường / Tốt
+              </option>
+              <option
+                value="DIAPER"
+              >
+                Đã thay tã / quần áo
+              </option>
+              <option
+                value="ABNORMAL"
+              >
+                Tiêu chảy / Bất thường
+              </option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label
+            class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+            for="care-note"
+          >
+            Ghi chú cho phụ huynh / giáo viên ca sau
+          </label>
+          <textarea
+            class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+            id="care-note"
+            placeholder="Ghi chú thêm (ví dụ: Bé vui vẻ, ăn ngoan...)"
+            rows="2"
+          >
+            Synthetic unsaved draft
+          </textarea>
+        </div>
+      </div>
+      <p
+        class="text-xs text-rose-700 dark:text-rose-200"
+        role="alert"
+      >
+        Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.
+      </p>
+      <div
+        class="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-800"
+      >
+        <button
+          class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
+          type="button"
+        >
+          Hủy bỏ
+        </button>
+        <button
+          class="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-check w-4 h-4"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M20 6 9 17l-5-5"
+            />
+          </svg>
+          <span>
+            Lưu Ghi Nhận
+          </span>
+        </button>
+      </div>
+    </div>
+
+      51 |   fireEvent.change(within(dialog).getByLabelText('Ghi chú cho phụ huynh / giáo viên ca sau'), { target: { value: 'Synthetic unsaved draft' } });
+      52 |   fireEvent.click(within(dialog).getByRole('button', { name: 'Lưu Ghi Nhận' }));
+    > 53 |   expect(await within(dialog).findByRole('alert')).toHaveTextContent('Chưa xác nhận lưu đầy đủ');
+         |                               ^
+      54 |   expect(dialog).toBeVisible();
+      55 |   expect(within(dialog).getByLabelText('Ghi chú cho phụ huynh / giáo viên ca sau')).toHaveValue('Synthetic unsaved draft');
+      56 |   expect(screen.queryByText('Đã lưu chăm sóc cho 1 trẻ.')).not.toBeInTheDocument();
+
+      at waitForWrapper (../../preschool-care-authorization-20261021/BELLA SPA ERP/node_modules/@testing-library/dom/dist/wait-for.js:163:27)
+      at ../../preschool-care-authorization-20261021/BELLA SPA ERP/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+      at findByRole (src/app/dashboard/education/care/__tests__/page.test.tsx:53:31)
+
+  ● A reload-failed save keeps the quick editor and a visible error without claiming success
+
+    Found multiple elements with the role "alert"
+
+    Here are the matching elements:
+
+    Ignored nodes: comments, script, style
+    <p
+      class="text-rose-700 dark:text-rose-300"
+      role="alert"
+    >
+      Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.
+    </p>
+
+    Ignored nodes: comments, script, style
+    <p
+      class="text-xs text-rose-700 dark:text-rose-200"
+      role="alert"
+    >
+      Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.
+    </p>
+
+    (If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+    Ignored nodes: comments, script, style
+    <div
+      aria-describedby="care-draft-notice"
+      aria-labelledby="care-quick-record-title"
+      aria-modal="true"
+      class="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-5 relative"
+      role="dialog"
+    >
+      <button
+        aria-label="Đóng ghi nhận nhanh"
+        class="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-x w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M18 6 6 18"
+          />
+          <path
+            d="m6 6 12 12"
+          />
+        </svg>
+      </button>
+      <div
+        class="space-y-1"
+      >
+        <span
+          class="text-[11px] font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400"
+        >
+          Nhật ký chăm sóc mầm non
+        </span>
+        <h3
+          class="text-lg font-extrabold text-slate-900 dark:text-white"
+          id="care-quick-record-title"
+        >
+          Ghi Nhận Chăm Sóc Nhanh
+        </h3>
+        <p
+          class="text-xs text-slate-500 dark:text-slate-400"
+          id="care-draft-notice"
+        >
+          Cập nhật bữa ăn, giấc ngủ, vệ sinh và ghi chú theo lớp hoặc các trẻ đã chọn
+        </p>
+      </div>
+      <div
+        class="space-y-4 text-xs"
+      >
+        <div>
+          <label
+            class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+          >
+            Phạm vi áp dụng
+          </label>
+          <div
+            class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between"
+          >
+            <span>
+              Toàn bộ lớp: Synthetic class A (0 bé)
+            </span>
+          </div>
+        </div>
+        <p
+          class="text-rose-700 dark:text-rose-300"
+          role="alert"
+        >
+          Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.
+        </p>
+        <div
+          class="grid grid-cols-2 gap-3"
+        >
+          <div>
+            <label
+              class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+              for="care-meal"
+            >
+              Bữa ăn
+            </label>
+            <select
+              class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+              id="care-meal"
+            >
+              <option
+                value="ALL"
+              >
+                Ăn hết khẩu phần
+              </option>
+              <option
+                value="HALF"
+              >
+                Ăn 1/2 khẩu phần
+              </option>
+              <option
+                value="FEW"
+              >
+                Ăn ít khẩu phần
+              </option>
+              <option
+                value="NONE"
+              >
+                Không ăn / Bỏ bữa
+              </option>
+            </select>
+          </div>
+          <div>
+            <label
+              class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+              for="care-nap"
+            >
+              Giấc ngủ trưa
+            </label>
+            <select
+              class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+              id="care-nap"
+            >
+              <option
+                value="DEEP"
+              >
+                Ngủ ngoan (120 phút)
+              </option>
+              <option
+                value="RESTLESS"
+              >
+                Ngủ ít (60 phút)
+              </option>
+              <option
+                value="REFUSED"
+              >
+                Khó ngủ / Không ngủ
+              </option>
+            </select>
+          </div>
+        </div>
+        <div
+          class="grid grid-cols-2 gap-3"
+        >
+          <div>
+            <p
+              id="care-health-held"
+            >
+              Ghi nhận sức khỏe hiện chưa khả dụng. Dữ liệu lịch sử được giữ nguyên.
+            </p>
+            <label
+              class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+              for="care-health"
+            >
+              Thân nhiệt & Sức khỏe
+            </label>
+            <input
+              aria-describedby="care-health-held"
+              class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800"
+              disabled=""
+              id="care-health"
+              readonly=""
+              value="Chưa khả dụng"
+            />
+          </div>
+          <div>
+            <label
+              class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+              for="care-hygiene"
+            >
+              Vệ sinh cá nhân
+            </label>
+            <select
+              class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+              id="care-hygiene"
+            >
+              <option
+                value="TOILET"
+              >
+                Bình thường / Tốt
+              </option>
+              <option
+                value="DIAPER"
+              >
+                Đã thay tã / quần áo
+              </option>
+              <option
+                value="ABNORMAL"
+              >
+                Tiêu chảy / Bất thường
+              </option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label
+            class="font-bold text-slate-700 dark:text-slate-300 block mb-1.5"
+            for="care-note"
+          >
+            Ghi chú cho phụ huynh / giáo viên ca sau
+          </label>
+          <textarea
+            class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+            id="care-note"
+            placeholder="Ghi chú thêm (ví dụ: Bé vui vẻ, ăn ngoan...)"
+            rows="2"
+          >
+            Synthetic unsaved draft
+          </textarea>
+        </div>
+      </div>
+      <p
+        class="text-xs text-rose-700 dark:text-rose-200"
+        role="alert"
+      >
+        Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.
+      </p>
+      <div
+        class="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-800"
+      >
+        <button
+          class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
+          type="button"
+        >
+          Hủy bỏ
+        </button>
+        <button
+          class="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-check w-4 h-4"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M20 6 9 17l-5-5"
+            />
+          </svg>
+          <span>
+            Lưu Ghi Nhận
+          </span>
+        </button>
+      </div>
+    </div>
+
+      51 |   fireEvent.change(within(dialog).getByLabelText('Ghi chú cho phụ huynh / giáo viên ca sau'), { target: { value: 'Synthetic unsaved draft' } });
+      52 |   fireEvent.click(within(dialog).getByRole('button', { name: 'Lưu Ghi Nhận' }));
+    > 53 |   expect(await within(dialog).findByRole('alert')).toHaveTextContent('Chưa xác nhận lưu đầy đủ');
+         |                               ^
+      54 |   expect(dialog).toBeVisible();
+      55 |   expect(within(dialog).getByLabelText('Ghi chú cho phụ huynh / giáo viên ca sau')).toHaveValue('Synthetic unsaved draft');
+      56 |   expect(screen.queryByText('Đã lưu chăm sóc cho 1 trẻ.')).not.toBeInTheDocument();
+
+      at waitForWrapper (../../preschool-care-authorization-20261021/BELLA SPA ERP/node_modules/@testing-library/dom/dist/wait-for.js:163:27)
+      at ../../preschool-care-authorization-20261021/BELLA SPA ERP/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+      at findByRole (src/app/dashboard/education/care/__tests__/page.test.tsx:53:31)
+
+Test Suites: 1 failed, 1 total
+Tests:       3 failed, 3 passed, 6 total
+Snapshots:   0 total
+Time:        5.774 s, estimated 6 s
+Ran all test suites matching src/app/dashboard/education/care/__tests__/page.test.tsx.
+Test results written to: docs\audits\preschool-full-audit-20261020\batch2n-care-browser\ui-tests-attempt2.json

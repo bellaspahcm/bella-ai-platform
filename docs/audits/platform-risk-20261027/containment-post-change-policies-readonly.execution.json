@@ -1,0 +1,8 @@
+{
+  "command": "supabase db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-post-change-policies-readonly.sql -o json",
+  "startedUtc": "2026-10-27T04:55:15.6976894Z",
+  "endedUtc": "2026-10-27T04:55:17.7079758Z",
+  "exitCode": 0,
+  "querySha256": "cba255b7f81a5814ad15830c82e300bb6ef487d7e1237bcab76189736894e91e",
+  "outputFile": "containment-post-change-policies-readonly.stdout.log"
+}

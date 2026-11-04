@@ -88,7 +88,7 @@ export async function GET(request: Request) {
       .filter(([, branchId]) => branchId === selectedBranchId)
       .map(([courseId]) => courseId);
     const coursesById = new Map(catalog.filter((course) => selectedCourseIds.includes(course.id)).map((course) => [course.id, course]));
-    const attendance = new AttendanceContractImpl(client);
+    const attendance = new AttendanceContractImpl(client, context.productKey);
     const courseRosters = await Promise.all(selectedCourseIds.map((courseId) =>
       attendance.getCourseDailyAttendance({ tenantId, courseId, schoolDay: date })
     ));

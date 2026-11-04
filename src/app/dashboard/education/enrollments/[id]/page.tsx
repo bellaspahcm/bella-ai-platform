@@ -185,11 +185,18 @@ function Student360PageContent(): ReactElement {
     ? `/dashboard/education/enrollments?courseId=${encodeURIComponent(selectedCourseId)}`
     : '/dashboard/education/enrollments';
 
+  const userRole = (user?.role ?? '').trim().toLowerCase();
+  const isAdmin = userRole === 'admin' || userRole === 'super_admin' || userRole === 'owner';
+  const canViewFinance = userRole !== 'teacher' && (userRole === 'admin' || userRole === 'super_admin' || userRole === 'owner' || userRole === 'accountant' || !userRole);
+
   return <Student360LegacyLayout
     profile={profile}
     registryHref={registryHref}
     selectedCourseId={selectedCourseId}
     tenantId={product?.productKey === 'bella_preschool' ? user?.tenant_id ?? null : null}
+    isAdmin={isAdmin}
+    canViewFinance={canViewFinance}
+    onProfileUpdated={(updated) => setState({ status: 'ready', selector: studentCode, profile: updated })}
   />;
 }
 

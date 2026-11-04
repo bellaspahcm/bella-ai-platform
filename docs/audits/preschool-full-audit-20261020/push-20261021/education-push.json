@@ -1,0 +1,20 @@
+{
+  "startedAt": "2026-10-20T20:58:48.851Z",
+  "finishedAt": "2026-10-20T20:58:53.175Z",
+  "workspace": "C:/Users/DELL/.codex/worktrees/preschool-courses-auth-20261021/BELLA SPA ERP",
+  "branch": "codex/preschool-courses-auth-20261021",
+  "commit": "2522f6db2d0a19e6ec9ddc9f775bc8cd669d72c8",
+  "remote": "origin",
+  "target": "refs/heads/codex/preschool-courses-auth-20261021",
+  "exitCode": 0,
+  "errorCode": null,
+  "forced": false,
+  "automaticRetry": false,
+  "prCreated": false,
+  "merged": false,
+  "sourceDeploymentPerformed": false,
+  "remoteSha": "2522f6db2d0a19e6ec9ddc9f775bc8cd669d72c8",
+  "localRemoteShaMatch": true,
+  "worktreeClean": true,
+  "upstream": "origin/codex/preschool-courses-auth-20261021"
+}

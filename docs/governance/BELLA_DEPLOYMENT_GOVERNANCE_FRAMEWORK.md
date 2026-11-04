@@ -1,9 +1,10 @@
 # BELLA PLATFORM — DEPLOYMENT GOVERNANCE FRAMEWORK
 
-**Version:** 1.0  
+**Version:** 1.1
 **Status:** ESTABLISHED (extracted from Amendment 12 v3)  
 **Applies To:** All Bella Platform OS (Healthcare, Finance, Education, Real Estate, etc.)  
 **Date:** 2026-08-20  
+**Procedural amendment:** 2026-10-29 — owner-directed delivery simplification; no runtime or Production change authorized by this document update.
 
 ---
 
@@ -17,6 +18,25 @@ This framework codifies the deployment governance model proven through Amendment
 ---
 
 ## FRAMEWORK ARCHITECTURE
+
+### Execution Routes and Proportional Verification
+
+BDGF defines safety outcomes: evidence, explicit authority, controlled execution, verification and recoverability. A particular BDGF UI, login, executor, Factory or Test DB is an execution method. Use the Constitution's [three control levels](BELLA_AI_CODING_CONSTITUTION.md#three-control-levels); a tool outage does not suspend the safety outcomes or require repairing the entire tool before continuing delivery.
+
+An existing authorized administrative connection/CLI/console may execute the same bounded operation when the BDGF tool is unavailable or unsuitable. Existing explicit Production authority applies only to the approved target, artifact/operation, scope and effective conditions; obtain an owner decision only if that authority or a material decision is missing. Credentials or technical access alone do not grant authority. Do not bypass authentication, broaden privileges, disable RLS/guards or rewrite a failed BDGF run as successful.
+
+Before execution, retain one concise record in the existing task evidence:
+
+- Exact target identity, acting principal and effective privileges; exact artifact/function signature, migration dependencies/ledger and authorized objects/changes.
+- Relevant current preconditions, compatibility and impact on existing data, callers, tenant/branch/role boundaries and side effects.
+- Recoverable pre-state and the operation's rollback/forward recovery, applicable verified backup and stop conditions. For function/ACL changes retain the previous definition, owner/security settings and exact ACL; recovery must not reopen previously closed access.
+- Actual execution result and independent post-state/read-back through the required application and security boundaries. Record the route and reason for using it; keep any earlier failure.
+
+Choose verification by risk and reuse valid evidence under [Evidence Reuse and Invalidation](BELLA_AI_CODING_CONSTITUTION.md#evidence-reuse-and-invalidation). Refresh volatile Production identity, executor privileges, affected catalog/preconditions and recovery availability immediately before mutation. A missing permission holds that action; it does not authorize a broader grant or block independent Product work.
+
+Use an existing suitable test environment for behavioral checks; bounded isolated fixtures do not require a disposable full-database clone. Use disposable environments for destructive tests, incompatible migration/recovery exercises or failure injection that cannot safely use shared fixtures. Do not run these experiments on customer Production data. A full restore/PITR rehearsal is required when the operation's risk or applicable recovery/release criteria require that proof; do not make it a universal prerequisite for unrelated code fixes or read-only inspection. A rollback-only test never proves backup/restore readiness.
+
+The nine stages, SQL gate implementations, scenario/check counts and new-report checklist below describe the reference migration package. Select their applicable safety properties for the actual operation; they are not nine new approvals, a mandatory tool chain or a requirement to create new SQL gate functions/scripts/reports for every change. Reuse existing controls and evidence in one task record. Data/schema deployments retain their backup, explicit GO, compatibility, recovery and post-verification requirements. Required CI checks and specialized freeze/security rules remain binding. Satisfying scoped acceptance and applicable safeguards permits progression; optional tooling demonstrations and unrelated audits do not add another completion gate.
 
 ### 9-Stage Governance Flow
 
@@ -98,7 +118,7 @@ Stage 9: CONTINUOUS MONITORING
 - Automated checks can return PASS/FAIL
 - Automated PASS means: "Eligible for human decision"
 - Automated PASS does NOT mean: "Approved for execution"
-- Human authorization is a SEPARATE gate after all automated verification
+- Human authority is distinct from technical verification. Reuse an explicit GO whose operation, target, scope and conditions still apply; do not request the same approval twice. Missing authority still prevents mutation.
 
 **Example from Amendment 12 v3:**
 - 126/126 automated checks PASS
@@ -127,10 +147,10 @@ if (verificationResult.allPass && humanGO.authorized) {
 > Governance systems must detect issues BEFORE database mutation, not after.
 
 **Implementation:**
-- All verification gates are READ-ONLY
-- No gate execution causes database mutations
-- Failed verification = database remains pristine
-- Multiple verification layers before first mutation
+- Production precondition/authorization gates are READ-ONLY.
+- Behavioral tests may mutate bounded fixtures only in an authorized test environment, with isolation and cleanup; failure injection must not endanger customer data.
+- An unmet safety precondition prevents the dependent Production mutation.
+- Reuse sufficient valid evidence rather than multiplying identical preflight checks.
 
 **Evidence from Amendment 12 v3:**
 - Package Integrity #1: FAIL (detected 2 gaps)
@@ -288,7 +308,7 @@ psql -f migration_02.sql
 
 **Purpose:** Verify PostgreSQL transaction rollback semantics through failure injection at critical points.
 
-**Test Scenarios (Minimum 3):**
+**Reference Test Scenarios (select the relevant failure points for the actual operation):**
 1. **Failure after gate PASS, before mutation**
    - Inject: EXCEPTION after verification gate passes
    - Verify: Schema creation rolled back, pristine state restored
@@ -342,6 +362,8 @@ psql -f migration_02.sql
 ### Human GO Decision Gate
 
 **Purpose:** Final authorization gate requiring explicit human confirmation of 3 mandatory conditions.
+
+Use the existing task/approval record; a separate signed report is not mandatory when explicit owner authority and the required conditions are already traceable. These conditions apply to the data/schema deployment described here. Read-only inspections do not require a deployment GO. Function/permission operations still require explicit authority, bounded impact and a recoverable definition/ACL as described in Execution Routes above.
 
 **Condition 1: Backup (MANDATORY)**
 - Backup file created with timestamp
@@ -408,6 +430,8 @@ Controlled Execution Authorized
 ## IMPLEMENTATION CHECKLIST
 
 ### For Each New Deployment
+
+Use the applicable items as evidence coverage in the existing task record. Do not duplicate satisfied reviews, scripts, reports or approval decisions merely to reproduce this reference package's format or check counts.
 
 **Stage 1: Design Authority**
 - [ ] Design document created with Amendment process
@@ -576,6 +600,8 @@ Controlled Execution Authorized
 ## FRAMEWORK EVOLUTION
 
 ### Version History
+
+**v1.1 (2026-10-29):** Owner-directed procedural amendment: authorized direct administration, risk-based environment selection, evidence reuse and scoped completion. Safety/authority requirements remain; this amendment is not execution approval for a Production operation.
 
 **v1.0 (2026-08-20):**
 - Extracted from Amendment 12 v3 (Runtime Migration 05)

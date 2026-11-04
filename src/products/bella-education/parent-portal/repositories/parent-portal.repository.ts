@@ -57,6 +57,9 @@ export interface DbTenantRow {
   logo_url?: string | null;
   contact_phone?: string | null;
   address?: string | null;
+  qr_bank_code?: string | null;
+  qr_account_number?: string | null;
+  qr_account_name?: string | null;
 }
 
 export interface DbEnrollmentRow {
@@ -231,11 +234,11 @@ export class ParentPortalRepository {
   async findTenant(tenantId: string): Promise<DbTenantRow | null> {
     const { data, error } = await this.supabase
       .from('tenants')
-      .select('name, logo_url, contact_phone, address')
+      .select('name, logo_url, contact_phone, address, qr_bank_code, qr_account_number, qr_account_name')
       .eq('id', tenantId)
       .maybeSingle();
     if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
-    return data ?? null;
+    return (data as DbTenantRow | null) ?? null;
   }
 
   // ── Enrollment & Course ────────────────────────────────────────────────────
@@ -382,6 +385,31 @@ export class ParentPortalRepository {
     tenantId: string,
     studentPartyId: string
   ): Promise<DbInvoiceRow | null> {
+    try {
+      const { data: finData } = await this.supabase
+        .from('edu_fin_invoices')
+        .select('id, invoice_number, net_amount, paid_amount, settlement_status, due_date, billing_period_id')
+        .eq('tenant_id', tenantId)
+        .or(`student_party_id.eq.${studentPartyId},student_id.eq.${studentPartyId}`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (finData) {
+        return {
+          id: finData.id,
+          invoice_code: finData.invoice_number,
+          total_amount: Number(finData.net_amount),
+          paid_amount: Number(finData.paid_amount),
+          status: finData.settlement_status,
+          due_date: finData.due_date,
+          billing_period_id: finData.billing_period_id,
+        };
+      }
+    } catch {
+      // Fall through to legacy table check if fin table unavailable in mock
+    }
+
     const { data, error } = await this.supabase
       .from('edu_invoices')
       .select('id, invoice_code, total_amount, paid_amount, status, due_date, billing_period_id')
@@ -392,6 +420,26 @@ export class ParentPortalRepository {
       .maybeSingle();
     if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return (data as DbInvoiceRow | null) ?? null;
+  }
+
+  async findInvoiceLineItems(
+    tenantId: string,
+    invoiceId: string
+  ): Promise<Array<{ description: string; amount: number }>> {
+    try {
+      const { data, error } = await this.supabase
+        .from('edu_fin_invoice_line_items')
+        .select('description, subtotal_amount')
+        .eq('tenant_id', tenantId)
+        .eq('invoice_id', invoiceId);
+      if (error) return [];
+      return (data ?? []).map(row => ({
+        description: row.description,
+        amount: Number(row.subtotal_amount),
+      }));
+    } catch {
+      return [];
+    }
   }
 
   // ── Communication Thread & Messages ───────────────────────────────────────

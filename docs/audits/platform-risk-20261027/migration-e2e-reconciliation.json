@@ -1,0 +1,4589 @@
+{
+  "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "environment": "e2e",
+  "observedAt": "2026-10-27T03:59:24.354485+00:00",
+  "transactionReadOnly": "on",
+  "tenantRowCount": 8154,
+  "tenantIsolationBehavior": "NOT_PROVEN: catalog and aggregate count are not role/tenant adversarial tests",
+  "localSqlFiles": 594,
+  "recognizedMigrationFiles": 594,
+  "uniqueNormalizedLocalVersions": 582,
+  "uniqueRawLocalVersions": 584,
+  "versionComparisonMethod": "Existing checker convention: pad 8-digit versions with 000000. Raw versions are also retained; normalization is not migration identity or SQL equivalence.",
+  "invalidMigrationFilenames": [],
+  "duplicateVersions": [
+    {
+      "version": "20260622000000",
+      "files": [
+        "20260622_create_tenant_payroll_config.sql",
+        "20260622_insert_default_payroll_configs.sql"
+      ]
+    },
+    {
+      "version": "20260819040000",
+      "files": [
+        "20260819040000_fix_legacy_spa_rls_policies.sql",
+        "20260819040000_runtime_migration_e1_gate_schema_safe.sql"
+      ]
+    },
+    {
+      "version": "20260820000000",
+      "files": [
+        "20260820000000_f5_fx_integrity.sql",
+        "20260820_r4_3_gate_tokens.sql",
+        "20260820_r4_4_monitoring_audit.sql",
+        "20260820_r4_approval_contract.sql"
+      ]
+    },
+    {
+      "version": "20260820110000",
+      "files": [
+        "20260820110000_database_role_separation.sql",
+        "20260820110000_database_role_separation_v2.sql"
+      ]
+    },
+    {
+      "version": "20260821000000",
+      "files": [
+        "20260821000000_fix_healthcare_rls_tenant_isolation.sql",
+        "20260821_create_accessorial_rates_table.sql",
+        "20260821_create_carrier_rates_table.sql",
+        "20260821_create_discrepancies_table.sql",
+        "20260821_create_freight_audit_tables.sql"
+      ]
+    },
+    {
+      "version": "20260914000000",
+      "files": [
+        "20260914_create_user_org_unit_access_projection.sql",
+        "20260914_repair_platform_org_people_rls.sql"
+      ]
+    },
+    {
+      "version": "20261002010000",
+      "files": [
+        "20261002010000_beauty_h8_resource_overlap_concurrency.sql",
+        "20261002010000_restore_f5_ar_reconciliation_rpc.sql"
+      ]
+    }
+  ],
+  "duplicateRawVersions": [
+    {
+      "version": "20260622",
+      "files": [
+        "20260622_create_tenant_payroll_config.sql",
+        "20260622_insert_default_payroll_configs.sql"
+      ]
+    },
+    {
+      "version": "20260819040000",
+      "files": [
+        "20260819040000_fix_legacy_spa_rls_policies.sql",
+        "20260819040000_runtime_migration_e1_gate_schema_safe.sql"
+      ]
+    },
+    {
+      "version": "20260820110000",
+      "files": [
+        "20260820110000_database_role_separation.sql",
+        "20260820110000_database_role_separation_v2.sql"
+      ]
+    },
+    {
+      "version": "20260820",
+      "files": [
+        "20260820_r4_3_gate_tokens.sql",
+        "20260820_r4_4_monitoring_audit.sql",
+        "20260820_r4_approval_contract.sql"
+      ]
+    },
+    {
+      "version": "20260821",
+      "files": [
+        "20260821_create_accessorial_rates_table.sql",
+        "20260821_create_carrier_rates_table.sql",
+        "20260821_create_discrepancies_table.sql",
+        "20260821_create_freight_audit_tables.sql"
+      ]
+    },
+    {
+      "version": "20260914",
+      "files": [
+        "20260914_create_user_org_unit_access_projection.sql",
+        "20260914_repair_platform_org_people_rls.sql"
+      ]
+    },
+    {
+      "version": "20261002010000",
+      "files": [
+        "20261002010000_beauty_h8_resource_overlap_concurrency.sql",
+        "20261002010000_restore_f5_ar_reconciliation_rpc.sql"
+      ]
+    }
+  ],
+  "remoteMigrationRows": 163,
+  "pendingLocalFileCount": 430,
+  "pendingLocalVersionCount": 419,
+  "remoteOnlyCount": 0,
+  "pendingLocal": [
+    {
+      "file": "20260511000000_initial_schema.sql",
+      "version": "20260511000000",
+      "normalized": "20260511000000"
+    },
+    {
+      "file": "20260511500000_create_inventory_items.sql",
+      "version": "20260511500000",
+      "normalized": "20260511500000"
+    },
+    {
+      "file": "20260512000000_fix_permissions.sql",
+      "version": "20260512000000",
+      "normalized": "20260512000000"
+    },
+    {
+      "file": "20260514000000_add_gender_baby.sql",
+      "version": "20260514000000",
+      "normalized": "20260514000000"
+    },
+    {
+      "file": "20260514000001_audit_logs.sql",
+      "version": "20260514000001",
+      "normalized": "20260514000001"
+    },
+    {
+      "file": "20260514900000_create_packages_table.sql",
+      "version": "20260514900000",
+      "normalized": "20260514900000"
+    },
+    {
+      "file": "20260515000000_standardization_phase_1.sql",
+      "version": "20260515000000",
+      "normalized": "20260515000000"
+    },
+    {
+      "file": "20260515000001_dashboard_optimization.sql",
+      "version": "20260515000001",
+      "normalized": "20260515000001"
+    },
+    {
+      "file": "20260515010000_the_great_purge.sql",
+      "version": "20260515010000",
+      "normalized": "20260515010000"
+    },
+    {
+      "file": "20260515020000_finance_automation_pnl.sql",
+      "version": "20260515020000",
+      "normalized": "20260515020000"
+    },
+    {
+      "file": "20260515030000_ktv_mobile_experience.sql",
+      "version": "20260515030000",
+      "normalized": "20260515030000"
+    },
+    {
+      "file": "20260515040000_create_packages_table.sql",
+      "version": "20260515040000",
+      "normalized": "20260515040000"
+    },
+    {
+      "file": "20260515050000_fix_bookings_missing_columns.sql",
+      "version": "20260515050000",
+      "normalized": "20260515050000"
+    },
+    {
+      "file": "20260515085805_remote_applied_placeholder.sql",
+      "version": "20260515085805",
+      "normalized": "20260515085805"
+    },
+    {
+      "file": "20260515094253_remote_applied_placeholder.sql",
+      "version": "20260515094253",
+      "normalized": "20260515094253"
+    },
+    {
+      "file": "20260515104753_remote_applied_placeholder.sql",
+      "version": "20260515104753",
+      "normalized": "20260515104753"
+    },
+    {
+      "file": "20260515105601_remote_applied_placeholder.sql",
+      "version": "20260515105601",
+      "normalized": "20260515105601"
+    },
+    {
+      "file": "20260515112253_remote_applied_placeholder.sql",
+      "version": "20260515112253",
+      "normalized": "20260515112253"
+    },
+    {
+      "file": "20260515122158_remote_applied_placeholder.sql",
+      "version": "20260515122158",
+      "normalized": "20260515122158"
+    },
+    {
+      "file": "20260515133425_remote_applied_placeholder.sql",
+      "version": "20260515133425",
+      "normalized": "20260515133425"
+    },
+    {
+      "file": "20260515145847_remote_applied_placeholder.sql",
+      "version": "20260515145847",
+      "normalized": "20260515145847"
+    },
+    {
+      "file": "20260515153220_remote_applied_placeholder.sql",
+      "version": "20260515153220",
+      "normalized": "20260515153220"
+    },
+    {
+      "file": "20260515215105_remote_applied_placeholder.sql",
+      "version": "20260515215105",
+      "normalized": "20260515215105"
+    },
+    {
+      "file": "20260515215229_remote_applied_placeholder.sql",
+      "version": "20260515215229",
+      "normalized": "20260515215229"
+    },
+    {
+      "file": "20260515215240_remote_applied_placeholder.sql",
+      "version": "20260515215240",
+      "normalized": "20260515215240"
+    },
+    {
+      "file": "20260515221754_remote_applied_placeholder.sql",
+      "version": "20260515221754",
+      "normalized": "20260515221754"
+    },
+    {
+      "file": "20260515224956_fix_chat_rpc.sql",
+      "version": "20260515224956",
+      "normalized": "20260515224956"
+    },
+    {
+      "file": "20260516000000_financial_reconciliation.sql",
+      "version": "20260516000000",
+      "normalized": "20260516000000"
+    },
+    {
+      "file": "20260516000001_audit_logs.sql",
+      "version": "20260516000001",
+      "normalized": "20260516000001"
+    },
+    {
+      "file": "20260516000002_fix_chat_schema.sql",
+      "version": "20260516000002",
+      "normalized": "20260516000002"
+    },
+    {
+      "file": "20260516000003_fix_chat_rpc_ambiguous.sql",
+      "version": "20260516000003",
+      "normalized": "20260516000003"
+    },
+    {
+      "file": "20260516000004_add_discount_percent.sql",
+      "version": "20260516000004",
+      "normalized": "20260516000004"
+    },
+    {
+      "file": "20260516000005_financial_reconciliation_discount_fix.sql",
+      "version": "20260516000005",
+      "normalized": "20260516000005"
+    },
+    {
+      "file": "20260516023449_remote_applied_placeholder.sql",
+      "version": "20260516023449",
+      "normalized": "20260516023449"
+    },
+    {
+      "file": "20260516053316_remote_applied_placeholder.sql",
+      "version": "20260516053316",
+      "normalized": "20260516053316"
+    },
+    {
+      "file": "20260516091138_remote_applied_placeholder.sql",
+      "version": "20260516091138",
+      "normalized": "20260516091138"
+    },
+    {
+      "file": "20260516222808_remote_applied_placeholder.sql",
+      "version": "20260516222808",
+      "normalized": "20260516222808"
+    },
+    {
+      "file": "20260516223228_remote_applied_placeholder.sql",
+      "version": "20260516223228",
+      "normalized": "20260516223228"
+    },
+    {
+      "file": "20260517153829_remote_applied_placeholder.sql",
+      "version": "20260517153829",
+      "normalized": "20260517153829"
+    },
+    {
+      "file": "20260517154319_remote_applied_placeholder.sql",
+      "version": "20260517154319",
+      "normalized": "20260517154319"
+    },
+    {
+      "file": "20260518000000_disable_attendance_rls.sql",
+      "version": "20260518000000",
+      "normalized": "20260518000000"
+    },
+    {
+      "file": "20260518000001_fix_ktv_leaderboard_approved_reviews.sql",
+      "version": "20260518000001",
+      "normalized": "20260518000001"
+    },
+    {
+      "file": "20260518000002_optimize_booking_triggers.sql",
+      "version": "20260518000002",
+      "normalized": "20260518000002"
+    },
+    {
+      "file": "20260518103423_remote_applied_placeholder.sql",
+      "version": "20260518103423",
+      "normalized": "20260518103423"
+    },
+    {
+      "file": "20260518103433_remote_applied_placeholder.sql",
+      "version": "20260518103433",
+      "normalized": "20260518103433"
+    },
+    {
+      "file": "20260518125048_remote_applied_placeholder.sql",
+      "version": "20260518125048",
+      "normalized": "20260518125048"
+    },
+    {
+      "file": "20260518125215_remote_applied_placeholder.sql",
+      "version": "20260518125215",
+      "normalized": "20260518125215"
+    },
+    {
+      "file": "20260518222208_remote_applied_placeholder.sql",
+      "version": "20260518222208",
+      "normalized": "20260518222208"
+    },
+    {
+      "file": "20260519000000_ktv_duration_kpi_system.sql",
+      "version": "20260519000000",
+      "normalized": "20260519000000"
+    },
+    {
+      "file": "20260519010000_staff_leaves.sql",
+      "version": "20260519010000",
+      "normalized": "20260519010000"
+    },
+    {
+      "file": "20260519020000_add_rejection_reason_to_staff_leaves.sql",
+      "version": "20260519020000",
+      "normalized": "20260519020000"
+    },
+    {
+      "file": "20260519163655_remote_applied_placeholder.sql",
+      "version": "20260519163655",
+      "normalized": "20260519163655"
+    },
+    {
+      "file": "20260519171631_remote_applied_placeholder.sql",
+      "version": "20260519171631",
+      "normalized": "20260519171631"
+    },
+    {
+      "file": "20260519172033_remote_applied_placeholder.sql",
+      "version": "20260519172033",
+      "normalized": "20260519172033"
+    },
+    {
+      "file": "20260519172611_remote_applied_placeholder.sql",
+      "version": "20260519172611",
+      "normalized": "20260519172611"
+    },
+    {
+      "file": "20260519220807_remote_applied_placeholder.sql",
+      "version": "20260519220807",
+      "normalized": "20260519220807"
+    },
+    {
+      "file": "20260519234426_remote_applied_placeholder.sql",
+      "version": "20260519234426",
+      "normalized": "20260519234426"
+    },
+    {
+      "file": "20260520000000_add_zalo_config_to_tenants.sql",
+      "version": "20260520000000",
+      "normalized": "20260520000000"
+    },
+    {
+      "file": "20260520000001_add_bank_details_to_tenants.sql",
+      "version": "20260520000001",
+      "normalized": "20260520000001"
+    },
+    {
+      "file": "20260520000002_fix_staff_leaves_permissions.sql",
+      "version": "20260520000002",
+      "normalized": "20260520000002"
+    },
+    {
+      "file": "20260520000003_audit_all_tables.sql",
+      "version": "20260520000003",
+      "normalized": "20260520000003"
+    },
+    {
+      "file": "20260520000004_add_role_permissions.sql",
+      "version": "20260520000004",
+      "normalized": "20260520000004"
+    },
+    {
+      "file": "20260520000005_drop_password_hash.sql",
+      "version": "20260520000005",
+      "normalized": "20260520000005"
+    },
+    {
+      "file": "20260520000006_enable_core_rls.sql",
+      "version": "20260520000006",
+      "normalized": "20260520000006"
+    },
+    {
+      "file": "20260520000007_add_salary_config_to_tenants.sql",
+      "version": "20260520000007",
+      "normalized": "20260520000007"
+    },
+    {
+      "file": "20260520000008_fix_audit_trigger_exception.sql",
+      "version": "20260520000008",
+      "normalized": "20260520000008"
+    },
+    {
+      "file": "20260520000009_add_tenants_update_policy.sql",
+      "version": "20260520000009",
+      "normalized": "20260520000009"
+    },
+    {
+      "file": "20260520222115_remote_applied_placeholder.sql",
+      "version": "20260520222115",
+      "normalized": "20260520222115"
+    },
+    {
+      "file": "20260520222216_remote_applied_placeholder.sql",
+      "version": "20260520222216",
+      "normalized": "20260520222216"
+    },
+    {
+      "file": "20260520222226_remote_applied_placeholder.sql",
+      "version": "20260520222226",
+      "normalized": "20260520222226"
+    },
+    {
+      "file": "20260521000001_add_gps_to_session_logs.sql",
+      "version": "20260521000001",
+      "normalized": "20260521000001"
+    },
+    {
+      "file": "20260521000002_lock_month_guards.sql",
+      "version": "20260521000002",
+      "normalized": "20260521000002"
+    },
+    {
+      "file": "20260521000003_create_app_notifications.sql",
+      "version": "20260521000003",
+      "normalized": "20260521000003"
+    },
+    {
+      "file": "20260521000004_harden_rls_and_tenant.sql",
+      "version": "20260521000004",
+      "normalized": "20260521000004"
+    },
+    {
+      "file": "20260521000005_tenant_onboarding.sql",
+      "version": "20260521000005",
+      "normalized": "20260521000005"
+    },
+    {
+      "file": "20260521000006_subscription_engine.sql",
+      "version": "20260521000006",
+      "normalized": "20260521000006"
+    },
+    {
+      "file": "20260521000007_fix_rls_security.sql",
+      "version": "20260521000007",
+      "normalized": "20260521000007"
+    },
+    {
+      "file": "20260521113444_remote_applied_placeholder.sql",
+      "version": "20260521113444",
+      "normalized": "20260521113444"
+    },
+    {
+      "file": "20260521164521_remote_applied_placeholder.sql",
+      "version": "20260521164521",
+      "normalized": "20260521164521"
+    },
+    {
+      "file": "20260522000000_enable_attendance_rls.sql",
+      "version": "20260522000000",
+      "normalized": "20260522000000"
+    },
+    {
+      "file": "20260522010000_franchise_royalty_system.sql",
+      "version": "20260522010000",
+      "normalized": "20260522010000"
+    },
+    {
+      "file": "20260522020000_inter_branch_clearing.sql",
+      "version": "20260522020000",
+      "normalized": "20260522020000"
+    },
+    {
+      "file": "20260522021659_remote_applied_placeholder.sql",
+      "version": "20260522021659",
+      "normalized": "20260522021659"
+    },
+    {
+      "file": "20260522030000_inventory_transfer_orders.sql",
+      "version": "20260522030000",
+      "normalized": "20260522030000"
+    },
+    {
+      "file": "20260522040000_brand_service_master.sql",
+      "version": "20260522040000",
+      "normalized": "20260522040000"
+    },
+    {
+      "file": "20260523000000_fix_create_onboarding_user.sql",
+      "version": "20260523000000",
+      "normalized": "20260523000000"
+    },
+    {
+      "file": "20260523010000_harden_all_database_rls.sql",
+      "version": "20260523010000",
+      "normalized": "20260523010000"
+    },
+    {
+      "file": "20260523020000_add_receipt_url_to_revenue.sql",
+      "version": "20260523020000",
+      "normalized": "20260523020000"
+    },
+    {
+      "file": "20260523020001_get_user_by_email_rpc.sql",
+      "version": "20260523020001",
+      "normalized": "20260523020001"
+    },
+    {
+      "file": "20260523030000_grant_service_role_schema_access.sql",
+      "version": "20260523030000",
+      "normalized": "20260523030000"
+    },
+    {
+      "file": "20260523040000_fix_hq_super_admin_rls.sql",
+      "version": "20260523040000",
+      "normalized": "20260523040000"
+    },
+    {
+      "file": "20260524000000_accounting_core.sql",
+      "version": "20260524000000",
+      "normalized": "20260524000000"
+    },
+    {
+      "file": "20260525000000_security_hardening.sql",
+      "version": "20260525000000",
+      "normalized": "20260525000000"
+    },
+    {
+      "file": "20260525060457_remote_applied_placeholder.sql",
+      "version": "20260525060457",
+      "normalized": "20260525060457"
+    },
+    {
+      "file": "20260525100000_accounting_rls_harden.sql",
+      "version": "20260525100000",
+      "normalized": "20260525100000"
+    },
+    {
+      "file": "20260525110000_seed_default_coa.sql",
+      "version": "20260525110000",
+      "normalized": "20260525110000"
+    },
+    {
+      "file": "20260525120000_accounting_periods_auto.sql",
+      "version": "20260525120000",
+      "normalized": "20260525120000"
+    },
+    {
+      "file": "20260525130000_accounting_outbox.sql",
+      "version": "20260525130000",
+      "normalized": "20260525130000"
+    },
+    {
+      "file": "20260525140000_onboard_with_coa.sql",
+      "version": "20260525140000",
+      "normalized": "20260525140000"
+    },
+    {
+      "file": "20260525150000_accounting_reports.sql",
+      "version": "20260525150000",
+      "normalized": "20260525150000"
+    },
+    {
+      "file": "20260525160000_accounting_grants.sql",
+      "version": "20260525160000",
+      "normalized": "20260525160000"
+    },
+    {
+      "file": "20260525170000_period_closing_workflow.sql",
+      "version": "20260525170000",
+      "normalized": "20260525170000"
+    },
+    {
+      "file": "20260525180000_cash_flow_statement.sql",
+      "version": "20260525180000",
+      "normalized": "20260525180000"
+    },
+    {
+      "file": "20260525190000_consolidated_pnl_hq.sql",
+      "version": "20260525190000",
+      "normalized": "20260525190000"
+    },
+    {
+      "file": "20260525200000_fix_consolidated_pnl_ambiguous.sql",
+      "version": "20260525200000",
+      "normalized": "20260525200000"
+    },
+    {
+      "file": "20260525210000_reconciliation_report.sql",
+      "version": "20260525210000",
+      "normalized": "20260525210000"
+    },
+    {
+      "file": "20260525220000_fix_function_grants.sql",
+      "version": "20260525220000",
+      "normalized": "20260525220000"
+    },
+    {
+      "file": "20260525230000_fix_reconciliation_date_types.sql",
+      "version": "20260525230000",
+      "normalized": "20260525230000"
+    },
+    {
+      "file": "20260526000000_ai_agent_infrastructure.sql",
+      "version": "20260526000000",
+      "normalized": "20260526000000"
+    },
+    {
+      "file": "20260526010000_ai_agent_salary_tools.sql",
+      "version": "20260526010000",
+      "normalized": "20260526010000"
+    },
+    {
+      "file": "20260526020000_allow_service_role_ai_rpc.sql",
+      "version": "20260526020000",
+      "normalized": "20260526020000"
+    },
+    {
+      "file": "20260526030000_ai_security_hardening.sql",
+      "version": "20260526030000",
+      "normalized": "20260526030000"
+    },
+    {
+      "file": "20260526040000_fix_attendance_logic.sql",
+      "version": "20260526040000",
+      "normalized": "20260526040000"
+    },
+    {
+      "file": "20260526040001_salary_reconciliation.sql",
+      "version": "20260526040001",
+      "normalized": "20260526040001"
+    },
+    {
+      "file": "20260526040002_salary_reconciliation_report.sql",
+      "version": "20260526040002",
+      "normalized": "20260526040002"
+    },
+    {
+      "file": "20260526050000_dual_mode_accounting.sql",
+      "version": "20260526050000",
+      "normalized": "20260526050000"
+    },
+    {
+      "file": "20260526060000_add_hr_role.sql",
+      "version": "20260526060000",
+      "normalized": "20260526060000"
+    },
+    {
+      "file": "20260527000000_ktv_leaderboard_blended_rating.sql",
+      "version": "20260527000000",
+      "normalized": "20260527000000"
+    },
+    {
+      "file": "20260528000000_grant_chat_messages_permissions.sql",
+      "version": "20260528000000",
+      "normalized": "20260528000000"
+    },
+    {
+      "file": "20260528010000_distributed_rate_limit.sql",
+      "version": "20260528010000",
+      "normalized": "20260528010000"
+    },
+    {
+      "file": "20260529000000_fix_membership_records_cascade_delete.sql",
+      "version": "20260529000000",
+      "normalized": "20260529000000"
+    },
+    {
+      "file": "20260529010000_create_promotions_table.sql",
+      "version": "20260529010000",
+      "normalized": "20260529010000"
+    },
+    {
+      "file": "20260529232452_remote_applied_placeholder.sql",
+      "version": "20260529232452",
+      "normalized": "20260529232452"
+    },
+    {
+      "file": "20260529233748_remote_applied_placeholder.sql",
+      "version": "20260529233748",
+      "normalized": "20260529233748"
+    },
+    {
+      "file": "20260530000000_update_gps_threshold_and_customer_gps.sql",
+      "version": "20260530000000",
+      "normalized": "20260530000000"
+    },
+    {
+      "file": "20260530010000_add_checkout_gps_to_session_logs.sql",
+      "version": "20260530010000",
+      "normalized": "20260530010000"
+    },
+    {
+      "file": "20260530020000_fix_salary_reconciliation_logic.sql",
+      "version": "20260530020000",
+      "normalized": "20260530020000"
+    },
+    {
+      "file": "20260530025918_remote_applied_placeholder.sql",
+      "version": "20260530025918",
+      "normalized": "20260530025918"
+    },
+    {
+      "file": "20260530025943_remote_applied_placeholder.sql",
+      "version": "20260530025943",
+      "normalized": "20260530025943"
+    },
+    {
+      "file": "20260530030000_add_session_multiplier_to_packages.sql",
+      "version": "20260530030000",
+      "normalized": "20260530030000"
+    },
+    {
+      "file": "20260530040000_revoke_anon_accounting_rpc.sql",
+      "version": "20260530040000",
+      "normalized": "20260530040000"
+    },
+    {
+      "file": "20260530050000_accounting_templates_and_readiness.sql",
+      "version": "20260530050000",
+      "normalized": "20260530050000"
+    },
+    {
+      "file": "20260530060000_add_expense_salary_accounting_template.sql",
+      "version": "20260530060000",
+      "normalized": "20260530060000"
+    },
+    {
+      "file": "20260530070000_resolve_accounting_review_item.sql",
+      "version": "20260530070000",
+      "normalized": "20260530070000"
+    },
+    {
+      "file": "20260530080000_backfill_accounting_metadata.sql",
+      "version": "20260530080000",
+      "normalized": "20260530080000"
+    },
+    {
+      "file": "20260531010000_atomic_legacy_ledger_sync.sql",
+      "version": "20260531010000",
+      "normalized": "20260531010000"
+    },
+    {
+      "file": "20260531020000_add_legacy_ledger_sync_preview.sql",
+      "version": "20260531020000",
+      "normalized": "20260531020000"
+    },
+    {
+      "file": "20260531030000_record_remaining_payment_atomic.sql",
+      "version": "20260531030000",
+      "normalized": "20260531030000"
+    },
+    {
+      "file": "20260601010000_harden_subscription_rpc.sql",
+      "version": "20260601010000",
+      "normalized": "20260601010000"
+    },
+    {
+      "file": "20260601011000_create_subscription_quota_schema.sql",
+      "version": "20260601011000",
+      "normalized": "20260601011000"
+    },
+    {
+      "file": "20260602010000_use_usage_counters_for_sms.sql",
+      "version": "20260602010000",
+      "normalized": "20260602010000"
+    },
+    {
+      "file": "20260603010000_tt133_service_revenue_5113.sql",
+      "version": "20260603010000",
+      "normalized": "20260603010000"
+    },
+    {
+      "file": "20260603020000_tt133_refund_mapping.sql",
+      "version": "20260603020000",
+      "normalized": "20260603020000"
+    },
+    {
+      "file": "20260603030000_allow_revenue_refund_type.sql",
+      "version": "20260603030000",
+      "normalized": "20260603030000"
+    },
+    {
+      "file": "20260603040000_branch_legacy_revenue_sync_by_type.sql",
+      "version": "20260603040000",
+      "normalized": "20260603040000"
+    },
+    {
+      "file": "20260603050000_unique_active_journal_reference.sql",
+      "version": "20260603050000",
+      "normalized": "20260603050000"
+    },
+    {
+      "file": "20260603060000_unique_payment_webhook_transaction.sql",
+      "version": "20260603060000",
+      "normalized": "20260603060000"
+    },
+    {
+      "file": "20260603070000_tt133_legacy_expense_paid_status.sql",
+      "version": "20260603070000",
+      "normalized": "20260603070000"
+    },
+    {
+      "file": "20260604090000_allow_service_role_accounting_readiness.sql",
+      "version": "20260604090000",
+      "normalized": "20260604090000"
+    },
+    {
+      "file": "20260604091000_allow_service_role_salary_reconciliation_report.sql",
+      "version": "20260604091000",
+      "normalized": "20260604091000"
+    },
+    {
+      "file": "20260604143000_widen_reconciliation_diff_percent.sql",
+      "version": "20260604143000",
+      "normalized": "20260604143000"
+    },
+    {
+      "file": "20260604160000_scope_professional_readiness_to_legacy_sync.sql",
+      "version": "20260604160000",
+      "normalized": "20260604160000"
+    },
+    {
+      "file": "20260604173000_scope_reconciliation_to_legacy_journals.sql",
+      "version": "20260604173000",
+      "normalized": "20260604173000"
+    },
+    {
+      "file": "20260606093000_fix_salary_realtime_components.sql",
+      "version": "20260606093000",
+      "normalized": "20260606093000"
+    },
+    {
+      "file": "20260606100000_inter_branch_clearing_outbox.sql",
+      "version": "20260606100000",
+      "normalized": "20260606100000"
+    },
+    {
+      "file": "20260606103000_eliminate_internal_clearing_from_consolidated_pnl.sql",
+      "version": "20260606103000",
+      "normalized": "20260606103000"
+    },
+    {
+      "file": "20260606110000_add_consolidated_pnl_elimination_totals.sql",
+      "version": "20260606110000",
+      "normalized": "20260606110000"
+    },
+    {
+      "file": "20260606113000_grant_inter_branch_clearing_records_access.sql",
+      "version": "20260606113000",
+      "normalized": "20260606113000"
+    },
+    {
+      "file": "20260606124500_grant_critical_rpc_execute.sql",
+      "version": "20260606124500",
+      "normalized": "20260606124500"
+    },
+    {
+      "file": "20260606130000_allow_service_role_consolidated_pnl.sql",
+      "version": "20260606130000",
+      "normalized": "20260606130000"
+    },
+    {
+      "file": "20260606133000_backfill_paid_deposit_bookings.sql",
+      "version": "20260606133000",
+      "normalized": "20260606133000"
+    },
+    {
+      "file": "20260606134000_backfill_completed_session_business_events.sql",
+      "version": "20260606134000",
+      "normalized": "20260606134000"
+    },
+    {
+      "file": "20260607003000_grant_subscription_and_royalty_access.sql",
+      "version": "20260607003000",
+      "normalized": "20260607003000"
+    },
+    {
+      "file": "20260607010000_normalize_salary_reconciliation_pending_legacy.sql",
+      "version": "20260607010000",
+      "normalized": "20260607010000"
+    },
+    {
+      "file": "20260607020000_unique_salary_expense_description.sql",
+      "version": "20260607020000",
+      "normalized": "20260607020000"
+    },
+    {
+      "file": "20260607023000_harden_accounting_outbox_idempotency.sql",
+      "version": "20260607023000",
+      "normalized": "20260607023000"
+    },
+    {
+      "file": "20260607030000_create_accounting_worker_runs.sql",
+      "version": "20260607030000",
+      "normalized": "20260607030000"
+    },
+    {
+      "file": "20260607231500_manual_payment_idempotency.sql",
+      "version": "20260607231500",
+      "normalized": "20260607231500"
+    },
+    {
+      "file": "20260608090000_create_meta_ads_phase1.sql",
+      "version": "20260608090000",
+      "normalized": "20260608090000"
+    },
+    {
+      "file": "20260608100000_add_meta_ads_account_tokens.sql",
+      "version": "20260608100000",
+      "normalized": "20260608100000"
+    },
+    {
+      "file": "20260608103000_grant_meta_ads_delete_permissions.sql",
+      "version": "20260608103000",
+      "normalized": "20260608103000"
+    },
+    {
+      "file": "20260608104000_add_tenant_module_white_label_config.sql",
+      "version": "20260608104000",
+      "normalized": "20260608104000"
+    },
+    {
+      "file": "20260608110000_create_beauty_spa_phase2_foundation.sql",
+      "version": "20260608110000",
+      "normalized": "20260608110000"
+    },
+    {
+      "file": "20260609170000_grant_inventory_transfer_orders_access.sql",
+      "version": "20260609170000",
+      "normalized": "20260609170000"
+    },
+    {
+      "file": "20260609183000_reassert_inventory_transfer_order_grants.sql",
+      "version": "20260609183000",
+      "normalized": "20260609183000"
+    },
+    {
+      "file": "20260611120000_backfill_completed_session_accounting_metadata.sql",
+      "version": "20260611120000",
+      "normalized": "20260611120000"
+    },
+    {
+      "file": "20260611130000_add_session_booking_resource.sql",
+      "version": "20260611130000",
+      "normalized": "20260611130000"
+    },
+    {
+      "file": "20260611160000_add_branch_subscription_quota.sql",
+      "version": "20260611160000",
+      "normalized": "20260611160000"
+    },
+    {
+      "file": "20260613070000_invoice_print_logs.sql",
+      "version": "20260613070000",
+      "normalized": "20260613070000"
+    },
+    {
+      "file": "20260613090000_void_invoice_print_logs.sql",
+      "version": "20260613090000",
+      "normalized": "20260613090000"
+    },
+    {
+      "file": "20260613100000_create_student_training_foundation.sql",
+      "version": "20260613100000",
+      "normalized": "20260613100000"
+    },
+    {
+      "file": "20260617000000_api_gateway_partner_management.sql",
+      "version": "20260617000000",
+      "normalized": "20260617000000"
+    },
+    {
+      "file": "20260617010000_api_gateway_sandbox_environment.sql",
+      "version": "20260617010000",
+      "normalized": "20260617010000"
+    },
+    {
+      "file": "20260621000000_filter_reversal_entries_in_trial_balance.sql",
+      "version": "20260621000000",
+      "normalized": "20260621000000"
+    },
+    {
+      "file": "20260622000001_create_booking_resources.sql",
+      "version": "20260622000001",
+      "normalized": "20260622000001"
+    },
+    {
+      "file": "20260622120000_seed_cleaning_packages.sql",
+      "version": "20260622120000",
+      "normalized": "20260622120000"
+    },
+    {
+      "file": "20260622120001_add_package_metadata.sql",
+      "version": "20260622120001",
+      "normalized": "20260622120001"
+    },
+    {
+      "file": "20260622150000_add_tenants_metadata.sql",
+      "version": "20260622150000",
+      "normalized": "20260622150000"
+    },
+    {
+      "file": "20260622163000_create_booking_service_items.sql",
+      "version": "20260622163000",
+      "normalized": "20260622163000"
+    },
+    {
+      "file": "20260622164000_create_product_sales.sql",
+      "version": "20260622164000",
+      "normalized": "20260622164000"
+    },
+    {
+      "file": "20260622165000_create_salary_adjustments.sql",
+      "version": "20260622165000",
+      "normalized": "20260622165000"
+    },
+    {
+      "file": "20260622170000_extend_salary_records_commission.sql",
+      "version": "20260622170000",
+      "normalized": "20260622170000"
+    },
+    {
+      "file": "20260622171000_extend_users_position_tier.sql",
+      "version": "20260622171000",
+      "normalized": "20260622171000"
+    },
+    {
+      "file": "20260622172000_extend_tenants_commission_config.sql",
+      "version": "20260622172000",
+      "normalized": "20260622172000"
+    },
+    {
+      "file": "20260622180000_create_mv_ktv_performance_summary.sql",
+      "version": "20260622180000",
+      "normalized": "20260622180000"
+    },
+    {
+      "file": "20260622181000_create_mv_inventory_status.sql",
+      "version": "20260622181000",
+      "normalized": "20260622181000"
+    },
+    {
+      "file": "20260622182000_create_mv_session_analytics.sql",
+      "version": "20260622182000",
+      "normalized": "20260622182000"
+    },
+    {
+      "file": "20260622183000_create_mv_refresh_jobs.sql",
+      "version": "20260622183000",
+      "normalized": "20260622183000"
+    },
+    {
+      "file": "20260622200000_add_commission_columns_to_salary_records.sql",
+      "version": "20260622200000",
+      "normalized": "20260622200000"
+    },
+    {
+      "file": "20260622201000_create_marketing_campaigns.sql",
+      "version": "20260622201000",
+      "normalized": "20260622201000"
+    },
+    {
+      "file": "20260622202000_create_mv_campaign_performance.sql",
+      "version": "20260622202000",
+      "normalized": "20260622202000"
+    },
+    {
+      "file": "20260622203000_create_mv_channel_performance.sql",
+      "version": "20260622203000",
+      "normalized": "20260622203000"
+    },
+    {
+      "file": "20260622204000_create_mv_marketing_refresh_jobs.sql",
+      "version": "20260622204000",
+      "normalized": "20260622204000"
+    },
+    {
+      "file": "20260622240000_create_mv_monthly_pnl.sql",
+      "version": "20260622240000",
+      "normalized": "20260622240000"
+    },
+    {
+      "file": "20260622241000_create_mv_cash_flow.sql",
+      "version": "20260622241000",
+      "normalized": "20260622241000"
+    },
+    {
+      "file": "20260622242000_create_mv_budget_variance.sql",
+      "version": "20260622242000",
+      "normalized": "20260622242000"
+    },
+    {
+      "file": "20260622243000_create_mv_finance_refresh_jobs.sql",
+      "version": "20260622243000",
+      "normalized": "20260622243000"
+    },
+    {
+      "file": "20260622250000_create_mv_workforce_analytics.sql",
+      "version": "20260622250000",
+      "normalized": "20260622250000"
+    },
+    {
+      "file": "20260622251000_create_mv_attendance_summary.sql",
+      "version": "20260622251000",
+      "normalized": "20260622251000"
+    },
+    {
+      "file": "20260622252000_create_mv_payroll_summary.sql",
+      "version": "20260622252000",
+      "normalized": "20260622252000"
+    },
+    {
+      "file": "20260622253000_create_mv_employee_performance.sql",
+      "version": "20260622253000",
+      "normalized": "20260622253000"
+    },
+    {
+      "file": "20260622254000_create_mv_hr_refresh_jobs.sql",
+      "version": "20260622254000",
+      "normalized": "20260622254000"
+    },
+    {
+      "file": "20260622260000_create_mv_customer_segments.sql",
+      "version": "20260622260000",
+      "normalized": "20260622260000"
+    },
+    {
+      "file": "20260622261000_create_mv_customer_ltv.sql",
+      "version": "20260622261000",
+      "normalized": "20260622261000"
+    },
+    {
+      "file": "20260622262000_create_mv_customer_activity_summary.sql",
+      "version": "20260622262000",
+      "normalized": "20260622262000"
+    },
+    {
+      "file": "20260622263000_create_mv_customer_refresh_jobs.sql",
+      "version": "20260622263000",
+      "normalized": "20260622263000"
+    },
+    {
+      "file": "20260622270000_create_forecast_results.sql",
+      "version": "20260622270000",
+      "normalized": "20260622270000"
+    },
+    {
+      "file": "20260622271000_create_recommendation_cache.sql",
+      "version": "20260622271000",
+      "normalized": "20260622271000"
+    },
+    {
+      "file": "20260622272000_create_mv_forecast_accuracy.sql",
+      "version": "20260622272000",
+      "normalized": "20260622272000"
+    },
+    {
+      "file": "20260622273000_create_mv_customer_item_interactions.sql",
+      "version": "20260622273000",
+      "normalized": "20260622273000"
+    },
+    {
+      "file": "20260622274000_create_demand_history_rpcs.sql",
+      "version": "20260622274000",
+      "normalized": "20260622274000"
+    },
+    {
+      "file": "20260622275000_create_recommendation_rpcs.sql",
+      "version": "20260622275000",
+      "normalized": "20260622275000"
+    },
+    {
+      "file": "20260622280000_performance_optimization_indexes.sql",
+      "version": "20260622280000",
+      "normalized": "20260622280000"
+    },
+    {
+      "file": "20260622280001_performance_optimization_mv_refresh.sql",
+      "version": "20260622280001",
+      "normalized": "20260622280001"
+    },
+    {
+      "file": "20260622280002_performance_optimization_mv_customer_interactions.sql",
+      "version": "20260622280002",
+      "normalized": "20260622280002"
+    },
+    {
+      "file": "20260622290000_create_recruitment_system.sql",
+      "version": "20260622290000",
+      "normalized": "20260622290000"
+    },
+    {
+      "file": "20260622_create_tenant_payroll_config.sql",
+      "version": "20260622",
+      "normalized": "20260622000000"
+    },
+    {
+      "file": "20260622_insert_default_payroll_configs.sql",
+      "version": "20260622",
+      "normalized": "20260622000000"
+    },
+    {
+      "file": "20260623000000_fix_salary_reconciliation_product_sales.sql",
+      "version": "20260623000000",
+      "normalized": "20260623000000"
+    },
+    {
+      "file": "20260630192732_add_position_tier_hire_date_to_users.sql",
+      "version": "20260630192732",
+      "normalized": "20260630192732"
+    },
+    {
+      "file": "20260701000000_decision_engine_audit_log.sql",
+      "version": "20260701000000",
+      "normalized": "20260701000000"
+    },
+    {
+      "file": "20260701000001_create_policy_registry.sql",
+      "version": "20260701000001",
+      "normalized": "20260701000001"
+    },
+    {
+      "file": "20260701000002_create_policy_history.sql",
+      "version": "20260701000002",
+      "normalized": "20260701000002"
+    },
+    {
+      "file": "20260701000003_create_policy_statistics.sql",
+      "version": "20260701000003",
+      "normalized": "20260701000003"
+    },
+    {
+      "file": "20260701000004_create_policy_rls.sql",
+      "version": "20260701000004",
+      "normalized": "20260701000004"
+    },
+    {
+      "file": "20260701000005_simplify_statistics.sql",
+      "version": "20260701000005",
+      "normalized": "20260701000005"
+    },
+    {
+      "file": "20260701000006_add_statistics_update_function.sql",
+      "version": "20260701000006",
+      "normalized": "20260701000006"
+    },
+    {
+      "file": "20260705000000_temp_leave_requests_for_gate1.sql",
+      "version": "20260705000000",
+      "normalized": "20260705000000"
+    },
+    {
+      "file": "20260709000000_complete_product_sales_reconciliation_fix.sql",
+      "version": "20260709000000",
+      "normalized": "20260709000000"
+    },
+    {
+      "file": "20260709120000_workflow_engine_foundation.sql",
+      "version": "20260709120000",
+      "normalized": "20260709120000"
+    },
+    {
+      "file": "20260709130000_rule_management_ui_foundation.sql",
+      "version": "20260709130000",
+      "normalized": "20260709130000"
+    },
+    {
+      "file": "20260709140000_booking_engine_schema.sql",
+      "version": "20260709140000",
+      "normalized": "20260709140000"
+    },
+    {
+      "file": "20260709140001_booking_engine_schema_v2.sql",
+      "version": "20260709140001",
+      "normalized": "20260709140001"
+    },
+    {
+      "file": "20260709140002_booking_engine_schema_v3_final.sql",
+      "version": "20260709140002",
+      "normalized": "20260709140002"
+    },
+    {
+      "file": "20260709160000_decision_engine_metrics.sql",
+      "version": "20260709160000",
+      "normalized": "20260709160000"
+    },
+    {
+      "file": "20260709170000_discount_provider.sql",
+      "version": "20260709170000",
+      "normalized": "20260709170000"
+    },
+    {
+      "file": "20260710070000_fix_close_period_no_updated_at.sql",
+      "version": "20260710070000",
+      "normalized": "20260710070000"
+    },
+    {
+      "file": "20260710075412_remote_applied_placeholder.sql",
+      "version": "20260710075412",
+      "normalized": "20260710075412"
+    },
+    {
+      "file": "20260710075450_remote_applied_placeholder.sql",
+      "version": "20260710075450",
+      "normalized": "20260710075450"
+    },
+    {
+      "file": "20260710075832_remote_applied_placeholder.sql",
+      "version": "20260710075832",
+      "normalized": "20260710075832"
+    },
+    {
+      "file": "20260710081904_remote_applied_placeholder.sql",
+      "version": "20260710081904",
+      "normalized": "20260710081904"
+    },
+    {
+      "file": "20260710082004_remote_applied_placeholder.sql",
+      "version": "20260710082004",
+      "normalized": "20260710082004"
+    },
+    {
+      "file": "20260710120000_fix_salary_finalized_status_in_reconciliation_and_sync.sql",
+      "version": "20260710120000",
+      "normalized": "20260710120000"
+    },
+    {
+      "file": "20260710153900_fix_backfill_skip_locked_expenses.sql",
+      "version": "20260710153900",
+      "normalized": "20260710153900"
+    },
+    {
+      "file": "20260710154000_allow_metadata_updates_on_locked_records.sql",
+      "version": "20260710154000",
+      "normalized": "20260710154000"
+    },
+    {
+      "file": "20260710160000_rule_management_tables.sql",
+      "version": "20260710160000",
+      "normalized": "20260710160000"
+    },
+    {
+      "file": "20260710170000_fix_rule_management_rpcs.sql",
+      "version": "20260710170000",
+      "normalized": "20260710170000"
+    },
+    {
+      "file": "20260711134600_fix_backfill_earned_revenue_and_inventory_cost.sql",
+      "version": "20260711134600",
+      "normalized": "20260711134600"
+    },
+    {
+      "file": "20260712000000_create_waitlist_tables.sql",
+      "version": "20260712000000",
+      "normalized": "20260712000000"
+    },
+    {
+      "file": "20260713000000_performance_optimization_claims.sql",
+      "version": "20260713000000",
+      "normalized": "20260713000000"
+    },
+    {
+      "file": "20260713010000_optimize_financial_aggregation_indexes.sql",
+      "version": "20260713010000",
+      "normalized": "20260713010000"
+    },
+    {
+      "file": "20260713020000_fix_and_reorder_financial_indexes.sql",
+      "version": "20260713020000",
+      "normalized": "20260713020000"
+    },
+    {
+      "file": "20260713030000_allow_service_role_in_salary_sheet.sql",
+      "version": "20260713030000",
+      "normalized": "20260713030000"
+    },
+    {
+      "file": "20260713080542_remote_applied_placeholder.sql",
+      "version": "20260713080542",
+      "normalized": "20260713080542"
+    },
+    {
+      "file": "20260713083239_remote_applied_placeholder.sql",
+      "version": "20260713083239",
+      "normalized": "20260713083239"
+    },
+    {
+      "file": "20260713092641_remote_applied_placeholder.sql",
+      "version": "20260713092641",
+      "normalized": "20260713092641"
+    },
+    {
+      "file": "20260714032101_remote_applied_placeholder.sql",
+      "version": "20260714032101",
+      "normalized": "20260714032101"
+    },
+    {
+      "file": "20260714032125_remote_applied_placeholder.sql",
+      "version": "20260714032125",
+      "normalized": "20260714032125"
+    },
+    {
+      "file": "20260714032901_remote_applied_placeholder.sql",
+      "version": "20260714032901",
+      "normalized": "20260714032901"
+    },
+    {
+      "file": "20260715200000_enable_break_time_buffer.sql",
+      "version": "20260715200000",
+      "normalized": "20260715200000"
+    },
+    {
+      "file": "20260715223000_fix_inventory_purchase_backfill_payment_method.sql",
+      "version": "20260715223000",
+      "normalized": "20260715223000"
+    },
+    {
+      "file": "20260716000000_add_product_usage_to_packages.sql",
+      "version": "20260716000000",
+      "normalized": "20260716000000"
+    },
+    {
+      "file": "20260716120000_add_beauty_spa_resources.sql",
+      "version": "20260716120000",
+      "normalized": "20260716120000"
+    },
+    {
+      "file": "20260718000000_fix_retail_package_full_price_in_anomalies.sql",
+      "version": "20260718000000",
+      "normalized": "20260718000000"
+    },
+    {
+      "file": "20260730120000_fix_validate_api_partner_type_mismatch.sql",
+      "version": "20260730120000",
+      "normalized": "20260730120000"
+    },
+    {
+      "file": "20260730130000_create_log_api_request_rpc.sql",
+      "version": "20260730130000",
+      "normalized": "20260730130000"
+    },
+    {
+      "file": "20260731010000_create_real_estate_schema.sql",
+      "version": "20260731010000",
+      "normalized": "20260731010000"
+    },
+    {
+      "file": "20260731020000_create_generic_resource_capabilities_schema.sql",
+      "version": "20260731020000",
+      "normalized": "20260731020000"
+    },
+    {
+      "file": "20260801000000_create_metadata_version_schema.sql",
+      "version": "20260801000000",
+      "normalized": "20260801000000"
+    },
+    {
+      "file": "20260801010000_real_estate_foundation_tables.sql",
+      "version": "20260801010000",
+      "normalized": "20260801010000"
+    },
+    {
+      "file": "20260801020000_reservation_engine.sql",
+      "version": "20260801020000",
+      "normalized": "20260801020000"
+    },
+    {
+      "file": "20260801030000_foundation_org_people_schema.sql",
+      "version": "20260801030000",
+      "normalized": "20260801030000"
+    },
+    {
+      "file": "20260801040000_foundation_org_people_seed_real_estate.sql",
+      "version": "20260801040000",
+      "normalized": "20260801040000"
+    },
+    {
+      "file": "20260802000000_create_hr_capability_schema.sql",
+      "version": "20260802000000",
+      "normalized": "20260802000000"
+    },
+    {
+      "file": "20260802010000_create_workforce_portal_tables.sql",
+      "version": "20260802010000",
+      "normalized": "20260802010000"
+    },
+    {
+      "file": "20260802010001_workforce_portal_SIMPLE.sql",
+      "version": "20260802010001",
+      "normalized": "20260802010001"
+    },
+    {
+      "file": "20260802100000_fix_partner_portal_schema_conflicts.sql",
+      "version": "20260802100000",
+      "normalized": "20260802100000"
+    },
+    {
+      "file": "20260802110000_partner_portal_missing_components.sql",
+      "version": "20260802110000",
+      "normalized": "20260802110000"
+    },
+    {
+      "file": "20260802112935_partner_registration_system.sql",
+      "version": "20260802112935",
+      "normalized": "20260802112935"
+    },
+    {
+      "file": "20260802120000_real_estate_partner_portal.sql",
+      "version": "20260802120000",
+      "normalized": "20260802120000"
+    },
+    {
+      "file": "20260802130000_create_user_roles.sql",
+      "version": "20260802130000",
+      "normalized": "20260802130000"
+    },
+    {
+      "file": "20260802140000_partner_documents_storage.sql",
+      "version": "20260802140000",
+      "normalized": "20260802140000"
+    },
+    {
+      "file": "20260802150000_real_estate_core_schema.sql",
+      "version": "20260802150000",
+      "normalized": "20260802150000"
+    },
+    {
+      "file": "20260802151000_real_estate_rpc_functions.sql",
+      "version": "20260802151000",
+      "normalized": "20260802151000"
+    },
+    {
+      "file": "20260803220000_create_auto_customer_extension.sql",
+      "version": "20260803220000",
+      "normalized": "20260803220000"
+    },
+    {
+      "file": "20260803260000_bella_auto_phase6_service_center.sql",
+      "version": "20260803260000",
+      "normalized": "20260803260000"
+    },
+    {
+      "file": "20260803270000_bella_auto_phase7_trade_in_center.sql",
+      "version": "20260803270000",
+      "normalized": "20260803270000"
+    },
+    {
+      "file": "20260803280000_bella_auto_phase8_finance_center.sql",
+      "version": "20260803280000",
+      "normalized": "20260803280000"
+    },
+    {
+      "file": "20260803290000_bella_auto_phase9_ai_center.sql",
+      "version": "20260803290000",
+      "normalized": "20260803290000"
+    },
+    {
+      "file": "20260803300000_bella_auto_phase10_mobile_workforce.sql",
+      "version": "20260803300000",
+      "normalized": "20260803300000"
+    },
+    {
+      "file": "20260803310000_bella_auto_phase11_business_rollback.sql",
+      "version": "20260803310000",
+      "normalized": "20260803310000"
+    },
+    {
+      "file": "20260803320000_bella_auto_phase12_temporal_history.sql",
+      "version": "20260803320000",
+      "normalized": "20260803320000"
+    },
+    {
+      "file": "20260804000000_bella_auto_phase13_rule_engine.sql",
+      "version": "20260804000000",
+      "normalized": "20260804000000"
+    },
+    {
+      "file": "20260804020000_bella_auto_performance_indexes.sql",
+      "version": "20260804020000",
+      "normalized": "20260804020000"
+    },
+    {
+      "file": "20260804030000_bella_auto_phase12_temporal_rpcs.sql",
+      "version": "20260804030000",
+      "normalized": "20260804030000"
+    },
+    {
+      "file": "20260804031000_bella_auto_phase12_temporal_rpcs_fixed.sql",
+      "version": "20260804031000",
+      "normalized": "20260804031000"
+    },
+    {
+      "file": "20260804100000_bella_auto_phase14_marketplace.sql",
+      "version": "20260804100000",
+      "normalized": "20260804100000"
+    },
+    {
+      "file": "20260804110000_bella_auto_phase15_rollup_analytics.sql",
+      "version": "20260804110000",
+      "normalized": "20260804110000"
+    },
+    {
+      "file": "20260804120000_grant_bella_auto_permissions.sql",
+      "version": "20260804120000",
+      "normalized": "20260804120000"
+    },
+    {
+      "file": "20260804320000_analytics_rpcs.sql",
+      "version": "20260804320000",
+      "normalized": "20260804320000"
+    },
+    {
+      "file": "20260804330000_grant_analytics_rpcs.sql",
+      "version": "20260804330000",
+      "normalized": "20260804330000"
+    },
+    {
+      "file": "20260804380000_bella_auto_disable_rls_workshop_tables.sql",
+      "version": "20260804380000",
+      "normalized": "20260804380000"
+    },
+    {
+      "file": "20260804400000_regrant_bella_auto_permissions.sql",
+      "version": "20260804400000",
+      "normalized": "20260804400000"
+    },
+    {
+      "file": "20260804450000_bella_auto_brands_seed.sql",
+      "version": "20260804450000",
+      "normalized": "20260804450000"
+    },
+    {
+      "file": "20260804500000_bella_auto_demo_seed.sql",
+      "version": "20260804500000",
+      "normalized": "20260804500000"
+    },
+    {
+      "file": "20260805010000_fix_rls_performance.sql",
+      "version": "20260805010000",
+      "normalized": "20260805010000"
+    },
+    {
+      "file": "20260806010000_blueprint_assets_contracts.sql",
+      "version": "20260806010000",
+      "normalized": "20260806010000"
+    },
+    {
+      "file": "20260806020000_blueprint_knowledge_policies_resources.sql",
+      "version": "20260806020000",
+      "normalized": "20260806020000"
+    },
+    {
+      "file": "20260806030000_healthcare_kernel_schema.sql",
+      "version": "20260806030000",
+      "normalized": "20260806030000"
+    },
+    {
+      "file": "20260806040000_healthcare_seed_data.sql",
+      "version": "20260806040000",
+      "normalized": "20260806040000"
+    },
+    {
+      "file": "20260806050000_healthcare_platform_extended_schema.sql",
+      "version": "20260806050000",
+      "normalized": "20260806050000"
+    },
+    {
+      "file": "20260806060000_set_healthcare_tenants_to_medical.sql",
+      "version": "20260806060000",
+      "normalized": "20260806060000"
+    },
+    {
+      "file": "20260807000000_create_hc_appointments.sql",
+      "version": "20260807000000",
+      "normalized": "20260807000000"
+    },
+    {
+      "file": "20260807000001_create_feature_flags_table.sql",
+      "version": "20260807000001",
+      "normalized": "20260807000001"
+    },
+    {
+      "file": "20260807010000_add_doctor_notification_to_lab.sql",
+      "version": "20260807010000",
+      "normalized": "20260807010000"
+    },
+    {
+      "file": "20260807020000_add_doctor_notification_to_imaging.sql",
+      "version": "20260807020000",
+      "normalized": "20260807020000"
+    },
+    {
+      "file": "20260807030000_seed_hc_imaging_orders.sql",
+      "version": "20260807030000",
+      "normalized": "20260807030000"
+    },
+    {
+      "file": "20260807040000_add_completed_at_to_hc_encounters.sql",
+      "version": "20260807040000",
+      "normalized": "20260807040000"
+    },
+    {
+      "file": "20260807050000_add_status_to_hc_prescriptions.sql",
+      "version": "20260807050000",
+      "normalized": "20260807050000"
+    },
+    {
+      "file": "20260807060000_audit_healthcare_tables.sql",
+      "version": "20260807060000",
+      "normalized": "20260807060000"
+    },
+    {
+      "file": "20260807100000_hospital_inpatient_his_baseline.sql",
+      "version": "20260807100000",
+      "normalized": "20260807100000"
+    },
+    {
+      "file": "20260807200000_enterprise_platform_c_baseline.sql",
+      "version": "20260807200000",
+      "normalized": "20260807200000"
+    },
+    {
+      "file": "20260808000001_add_inpatient_encounter_class.sql",
+      "version": "20260808000001",
+      "normalized": "20260808000001"
+    },
+    {
+      "file": "20260808000002_create_capability_risk_registry.sql",
+      "version": "20260808000002",
+      "normalized": "20260808000002"
+    },
+    {
+      "file": "20260808000003_seed_capability_risk_registry.sql",
+      "version": "20260808000003",
+      "normalized": "20260808000003"
+    },
+    {
+      "file": "20260808000004_create_perioperative_platform.sql",
+      "version": "20260808000004",
+      "normalized": "20260808000004"
+    },
+    {
+      "file": "20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "version": "20260808000005",
+      "normalized": "20260808000005"
+    },
+    {
+      "file": "20260808000006_create_cds_order_tables.sql",
+      "version": "20260808000006",
+      "normalized": "20260808000006"
+    },
+    {
+      "file": "20260808000010_create_rollback_engine_tables.sql",
+      "version": "20260808000010",
+      "normalized": "20260808000010"
+    },
+    {
+      "file": "20260808000011_create_temporal_engine_tables.sql",
+      "version": "20260808000011",
+      "normalized": "20260808000011"
+    },
+    {
+      "file": "20260808000012_create_rule_engine_tables.sql",
+      "version": "20260808000012",
+      "normalized": "20260808000012"
+    },
+    {
+      "file": "20260808000013_create_analytics_engine_tables.sql",
+      "version": "20260808000013",
+      "normalized": "20260808000013"
+    },
+    {
+      "file": "20260809000001_seed_hospital_wards.sql",
+      "version": "20260809000001",
+      "normalized": "20260809000001"
+    },
+    {
+      "file": "20260809000002_seed_hospital_beds.sql",
+      "version": "20260809000002",
+      "normalized": "20260809000002"
+    },
+    {
+      "file": "20260810000001_create_persons_table.sql",
+      "version": "20260810000001",
+      "normalized": "20260810000001"
+    },
+    {
+      "file": "20260810153259_create_persons_table_v2.sql",
+      "version": "20260810153259",
+      "normalized": "20260810153259"
+    },
+    {
+      "file": "20260810224417_create_students_table.sql",
+      "version": "20260810224417",
+      "normalized": "20260810224417"
+    },
+    {
+      "file": "20260810224418_migrate_students_to_platform_schema.sql",
+      "version": "20260810224418",
+      "normalized": "20260810224418"
+    },
+    {
+      "file": "20260810231500_create_courses_and_enrollments.sql",
+      "version": "20260810231500",
+      "normalized": "20260810231500"
+    },
+    {
+      "file": "20260810235000_create_attendances.sql",
+      "version": "20260810235000",
+      "normalized": "20260810235000"
+    },
+    {
+      "file": "20260811000000_migrate_owner_name_to_person_center.sql",
+      "version": "20260811000000",
+      "normalized": "20260811000000"
+    },
+    {
+      "file": "20260811000002_validate_owner_migration.sql",
+      "version": "20260811000002",
+      "normalized": "20260811000002"
+    },
+    {
+      "file": "20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "version": "20260811120000",
+      "normalized": "20260811120000"
+    },
+    {
+      "file": "20260812010000_make_care_journey_id_nullable.sql",
+      "version": "20260812010000",
+      "normalized": "20260812010000"
+    },
+    {
+      "file": "20260812020000_drop_care_journey_fk.sql",
+      "version": "20260812020000",
+      "normalized": "20260812020000"
+    },
+    {
+      "file": "20260812030000_extend_clinical_orders_table.sql",
+      "version": "20260812030000",
+      "normalized": "20260812030000"
+    },
+    {
+      "file": "20260812040000_recreate_clinical_orders_table.sql",
+      "version": "20260812040000",
+      "normalized": "20260812040000"
+    },
+    {
+      "file": "20260812050000_extend_pharmacy_schema.sql",
+      "version": "20260812050000",
+      "normalized": "20260812050000"
+    },
+    {
+      "file": "20260812070000_create_surgery_schema.sql",
+      "version": "20260812070000",
+      "normalized": "20260812070000"
+    },
+    {
+      "file": "20260813000000_create_h8_cds_schema.sql",
+      "version": "20260813000000",
+      "normalized": "20260813000000"
+    },
+    {
+      "file": "20260813000009_temporal_engine_tables.sql",
+      "version": "20260813000009",
+      "normalized": "20260813000009"
+    },
+    {
+      "file": "20260813000010_rule_governance_tables.sql",
+      "version": "20260813000010",
+      "normalized": "20260813000010"
+    },
+    {
+      "file": "20260813000011_clinical_audit_tables.sql",
+      "version": "20260813000011",
+      "normalized": "20260813000011"
+    },
+    {
+      "file": "20260813000030_create_assessments_and_results.sql",
+      "version": "20260813000030",
+      "normalized": "20260813000030"
+    },
+    {
+      "file": "20260813000050_create_teacher_assignments.sql",
+      "version": "20260813000050",
+      "normalized": "20260813000050"
+    },
+    {
+      "file": "20260817000001_n1_finance_outbox_hardening.sql",
+      "version": "20260817000001",
+      "normalized": "20260817000001"
+    },
+    {
+      "file": "20260817070312_finance_event_idempotency.sql",
+      "version": "20260817070312",
+      "normalized": "20260817070312"
+    },
+    {
+      "file": "20260817071105_finance_transaction_metadata.sql",
+      "version": "20260817071105",
+      "normalized": "20260817071105"
+    },
+    {
+      "file": "20260818000000_finance_ap_engine_v1.sql",
+      "version": "20260818000000",
+      "normalized": "20260818000000"
+    },
+    {
+      "file": "20260819000000_f5_schema.sql",
+      "version": "20260819000000",
+      "normalized": "20260819000000"
+    },
+    {
+      "file": "20260819000004_runtime_submit_intent_rpc.sql",
+      "version": "20260819000004",
+      "normalized": "20260819000004"
+    },
+    {
+      "file": "20260819010000_f5_read_contracts.sql",
+      "version": "20260819010000",
+      "normalized": "20260819010000"
+    },
+    {
+      "file": "20260819020000_f5_reconstruction_engine.sql",
+      "version": "20260819020000",
+      "normalized": "20260819020000"
+    },
+    {
+      "file": "20260819040000_fix_legacy_spa_rls_policies.sql",
+      "version": "20260819040000",
+      "normalized": "20260819040000"
+    },
+    {
+      "file": "20260819040000_runtime_migration_e1_gate_schema_safe.sql",
+      "version": "20260819040000",
+      "normalized": "20260819040000"
+    },
+    {
+      "file": "20260819050000_runtime_migration_05a_classification_reservation.sql",
+      "version": "20260819050000",
+      "normalized": "20260819050000"
+    },
+    {
+      "file": "20260819050001_runtime_migration_05_e2_orphan_safety_gate.sql",
+      "version": "20260819050001",
+      "normalized": "20260819050001"
+    },
+    {
+      "file": "20260819050002_runtime_migration_05b_canonical_tenant_creation.sql",
+      "version": "20260819050002",
+      "normalized": "20260819050002"
+    },
+    {
+      "file": "20260819050003_runtime_migration_05c_text_to_uuid_type_migration.sql",
+      "version": "20260819050003",
+      "normalized": "20260819050003"
+    },
+    {
+      "file": "20260819050004_runtime_migration_e3_post_05c_verification.sql",
+      "version": "20260819050004",
+      "normalized": "20260819050004"
+    },
+    {
+      "file": "20260820000000_f5_fx_integrity.sql",
+      "version": "20260820000000",
+      "normalized": "20260820000000"
+    },
+    {
+      "file": "20260820010000_f5_prepayment_reconciliation.sql",
+      "version": "20260820010000",
+      "normalized": "20260820010000"
+    },
+    {
+      "file": "20260820100000_migration_governance_approvals.sql",
+      "version": "20260820100000",
+      "normalized": "20260820100000"
+    },
+    {
+      "file": "20260820110000_database_role_separation.sql",
+      "version": "20260820110000",
+      "normalized": "20260820110000"
+    },
+    {
+      "file": "20260820110000_database_role_separation_v2.sql",
+      "version": "20260820110000",
+      "normalized": "20260820110000"
+    },
+    {
+      "file": "20260820120000_fix_executor_privileges.sql",
+      "version": "20260820120000",
+      "normalized": "20260820120000"
+    },
+    {
+      "file": "20260820130000_grant_executor_rls_bypass.sql",
+      "version": "20260820130000",
+      "normalized": "20260820130000"
+    },
+    {
+      "file": "20260820140000_enable_rls_block_service_key.sql",
+      "version": "20260820140000",
+      "normalized": "20260820140000"
+    },
+    {
+      "file": "20260820_r4_3_gate_tokens.sql",
+      "version": "20260820",
+      "normalized": "20260820000000"
+    },
+    {
+      "file": "20260820_r4_4_monitoring_audit.sql",
+      "version": "20260820",
+      "normalized": "20260820000000"
+    },
+    {
+      "file": "20260820_r4_approval_contract.sql",
+      "version": "20260820",
+      "normalized": "20260820000000"
+    },
+    {
+      "file": "20260821000000_fix_healthcare_rls_tenant_isolation.sql",
+      "version": "20260821000000",
+      "normalized": "20260821000000"
+    },
+    {
+      "file": "20260821115404_logistics_schema.sql",
+      "version": "20260821115404",
+      "normalized": "20260821115404"
+    },
+    {
+      "file": "20260821_create_accessorial_rates_table.sql",
+      "version": "20260821",
+      "normalized": "20260821000000"
+    },
+    {
+      "file": "20260821_create_carrier_rates_table.sql",
+      "version": "20260821",
+      "normalized": "20260821000000"
+    },
+    {
+      "file": "20260821_create_discrepancies_table.sql",
+      "version": "20260821",
+      "normalized": "20260821000000"
+    },
+    {
+      "file": "20260821_create_freight_audit_tables.sql",
+      "version": "20260821",
+      "normalized": "20260821000000"
+    },
+    {
+      "file": "20260823000000_f5_ar_reconciliation.sql",
+      "version": "20260823000000",
+      "normalized": "20260823000000"
+    },
+    {
+      "file": "20260823010000_f5_ar_reconciliation_fix.sql",
+      "version": "20260823010000",
+      "normalized": "20260823010000"
+    },
+    {
+      "file": "20260909000051_p41_safety_critical.sql",
+      "version": "20260909000051",
+      "normalized": "20260909000051"
+    },
+    {
+      "file": "20260909000052_p42_daily_care_operations.sql",
+      "version": "20260909000052",
+      "normalized": "20260909000052"
+    },
+    {
+      "file": "20260909000053_p51_framework_observation_evidence.sql",
+      "version": "20260909000053",
+      "normalized": "20260909000053"
+    },
+    {
+      "file": "20260909000054_p52_milestone_progress_next_steps.sql",
+      "version": "20260909000054",
+      "normalized": "20260909000054"
+    },
+    {
+      "file": "20260909000055_p53_portfolio_workspace.sql",
+      "version": "20260909000055",
+      "normalized": "20260909000055"
+    },
+    {
+      "file": "20260909000059_p73_finance_rls_grant.sql",
+      "version": "20260909000059",
+      "normalized": "20260909000059"
+    },
+    {
+      "file": "20260909000060_p8_staff_scheduling_schema.sql",
+      "version": "20260909000060",
+      "normalized": "20260909000060"
+    },
+    {
+      "file": "20260909000061_p82_nullable_exception_notice_id.sql",
+      "version": "20260909000061",
+      "normalized": "20260909000061"
+    },
+    {
+      "file": "20260909000062_p9_facilities_asset_schema.sql",
+      "version": "20260909000062",
+      "normalized": "20260909000062"
+    },
+    {
+      "file": "20260909000063_p92_nullable_exception_guardian_id.sql",
+      "version": "20260909000063",
+      "normalized": "20260909000063"
+    },
+    {
+      "file": "20260909000064_p93_facilities_rls_grant.sql",
+      "version": "20260909000064",
+      "normalized": "20260909000064"
+    },
+    {
+      "file": "20260912000000_r3_education_identity_cutover.sql",
+      "version": "20260912000000",
+      "normalized": "20260912000000"
+    },
+    {
+      "file": "20260912100000_org_unit_hierarchy_rpcs.sql",
+      "version": "20260912100000",
+      "normalized": "20260912100000"
+    },
+    {
+      "file": "20260912120000_add_branch_id_to_education_tables.sql",
+      "version": "20260912120000",
+      "normalized": "20260912120000"
+    },
+    {
+      "file": "20260914_create_user_org_unit_access_projection.sql",
+      "version": "20260914",
+      "normalized": "20260914000000"
+    },
+    {
+      "file": "20260914_repair_platform_org_people_rls.sql",
+      "version": "20260914",
+      "normalized": "20260914000000"
+    },
+    {
+      "file": "20260916000000_beauty_os_h8_persistence.sql",
+      "version": "20260916000000",
+      "normalized": "20260916000000"
+    },
+    {
+      "file": "20260926000000_r3_student_identity_resolver.sql",
+      "version": "20260926000000",
+      "normalized": "20260926000000"
+    },
+    {
+      "file": "20260926001000_bdgf_owner_operated_approval_mode.sql",
+      "version": "20260926001000",
+      "normalized": "20260926001000"
+    },
+    {
+      "file": "20260926002000_r3_student_create_side_nullable_person_id.sql",
+      "version": "20260926002000",
+      "normalized": "20260926002000"
+    },
+    {
+      "file": "20260926003000_education_daily_attendance_state.sql",
+      "version": "20260926003000",
+      "normalized": "20260926003000"
+    },
+    {
+      "file": "20260927000000_fix_edu_set_daily_attendance_column_ambiguity.sql",
+      "version": "20260927000000",
+      "normalized": "20260927000000"
+    },
+    {
+      "file": "20260927020000_fix_course_rls_auth_tenant_helper.sql",
+      "version": "20260927020000",
+      "normalized": "20260927020000"
+    },
+    {
+      "file": "20260927040000_preschool_daily_care_canonical_student_party.sql",
+      "version": "20260927040000",
+      "normalized": "20260927040000"
+    },
+    {
+      "file": "20260927050000_preschool_parent_digest_canonical_student_party.sql",
+      "version": "20260927050000",
+      "normalized": "20260927050000"
+    },
+    {
+      "file": "20260927060000_enable_parent_user_role.sql",
+      "version": "20260927060000",
+      "normalized": "20260927060000"
+    },
+    {
+      "file": "20260928183000_haircut_salary_payment_locked_transition.sql",
+      "version": "20260928183000",
+      "normalized": "20260928183000"
+    },
+    {
+      "file": "20260929010000_haircut_exact_coa_bootstrap.sql",
+      "version": "20260929010000",
+      "normalized": "20260929010000"
+    },
+    {
+      "file": "20260930093000_add_bookings_metadata_contract_column.sql",
+      "version": "20260930093000",
+      "normalized": "20260930093000"
+    },
+    {
+      "file": "20261001000000_restore_finance_f3_ar_privilege_boundary.sql",
+      "version": "20261001000000",
+      "normalized": "20261001000000"
+    },
+    {
+      "file": "20261001000001_restore_finance_f2_cash_positions_privilege_boundary.sql",
+      "version": "20261001000001",
+      "normalized": "20261001000001"
+    }
+  ],
+  "remoteOnly": [],
+  "rawPendingLocal": [
+    {
+      "file": "20260511000000_initial_schema.sql",
+      "version": "20260511000000",
+      "normalized": "20260511000000"
+    },
+    {
+      "file": "20260511500000_create_inventory_items.sql",
+      "version": "20260511500000",
+      "normalized": "20260511500000"
+    },
+    {
+      "file": "20260512000000_fix_permissions.sql",
+      "version": "20260512000000",
+      "normalized": "20260512000000"
+    },
+    {
+      "file": "20260514000000_add_gender_baby.sql",
+      "version": "20260514000000",
+      "normalized": "20260514000000"
+    },
+    {
+      "file": "20260514000001_audit_logs.sql",
+      "version": "20260514000001",
+      "normalized": "20260514000001"
+    },
+    {
+      "file": "20260514900000_create_packages_table.sql",
+      "version": "20260514900000",
+      "normalized": "20260514900000"
+    },
+    {
+      "file": "20260515000000_standardization_phase_1.sql",
+      "version": "20260515000000",
+      "normalized": "20260515000000"
+    },
+    {
+      "file": "20260515000001_dashboard_optimization.sql",
+      "version": "20260515000001",
+      "normalized": "20260515000001"
+    },
+    {
+      "file": "20260515010000_the_great_purge.sql",
+      "version": "20260515010000",
+      "normalized": "20260515010000"
+    },
+    {
+      "file": "20260515020000_finance_automation_pnl.sql",
+      "version": "20260515020000",
+      "normalized": "20260515020000"
+    },
+    {
+      "file": "20260515030000_ktv_mobile_experience.sql",
+      "version": "20260515030000",
+      "normalized": "20260515030000"
+    },
+    {
+      "file": "20260515040000_create_packages_table.sql",
+      "version": "20260515040000",
+      "normalized": "20260515040000"
+    },
+    {
+      "file": "20260515050000_fix_bookings_missing_columns.sql",
+      "version": "20260515050000",
+      "normalized": "20260515050000"
+    },
+    {
+      "file": "20260515085805_remote_applied_placeholder.sql",
+      "version": "20260515085805",
+      "normalized": "20260515085805"
+    },
+    {
+      "file": "20260515094253_remote_applied_placeholder.sql",
+      "version": "20260515094253",
+      "normalized": "20260515094253"
+    },
+    {
+      "file": "20260515104753_remote_applied_placeholder.sql",
+      "version": "20260515104753",
+      "normalized": "20260515104753"
+    },
+    {
+      "file": "20260515105601_remote_applied_placeholder.sql",
+      "version": "20260515105601",
+      "normalized": "20260515105601"
+    },
+    {
+      "file": "20260515112253_remote_applied_placeholder.sql",
+      "version": "20260515112253",
+      "normalized": "20260515112253"
+    },
+    {
+      "file": "20260515122158_remote_applied_placeholder.sql",
+      "version": "20260515122158",
+      "normalized": "20260515122158"
+    },
+    {
+      "file": "20260515133425_remote_applied_placeholder.sql",
+      "version": "20260515133425",
+      "normalized": "20260515133425"
+    },
+    {
+      "file": "20260515145847_remote_applied_placeholder.sql",
+      "version": "20260515145847",
+      "normalized": "20260515145847"
+    },
+    {
+      "file": "20260515153220_remote_applied_placeholder.sql",
+      "version": "20260515153220",
+      "normalized": "20260515153220"
+    },
+    {
+      "file": "20260515215105_remote_applied_placeholder.sql",
+      "version": "20260515215105",
+      "normalized": "20260515215105"
+    },
+    {
+      "file": "20260515215229_remote_applied_placeholder.sql",
+      "version": "20260515215229",
+      "normalized": "20260515215229"
+    },
+    {
+      "file": "20260515215240_remote_applied_placeholder.sql",
+      "version": "20260515215240",
+      "normalized": "20260515215240"
+    },
+    {
+      "file": "20260515221754_remote_applied_placeholder.sql",
+      "version": "20260515221754",
+      "normalized": "20260515221754"
+    },
+    {
+      "file": "20260515224956_fix_chat_rpc.sql",
+      "version": "20260515224956",
+      "normalized": "20260515224956"
+    },
+    {
+      "file": "20260516000000_financial_reconciliation.sql",
+      "version": "20260516000000",
+      "normalized": "20260516000000"
+    },
+    {
+      "file": "20260516000001_audit_logs.sql",
+      "version": "20260516000001",
+      "normalized": "20260516000001"
+    },
+    {
+      "file": "20260516000002_fix_chat_schema.sql",
+      "version": "20260516000002",
+      "normalized": "20260516000002"
+    },
+    {
+      "file": "20260516000003_fix_chat_rpc_ambiguous.sql",
+      "version": "20260516000003",
+      "normalized": "20260516000003"
+    },
+    {
+      "file": "20260516000004_add_discount_percent.sql",
+      "version": "20260516000004",
+      "normalized": "20260516000004"
+    },
+    {
+      "file": "20260516000005_financial_reconciliation_discount_fix.sql",
+      "version": "20260516000005",
+      "normalized": "20260516000005"
+    },
+    {
+      "file": "20260516023449_remote_applied_placeholder.sql",
+      "version": "20260516023449",
+      "normalized": "20260516023449"
+    },
+    {
+      "file": "20260516053316_remote_applied_placeholder.sql",
+      "version": "20260516053316",
+      "normalized": "20260516053316"
+    },
+    {
+      "file": "20260516091138_remote_applied_placeholder.sql",
+      "version": "20260516091138",
+      "normalized": "20260516091138"
+    },
+    {
+      "file": "20260516222808_remote_applied_placeholder.sql",
+      "version": "20260516222808",
+      "normalized": "20260516222808"
+    },
+    {
+      "file": "20260516223228_remote_applied_placeholder.sql",
+      "version": "20260516223228",
+      "normalized": "20260516223228"
+    },
+    {
+      "file": "20260517153829_remote_applied_placeholder.sql",
+      "version": "20260517153829",
+      "normalized": "20260517153829"
+    },
+    {
+      "file": "20260517154319_remote_applied_placeholder.sql",
+      "version": "20260517154319",
+      "normalized": "20260517154319"
+    },
+    {
+      "file": "20260518000000_disable_attendance_rls.sql",
+      "version": "20260518000000",
+      "normalized": "20260518000000"
+    },
+    {
+      "file": "20260518000001_fix_ktv_leaderboard_approved_reviews.sql",
+      "version": "20260518000001",
+      "normalized": "20260518000001"
+    },
+    {
+      "file": "20260518000002_optimize_booking_triggers.sql",
+      "version": "20260518000002",
+      "normalized": "20260518000002"
+    },
+    {
+      "file": "20260518103423_remote_applied_placeholder.sql",
+      "version": "20260518103423",
+      "normalized": "20260518103423"
+    },
+    {
+      "file": "20260518103433_remote_applied_placeholder.sql",
+      "version": "20260518103433",
+      "normalized": "20260518103433"
+    },
+    {
+      "file": "20260518125048_remote_applied_placeholder.sql",
+      "version": "20260518125048",
+      "normalized": "20260518125048"
+    },
+    {
+      "file": "20260518125215_remote_applied_placeholder.sql",
+      "version": "20260518125215",
+      "normalized": "20260518125215"
+    },
+    {
+      "file": "20260518222208_remote_applied_placeholder.sql",
+      "version": "20260518222208",
+      "normalized": "20260518222208"
+    },
+    {
+      "file": "20260519000000_ktv_duration_kpi_system.sql",
+      "version": "20260519000000",
+      "normalized": "20260519000000"
+    },
+    {
+      "file": "20260519010000_staff_leaves.sql",
+      "version": "20260519010000",
+      "normalized": "20260519010000"
+    },
+    {
+      "file": "20260519020000_add_rejection_reason_to_staff_leaves.sql",
+      "version": "20260519020000",
+      "normalized": "20260519020000"
+    },
+    {
+      "file": "20260519163655_remote_applied_placeholder.sql",
+      "version": "20260519163655",
+      "normalized": "20260519163655"
+    },
+    {
+      "file": "20260519171631_remote_applied_placeholder.sql",
+      "version": "20260519171631",
+      "normalized": "20260519171631"
+    },
+    {
+      "file": "20260519172033_remote_applied_placeholder.sql",
+      "version": "20260519172033",
+      "normalized": "20260519172033"
+    },
+    {
+      "file": "20260519172611_remote_applied_placeholder.sql",
+      "version": "20260519172611",
+      "normalized": "20260519172611"
+    },
+    {
+      "file": "20260519220807_remote_applied_placeholder.sql",
+      "version": "20260519220807",
+      "normalized": "20260519220807"
+    },
+    {
+      "file": "20260519234426_remote_applied_placeholder.sql",
+      "version": "20260519234426",
+      "normalized": "20260519234426"
+    },
+    {
+      "file": "20260520000000_add_zalo_config_to_tenants.sql",
+      "version": "20260520000000",
+      "normalized": "20260520000000"
+    },
+    {
+      "file": "20260520000001_add_bank_details_to_tenants.sql",
+      "version": "20260520000001",
+      "normalized": "20260520000001"
+    },
+    {
+      "file": "20260520000002_fix_staff_leaves_permissions.sql",
+      "version": "20260520000002",
+      "normalized": "20260520000002"
+    },
+    {
+      "file": "20260520000003_audit_all_tables.sql",
+      "version": "20260520000003",
+      "normalized": "20260520000003"
+    },
+    {
+      "file": "20260520000004_add_role_permissions.sql",
+      "version": "20260520000004",
+      "normalized": "20260520000004"
+    },
+    {
+      "file": "20260520000005_drop_password_hash.sql",
+      "version": "20260520000005",
+      "normalized": "20260520000005"
+    },
+    {
+      "file": "20260520000006_enable_core_rls.sql",
+      "version": "20260520000006",
+      "normalized": "20260520000006"
+    },
+    {
+      "file": "20260520000007_add_salary_config_to_tenants.sql",
+      "version": "20260520000007",
+      "normalized": "20260520000007"
+    },
+    {
+      "file": "20260520000008_fix_audit_trigger_exception.sql",
+      "version": "20260520000008",
+      "normalized": "20260520000008"
+    },
+    {
+      "file": "20260520000009_add_tenants_update_policy.sql",
+      "version": "20260520000009",
+      "normalized": "20260520000009"
+    },
+    {
+      "file": "20260520222115_remote_applied_placeholder.sql",
+      "version": "20260520222115",
+      "normalized": "20260520222115"
+    },
+    {
+      "file": "20260520222216_remote_applied_placeholder.sql",
+      "version": "20260520222216",
+      "normalized": "20260520222216"
+    },
+    {
+      "file": "20260520222226_remote_applied_placeholder.sql",
+      "version": "20260520222226",
+      "normalized": "20260520222226"
+    },
+    {
+      "file": "20260521000001_add_gps_to_session_logs.sql",
+      "version": "20260521000001",
+      "normalized": "20260521000001"
+    },
+    {
+      "file": "20260521000002_lock_month_guards.sql",
+      "version": "20260521000002",
+      "normalized": "20260521000002"
+    },
+    {
+      "file": "20260521000003_create_app_notifications.sql",
+      "version": "20260521000003",
+      "normalized": "20260521000003"
+    },
+    {
+      "file": "20260521000004_harden_rls_and_tenant.sql",
+      "version": "20260521000004",
+      "normalized": "20260521000004"
+    },
+    {
+      "file": "20260521000005_tenant_onboarding.sql",
+      "version": "20260521000005",
+      "normalized": "20260521000005"
+    },
+    {
+      "file": "20260521000006_subscription_engine.sql",
+      "version": "20260521000006",
+      "normalized": "20260521000006"
+    },
+    {
+      "file": "20260521000007_fix_rls_security.sql",
+      "version": "20260521000007",
+      "normalized": "20260521000007"
+    },
+    {
+      "file": "20260521113444_remote_applied_placeholder.sql",
+      "version": "20260521113444",
+      "normalized": "20260521113444"
+    },
+    {
+      "file": "20260521164521_remote_applied_placeholder.sql",
+      "version": "20260521164521",
+      "normalized": "20260521164521"
+    },
+    {
+      "file": "20260522000000_enable_attendance_rls.sql",
+      "version": "20260522000000",
+      "normalized": "20260522000000"
+    },
+    {
+      "file": "20260522010000_franchise_royalty_system.sql",
+      "version": "20260522010000",
+      "normalized": "20260522010000"
+    },
+    {
+      "file": "20260522020000_inter_branch_clearing.sql",
+      "version": "20260522020000",
+      "normalized": "20260522020000"
+    },
+    {
+      "file": "20260522021659_remote_applied_placeholder.sql",
+      "version": "20260522021659",
+      "normalized": "20260522021659"
+    },
+    {
+      "file": "20260522030000_inventory_transfer_orders.sql",
+      "version": "20260522030000",
+      "normalized": "20260522030000"
+    },
+    {
+      "file": "20260522040000_brand_service_master.sql",
+      "version": "20260522040000",
+      "normalized": "20260522040000"
+    },
+    {
+      "file": "20260523000000_fix_create_onboarding_user.sql",
+      "version": "20260523000000",
+      "normalized": "20260523000000"
+    },
+    {
+      "file": "20260523010000_harden_all_database_rls.sql",
+      "version": "20260523010000",
+      "normalized": "20260523010000"
+    },
+    {
+      "file": "20260523020000_add_receipt_url_to_revenue.sql",
+      "version": "20260523020000",
+      "normalized": "20260523020000"
+    },
+    {
+      "file": "20260523020001_get_user_by_email_rpc.sql",
+      "version": "20260523020001",
+      "normalized": "20260523020001"
+    },
+    {
+      "file": "20260523030000_grant_service_role_schema_access.sql",
+      "version": "20260523030000",
+      "normalized": "20260523030000"
+    },
+    {
+      "file": "20260523040000_fix_hq_super_admin_rls.sql",
+      "version": "20260523040000",
+      "normalized": "20260523040000"
+    },
+    {
+      "file": "20260524000000_accounting_core.sql",
+      "version": "20260524000000",
+      "normalized": "20260524000000"
+    },
+    {
+      "file": "20260525000000_security_hardening.sql",
+      "version": "20260525000000",
+      "normalized": "20260525000000"
+    },
+    {
+      "file": "20260525060457_remote_applied_placeholder.sql",
+      "version": "20260525060457",
+      "normalized": "20260525060457"
+    },
+    {
+      "file": "20260525100000_accounting_rls_harden.sql",
+      "version": "20260525100000",
+      "normalized": "20260525100000"
+    },
+    {
+      "file": "20260525110000_seed_default_coa.sql",
+      "version": "20260525110000",
+      "normalized": "20260525110000"
+    },
+    {
+      "file": "20260525120000_accounting_periods_auto.sql",
+      "version": "20260525120000",
+      "normalized": "20260525120000"
+    },
+    {
+      "file": "20260525130000_accounting_outbox.sql",
+      "version": "20260525130000",
+      "normalized": "20260525130000"
+    },
+    {
+      "file": "20260525140000_onboard_with_coa.sql",
+      "version": "20260525140000",
+      "normalized": "20260525140000"
+    },
+    {
+      "file": "20260525150000_accounting_reports.sql",
+      "version": "20260525150000",
+      "normalized": "20260525150000"
+    },
+    {
+      "file": "20260525160000_accounting_grants.sql",
+      "version": "20260525160000",
+      "normalized": "20260525160000"
+    },
+    {
+      "file": "20260525170000_period_closing_workflow.sql",
+      "version": "20260525170000",
+      "normalized": "20260525170000"
+    },
+    {
+      "file": "20260525180000_cash_flow_statement.sql",
+      "version": "20260525180000",
+      "normalized": "20260525180000"
+    },
+    {
+      "file": "20260525190000_consolidated_pnl_hq.sql",
+      "version": "20260525190000",
+      "normalized": "20260525190000"
+    },
+    {
+      "file": "20260525200000_fix_consolidated_pnl_ambiguous.sql",
+      "version": "20260525200000",
+      "normalized": "20260525200000"
+    },
+    {
+      "file": "20260525210000_reconciliation_report.sql",
+      "version": "20260525210000",
+      "normalized": "20260525210000"
+    },
+    {
+      "file": "20260525220000_fix_function_grants.sql",
+      "version": "20260525220000",
+      "normalized": "20260525220000"
+    },
+    {
+      "file": "20260525230000_fix_reconciliation_date_types.sql",
+      "version": "20260525230000",
+      "normalized": "20260525230000"
+    },
+    {
+      "file": "20260526000000_ai_agent_infrastructure.sql",
+      "version": "20260526000000",
+      "normalized": "20260526000000"
+    },
+    {
+      "file": "20260526010000_ai_agent_salary_tools.sql",
+      "version": "20260526010000",
+      "normalized": "20260526010000"
+    },
+    {
+      "file": "20260526020000_allow_service_role_ai_rpc.sql",
+      "version": "20260526020000",
+      "normalized": "20260526020000"
+    },
+    {
+      "file": "20260526030000_ai_security_hardening.sql",
+      "version": "20260526030000",
+      "normalized": "20260526030000"
+    },
+    {
+      "file": "20260526040000_fix_attendance_logic.sql",
+      "version": "20260526040000",
+      "normalized": "20260526040000"
+    },
+    {
+      "file": "20260526040001_salary_reconciliation.sql",
+      "version": "20260526040001",
+      "normalized": "20260526040001"
+    },
+    {
+      "file": "20260526040002_salary_reconciliation_report.sql",
+      "version": "20260526040002",
+      "normalized": "20260526040002"
+    },
+    {
+      "file": "20260526050000_dual_mode_accounting.sql",
+      "version": "20260526050000",
+      "normalized": "20260526050000"
+    },
+    {
+      "file": "20260526060000_add_hr_role.sql",
+      "version": "20260526060000",
+      "normalized": "20260526060000"
+    },
+    {
+      "file": "20260527000000_ktv_leaderboard_blended_rating.sql",
+      "version": "20260527000000",
+      "normalized": "20260527000000"
+    },
+    {
+      "file": "20260528000000_grant_chat_messages_permissions.sql",
+      "version": "20260528000000",
+      "normalized": "20260528000000"
+    },
+    {
+      "file": "20260528010000_distributed_rate_limit.sql",
+      "version": "20260528010000",
+      "normalized": "20260528010000"
+    },
+    {
+      "file": "20260529000000_fix_membership_records_cascade_delete.sql",
+      "version": "20260529000000",
+      "normalized": "20260529000000"
+    },
+    {
+      "file": "20260529010000_create_promotions_table.sql",
+      "version": "20260529010000",
+      "normalized": "20260529010000"
+    },
+    {
+      "file": "20260529232452_remote_applied_placeholder.sql",
+      "version": "20260529232452",
+      "normalized": "20260529232452"
+    },
+    {
+      "file": "20260529233748_remote_applied_placeholder.sql",
+      "version": "20260529233748",
+      "normalized": "20260529233748"
+    },
+    {
+      "file": "20260530000000_update_gps_threshold_and_customer_gps.sql",
+      "version": "20260530000000",
+      "normalized": "20260530000000"
+    },
+    {
+      "file": "20260530010000_add_checkout_gps_to_session_logs.sql",
+      "version": "20260530010000",
+      "normalized": "20260530010000"
+    },
+    {
+      "file": "20260530020000_fix_salary_reconciliation_logic.sql",
+      "version": "20260530020000",
+      "normalized": "20260530020000"
+    },
+    {
+      "file": "20260530025918_remote_applied_placeholder.sql",
+      "version": "20260530025918",
+      "normalized": "20260530025918"
+    },
+    {
+      "file": "20260530025943_remote_applied_placeholder.sql",
+      "version": "20260530025943",
+      "normalized": "20260530025943"
+    },
+    {
+      "file": "20260530030000_add_session_multiplier_to_packages.sql",
+      "version": "20260530030000",
+      "normalized": "20260530030000"
+    },
+    {
+      "file": "20260530040000_revoke_anon_accounting_rpc.sql",
+      "version": "20260530040000",
+      "normalized": "20260530040000"
+    },
+    {
+      "file": "20260530050000_accounting_templates_and_readiness.sql",
+      "version": "20260530050000",
+      "normalized": "20260530050000"
+    },
+    {
+      "file": "20260530060000_add_expense_salary_accounting_template.sql",
+      "version": "20260530060000",
+      "normalized": "20260530060000"
+    },
+    {
+      "file": "20260530070000_resolve_accounting_review_item.sql",
+      "version": "20260530070000",
+      "normalized": "20260530070000"
+    },
+    {
+      "file": "20260530080000_backfill_accounting_metadata.sql",
+      "version": "20260530080000",
+      "normalized": "20260530080000"
+    },
+    {
+      "file": "20260531010000_atomic_legacy_ledger_sync.sql",
+      "version": "20260531010000",
+      "normalized": "20260531010000"
+    },
+    {
+      "file": "20260531020000_add_legacy_ledger_sync_preview.sql",
+      "version": "20260531020000",
+      "normalized": "20260531020000"
+    },
+    {
+      "file": "20260531030000_record_remaining_payment_atomic.sql",
+      "version": "20260531030000",
+      "normalized": "20260531030000"
+    },
+    {
+      "file": "20260601010000_harden_subscription_rpc.sql",
+      "version": "20260601010000",
+      "normalized": "20260601010000"
+    },
+    {
+      "file": "20260601011000_create_subscription_quota_schema.sql",
+      "version": "20260601011000",
+      "normalized": "20260601011000"
+    },
+    {
+      "file": "20260602010000_use_usage_counters_for_sms.sql",
+      "version": "20260602010000",
+      "normalized": "20260602010000"
+    },
+    {
+      "file": "20260603010000_tt133_service_revenue_5113.sql",
+      "version": "20260603010000",
+      "normalized": "20260603010000"
+    },
+    {
+      "file": "20260603020000_tt133_refund_mapping.sql",
+      "version": "20260603020000",
+      "normalized": "20260603020000"
+    },
+    {
+      "file": "20260603030000_allow_revenue_refund_type.sql",
+      "version": "20260603030000",
+      "normalized": "20260603030000"
+    },
+    {
+      "file": "20260603040000_branch_legacy_revenue_sync_by_type.sql",
+      "version": "20260603040000",
+      "normalized": "20260603040000"
+    },
+    {
+      "file": "20260603050000_unique_active_journal_reference.sql",
+      "version": "20260603050000",
+      "normalized": "20260603050000"
+    },
+    {
+      "file": "20260603060000_unique_payment_webhook_transaction.sql",
+      "version": "20260603060000",
+      "normalized": "20260603060000"
+    },
+    {
+      "file": "20260603070000_tt133_legacy_expense_paid_status.sql",
+      "version": "20260603070000",
+      "normalized": "20260603070000"
+    },
+    {
+      "file": "20260604090000_allow_service_role_accounting_readiness.sql",
+      "version": "20260604090000",
+      "normalized": "20260604090000"
+    },
+    {
+      "file": "20260604091000_allow_service_role_salary_reconciliation_report.sql",
+      "version": "20260604091000",
+      "normalized": "20260604091000"
+    },
+    {
+      "file": "20260604143000_widen_reconciliation_diff_percent.sql",
+      "version": "20260604143000",
+      "normalized": "20260604143000"
+    },
+    {
+      "file": "20260604160000_scope_professional_readiness_to_legacy_sync.sql",
+      "version": "20260604160000",
+      "normalized": "20260604160000"
+    },
+    {
+      "file": "20260604173000_scope_reconciliation_to_legacy_journals.sql",
+      "version": "20260604173000",
+      "normalized": "20260604173000"
+    },
+    {
+      "file": "20260606093000_fix_salary_realtime_components.sql",
+      "version": "20260606093000",
+      "normalized": "20260606093000"
+    },
+    {
+      "file": "20260606100000_inter_branch_clearing_outbox.sql",
+      "version": "20260606100000",
+      "normalized": "20260606100000"
+    },
+    {
+      "file": "20260606103000_eliminate_internal_clearing_from_consolidated_pnl.sql",
+      "version": "20260606103000",
+      "normalized": "20260606103000"
+    },
+    {
+      "file": "20260606110000_add_consolidated_pnl_elimination_totals.sql",
+      "version": "20260606110000",
+      "normalized": "20260606110000"
+    },
+    {
+      "file": "20260606113000_grant_inter_branch_clearing_records_access.sql",
+      "version": "20260606113000",
+      "normalized": "20260606113000"
+    },
+    {
+      "file": "20260606124500_grant_critical_rpc_execute.sql",
+      "version": "20260606124500",
+      "normalized": "20260606124500"
+    },
+    {
+      "file": "20260606130000_allow_service_role_consolidated_pnl.sql",
+      "version": "20260606130000",
+      "normalized": "20260606130000"
+    },
+    {
+      "file": "20260606133000_backfill_paid_deposit_bookings.sql",
+      "version": "20260606133000",
+      "normalized": "20260606133000"
+    },
+    {
+      "file": "20260606134000_backfill_completed_session_business_events.sql",
+      "version": "20260606134000",
+      "normalized": "20260606134000"
+    },
+    {
+      "file": "20260607003000_grant_subscription_and_royalty_access.sql",
+      "version": "20260607003000",
+      "normalized": "20260607003000"
+    },
+    {
+      "file": "20260607010000_normalize_salary_reconciliation_pending_legacy.sql",
+      "version": "20260607010000",
+      "normalized": "20260607010000"
+    },
+    {
+      "file": "20260607020000_unique_salary_expense_description.sql",
+      "version": "20260607020000",
+      "normalized": "20260607020000"
+    },
+    {
+      "file": "20260607023000_harden_accounting_outbox_idempotency.sql",
+      "version": "20260607023000",
+      "normalized": "20260607023000"
+    },
+    {
+      "file": "20260607030000_create_accounting_worker_runs.sql",
+      "version": "20260607030000",
+      "normalized": "20260607030000"
+    },
+    {
+      "file": "20260607231500_manual_payment_idempotency.sql",
+      "version": "20260607231500",
+      "normalized": "20260607231500"
+    },
+    {
+      "file": "20260608090000_create_meta_ads_phase1.sql",
+      "version": "20260608090000",
+      "normalized": "20260608090000"
+    },
+    {
+      "file": "20260608100000_add_meta_ads_account_tokens.sql",
+      "version": "20260608100000",
+      "normalized": "20260608100000"
+    },
+    {
+      "file": "20260608103000_grant_meta_ads_delete_permissions.sql",
+      "version": "20260608103000",
+      "normalized": "20260608103000"
+    },
+    {
+      "file": "20260608104000_add_tenant_module_white_label_config.sql",
+      "version": "20260608104000",
+      "normalized": "20260608104000"
+    },
+    {
+      "file": "20260608110000_create_beauty_spa_phase2_foundation.sql",
+      "version": "20260608110000",
+      "normalized": "20260608110000"
+    },
+    {
+      "file": "20260609170000_grant_inventory_transfer_orders_access.sql",
+      "version": "20260609170000",
+      "normalized": "20260609170000"
+    },
+    {
+      "file": "20260609183000_reassert_inventory_transfer_order_grants.sql",
+      "version": "20260609183000",
+      "normalized": "20260609183000"
+    },
+    {
+      "file": "20260611120000_backfill_completed_session_accounting_metadata.sql",
+      "version": "20260611120000",
+      "normalized": "20260611120000"
+    },
+    {
+      "file": "20260611130000_add_session_booking_resource.sql",
+      "version": "20260611130000",
+      "normalized": "20260611130000"
+    },
+    {
+      "file": "20260611160000_add_branch_subscription_quota.sql",
+      "version": "20260611160000",
+      "normalized": "20260611160000"
+    },
+    {
+      "file": "20260613070000_invoice_print_logs.sql",
+      "version": "20260613070000",
+      "normalized": "20260613070000"
+    },
+    {
+      "file": "20260613090000_void_invoice_print_logs.sql",
+      "version": "20260613090000",
+      "normalized": "20260613090000"
+    },
+    {
+      "file": "20260613100000_create_student_training_foundation.sql",
+      "version": "20260613100000",
+      "normalized": "20260613100000"
+    },
+    {
+      "file": "20260617000000_api_gateway_partner_management.sql",
+      "version": "20260617000000",
+      "normalized": "20260617000000"
+    },
+    {
+      "file": "20260617010000_api_gateway_sandbox_environment.sql",
+      "version": "20260617010000",
+      "normalized": "20260617010000"
+    },
+    {
+      "file": "20260621000000_filter_reversal_entries_in_trial_balance.sql",
+      "version": "20260621000000",
+      "normalized": "20260621000000"
+    },
+    {
+      "file": "20260622000001_create_booking_resources.sql",
+      "version": "20260622000001",
+      "normalized": "20260622000001"
+    },
+    {
+      "file": "20260622120000_seed_cleaning_packages.sql",
+      "version": "20260622120000",
+      "normalized": "20260622120000"
+    },
+    {
+      "file": "20260622120001_add_package_metadata.sql",
+      "version": "20260622120001",
+      "normalized": "20260622120001"
+    },
+    {
+      "file": "20260622150000_add_tenants_metadata.sql",
+      "version": "20260622150000",
+      "normalized": "20260622150000"
+    },
+    {
+      "file": "20260622163000_create_booking_service_items.sql",
+      "version": "20260622163000",
+      "normalized": "20260622163000"
+    },
+    {
+      "file": "20260622164000_create_product_sales.sql",
+      "version": "20260622164000",
+      "normalized": "20260622164000"
+    },
+    {
+      "file": "20260622165000_create_salary_adjustments.sql",
+      "version": "20260622165000",
+      "normalized": "20260622165000"
+    },
+    {
+      "file": "20260622170000_extend_salary_records_commission.sql",
+      "version": "20260622170000",
+      "normalized": "20260622170000"
+    },
+    {
+      "file": "20260622171000_extend_users_position_tier.sql",
+      "version": "20260622171000",
+      "normalized": "20260622171000"
+    },
+    {
+      "file": "20260622172000_extend_tenants_commission_config.sql",
+      "version": "20260622172000",
+      "normalized": "20260622172000"
+    },
+    {
+      "file": "20260622180000_create_mv_ktv_performance_summary.sql",
+      "version": "20260622180000",
+      "normalized": "20260622180000"
+    },
+    {
+      "file": "20260622181000_create_mv_inventory_status.sql",
+      "version": "20260622181000",
+      "normalized": "20260622181000"
+    },
+    {
+      "file": "20260622182000_create_mv_session_analytics.sql",
+      "version": "20260622182000",
+      "normalized": "20260622182000"
+    },
+    {
+      "file": "20260622183000_create_mv_refresh_jobs.sql",
+      "version": "20260622183000",
+      "normalized": "20260622183000"
+    },
+    {
+      "file": "20260622200000_add_commission_columns_to_salary_records.sql",
+      "version": "20260622200000",
+      "normalized": "20260622200000"
+    },
+    {
+      "file": "20260622201000_create_marketing_campaigns.sql",
+      "version": "20260622201000",
+      "normalized": "20260622201000"
+    },
+    {
+      "file": "20260622202000_create_mv_campaign_performance.sql",
+      "version": "20260622202000",
+      "normalized": "20260622202000"
+    },
+    {
+      "file": "20260622203000_create_mv_channel_performance.sql",
+      "version": "20260622203000",
+      "normalized": "20260622203000"
+    },
+    {
+      "file": "20260622204000_create_mv_marketing_refresh_jobs.sql",
+      "version": "20260622204000",
+      "normalized": "20260622204000"
+    },
+    {
+      "file": "20260622240000_create_mv_monthly_pnl.sql",
+      "version": "20260622240000",
+      "normalized": "20260622240000"
+    },
+    {
+      "file": "20260622241000_create_mv_cash_flow.sql",
+      "version": "20260622241000",
+      "normalized": "20260622241000"
+    },
+    {
+      "file": "20260622242000_create_mv_budget_variance.sql",
+      "version": "20260622242000",
+      "normalized": "20260622242000"
+    },
+    {
+      "file": "20260622243000_create_mv_finance_refresh_jobs.sql",
+      "version": "20260622243000",
+      "normalized": "20260622243000"
+    },
+    {
+      "file": "20260622250000_create_mv_workforce_analytics.sql",
+      "version": "20260622250000",
+      "normalized": "20260622250000"
+    },
+    {
+      "file": "20260622251000_create_mv_attendance_summary.sql",
+      "version": "20260622251000",
+      "normalized": "20260622251000"
+    },
+    {
+      "file": "20260622252000_create_mv_payroll_summary.sql",
+      "version": "20260622252000",
+      "normalized": "20260622252000"
+    },
+    {
+      "file": "20260622253000_create_mv_employee_performance.sql",
+      "version": "20260622253000",
+      "normalized": "20260622253000"
+    },
+    {
+      "file": "20260622254000_create_mv_hr_refresh_jobs.sql",
+      "version": "20260622254000",
+      "normalized": "20260622254000"
+    },
+    {
+      "file": "20260622260000_create_mv_customer_segments.sql",
+      "version": "20260622260000",
+      "normalized": "20260622260000"
+    },
+    {
+      "file": "20260622261000_create_mv_customer_ltv.sql",
+      "version": "20260622261000",
+      "normalized": "20260622261000"
+    },
+    {
+      "file": "20260622262000_create_mv_customer_activity_summary.sql",
+      "version": "20260622262000",
+      "normalized": "20260622262000"
+    },
+    {
+      "file": "20260622263000_create_mv_customer_refresh_jobs.sql",
+      "version": "20260622263000",
+      "normalized": "20260622263000"
+    },
+    {
+      "file": "20260622270000_create_forecast_results.sql",
+      "version": "20260622270000",
+      "normalized": "20260622270000"
+    },
+    {
+      "file": "20260622271000_create_recommendation_cache.sql",
+      "version": "20260622271000",
+      "normalized": "20260622271000"
+    },
+    {
+      "file": "20260622272000_create_mv_forecast_accuracy.sql",
+      "version": "20260622272000",
+      "normalized": "20260622272000"
+    },
+    {
+      "file": "20260622273000_create_mv_customer_item_interactions.sql",
+      "version": "20260622273000",
+      "normalized": "20260622273000"
+    },
+    {
+      "file": "20260622274000_create_demand_history_rpcs.sql",
+      "version": "20260622274000",
+      "normalized": "20260622274000"
+    },
+    {
+      "file": "20260622275000_create_recommendation_rpcs.sql",
+      "version": "20260622275000",
+      "normalized": "20260622275000"
+    },
+    {
+      "file": "20260622280000_performance_optimization_indexes.sql",
+      "version": "20260622280000",
+      "normalized": "20260622280000"
+    },
+    {
+      "file": "20260622280001_performance_optimization_mv_refresh.sql",
+      "version": "20260622280001",
+      "normalized": "20260622280001"
+    },
+    {
+      "file": "20260622280002_performance_optimization_mv_customer_interactions.sql",
+      "version": "20260622280002",
+      "normalized": "20260622280002"
+    },
+    {
+      "file": "20260622290000_create_recruitment_system.sql",
+      "version": "20260622290000",
+      "normalized": "20260622290000"
+    },
+    {
+      "file": "20260622_create_tenant_payroll_config.sql",
+      "version": "20260622",
+      "normalized": "20260622000000"
+    },
+    {
+      "file": "20260622_insert_default_payroll_configs.sql",
+      "version": "20260622",
+      "normalized": "20260622000000"
+    },
+    {
+      "file": "20260623000000_fix_salary_reconciliation_product_sales.sql",
+      "version": "20260623000000",
+      "normalized": "20260623000000"
+    },
+    {
+      "file": "20260630192732_add_position_tier_hire_date_to_users.sql",
+      "version": "20260630192732",
+      "normalized": "20260630192732"
+    },
+    {
+      "file": "20260701000000_decision_engine_audit_log.sql",
+      "version": "20260701000000",
+      "normalized": "20260701000000"
+    },
+    {
+      "file": "20260701000001_create_policy_registry.sql",
+      "version": "20260701000001",
+      "normalized": "20260701000001"
+    },
+    {
+      "file": "20260701000002_create_policy_history.sql",
+      "version": "20260701000002",
+      "normalized": "20260701000002"
+    },
+    {
+      "file": "20260701000003_create_policy_statistics.sql",
+      "version": "20260701000003",
+      "normalized": "20260701000003"
+    },
+    {
+      "file": "20260701000004_create_policy_rls.sql",
+      "version": "20260701000004",
+      "normalized": "20260701000004"
+    },
+    {
+      "file": "20260701000005_simplify_statistics.sql",
+      "version": "20260701000005",
+      "normalized": "20260701000005"
+    },
+    {
+      "file": "20260701000006_add_statistics_update_function.sql",
+      "version": "20260701000006",
+      "normalized": "20260701000006"
+    },
+    {
+      "file": "20260705000000_temp_leave_requests_for_gate1.sql",
+      "version": "20260705000000",
+      "normalized": "20260705000000"
+    },
+    {
+      "file": "20260709000000_complete_product_sales_reconciliation_fix.sql",
+      "version": "20260709000000",
+      "normalized": "20260709000000"
+    },
+    {
+      "file": "20260709120000_workflow_engine_foundation.sql",
+      "version": "20260709120000",
+      "normalized": "20260709120000"
+    },
+    {
+      "file": "20260709130000_rule_management_ui_foundation.sql",
+      "version": "20260709130000",
+      "normalized": "20260709130000"
+    },
+    {
+      "file": "20260709140000_booking_engine_schema.sql",
+      "version": "20260709140000",
+      "normalized": "20260709140000"
+    },
+    {
+      "file": "20260709140001_booking_engine_schema_v2.sql",
+      "version": "20260709140001",
+      "normalized": "20260709140001"
+    },
+    {
+      "file": "20260709140002_booking_engine_schema_v3_final.sql",
+      "version": "20260709140002",
+      "normalized": "20260709140002"
+    },
+    {
+      "file": "20260709160000_decision_engine_metrics.sql",
+      "version": "20260709160000",
+      "normalized": "20260709160000"
+    },
+    {
+      "file": "20260709170000_discount_provider.sql",
+      "version": "20260709170000",
+      "normalized": "20260709170000"
+    },
+    {
+      "file": "20260710070000_fix_close_period_no_updated_at.sql",
+      "version": "20260710070000",
+      "normalized": "20260710070000"
+    },
+    {
+      "file": "20260710075412_remote_applied_placeholder.sql",
+      "version": "20260710075412",
+      "normalized": "20260710075412"
+    },
+    {
+      "file": "20260710075450_remote_applied_placeholder.sql",
+      "version": "20260710075450",
+      "normalized": "20260710075450"
+    },
+    {
+      "file": "20260710075832_remote_applied_placeholder.sql",
+      "version": "20260710075832",
+      "normalized": "20260710075832"
+    },
+    {
+      "file": "20260710081904_remote_applied_placeholder.sql",
+      "version": "20260710081904",
+      "normalized": "20260710081904"
+    },
+    {
+      "file": "20260710082004_remote_applied_placeholder.sql",
+      "version": "20260710082004",
+      "normalized": "20260710082004"
+    },
+    {
+      "file": "20260710120000_fix_salary_finalized_status_in_reconciliation_and_sync.sql",
+      "version": "20260710120000",
+      "normalized": "20260710120000"
+    },
+    {
+      "file": "20260710153900_fix_backfill_skip_locked_expenses.sql",
+      "version": "20260710153900",
+      "normalized": "20260710153900"
+    },
+    {
+      "file": "20260710154000_allow_metadata_updates_on_locked_records.sql",
+      "version": "20260710154000",
+      "normalized": "20260710154000"
+    },
+    {
+      "file": "20260710160000_rule_management_tables.sql",
+      "version": "20260710160000",
+      "normalized": "20260710160000"
+    },
+    {
+      "file": "20260710170000_fix_rule_management_rpcs.sql",
+      "version": "20260710170000",
+      "normalized": "20260710170000"
+    },
+    {
+      "file": "20260711134600_fix_backfill_earned_revenue_and_inventory_cost.sql",
+      "version": "20260711134600",
+      "normalized": "20260711134600"
+    },
+    {
+      "file": "20260712000000_create_waitlist_tables.sql",
+      "version": "20260712000000",
+      "normalized": "20260712000000"
+    },
+    {
+      "file": "20260713000000_performance_optimization_claims.sql",
+      "version": "20260713000000",
+      "normalized": "20260713000000"
+    },
+    {
+      "file": "20260713010000_optimize_financial_aggregation_indexes.sql",
+      "version": "20260713010000",
+      "normalized": "20260713010000"
+    },
+    {
+      "file": "20260713020000_fix_and_reorder_financial_indexes.sql",
+      "version": "20260713020000",
+      "normalized": "20260713020000"
+    },
+    {
+      "file": "20260713030000_allow_service_role_in_salary_sheet.sql",
+      "version": "20260713030000",
+      "normalized": "20260713030000"
+    },
+    {
+      "file": "20260713080542_remote_applied_placeholder.sql",
+      "version": "20260713080542",
+      "normalized": "20260713080542"
+    },
+    {
+      "file": "20260713083239_remote_applied_placeholder.sql",
+      "version": "20260713083239",
+      "normalized": "20260713083239"
+    },
+    {
+      "file": "20260713092641_remote_applied_placeholder.sql",
+      "version": "20260713092641",
+      "normalized": "20260713092641"
+    },
+    {
+      "file": "20260714032101_remote_applied_placeholder.sql",
+      "version": "20260714032101",
+      "normalized": "20260714032101"
+    },
+    {
+      "file": "20260714032125_remote_applied_placeholder.sql",
+      "version": "20260714032125",
+      "normalized": "20260714032125"
+    },
+    {
+      "file": "20260714032901_remote_applied_placeholder.sql",
+      "version": "20260714032901",
+      "normalized": "20260714032901"
+    },
+    {
+      "file": "20260715200000_enable_break_time_buffer.sql",
+      "version": "20260715200000",
+      "normalized": "20260715200000"
+    },
+    {
+      "file": "20260715223000_fix_inventory_purchase_backfill_payment_method.sql",
+      "version": "20260715223000",
+      "normalized": "20260715223000"
+    },
+    {
+      "file": "20260716000000_add_product_usage_to_packages.sql",
+      "version": "20260716000000",
+      "normalized": "20260716000000"
+    },
+    {
+      "file": "20260716120000_add_beauty_spa_resources.sql",
+      "version": "20260716120000",
+      "normalized": "20260716120000"
+    },
+    {
+      "file": "20260718000000_fix_retail_package_full_price_in_anomalies.sql",
+      "version": "20260718000000",
+      "normalized": "20260718000000"
+    },
+    {
+      "file": "20260730120000_fix_validate_api_partner_type_mismatch.sql",
+      "version": "20260730120000",
+      "normalized": "20260730120000"
+    },
+    {
+      "file": "20260730130000_create_log_api_request_rpc.sql",
+      "version": "20260730130000",
+      "normalized": "20260730130000"
+    },
+    {
+      "file": "20260731010000_create_real_estate_schema.sql",
+      "version": "20260731010000",
+      "normalized": "20260731010000"
+    },
+    {
+      "file": "20260731020000_create_generic_resource_capabilities_schema.sql",
+      "version": "20260731020000",
+      "normalized": "20260731020000"
+    },
+    {
+      "file": "20260801000000_create_metadata_version_schema.sql",
+      "version": "20260801000000",
+      "normalized": "20260801000000"
+    },
+    {
+      "file": "20260801010000_real_estate_foundation_tables.sql",
+      "version": "20260801010000",
+      "normalized": "20260801010000"
+    },
+    {
+      "file": "20260801020000_reservation_engine.sql",
+      "version": "20260801020000",
+      "normalized": "20260801020000"
+    },
+    {
+      "file": "20260801030000_foundation_org_people_schema.sql",
+      "version": "20260801030000",
+      "normalized": "20260801030000"
+    },
+    {
+      "file": "20260801040000_foundation_org_people_seed_real_estate.sql",
+      "version": "20260801040000",
+      "normalized": "20260801040000"
+    },
+    {
+      "file": "20260802000000_create_hr_capability_schema.sql",
+      "version": "20260802000000",
+      "normalized": "20260802000000"
+    },
+    {
+      "file": "20260802010000_create_workforce_portal_tables.sql",
+      "version": "20260802010000",
+      "normalized": "20260802010000"
+    },
+    {
+      "file": "20260802010001_workforce_portal_SIMPLE.sql",
+      "version": "20260802010001",
+      "normalized": "20260802010001"
+    },
+    {
+      "file": "20260802100000_fix_partner_portal_schema_conflicts.sql",
+      "version": "20260802100000",
+      "normalized": "20260802100000"
+    },
+    {
+      "file": "20260802110000_partner_portal_missing_components.sql",
+      "version": "20260802110000",
+      "normalized": "20260802110000"
+    },
+    {
+      "file": "20260802112935_partner_registration_system.sql",
+      "version": "20260802112935",
+      "normalized": "20260802112935"
+    },
+    {
+      "file": "20260802120000_real_estate_partner_portal.sql",
+      "version": "20260802120000",
+      "normalized": "20260802120000"
+    },
+    {
+      "file": "20260802130000_create_user_roles.sql",
+      "version": "20260802130000",
+      "normalized": "20260802130000"
+    },
+    {
+      "file": "20260802140000_partner_documents_storage.sql",
+      "version": "20260802140000",
+      "normalized": "20260802140000"
+    },
+    {
+      "file": "20260802150000_real_estate_core_schema.sql",
+      "version": "20260802150000",
+      "normalized": "20260802150000"
+    },
+    {
+      "file": "20260802151000_real_estate_rpc_functions.sql",
+      "version": "20260802151000",
+      "normalized": "20260802151000"
+    },
+    {
+      "file": "20260803220000_create_auto_customer_extension.sql",
+      "version": "20260803220000",
+      "normalized": "20260803220000"
+    },
+    {
+      "file": "20260803260000_bella_auto_phase6_service_center.sql",
+      "version": "20260803260000",
+      "normalized": "20260803260000"
+    },
+    {
+      "file": "20260803270000_bella_auto_phase7_trade_in_center.sql",
+      "version": "20260803270000",
+      "normalized": "20260803270000"
+    },
+    {
+      "file": "20260803280000_bella_auto_phase8_finance_center.sql",
+      "version": "20260803280000",
+      "normalized": "20260803280000"
+    },
+    {
+      "file": "20260803290000_bella_auto_phase9_ai_center.sql",
+      "version": "20260803290000",
+      "normalized": "20260803290000"
+    },
+    {
+      "file": "20260803300000_bella_auto_phase10_mobile_workforce.sql",
+      "version": "20260803300000",
+      "normalized": "20260803300000"
+    },
+    {
+      "file": "20260803310000_bella_auto_phase11_business_rollback.sql",
+      "version": "20260803310000",
+      "normalized": "20260803310000"
+    },
+    {
+      "file": "20260803320000_bella_auto_phase12_temporal_history.sql",
+      "version": "20260803320000",
+      "normalized": "20260803320000"
+    },
+    {
+      "file": "20260804000000_bella_auto_phase13_rule_engine.sql",
+      "version": "20260804000000",
+      "normalized": "20260804000000"
+    },
+    {
+      "file": "20260804020000_bella_auto_performance_indexes.sql",
+      "version": "20260804020000",
+      "normalized": "20260804020000"
+    },
+    {
+      "file": "20260804030000_bella_auto_phase12_temporal_rpcs.sql",
+      "version": "20260804030000",
+      "normalized": "20260804030000"
+    },
+    {
+      "file": "20260804031000_bella_auto_phase12_temporal_rpcs_fixed.sql",
+      "version": "20260804031000",
+      "normalized": "20260804031000"
+    },
+    {
+      "file": "20260804100000_bella_auto_phase14_marketplace.sql",
+      "version": "20260804100000",
+      "normalized": "20260804100000"
+    },
+    {
+      "file": "20260804110000_bella_auto_phase15_rollup_analytics.sql",
+      "version": "20260804110000",
+      "normalized": "20260804110000"
+    },
+    {
+      "file": "20260804120000_grant_bella_auto_permissions.sql",
+      "version": "20260804120000",
+      "normalized": "20260804120000"
+    },
+    {
+      "file": "20260804320000_analytics_rpcs.sql",
+      "version": "20260804320000",
+      "normalized": "20260804320000"
+    },
+    {
+      "file": "20260804330000_grant_analytics_rpcs.sql",
+      "version": "20260804330000",
+      "normalized": "20260804330000"
+    },
+    {
+      "file": "20260804380000_bella_auto_disable_rls_workshop_tables.sql",
+      "version": "20260804380000",
+      "normalized": "20260804380000"
+    },
+    {
+      "file": "20260804400000_regrant_bella_auto_permissions.sql",
+      "version": "20260804400000",
+      "normalized": "20260804400000"
+    },
+    {
+      "file": "20260804450000_bella_auto_brands_seed.sql",
+      "version": "20260804450000",
+      "normalized": "20260804450000"
+    },
+    {
+      "file": "20260804500000_bella_auto_demo_seed.sql",
+      "version": "20260804500000",
+      "normalized": "20260804500000"
+    },
+    {
+      "file": "20260805010000_fix_rls_performance.sql",
+      "version": "20260805010000",
+      "normalized": "20260805010000"
+    },
+    {
+      "file": "20260806010000_blueprint_assets_contracts.sql",
+      "version": "20260806010000",
+      "normalized": "20260806010000"
+    },
+    {
+      "file": "20260806020000_blueprint_knowledge_policies_resources.sql",
+      "version": "20260806020000",
+      "normalized": "20260806020000"
+    },
+    {
+      "file": "20260806030000_healthcare_kernel_schema.sql",
+      "version": "20260806030000",
+      "normalized": "20260806030000"
+    },
+    {
+      "file": "20260806040000_healthcare_seed_data.sql",
+      "version": "20260806040000",
+      "normalized": "20260806040000"
+    },
+    {
+      "file": "20260806050000_healthcare_platform_extended_schema.sql",
+      "version": "20260806050000",
+      "normalized": "20260806050000"
+    },
+    {
+      "file": "20260806060000_set_healthcare_tenants_to_medical.sql",
+      "version": "20260806060000",
+      "normalized": "20260806060000"
+    },
+    {
+      "file": "20260807000000_create_hc_appointments.sql",
+      "version": "20260807000000",
+      "normalized": "20260807000000"
+    },
+    {
+      "file": "20260807000001_create_feature_flags_table.sql",
+      "version": "20260807000001",
+      "normalized": "20260807000001"
+    },
+    {
+      "file": "20260807010000_add_doctor_notification_to_lab.sql",
+      "version": "20260807010000",
+      "normalized": "20260807010000"
+    },
+    {
+      "file": "20260807020000_add_doctor_notification_to_imaging.sql",
+      "version": "20260807020000",
+      "normalized": "20260807020000"
+    },
+    {
+      "file": "20260807030000_seed_hc_imaging_orders.sql",
+      "version": "20260807030000",
+      "normalized": "20260807030000"
+    },
+    {
+      "file": "20260807040000_add_completed_at_to_hc_encounters.sql",
+      "version": "20260807040000",
+      "normalized": "20260807040000"
+    },
+    {
+      "file": "20260807050000_add_status_to_hc_prescriptions.sql",
+      "version": "20260807050000",
+      "normalized": "20260807050000"
+    },
+    {
+      "file": "20260807060000_audit_healthcare_tables.sql",
+      "version": "20260807060000",
+      "normalized": "20260807060000"
+    },
+    {
+      "file": "20260807100000_hospital_inpatient_his_baseline.sql",
+      "version": "20260807100000",
+      "normalized": "20260807100000"
+    },
+    {
+      "file": "20260807200000_enterprise_platform_c_baseline.sql",
+      "version": "20260807200000",
+      "normalized": "20260807200000"
+    },
+    {
+      "file": "20260808000001_add_inpatient_encounter_class.sql",
+      "version": "20260808000001",
+      "normalized": "20260808000001"
+    },
+    {
+      "file": "20260808000002_create_capability_risk_registry.sql",
+      "version": "20260808000002",
+      "normalized": "20260808000002"
+    },
+    {
+      "file": "20260808000003_seed_capability_risk_registry.sql",
+      "version": "20260808000003",
+      "normalized": "20260808000003"
+    },
+    {
+      "file": "20260808000004_create_perioperative_platform.sql",
+      "version": "20260808000004",
+      "normalized": "20260808000004"
+    },
+    {
+      "file": "20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "version": "20260808000005",
+      "normalized": "20260808000005"
+    },
+    {
+      "file": "20260808000006_create_cds_order_tables.sql",
+      "version": "20260808000006",
+      "normalized": "20260808000006"
+    },
+    {
+      "file": "20260808000010_create_rollback_engine_tables.sql",
+      "version": "20260808000010",
+      "normalized": "20260808000010"
+    },
+    {
+      "file": "20260808000011_create_temporal_engine_tables.sql",
+      "version": "20260808000011",
+      "normalized": "20260808000011"
+    },
+    {
+      "file": "20260808000012_create_rule_engine_tables.sql",
+      "version": "20260808000012",
+      "normalized": "20260808000012"
+    },
+    {
+      "file": "20260808000013_create_analytics_engine_tables.sql",
+      "version": "20260808000013",
+      "normalized": "20260808000013"
+    },
+    {
+      "file": "20260809000001_seed_hospital_wards.sql",
+      "version": "20260809000001",
+      "normalized": "20260809000001"
+    },
+    {
+      "file": "20260809000002_seed_hospital_beds.sql",
+      "version": "20260809000002",
+      "normalized": "20260809000002"
+    },
+    {
+      "file": "20260810000001_create_persons_table.sql",
+      "version": "20260810000001",
+      "normalized": "20260810000001"
+    },
+    {
+      "file": "20260810153259_create_persons_table_v2.sql",
+      "version": "20260810153259",
+      "normalized": "20260810153259"
+    },
+    {
+      "file": "20260810224417_create_students_table.sql",
+      "version": "20260810224417",
+      "normalized": "20260810224417"
+    },
+    {
+      "file": "20260810224418_migrate_students_to_platform_schema.sql",
+      "version": "20260810224418",
+      "normalized": "20260810224418"
+    },
+    {
+      "file": "20260810231500_create_courses_and_enrollments.sql",
+      "version": "20260810231500",
+      "normalized": "20260810231500"
+    },
+    {
+      "file": "20260810235000_create_attendances.sql",
+      "version": "20260810235000",
+      "normalized": "20260810235000"
+    },
+    {
+      "file": "20260811000000_migrate_owner_name_to_person_center.sql",
+      "version": "20260811000000",
+      "normalized": "20260811000000"
+    },
+    {
+      "file": "20260811000002_validate_owner_migration.sql",
+      "version": "20260811000002",
+      "normalized": "20260811000002"
+    },
+    {
+      "file": "20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "version": "20260811120000",
+      "normalized": "20260811120000"
+    },
+    {
+      "file": "20260812010000_make_care_journey_id_nullable.sql",
+      "version": "20260812010000",
+      "normalized": "20260812010000"
+    },
+    {
+      "file": "20260812020000_drop_care_journey_fk.sql",
+      "version": "20260812020000",
+      "normalized": "20260812020000"
+    },
+    {
+      "file": "20260812030000_extend_clinical_orders_table.sql",
+      "version": "20260812030000",
+      "normalized": "20260812030000"
+    },
+    {
+      "file": "20260812040000_recreate_clinical_orders_table.sql",
+      "version": "20260812040000",
+      "normalized": "20260812040000"
+    },
+    {
+      "file": "20260812050000_extend_pharmacy_schema.sql",
+      "version": "20260812050000",
+      "normalized": "20260812050000"
+    },
+    {
+      "file": "20260812070000_create_surgery_schema.sql",
+      "version": "20260812070000",
+      "normalized": "20260812070000"
+    },
+    {
+      "file": "20260813000000_create_h8_cds_schema.sql",
+      "version": "20260813000000",
+      "normalized": "20260813000000"
+    },
+    {
+      "file": "20260813000009_temporal_engine_tables.sql",
+      "version": "20260813000009",
+      "normalized": "20260813000009"
+    },
+    {
+      "file": "20260813000010_rule_governance_tables.sql",
+      "version": "20260813000010",
+      "normalized": "20260813000010"
+    },
+    {
+      "file": "20260813000011_clinical_audit_tables.sql",
+      "version": "20260813000011",
+      "normalized": "20260813000011"
+    },
+    {
+      "file": "20260813000030_create_assessments_and_results.sql",
+      "version": "20260813000030",
+      "normalized": "20260813000030"
+    },
+    {
+      "file": "20260813000050_create_teacher_assignments.sql",
+      "version": "20260813000050",
+      "normalized": "20260813000050"
+    },
+    {
+      "file": "20260817000001_n1_finance_outbox_hardening.sql",
+      "version": "20260817000001",
+      "normalized": "20260817000001"
+    },
+    {
+      "file": "20260817070312_finance_event_idempotency.sql",
+      "version": "20260817070312",
+      "normalized": "20260817070312"
+    },
+    {
+      "file": "20260817071105_finance_transaction_metadata.sql",
+      "version": "20260817071105",
+      "normalized": "20260817071105"
+    },
+    {
+      "file": "20260818000000_finance_ap_engine_v1.sql",
+      "version": "20260818000000",
+      "normalized": "20260818000000"
+    },
+    {
+      "file": "20260819000000_f5_schema.sql",
+      "version": "20260819000000",
+      "normalized": "20260819000000"
+    },
+    {
+      "file": "20260819000004_runtime_submit_intent_rpc.sql",
+      "version": "20260819000004",
+      "normalized": "20260819000004"
+    },
+    {
+      "file": "20260819010000_f5_read_contracts.sql",
+      "version": "20260819010000",
+      "normalized": "20260819010000"
+    },
+    {
+      "file": "20260819020000_f5_reconstruction_engine.sql",
+      "version": "20260819020000",
+      "normalized": "20260819020000"
+    },
+    {
+      "file": "20260819040000_fix_legacy_spa_rls_policies.sql",
+      "version": "20260819040000",
+      "normalized": "20260819040000"
+    },
+    {
+      "file": "20260819040000_runtime_migration_e1_gate_schema_safe.sql",
+      "version": "20260819040000",
+      "normalized": "20260819040000"
+    },
+    {
+      "file": "20260819050000_runtime_migration_05a_classification_reservation.sql",
+      "version": "20260819050000",
+      "normalized": "20260819050000"
+    },
+    {
+      "file": "20260819050001_runtime_migration_05_e2_orphan_safety_gate.sql",
+      "version": "20260819050001",
+      "normalized": "20260819050001"
+    },
+    {
+      "file": "20260819050002_runtime_migration_05b_canonical_tenant_creation.sql",
+      "version": "20260819050002",
+      "normalized": "20260819050002"
+    },
+    {
+      "file": "20260819050003_runtime_migration_05c_text_to_uuid_type_migration.sql",
+      "version": "20260819050003",
+      "normalized": "20260819050003"
+    },
+    {
+      "file": "20260819050004_runtime_migration_e3_post_05c_verification.sql",
+      "version": "20260819050004",
+      "normalized": "20260819050004"
+    },
+    {
+      "file": "20260820000000_f5_fx_integrity.sql",
+      "version": "20260820000000",
+      "normalized": "20260820000000"
+    },
+    {
+      "file": "20260820010000_f5_prepayment_reconciliation.sql",
+      "version": "20260820010000",
+      "normalized": "20260820010000"
+    },
+    {
+      "file": "20260820100000_migration_governance_approvals.sql",
+      "version": "20260820100000",
+      "normalized": "20260820100000"
+    },
+    {
+      "file": "20260820110000_database_role_separation.sql",
+      "version": "20260820110000",
+      "normalized": "20260820110000"
+    },
+    {
+      "file": "20260820110000_database_role_separation_v2.sql",
+      "version": "20260820110000",
+      "normalized": "20260820110000"
+    },
+    {
+      "file": "20260820120000_fix_executor_privileges.sql",
+      "version": "20260820120000",
+      "normalized": "20260820120000"
+    },
+    {
+      "file": "20260820130000_grant_executor_rls_bypass.sql",
+      "version": "20260820130000",
+      "normalized": "20260820130000"
+    },
+    {
+      "file": "20260820140000_enable_rls_block_service_key.sql",
+      "version": "20260820140000",
+      "normalized": "20260820140000"
+    },
+    {
+      "file": "20260820_r4_3_gate_tokens.sql",
+      "version": "20260820",
+      "normalized": "20260820000000"
+    },
+    {
+      "file": "20260820_r4_4_monitoring_audit.sql",
+      "version": "20260820",
+      "normalized": "20260820000000"
+    },
+    {
+      "file": "20260820_r4_approval_contract.sql",
+      "version": "20260820",
+      "normalized": "20260820000000"
+    },
+    {
+      "file": "20260821000000_fix_healthcare_rls_tenant_isolation.sql",
+      "version": "20260821000000",
+      "normalized": "20260821000000"
+    },
+    {
+      "file": "20260821115404_logistics_schema.sql",
+      "version": "20260821115404",
+      "normalized": "20260821115404"
+    },
+    {
+      "file": "20260821_create_accessorial_rates_table.sql",
+      "version": "20260821",
+      "normalized": "20260821000000"
+    },
+    {
+      "file": "20260821_create_carrier_rates_table.sql",
+      "version": "20260821",
+      "normalized": "20260821000000"
+    },
+    {
+      "file": "20260821_create_discrepancies_table.sql",
+      "version": "20260821",
+      "normalized": "20260821000000"
+    },
+    {
+      "file": "20260821_create_freight_audit_tables.sql",
+      "version": "20260821",
+      "normalized": "20260821000000"
+    },
+    {
+      "file": "20260823000000_f5_ar_reconciliation.sql",
+      "version": "20260823000000",
+      "normalized": "20260823000000"
+    },
+    {
+      "file": "20260823010000_f5_ar_reconciliation_fix.sql",
+      "version": "20260823010000",
+      "normalized": "20260823010000"
+    },
+    {
+      "file": "20260909000051_p41_safety_critical.sql",
+      "version": "20260909000051",
+      "normalized": "20260909000051"
+    },
+    {
+      "file": "20260909000052_p42_daily_care_operations.sql",
+      "version": "20260909000052",
+      "normalized": "20260909000052"
+    },
+    {
+      "file": "20260909000053_p51_framework_observation_evidence.sql",
+      "version": "20260909000053",
+      "normalized": "20260909000053"
+    },
+    {
+      "file": "20260909000054_p52_milestone_progress_next_steps.sql",
+      "version": "20260909000054",
+      "normalized": "20260909000054"
+    },
+    {
+      "file": "20260909000055_p53_portfolio_workspace.sql",
+      "version": "20260909000055",
+      "normalized": "20260909000055"
+    },
+    {
+      "file": "20260909000059_p73_finance_rls_grant.sql",
+      "version": "20260909000059",
+      "normalized": "20260909000059"
+    },
+    {
+      "file": "20260909000060_p8_staff_scheduling_schema.sql",
+      "version": "20260909000060",
+      "normalized": "20260909000060"
+    },
+    {
+      "file": "20260909000061_p82_nullable_exception_notice_id.sql",
+      "version": "20260909000061",
+      "normalized": "20260909000061"
+    },
+    {
+      "file": "20260909000062_p9_facilities_asset_schema.sql",
+      "version": "20260909000062",
+      "normalized": "20260909000062"
+    },
+    {
+      "file": "20260909000063_p92_nullable_exception_guardian_id.sql",
+      "version": "20260909000063",
+      "normalized": "20260909000063"
+    },
+    {
+      "file": "20260909000064_p93_facilities_rls_grant.sql",
+      "version": "20260909000064",
+      "normalized": "20260909000064"
+    },
+    {
+      "file": "20260912000000_r3_education_identity_cutover.sql",
+      "version": "20260912000000",
+      "normalized": "20260912000000"
+    },
+    {
+      "file": "20260912100000_org_unit_hierarchy_rpcs.sql",
+      "version": "20260912100000",
+      "normalized": "20260912100000"
+    },
+    {
+      "file": "20260912120000_add_branch_id_to_education_tables.sql",
+      "version": "20260912120000",
+      "normalized": "20260912120000"
+    },
+    {
+      "file": "20260914_create_user_org_unit_access_projection.sql",
+      "version": "20260914",
+      "normalized": "20260914000000"
+    },
+    {
+      "file": "20260914_repair_platform_org_people_rls.sql",
+      "version": "20260914",
+      "normalized": "20260914000000"
+    },
+    {
+      "file": "20260916000000_beauty_os_h8_persistence.sql",
+      "version": "20260916000000",
+      "normalized": "20260916000000"
+    },
+    {
+      "file": "20260926000000_r3_student_identity_resolver.sql",
+      "version": "20260926000000",
+      "normalized": "20260926000000"
+    },
+    {
+      "file": "20260926001000_bdgf_owner_operated_approval_mode.sql",
+      "version": "20260926001000",
+      "normalized": "20260926001000"
+    },
+    {
+      "file": "20260926002000_r3_student_create_side_nullable_person_id.sql",
+      "version": "20260926002000",
+      "normalized": "20260926002000"
+    },
+    {
+      "file": "20260926003000_education_daily_attendance_state.sql",
+      "version": "20260926003000",
+      "normalized": "20260926003000"
+    },
+    {
+      "file": "20260927000000_fix_edu_set_daily_attendance_column_ambiguity.sql",
+      "version": "20260927000000",
+      "normalized": "20260927000000"
+    },
+    {
+      "file": "20260927020000_fix_course_rls_auth_tenant_helper.sql",
+      "version": "20260927020000",
+      "normalized": "20260927020000"
+    },
+    {
+      "file": "20260927040000_preschool_daily_care_canonical_student_party.sql",
+      "version": "20260927040000",
+      "normalized": "20260927040000"
+    },
+    {
+      "file": "20260927050000_preschool_parent_digest_canonical_student_party.sql",
+      "version": "20260927050000",
+      "normalized": "20260927050000"
+    },
+    {
+      "file": "20260927060000_enable_parent_user_role.sql",
+      "version": "20260927060000",
+      "normalized": "20260927060000"
+    },
+    {
+      "file": "20260928183000_haircut_salary_payment_locked_transition.sql",
+      "version": "20260928183000",
+      "normalized": "20260928183000"
+    },
+    {
+      "file": "20260929010000_haircut_exact_coa_bootstrap.sql",
+      "version": "20260929010000",
+      "normalized": "20260929010000"
+    },
+    {
+      "file": "20260930093000_add_bookings_metadata_contract_column.sql",
+      "version": "20260930093000",
+      "normalized": "20260930093000"
+    },
+    {
+      "file": "20261001000000_restore_finance_f3_ar_privilege_boundary.sql",
+      "version": "20261001000000",
+      "normalized": "20261001000000"
+    },
+    {
+      "file": "20261001000001_restore_finance_f2_cash_positions_privilege_boundary.sql",
+      "version": "20261001000001",
+      "normalized": "20261001000001"
+    }
+  ],
+  "rawRemoteOnly": [],
+  "remoteOnlyLocalNameCounterparts": [],
+  "tables": 275,
+  "rlsEnabled": 268,
+  "rlsDisabled": [
+    {
+      "name": "hc_temporal_events",
+      "anonSelect": false,
+      "authenticatedSelect": false
+    },
+    {
+      "name": "hc_temporal_snapshots",
+      "anonSelect": false,
+      "authenticatedSelect": false
+    },
+    {
+      "name": "knowledge_documents",
+      "anonSelect": false,
+      "authenticatedSelect": false
+    },
+    {
+      "name": "tmp_f3_proof_allocations",
+      "anonSelect": false,
+      "authenticatedSelect": false
+    },
+    {
+      "name": "tmp_f3_proof_invoices",
+      "anonSelect": false,
+      "authenticatedSelect": false
+    },
+    {
+      "name": "tmp_f3_proof_receivable_ledger",
+      "anonSelect": false,
+      "authenticatedSelect": false
+    },
+    {
+      "name": "tmp_f3_proof_receivable_positions",
+      "anonSelect": false,
+      "authenticatedSelect": false
+    }
+  ],
+  "tablesWithTenantId": 261,
+  "tenantTablesWithoutRls": [
+    "hc_temporal_events",
+    "hc_temporal_snapshots",
+    "knowledge_documents",
+    "tmp_f3_proof_allocations",
+    "tmp_f3_proof_invoices",
+    "tmp_f3_proof_receivable_ledger",
+    "tmp_f3_proof_receivable_positions"
+  ],
+  "rlsTablesWithoutPolicies": [
+    "bella_gate_tokens",
+    "bella_migration_approval",
+    "edu_enrollment_event_records",
+    "edu_enrollment_event_replays",
+    "edu_fin_reconciliation_operations",
+    "party_auth_links",
+    "party_identity_link_managers",
+    "party_registration_receipts",
+    "preschool_admission_operations",
+    "preschool_course_create_receipts",
+    "preschool_school_announcements",
+    "preschool_teacher_branch_confirmations"
+  ],
+  "policies": 425,
+  "unconditionalPolicyCandidates": [
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "System insert notifications",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "Notification",
+      "with_check": "true"
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Public Select",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "_prisma_migrations",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Anon can insert audit logs",
+      "qual": null,
+      "roles": [
+        "anon"
+      ],
+      "schemaname": "public",
+      "tablename": "audit_logs",
+      "with_check": "true"
+    },
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "System can insert audit logs",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "audit_logs",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "persons_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "persons",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Tenant users can manage promotions",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "promotions",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "students_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "students",
+      "with_check": null
+    }
+  ],
+  "functions": 420,
+  "securityDefinerFunctions": 159,
+  "anonExecutableSecurityDefinerCount": 80,
+  "schemaMatchWithGit": "NOT_PROVEN: history and live catalog do not establish full replay equivalence"
+}

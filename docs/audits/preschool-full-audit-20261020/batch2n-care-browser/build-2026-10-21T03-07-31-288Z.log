@@ -1,0 +1,700 @@
+▲ Next.js 16.3.8 (webpack)
+✓ Running next.config.ts took 1153ms
+- Experiments (use with caution):
+  · clientTraceMetadata
+  · optimizePackageImports
+
+  Creating an optimized production build ...
+[@sentry/nextjs] It seems like you don't have a global error handler set up. It is recommended that you add a 'global-error.js' file with Sentry instrumentation so that React rendering errors are reported to Sentry. Read more: https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/#react-render-errors-in-app-router (you can suppress this warning by setting SENTRY_SUPPRESS_GLOBAL_ERROR_HANDLER_FILE_WARNING=1 as environment variable)
+⚠ Compiled with warnings in 2.7min
+
+./scripts/check-business-invariants.cjs
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./scripts/check-business-invariants.cjs
+./src/core/services/accounting/business-health.ts
+
+  Skipping validation of types
+  Finished TypeScript config validation in 13ms ...
+  Collecting page data using 11 workers ...
+[ModuleRegistry] Registered adapter: Bella Spa & Babycare (spa)
+[SpaModule] ✅ Registered adapter for module: spa (Baby Care Spa)
+[ModuleRegistry] Registered adapter: Beauty Spa Module (beauty_spa)
+[SpaModule] ✅ Registered adapter for module: beauty_spa (Beauty Spa with resources)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Real Estate Management (real_estate)
+[RealEstateModule] ✅ Registered adapter for module: real_estate (Real Estate Management)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ProductRegistry] Registered product: Bella Haircut Shop (bella_haircut)
+[ProductRegistry] Registered product: Bella Mommy Baby Care (bella_babycare)
+[ProductRegistry] Registered product: Bella Nail Shop (bella_nail)
+[ProductRegistry] Registered product: Bella Beauty Spa v2 (bella_spa)
+[ProductRegistry] Registered product: Bella Preschool (bella_preschool)
+[ProductRegistry] Registered product: Bella English Center (bella_english_center)
+[ProductRegistry] Registered product: Bella Hospital (bella_hospital)
+[ProductRegistry] Registered product: Bella Hospitality (bella_hospitality)
+[ProductRegistry] Registered product: Bella Manufacturing (bella_manufacturing)
+[ModuleRegistry] Registered adapter: Bella Spa & Babycare (spa)
+[SpaModule] ✅ Registered adapter for module: spa (Baby Care Spa)
+[ModuleRegistry] Registered adapter: Beauty Spa Module (beauty_spa)
+[SpaModule] ✅ Registered adapter for module: beauty_spa (Beauty Spa with resources)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Real Estate Management (real_estate)
+[RealEstateModule] ✅ Registered adapter for module: real_estate (Real Estate Management)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Bella Spa & Babycare (spa)
+[SpaModule] ✅ Registered adapter for module: spa (Baby Care Spa)
+[ModuleRegistry] Registered adapter: Beauty Spa Module (beauty_spa)
+[SpaModule] ✅ Registered adapter for module: beauty_spa (Beauty Spa with resources)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Real Estate Management (real_estate)
+[RealEstateModule] ✅ Registered adapter for module: real_estate (Real Estate Management)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Bella Spa & Babycare (spa)
+[SpaModule] ✅ Registered adapter for module: spa (Baby Care Spa)
+[ModuleRegistry] Registered adapter: Beauty Spa Module (beauty_spa)
+[SpaModule] ✅ Registered adapter for module: beauty_spa (Beauty Spa with resources)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Real Estate Management (real_estate)
+[RealEstateModule] ✅ Registered adapter for module: real_estate (Real Estate Management)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Bella Spa & Babycare (spa)
+[SpaModule] ✅ Registered adapter for module: spa (Baby Care Spa)
+[ModuleRegistry] Registered adapter: Beauty Spa Module (beauty_spa)
+[SpaModule] ✅ Registered adapter for module: beauty_spa (Beauty Spa with resources)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Real Estate Management (real_estate)
+[RealEstateModule] ✅ Registered adapter for module: real_estate (Real Estate Management)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Bella Spa & Babycare (spa)
+[SpaModule] ✅ Registered adapter for module: spa (Baby Care Spa)
+[ModuleRegistry] Registered adapter: Beauty Spa Module (beauty_spa)
+[SpaModule] ✅ Registered adapter for module: beauty_spa (Beauty Spa with resources)
+[ModuleRegistry] Registered adapter: Bella Spa & Babycare (spa)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Real Estate Management (real_estate)
+[RealEstateModule] ✅ Registered adapter for module: real_estate (Real Estate Management)
+[SpaModule] ✅ Registered adapter for module: spa (Baby Care Spa)
+[ModuleRegistry] Registered adapter: Beauty Spa Module (beauty_spa)
+[SpaModule] ✅ Registered adapter for module: beauty_spa (Beauty Spa with resources)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Real Estate Management (real_estate)
+[RealEstateModule] ✅ Registered adapter for module: real_estate (Real Estate Management)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Bella Spa & Babycare (spa)
+[SpaModule] ✅ Registered adapter for module: spa (Baby Care Spa)
+[ModuleRegistry] Registered adapter: Beauty Spa Module (beauty_spa)
+[SpaModule] ✅ Registered adapter for module: beauty_spa (Beauty Spa with resources)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Real Estate Management (real_estate)
+[RealEstateModule] ✅ Registered adapter for module: real_estate (Real Estate Management)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ProductRegistry] Registered product: Bella Haircut Shop (bella_haircut)
+[ProductRegistry] Registered product: Bella Mommy Baby Care (bella_babycare)
+[ProductRegistry] Registered product: Bella Nail Shop (bella_nail)
+[ProductRegistry] Registered product: Bella Beauty Spa v2 (bella_spa)
+[ProductRegistry] Registered product: Bella Preschool (bella_preschool)
+[ProductRegistry] Registered product: Bella English Center (bella_english_center)
+[ProductRegistry] Registered product: Bella Hospital (bella_hospital)
+[ProductRegistry] Registered product: Bella Hospitality (bella_hospitality)
+[ProductRegistry] Registered product: Bella Manufacturing (bella_manufacturing)
+[ModuleRegistry] Registered adapter: Bella Spa & Babycare (spa)
+[SpaModule] ✅ Registered adapter for module: spa (Baby Care Spa)
+[ModuleRegistry] Registered adapter: Beauty Spa Module (beauty_spa)
+[SpaModule] ✅ Registered adapter for module: beauty_spa (Beauty Spa with resources)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Real Estate Management (real_estate)
+[RealEstateModule] ✅ Registered adapter for module: real_estate (Real Estate Management)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Bella Spa & Babycare (spa)
+[SpaModule] ✅ Registered adapter for module: spa (Baby Care Spa)
+[ModuleRegistry] Registered adapter: Beauty Spa Module (beauty_spa)
+[SpaModule] ✅ Registered adapter for module: beauty_spa (Beauty Spa with resources)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Real Estate Management (real_estate)
+[RealEstateModule] ✅ Registered adapter for module: real_estate (Real Estate Management)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Bella Spa & Babycare (spa)
+[SpaModule] ✅ Registered adapter for module: spa (Baby Care Spa)
+[ModuleRegistry] Registered adapter: Beauty Spa Module (beauty_spa)
+[SpaModule] ✅ Registered adapter for module: beauty_spa (Beauty Spa with resources)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Real Estate Management (real_estate)
+[RealEstateModule] ✅ Registered adapter for module: real_estate (Real Estate Management)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+  Generating static pages using 11 workers (0/361) ...
+[ProductRegistry] Registered product: Bella Haircut Shop (bella_haircut)
+[ProductRegistry] Registered product: Bella Mommy Baby Care (bella_babycare)
+[ProductRegistry] Registered product: Bella Nail Shop (bella_nail)
+[ProductRegistry] Registered product: Bella Beauty Spa v2 (bella_spa)
+[ProductRegistry] Registered product: Bella Preschool (bella_preschool)
+[ProductRegistry] Registered product: Bella English Center (bella_english_center)
+[ProductRegistry] Registered product: Bella Hospital (bella_hospital)
+[ProductRegistry] Registered product: Bella Hospitality (bella_hospitality)
+[ProductRegistry] Registered product: Bella Manufacturing (bella_manufacturing)
+[ProductRegistry] Registered product: Bella Haircut Shop (bella_haircut)
+[ProductRegistry] Registered product: Bella Mommy Baby Care (bella_babycare)
+[ProductRegistry] Registered product: Bella Nail Shop (bella_nail)
+[ProductRegistry] Registered product: Bella Beauty Spa v2 (bella_spa)
+[ProductRegistry] Registered product: Bella Preschool (bella_preschool)
+[ProductRegistry] Registered product: Bella English Center (bella_english_center)
+[ProductRegistry] Registered product: Bella Hospital (bella_hospital)
+[ProductRegistry] Registered product: Bella Hospitality (bella_hospitality)
+[ProductRegistry] Registered product: Bella Manufacturing (bella_manufacturing)
+[ProductRegistry] Registered product: Bella Haircut Shop (bella_haircut)
+[ProductRegistry] Registered product: Bella Mommy Baby Care (bella_babycare)
+[ProductRegistry] Registered product: Bella Nail Shop (bella_nail)
+[ProductRegistry] Registered product: Bella Beauty Spa v2 (bella_spa)
+[ProductRegistry] Registered product: Bella Preschool (bella_preschool)
+[ProductRegistry] Registered product: Bella English Center (bella_english_center)
+[ProductRegistry] Registered product: Bella Hospital (bella_hospital)
+[ProductRegistry] Registered product: Bella Hospitality (bella_hospitality)
+[ProductRegistry] Registered product: Bella Manufacturing (bella_manufacturing)
+[ProductRegistry] Registered product: Bella Haircut Shop (bella_haircut)
+[ProductRegistry] Registered product: Bella Mommy Baby Care (bella_babycare)
+[ProductRegistry] Registered product: Bella Nail Shop (bella_nail)
+[ProductRegistry] Registered product: Bella Beauty Spa v2 (bella_spa)
+[ProductRegistry] Registered product: Bella Preschool (bella_preschool)
+[ProductRegistry] Registered product: Bella English Center (bella_english_center)
+[ProductRegistry] Registered product: Bella Hospital (bella_hospital)
+[ProductRegistry] Registered product: Bella Hospitality (bella_hospitality)
+[ProductRegistry] Registered product: Bella Manufacturing (bella_manufacturing)
+[ProductRegistry] Registered product: Bella Haircut Shop (bella_haircut)
+[ProductRegistry] Registered product: Bella Mommy Baby Care (bella_babycare)
+[ProductRegistry] Registered product: Bella Nail Shop (bella_nail)
+[ProductRegistry] Registered product: Bella Beauty Spa v2 (bella_spa)
+[ProductRegistry] Registered product: Bella Preschool (bella_preschool)
+[ProductRegistry] Registered product: Bella English Center (bella_english_center)
+[ProductRegistry] Registered product: Bella Hospital (bella_hospital)
+[ProductRegistry] Registered product: Bella Hospitality (bella_hospitality)
+[ProductRegistry] Registered product: Bella Manufacturing (bella_manufacturing)
+[ProductRegistry] Registered product: Bella Haircut Shop (bella_haircut)
+[ProductRegistry] Registered product: Bella Mommy Baby Care (bella_babycare)
+[ProductRegistry] Registered product: Bella Nail Shop (bella_nail)
+[ProductRegistry] Registered product: Bella Beauty Spa v2 (bella_spa)
+[ProductRegistry] Registered product: Bella Preschool (bella_preschool)
+[ProductRegistry] Registered product: Bella English Center (bella_english_center)
+[ProductRegistry] Registered product: Bella Hospital (bella_hospital)
+[ProductRegistry] Registered product: Bella Hospitality (bella_hospitality)
+[ProductRegistry] Registered product: Bella Manufacturing (bella_manufacturing)
+[ProductRegistry] Registered product: Bella Haircut Shop (bella_haircut)
+[ProductRegistry] Registered product: Bella Mommy Baby Care (bella_babycare)
+[ProductRegistry] Registered product: Bella Nail Shop (bella_nail)
+[ProductRegistry] Registered product: Bella Beauty Spa v2 (bella_spa)
+[ProductRegistry] Registered product: Bella Preschool (bella_preschool)
+[ProductRegistry] Registered product: Bella English Center (bella_english_center)
+[ProductRegistry] Registered product: Bella Hospital (bella_hospital)
+[ProductRegistry] Registered product: Bella Hospitality (bella_hospitality)
+[ProductRegistry] Registered product: Bella Manufacturing (bella_manufacturing)
+  Generating static pages using 11 workers (90/361) 
+  Generating static pages using 11 workers (180/361) 
+  Generating static pages using 11 workers (270/361) 
+✓ Generating static pages using 11 workers (361/361) in 16.3s
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /admin/partner-applications
+├ ƒ /admin/partner-applications/[id]
+├ ƒ /api/admin/accounting/process-outbox
+├ ƒ /api/admin/booking-engine/metrics
+├ ƒ /api/admin/partner-applications
+├ ƒ /api/admin/partner-applications/[id]/approve
+├ ƒ /api/admin/partner-applications/[id]/reject
+├ ƒ /api/admin/partner-applications/[id]/request-info
+├ ƒ /api/admin/partner-applications/batch
+├ ƒ /api/admin/partners
+├ ƒ /api/admin/partners/[id]
+├ ƒ /api/admin/partners/[id]/activity
+├ ƒ /api/admin/partners/[id]/activity/export
+├ ƒ /api/admin/partners/[id]/key-lifecycle
+├ ƒ /api/admin/partners/[id]/logs
+├ ƒ /api/admin/partners/[id]/regenerate-key
+├ ƒ /api/admin/partners/[id]/rotate-key-scheduled
+├ ƒ /api/admin/partners/[id]/rotation-policy
+├ ƒ /api/admin/partners/[id]/scopes
+├ ƒ /api/admin/partners/[id]/sla-alerts
+├ ƒ /api/admin/partners/[id]/sla-config
+├ ƒ /api/admin/partners/[id]/sla-metrics
+├ ƒ /api/admin/partners/[id]/test-webhook
+├ ƒ /api/admin/partners/[id]/usage
+├ ƒ /api/admin/partners/[id]/webhook-logs
+├ ƒ /api/admin/partners/[id]/webhook-logs/[logId]/retry
+├ ƒ /api/admin/partners/[id]/webhook-logs/batch-retry
+├ ƒ /api/admin/partners/[id]/webhook-retry-config
+├ ƒ /api/admin/partners/analytics
+├ ƒ /api/admin/partners/logs
+├ ƒ /api/admin/partners/stats
+├ ƒ /api/admin/sandbox/reset
+├ ƒ /api/admin/sandbox/status
+├ ƒ /api/admin/tenant/convert-to-franchise
+├ ƒ /api/auth/login-static
+├ ƒ /api/bella-auto/analytics/recognized-sales
+├ ƒ /api/bella-auto/bookings
+├ ƒ /api/bella-auto/bookings/[id]/confirm-deposit
+├ ƒ /api/bella-auto/bookings/[id]/recognition-adjustments
+├ ƒ /api/bella-auto/bookings/[id]/sale-payments
+├ ƒ /api/bella-auto/bookings/[id]/settlement
+├ ƒ /api/bella-auto/customers
+├ ƒ /api/bella-auto/customers/[id]/profile
+├ ƒ /api/bella-auto/customers/search
+├ ƒ /api/bella-auto/marketplace/capabilities
+├ ƒ /api/bella-auto/marketplace/install
+├ ƒ /api/bella-auto/marketplace/uninstall
+├ ƒ /api/bella-auto/rollback-audit
+├ ƒ /api/bella-auto/rules
+├ ƒ /api/bella-auto/rules/[id]
+├ ƒ /api/bella-auto/rules/analytics
+├ ƒ /api/bella-auto/sales-chain/[action]
+├ ƒ /api/bella-auto/transactions
+├ ƒ /api/bella-auto/transactions/[id]
+├ ƒ /api/bella-auto/transactions/[id]/rollback
+├ ƒ /api/bella-auto/vehicle-sale-recognitions
+├ ƒ /api/bella-auto/vehicles
+├ ƒ /api/bella-auto/vehicles/available
+├ ƒ /api/bella-auto/vehicles/brands
+├ ƒ /api/bella-auto/vehicles/models
+├ ƒ /api/bella-auto/vehicles/variants
+├ ƒ /api/bookings/check-ktv-availability
+├ ƒ /api/bookings/delete
+├ ƒ /api/cron/accounting-worker
+├ ƒ /api/cron/ai-autopilot
+├ ƒ /api/cron/gate3-monitor
+├ ƒ /api/cron/monitor-replica
+├ ƒ /api/cron/sync-external-ads
+├ ƒ /api/cron/zalo-reminders
+├ ƒ /api/customers
+├ ƒ /api/debug-redis
+├ ƒ /api/decision-engine/audit
+├ ƒ /api/decision-engine/audit/[id]
+├ ƒ /api/education/ai/copilot
+├ ƒ /api/education/analytics
+├ ƒ /api/education/announcements
+├ ƒ /api/education/attendance
+├ ƒ /api/education/attendance/handover
+├ ƒ /api/education/branches
+├ ƒ /api/education/care/bulk
+├ ƒ /api/education/care/digest
+├ ƒ /api/education/care/medication
+├ ƒ /api/education/courses
+├ ƒ /api/education/courses/[id]
+├ ƒ /api/education/courses/[id]/teachers
+├ ƒ /api/education/enrollments
+├ ƒ /api/education/finance
+├ ƒ /api/education/parent-daily
+├ ƒ /api/education/portal/[token]
+├ ƒ /api/education/portal/[token]/chat
+├ ƒ /api/education/portal/[token]/copilot
+├ ƒ /api/education/portal/token
+├ ƒ /api/education/work-queue
+├ ƒ /api/english-center/branches
+├ ƒ /api/english-center/branches/[id]
+├ ƒ /api/english-center/branches/hierarchy
+├ ƒ /api/english-center/classes
+├ ƒ /api/english-center/classes/[id]
+├ ƒ /api/english-center/classes/[id]/assign-teacher
+├ ƒ /api/english-center/command-center
+├ ƒ /api/english-center/courses
+├ ƒ /api/english-center/courses/[id]
+├ ƒ /api/english-center/engagement/messages
+├ ƒ /api/english-center/engagement/responses
+├ ƒ /api/english-center/engagement/templates
+├ ƒ /api/english-center/enrollments
+├ ƒ /api/english-center/enrollments/[id]
+├ ƒ /api/english-center/enrollments/[id]/activate
+├ ƒ /api/english-center/learning/attendance
+├ ƒ /api/english-center/learning/progress
+├ ƒ /api/english-center/programs
+├ ƒ /api/english-center/programs/[id]
+├ ƒ /api/english-center/rooms
+├ ƒ /api/english-center/teachers
+├ ƒ /api/english-center/teachers/[id]
+├ ƒ /api/english-center/teachers/[id]/assign-branch
+├ ƒ /api/english-center/teachers/[id]/branches
+├ ƒ /api/english-center/timetable
+├ ƒ /api/english-center/tuition/assignments
+├ ƒ /api/english-center/tuition/invoices
+├ ƒ /api/english-center/tuition/payments
+├ ƒ /api/english-center/tuition/plans
+├ ƒ /api/finance/v1/events
+├ ƒ /api/gate3/metrics
+├ ƒ /api/health
+├ ƒ /api/health/replica
+├ ƒ /api/intelligence/admin/clear-cache
+├ ƒ /api/intelligence/customer/churn-risk
+├ ƒ /api/intelligence/customer/cohort-analysis
+├ ƒ /api/intelligence/customer/ltv
+├ ƒ /api/intelligence/customer/rfm-analysis
+├ ƒ /api/intelligence/customer/segmentation
+├ ƒ /api/intelligence/executive/customer-metrics
+├ ƒ /api/intelligence/executive/financial-health
+├ ƒ /api/intelligence/executive/growth-indicators
+├ ƒ /api/intelligence/executive/monthly-revenue-summary
+├ ƒ /api/intelligence/executive/operational-efficiency
+├ ƒ /api/intelligence/finance/budget-variance
+├ ƒ /api/intelligence/finance/cash-flow-analysis
+├ ƒ /api/intelligence/finance/cash-flow-forecast
+├ ƒ /api/intelligence/finance/expense-breakdown
+├ ƒ /api/intelligence/finance/financial-ratios
+├ ƒ /api/intelligence/finance/monthly-pnl
+├ ƒ /api/intelligence/finance/profitability-trends
+├ ƒ /api/intelligence/finance/revenue-breakdown
+├ ƒ /api/intelligence/forecast/accuracy
+├ ƒ /api/intelligence/forecast/all
+├ ƒ /api/intelligence/forecast/churn
+├ ƒ /api/intelligence/forecast/demand
+├ ƒ /api/intelligence/forecast/revenue
+├ ƒ /api/intelligence/hr/attendance-report
+├ ƒ /api/intelligence/hr/employee-performance
+├ ƒ /api/intelligence/hr/payroll-summary
+├ ƒ /api/intelligence/hr/productivity-trends
+├ ƒ /api/intelligence/hr/recruitment-metrics
+├ ƒ /api/intelligence/hr/retention-analysis
+├ ƒ /api/intelligence/hr/training-metrics
+├ ƒ /api/intelligence/hr/workforce-analytics
+├ ƒ /api/intelligence/marketing/ad-spend-summary
+├ ƒ /api/intelligence/marketing/campaign-analytics
+├ ƒ /api/intelligence/marketing/channel-performance
+├ ƒ /api/intelligence/marketing/roi-report
+├ ƒ /api/intelligence/marketing/top-performing-ads
+├ ƒ /api/intelligence/operational/capacity-utilization
+├ ƒ /api/intelligence/operational/inventory-forecast
+├ ƒ /api/intelligence/operational/inventory-status
+├ ƒ /api/intelligence/operational/ktv-leaderboard
+├ ƒ /api/intelligence/operational/ktv-performance
+├ ƒ /api/intelligence/operational/session-analytics
+├ ƒ /api/intelligence/recommendation/package
+├ ƒ /api/intelligence/recommendation/service
+├ ƒ /api/intelligence/recommendation/upsell
+├ ƒ /api/inventory/forecast
+├ ƒ /api/manufacturing/operational-readiness
+├ ƒ /api/metrics
+├ ƒ /api/packages
+├ ƒ /api/partner/activate
+├ ƒ /api/partner/activate/validate
+├ ƒ /api/partner/documents/[applicationId]
+├ ƒ /api/partner/documents/upload
+├ ƒ /api/partner/leads
+├ ƒ /api/partner/leads/[id]
+├ ƒ /api/partner/register
+├ ƒ /api/partner/verify
+├ ƒ /api/payroll/employees/[employeeId]/detail
+├ ƒ /api/rule-management/rules
+├ ƒ /api/rule-management/rules/[ruleId]
+├ ƒ /api/rule-management/simulate
+├ ƒ /api/rule-management/simulations
+├ ƒ /api/rule-management/workflows
+├ ƒ /api/rule-management/workflows/[workflowId]
+├ ƒ /api/rules
+├ ƒ /api/rules/[ruleId]
+├ ƒ /api/rules/[ruleId]/rollback
+├ ƒ /api/rules/[ruleId]/test
+├ ƒ /api/rules/[ruleId]/versions
+├ ƒ /api/rules/approvals
+├ ƒ /api/tenant/context
+├ ƒ /api/test-upcoming
+├ ƒ /api/test/auth-perf/auth-only
+├ ƒ /api/test/auth-perf/auth-query
+├ ƒ /api/test/recalculate-salary
+├ ƒ /api/tts
+├ ƒ /api/users
+├ ƒ /api/v1/ai/action-approval
+├ ƒ /api/v1/ai/coo-orchestrator
+├ ƒ /api/v1/ai/telegram-webhook
+├ ƒ /api/v1/analytics
+├ ƒ /api/v1/orders
+├ ƒ /api/v1/overview
+├ ƒ /api/waitlist
+├ ƒ /api/waitlist/[entryId]
+├ ƒ /api/waitlist/[entryId]/convert
+├ ƒ /api/waitlist/[entryId]/notifications
+├ ƒ /api/waitlist/expire
+├ ƒ /api/waitlist/process-slot
+├ ƒ /api/waitlist/recalculate-positions
+├ ƒ /api/waitlist/stats
+├ ƒ /api/webhooks/payment
+├ ƒ /api/workflows
+├ ƒ /api/workflows/[executionId]
+├ ƒ /api/workflows/execute
+├ ƒ /beauty-spa
+├ ƒ /bella-auto/rollback-demo
+├ ƒ /bellaspa
+├ ƒ /book
+├ ƒ /dashboard
+├ ƒ /dashboard/accounting
+├ ƒ /dashboard/accounting/chart-of-accounts
+├ ƒ /dashboard/accounting/health
+├ ƒ /dashboard/accounting/journals
+├ ƒ /dashboard/accounting/journals/[entryId]
+├ ƒ /dashboard/accounting/manual-entry
+├ ƒ /dashboard/accounting/outbox
+├ ƒ /dashboard/accounting/periods
+├ ƒ /dashboard/accounting/readiness
+├ ƒ /dashboard/accounting/reconciliation
+├ ƒ /dashboard/accounting/reports
+├ ƒ /dashboard/accounting/salary-reconciliation
+├ ƒ /dashboard/admin/booking-engine
+├ ƒ /dashboard/admin/partners
+├ ƒ /dashboard/admin/partners/[id]
+├ ƒ /dashboard/admin/partners/[id]/edit
+├ ƒ /dashboard/admin/partners/analytics
+├ ƒ /dashboard/admin/partners/new
+├ ƒ /dashboard/ai-copilot
+├ ƒ /dashboard/ai-copilot/salary-reconciliation
+├ ƒ /dashboard/ai-platform
+├ ƒ /dashboard/analytics
+├ ƒ /dashboard/architecture
+├ ƒ /dashboard/audit
+├ ƒ /dashboard/automation
+├ ƒ /dashboard/automation/new
+├ ƒ /dashboard/beauty-spa-v2
+├ ƒ /dashboard/beauty-spa-v2/chain
+├ ƒ /dashboard/bella-auto
+├ ƒ /dashboard/bella-auto/bookings
+├ ƒ /dashboard/bella-auto/customers
+├ ƒ /dashboard/bella-auto/experience
+├ ƒ /dashboard/bella-auto/journeys
+├ ƒ /dashboard/bella-auto/leads
+├ ƒ /dashboard/bella-auto/trade-in
+├ ƒ /dashboard/bella-auto/vehicles
+├ ƒ /dashboard/bella-auto/workshop
+├ ƒ /dashboard/bookings
+├ ƒ /dashboard/bookings/[id]/services
+├ ƒ /dashboard/chat
+├ ƒ /dashboard/crm
+├ ƒ /dashboard/customer
+├ ƒ /dashboard/customer-intelligence
+├ ƒ /dashboard/customer/churn-risk
+├ ƒ /dashboard/customer/history
+├ ƒ /dashboard/customer/lifetime-value
+├ ƒ /dashboard/customer/notifications
+├ ƒ /dashboard/customer/profile
+├ ƒ /dashboard/customer/segmentation
+├ ƒ /dashboard/customers
+├ ƒ /dashboard/customers/[id]
+├ ƒ /dashboard/data-platform
+├ ƒ /dashboard/decision-engine/audit
+├ ƒ /dashboard/decision-engine/trace/[traceId]
+├ ƒ /dashboard/demo-receipt
+├ ƒ /dashboard/dental
+├ ƒ /dashboard/dental/encounters
+├ ƒ /dashboard/dental/encounters/[id]
+├ ƒ /dashboard/dental/reports
+├ ƒ /dashboard/dental/reports/clinical
+├ ƒ /dashboard/dental/reports/revenue
+├ ƒ /dashboard/dental/reports/treatment
+├ ƒ /dashboard/education
+├ ƒ /dashboard/education/attendance
+├ ƒ /dashboard/education/care
+├ ƒ /dashboard/education/communication
+├ ƒ /dashboard/education/courses
+├ ƒ /dashboard/education/courses/[id]
+├ ƒ /dashboard/education/enrollments
+├ ƒ /dashboard/education/enrollments/[id]
+├ ƒ /dashboard/education/facilities
+├ ƒ /dashboard/education/finance
+├ ƒ /dashboard/education/grades
+├ ƒ /dashboard/education/learning
+├ ƒ /dashboard/education/my-class
+├ ƒ /dashboard/education/parent-inbox
+├ ƒ /dashboard/education/reports
+├ ƒ /dashboard/education/scheduling
+├ ƒ /dashboard/education/teachers
+├ ƒ /dashboard/education/teachers/[id]
+├ ƒ /dashboard/education/work-queue
+├ ƒ /dashboard/english-center/command-center
+├ ƒ /dashboard/english-center/engagement
+├ ƒ /dashboard/english-center/enrollments
+├ ƒ /dashboard/english-center/enrollments/[id]
+├ ƒ /dashboard/english-center/enrollments/new
+├ ƒ /dashboard/english-center/learning
+├ ƒ /dashboard/english-center/timetable
+├ ƒ /dashboard/english-center/tuition
+├ ƒ /dashboard/executive
+├ ƒ /dashboard/finance
+├ ƒ /dashboard/finance/budget
+├ ƒ /dashboard/finance/cash-flow
+├ ƒ /dashboard/finance/pnl
+├ ƒ /dashboard/finance/reconciliation
+├ ƒ /dashboard/forecast
+├ ƒ /dashboard/guides
+├ ƒ /dashboard/guides/[slug]
+├ ƒ /dashboard/healthcare
+├ ƒ /dashboard/healthcare/accounting
+├ ƒ /dashboard/healthcare/appointments
+├ ƒ /dashboard/healthcare/billing
+├ ƒ /dashboard/healthcare/contracts
+├ ƒ /dashboard/healthcare/encounters
+├ ƒ /dashboard/healthcare/encounters/[id]
+├ ƒ /dashboard/healthcare/finance
+├ ƒ /dashboard/healthcare/imaging
+├ ƒ /dashboard/healthcare/imaging/viewer
+├ ƒ /dashboard/healthcare/journeys
+├ ƒ /dashboard/healthcare/laboratory
+├ ƒ /dashboard/healthcare/odontogram
+├ ƒ /dashboard/healthcare/patients
+├ ƒ /dashboard/healthcare/patients/[id]
+├ ƒ /dashboard/healthcare/pharmacy
+├ ƒ /dashboard/healthcare/queue
+├ ƒ /dashboard/healthcare/queue/tv
+├ ƒ /dashboard/healthcare/reports
+├ ƒ /dashboard/healthcare/reports/clinical
+├ ƒ /dashboard/healthcare/reports/revenue
+├ ƒ /dashboard/healthcare/reports/treatment
+├ ƒ /dashboard/healthcare/salary
+├ ƒ /dashboard/healthcare/schedules
+├ ƒ /dashboard/hospital
+├ ƒ /dashboard/hospital/admissions
+├ ƒ /dashboard/hospital/ancillary
+├ ƒ /dashboard/hospital/beds
+├ ƒ /dashboard/hospital/bhyt
+├ ƒ /dashboard/hospital/billing
+├ ƒ /dashboard/hospital/care-pathway
+├ ƒ /dashboard/hospital/contracts
+├ ƒ /dashboard/hospital/icu-dispatch
+├ ƒ /dashboard/hospital/incidents
+├ ƒ /dashboard/hospital/mar
+├ ƒ /dashboard/hospital/nursing-vitals
+├ ƒ /dashboard/hospital/pharmacy
+├ ƒ /dashboard/hospital/queue
+├ ƒ /dashboard/hospital/reports
+├ ƒ /dashboard/hospital/reports/revenue
+├ ƒ /dashboard/hospital/safety/audit
+├ ƒ /dashboard/hospital/safety/incidents
+├ ƒ /dashboard/hospital/workforce
+├ ƒ /dashboard/hr
+├ ƒ /dashboard/hr/attendance-payroll
+├ ƒ /dashboard/hr/leave-requests
+├ ƒ /dashboard/hr/performance
+├ ƒ /dashboard/hr/workforce
+├ ƒ /dashboard/inventory
+├ ƒ /dashboard/manufacturing
+├ ƒ /dashboard/marketing
+├ ƒ /dashboard/marketplace
+├ ƒ /dashboard/medical
+├ ƒ /dashboard/medical/accounting
+├ ƒ /dashboard/medical/appointments
+├ ƒ /dashboard/medical/billing
+├ ƒ /dashboard/medical/contracts
+├ ƒ /dashboard/medical/encounters
+├ ƒ /dashboard/medical/encounters/[id]
+├ ƒ /dashboard/medical/finance
+├ ƒ /dashboard/medical/imaging
+├ ƒ /dashboard/medical/laboratory
+├ ƒ /dashboard/medical/patients
+├ ƒ /dashboard/medical/pharmacy
+├ ƒ /dashboard/medical/queue
+├ ƒ /dashboard/medical/queue/tv
+├ ƒ /dashboard/medical/reports
+├ ƒ /dashboard/medical/reports/clinical
+├ ƒ /dashboard/medical/reports/revenue
+├ ƒ /dashboard/medical/reports/treatment
+├ ƒ /dashboard/medical/salary
+├ ƒ /dashboard/medical/schedules
+├ ƒ /dashboard/nail
+├ ƒ /dashboard/operations
+├ ƒ /dashboard/operations/inventory
+├ ƒ /dashboard/operations/ktv-performance
+├ ƒ /dashboard/operations/sessions
+├ ƒ /dashboard/organization
+├ ƒ /dashboard/payroll
+├ ƒ /dashboard/payroll/employees/[employeeId]/detail
+├ ƒ /dashboard/product-sales
+├ ƒ /dashboard/real-estate
+├ ƒ /dashboard/real-estate/admin
+├ ƒ /dashboard/real-estate/apartments
+├ ƒ /dashboard/real-estate/bi-analytics
+├ ƒ /dashboard/real-estate/contracts
+├ ƒ /dashboard/real-estate/customers
+├ ƒ /dashboard/real-estate/documents
+├ ƒ /dashboard/real-estate/global-search
+├ ƒ /dashboard/real-estate/hr
+├ ƒ /dashboard/real-estate/leads
+├ ƒ /dashboard/real-estate/marketing
+├ ƒ /dashboard/real-estate/org-chart
+├ ƒ /dashboard/real-estate/people
+├ ƒ /dashboard/real-estate/projects
+├ ƒ /dashboard/real-estate/reports
+├ ƒ /dashboard/real-estate/schedules
+├ ƒ /dashboard/real-estate/support
+├ ƒ /dashboard/recommendations
+├ ƒ /dashboard/rules
+├ ƒ /dashboard/rules/[ruleId]
+├ ƒ /dashboard/rules/[ruleId]/edit
+├ ƒ /dashboard/rules/[ruleId]/test
+├ ƒ /dashboard/rules/[ruleId]/versions
+├ ƒ /dashboard/rules/new
+├ ƒ /dashboard/salary
+├ ƒ /dashboard/salary/[employeeId]/detail
+├ ƒ /dashboard/salary/adjustments
+├ ƒ /dashboard/services
+├ ƒ /dashboard/sessions
+├ ƒ /dashboard/settings
+├ ƒ /dashboard/support/tickets
+├ ƒ /dashboard/system-monitor
+├ ƒ /dashboard/training
+├ ƒ /dashboard/training/classes
+├ ƒ /dashboard/training/courses
+├ ƒ /dashboard/training/enrollments
+├ ƒ /dashboard/training/students
+├ ƒ /dashboard/waitlist
+├ ƒ /dashboard/waitlist/[entryId]
+├ ƒ /dashboard/warehouse/stock-in
+├ ƒ /hospitality/hotel-core-chain
+├ ƒ /hq
+├ ƒ /hq/financial-overview
+├ ƒ /hq/login
+├ ƒ /ktv/dashboard
+├ ƒ /ktv/earnings
+├ ƒ /ktv/guides
+├ ƒ /ktv/leaderboard
+├ ƒ /login
+├ ƒ /login-static
+├ ƒ /manifest.webmanifest
+├ ƒ /partner
+├ ƒ /partner/activate
+├ ƒ /partner/application-status
+├ ƒ /partner/bookings
+├ ƒ /partner/commission
+├ ƒ /partner/dashboard
+├ ƒ /partner/documents
+├ ƒ /partner/inbox
+├ ƒ /partner/inventory
+├ ƒ /partner/leads
+├ ƒ /partner/profile
+├ ƒ /partner/register
+├ ƒ /partner/verify
+├ ƒ /portal/[token]
+├ ƒ /portal/education/[token]
+├ ƒ /signup
+├ ƒ /student/dashboard
+├ ƒ /warehouse/adjustment
+├ ƒ /warehouse/stock-in
+├ ƒ /warehouse/stock-out
+├ ƒ /warehouse/transfer
+├ ƒ /workforce
+├ ƒ /workforce/approvals
+├ ƒ /workforce/attendance
+├ ƒ /workforce/calendar
+├ ƒ /workforce/commission
+├ ƒ /workforce/customers
+├ ƒ /workforce/dashboard
+├ ƒ /workforce/documents
+├ ƒ /workforce/inbox
+├ ƒ /workforce/inventory
+├ ƒ /workforce/kpi
+├ ƒ /workforce/leads
+├ ƒ /workforce/leads/[id]
+├ ƒ /workforce/profile
+├ ƒ /workforce/tasks
+└ ƒ /workforce/transactions
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+

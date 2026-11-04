@@ -1,0 +1,9 @@
+{
+  "phase": "First local Copilot staging attempt",
+  "exitCode": 1,
+  "commitAttempted": false,
+  "cause": "git diff --cached --check rejected new blank line at EOF in generated SPEC.md",
+  "fix": "Trim only doc EOF, restage exact unchanged approved allowlist, repeat same check",
+  "subsequentCommitExitCode": 0,
+  "guardBypass": false
+}

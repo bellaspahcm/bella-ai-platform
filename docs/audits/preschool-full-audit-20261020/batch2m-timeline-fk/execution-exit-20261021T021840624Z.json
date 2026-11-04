@@ -1,0 +1,9 @@
+{
+  "sql": "E2E_PREPARE_V2.sql",
+  "wrapperFailure": null,
+  "mode": "arrival-diagnostic",
+  "finishedAt": "2026-10-21T02:22:41.8405003Z",
+  "startedAt": "20261021T021840624Z",
+  "actualNativeExitCode": 1,
+  "retainRequested": false
+}

@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-10-20T23:43:03.397Z",
+  "project": "bmnbqbcdbuklhopfbopv",
+  "scope": "Synthetic fixture markers and batch creation window only; five runtime attempts",
+  "readOnly": true,
+  "counts": {
+    "auth_users": 0,
+    "profiles": 0,
+    "tenant_shells": 10,
+    "nonterminated_tenants": 0
+  },
+  "residualShells": "All terminated for immutable audit history",
+  "result": "PASS_AUTHORITY_REMOVED"
+}

@@ -1,0 +1,6 @@
+{
+  "result": "BLOCKED",
+  "envFile": ".env.test",
+  "obstacle": "Postgres connection/catalog inspection failed",
+  "errorCode": "28P01"
+}

@@ -1,0 +1,23 @@
+-- Restores unsafe ACLs for isolated recovery demonstration only. Not authorized production rollback.
+BEGIN;
+REVOKE ALL ON TABLE public.users FROM PUBLIC,"anon","authenticated","authenticator","bella_developer","bella_migration_executor","cli_login_postgres","dashboard_user","pg_checkpoint","pg_create_subscription","pg_database_owner","pg_execute_server_program","pg_maintain","pg_monitor","pg_read_all_data","pg_read_all_settings","pg_read_all_stats","pg_read_server_files","pg_signal_backend","pg_stat_scan_tables","pg_use_reserved_connections","pg_write_all_data","pg_write_server_files","pgbouncer","postgres","service_role","supabase_admin","supabase_auth_admin","supabase_etl_admin","supabase_privileged_role","supabase_read_only_user","supabase_realtime_admin","supabase_replication_admin","supabase_storage_admin","verification_executor";
+GRANT INSERT,SELECT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN ON TABLE public.users TO "postgres";
+GRANT INSERT,SELECT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN ON TABLE public.users TO "anon";
+GRANT INSERT,SELECT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN ON TABLE public.users TO "authenticated";
+GRANT INSERT,SELECT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN ON TABLE public.users TO "service_role";
+GRANT SELECT ON TABLE public.users TO "bella_developer";
+GRANT INSERT,SELECT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN ON TABLE public.users TO "bella_migration_executor";
+GRANT SELECT ON TABLE public.users TO "verification_executor";
+REVOKE ALL ON FUNCTION public.create_onboarding_user(text,text,text) FROM PUBLIC,"anon","authenticated","authenticator","bella_developer","bella_migration_executor","cli_login_postgres","dashboard_user","pg_checkpoint","pg_create_subscription","pg_database_owner","pg_execute_server_program","pg_maintain","pg_monitor","pg_read_all_data","pg_read_all_settings","pg_read_all_stats","pg_read_server_files","pg_signal_backend","pg_stat_scan_tables","pg_use_reserved_connections","pg_write_all_data","pg_write_server_files","pgbouncer","postgres","service_role","supabase_admin","supabase_auth_admin","supabase_etl_admin","supabase_privileged_role","supabase_read_only_user","supabase_realtime_admin","supabase_replication_admin","supabase_storage_admin","verification_executor";
+GRANT EXECUTE ON FUNCTION public.create_onboarding_user(text,text,text) TO PUBLIC;
+GRANT EXECUTE ON FUNCTION public.create_onboarding_user(text,text,text) TO "postgres";
+GRANT EXECUTE ON FUNCTION public.create_onboarding_user(text,text,text) TO "anon";
+GRANT EXECUTE ON FUNCTION public.create_onboarding_user(text,text,text) TO "authenticated";
+GRANT EXECUTE ON FUNCTION public.create_onboarding_user(text,text,text) TO "service_role";
+GRANT EXECUTE ON FUNCTION public.create_onboarding_user(text,text,text) TO "bella_migration_executor";
+REVOKE ALL ON FUNCTION public.onboard_tenant(text,text,text,text,uuid,text,text) FROM PUBLIC,"anon","authenticated","authenticator","bella_developer","bella_migration_executor","cli_login_postgres","dashboard_user","pg_checkpoint","pg_create_subscription","pg_database_owner","pg_execute_server_program","pg_maintain","pg_monitor","pg_read_all_data","pg_read_all_settings","pg_read_all_stats","pg_read_server_files","pg_signal_backend","pg_stat_scan_tables","pg_use_reserved_connections","pg_write_all_data","pg_write_server_files","pgbouncer","postgres","service_role","supabase_admin","supabase_auth_admin","supabase_etl_admin","supabase_privileged_role","supabase_read_only_user","supabase_realtime_admin","supabase_replication_admin","supabase_storage_admin","verification_executor";
+GRANT EXECUTE ON FUNCTION public.onboard_tenant(text,text,text,text,uuid,text,text) TO PUBLIC;
+GRANT EXECUTE ON FUNCTION public.onboard_tenant(text,text,text,text,uuid,text,text) TO "postgres";
+GRANT EXECUTE ON FUNCTION public.onboard_tenant(text,text,text,text,uuid,text,text) TO "service_role";
+GRANT EXECUTE ON FUNCTION public.onboard_tenant(text,text,text,text,uuid,text,text) TO "bella_migration_executor";
+ROLLBACK;

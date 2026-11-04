@@ -1,0 +1,17 @@
+[
+  {
+    "name": "platform_org_unit_access_for_actor",
+    "localFile": "20261019045000_platform_trusted_actor_org_unit_access.sql",
+    "bodyMd5": "cf17872b338a26bb81395c5a5713c6ad"
+  },
+  {
+    "name": "platform_current_actor_profile",
+    "localFile": "20261019060000_platform_current_actor_read_contract.sql",
+    "bodyMd5": "563f7f18daa70952a72c5bc7add29918"
+  },
+  {
+    "name": "platform_current_actor_org_unit_access",
+    "localFile": "20261019060000_platform_current_actor_read_contract.sql",
+    "bodyMd5": "c977b9b71235497bbecda3407992f10c"
+  }
+]

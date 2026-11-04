@@ -1,0 +1,15 @@
+{
+  "capturedAt": "2026-10-21T04:11:07.129Z",
+  "baseline": "6b031511f + preserved batch2n preimages for proxy/UI/controller",
+  "files": {
+    "src/platform/education/contracts/canonical-course-catalog.contract.ts": "786482c9253ae9846fdba79f5db8db7ee790de9c87743c614b65f3e0851cca18",
+    "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts": "63d202f07318fe32de41145df53295283adb93f3b1d63d0f470119d07d496924",
+    "src/app/api/education/care/classes/route.ts": "e3e2a62eea5206498b3032e9d248725cbec1e075204bce093963babd121c90ea",
+    "src/app/api/education/care/classes/__tests__/access.test.ts": "b17b78a956b5bcd75f0655662daac1626e182150e4cd6a971c93eadbc071e673",
+    "src/app/api/education/care/classes/__tests__/catalog-contract.test.ts": "a0b4bc28eb3716eb52117300a5ea21084e1cc6140ffdfbacadd73f4992ecc18f",
+    "src/proxy.ts": "534626ffd4a808d795db57699b5a15e272b364cc2a94ffc2007bf4a2566b9189",
+    "src/app/dashboard/education/care/page.tsx": "9f7b0cac74d860def073923451db8f0ee0041f3e8ba7160eb8667382dcf04948",
+    "src/app/dashboard/education/care/__tests__/page.test.tsx": "f886c1e13ad37090bdeb963b9a5a46ea52a3211479548e2854bad80b2b3b0538",
+    "scripts/verify-preschool-care-browser-e2e.cjs": "a87e2e52a7f4fe8f708593bf92118889770e17732e03aca2b09eb119e814aa5f"
+  }
+}

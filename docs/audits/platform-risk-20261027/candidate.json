@@ -1,0 +1,213 @@
+{
+  "baseRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "branch": "codex/audit-risk-20261027",
+  "generatedAt": "2026-10-27T04:09:29.856Z",
+  "inputAttachmentSha256": "4b851000a39ae0b4f9bf6c35151809ba000fb3bda9bbc6ead1911be74fb735ef",
+  "files": [
+    {
+      "path": "package.json",
+      "sha256": "e9e36d19aa9b6707051e854f8a381881aadbbfe9ef9765bb9aed71de7061f677"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "2cae548c90b14606d78a5ff182e8a6d7841ffe0a9230a59a2b1958e82234c98e"
+    }
+  ],
+  "changedLockEntries": [
+    {
+      "path": "",
+      "before": "0.1.0",
+      "after": "0.1.0"
+    },
+    {
+      "path": "node_modules/@apm-js-collab/code-transformer",
+      "before": "0.18.1",
+      "after": null
+    },
+    {
+      "path": "node_modules/@apm-js-collab/code-transformer-bundler-plugins",
+      "before": "0.7.2",
+      "after": null
+    },
+    {
+      "path": "node_modules/@apm-js-collab/tracing-hooks",
+      "before": "0.13.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/@next/env",
+      "before": "16.3.8",
+      "after": "16.4.1"
+    },
+    {
+      "path": "node_modules/@next/swc-darwin-arm64",
+      "before": "16.3.8",
+      "after": "16.4.1"
+    },
+    {
+      "path": "node_modules/@next/swc-darwin-x64",
+      "before": "16.3.8",
+      "after": "16.4.1"
+    },
+    {
+      "path": "node_modules/@next/swc-linux-arm64-gnu",
+      "before": "16.3.8",
+      "after": "16.4.1"
+    },
+    {
+      "path": "node_modules/@next/swc-linux-arm64-musl",
+      "before": "16.3.8",
+      "after": "16.4.1"
+    },
+    {
+      "path": "node_modules/@next/swc-linux-x64-gnu",
+      "before": "16.3.8",
+      "after": "16.4.1"
+    },
+    {
+      "path": "node_modules/@next/swc-linux-x64-musl",
+      "before": "16.3.8",
+      "after": "16.4.1"
+    },
+    {
+      "path": "node_modules/@next/swc-win32-arm64-msvc",
+      "before": "16.3.8",
+      "after": "16.4.1"
+    },
+    {
+      "path": "node_modules/@next/swc-win32-x64-msvc",
+      "before": "16.3.8",
+      "after": "16.4.1"
+    },
+    {
+      "path": "node_modules/@opentelemetry/core",
+      "before": "2.10.0",
+      "after": "2.12.0"
+    },
+    {
+      "path": "node_modules/@opentelemetry/resources",
+      "before": "2.10.0",
+      "after": "2.12.0"
+    },
+    {
+      "path": "node_modules/@opentelemetry/sdk-trace",
+      "before": "2.10.0",
+      "after": "2.12.0"
+    },
+    {
+      "path": "node_modules/@opentelemetry/sdk-trace-base",
+      "before": "2.10.0",
+      "after": "2.12.0"
+    },
+    {
+      "path": "node_modules/@sentry/browser",
+      "before": "10.67.0",
+      "after": "10.75.2"
+    },
+    {
+      "path": "node_modules/@sentry/browser-utils",
+      "before": "10.67.0",
+      "after": "10.75.2"
+    },
+    {
+      "path": "node_modules/@sentry/core",
+      "before": "10.67.0",
+      "after": "10.75.2"
+    },
+    {
+      "path": "node_modules/@sentry/feedback",
+      "before": "10.67.0",
+      "after": "10.75.2"
+    },
+    {
+      "path": "node_modules/@sentry/nextjs",
+      "before": "10.67.0",
+      "after": "10.75.2"
+    },
+    {
+      "path": "node_modules/@sentry/node",
+      "before": "10.67.0",
+      "after": "10.75.2"
+    },
+    {
+      "path": "node_modules/@sentry/node-core",
+      "before": "10.67.0",
+      "after": "10.75.2"
+    },
+    {
+      "path": "node_modules/@sentry/opentelemetry",
+      "before": "10.67.0",
+      "after": "10.75.2"
+    },
+    {
+      "path": "node_modules/@sentry/react",
+      "before": "10.67.0",
+      "after": "10.75.2"
+    },
+    {
+      "path": "node_modules/@sentry/replay",
+      "before": "10.67.0",
+      "after": "10.75.2"
+    },
+    {
+      "path": "node_modules/@sentry/replay-canvas",
+      "before": "10.67.0",
+      "after": "10.75.2"
+    },
+    {
+      "path": "node_modules/@sentry/server-utils",
+      "before": "10.67.0",
+      "after": "10.75.2"
+    },
+    {
+      "path": "node_modules/@sentry/vercel-edge",
+      "before": "10.67.0",
+      "after": "10.75.2"
+    },
+    {
+      "path": "node_modules/astring",
+      "before": "1.9.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/esquery",
+      "before": "1.7.0",
+      "after": "1.7.0"
+    },
+    {
+      "path": "node_modules/follow-redirects",
+      "before": "1.16.0",
+      "after": "1.16.1"
+    },
+    {
+      "path": "node_modules/import-in-the-middle",
+      "before": "3.3.2",
+      "after": "3.5.3"
+    },
+    {
+      "path": "node_modules/meriyah",
+      "before": "6.1.4",
+      "after": null
+    },
+    {
+      "path": "node_modules/next",
+      "before": "16.3.8",
+      "after": "16.4.1"
+    },
+    {
+      "path": "node_modules/semifies",
+      "before": "1.0.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/zod",
+      "before": "4.4.3",
+      "after": "4.6.6"
+    },
+    {
+      "path": "node_modules/import-in-the-middle/node_modules/es-module-lexer",
+      "before": null,
+      "after": "3.0.4"
+    }
+  ]
+}

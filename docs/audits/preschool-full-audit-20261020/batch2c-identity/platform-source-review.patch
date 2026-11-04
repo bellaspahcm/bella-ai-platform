@@ -1,0 +1,1261 @@
+diff --git a/src/services/user-actions.ts b/src/services/user-actions.ts
+index a4eba22e9..d808dd8b7 100644
+--- a/src/services/user-actions.ts
++++ b/src/services/user-actions.ts
+@@ -6,27 +6,13 @@ import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-e
+ import { createDevelopmentBypassClient } from '@/lib/supabase-dev-bypass-server';
+ import { recordAuditLog } from './audit-actions';
+ import { CurrentUser, StaffRecord } from '@/types/domain';
+-import { randomBytes } from 'crypto';
+ import type { Database } from '@/types/database.types';
+ import { getMonthStart } from '@/lib/utils';
+ import type { SupabaseClient as SupabaseJsClient } from '@supabase/supabase-js';
+ 
+-import { sendTemporaryPasswordEmail } from '@/lib/mail';
+-
+ type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+-type AdminSupabaseClient = {
+-  from: SupabaseClient['from'];
+-  auth: {
+-    admin: {
+-      deleteUser: (id: string) => Promise<{ error: { message: string } | null }>;
+-    };
+-  };
+-};
+-type UserInsert = Database['public']['Tables']['users']['Insert'];
+ type UserRow = Database['public']['Tables']['users']['Row'];
+ type UserUpdate = Database['public']['Tables']['users']['Update'];
+-type StaffLeaveInsert = Database['public']['Tables']['staff_leaves']['Insert'];
+-type StaffLeaveRow = Database['public']['Tables']['staff_leaves']['Row'];
+ type SalarySupabaseClient = SupabaseJsClient<Database>;
+ type SupabaseQueryError = { code?: string; message?: string } | null;
+ 
+@@ -48,6 +34,23 @@ export interface CreateUserInput {
+   role: string;
+ }
+ 
++interface CreateUserResult {
++  data?: UserRow;
++  defaultPassword?: string;
++  emailSent?: boolean;
++  emailError?: string;
++  error?: string;
++}
++
++interface DeleteUserResult {
++  success?: boolean;
++  message?: string;
++  error?: string;
++}
++
++const IDENTITY_MANAGEMENT_HOLD =
++  'IDENTITY_MANAGEMENT_AUTHORIZATION_NOT_READY: Tạm dừng tạo/xóa nhân sự cho đến khi quyền quản lý tài khoản được xác minh.';
++
+ function isMissingSingleRowError(error: SupabaseQueryError) {
+   if (!error) return false;
+   const message = error.message?.toLowerCase() || '';
+@@ -212,12 +215,6 @@ export async function getUsers(): Promise<StaffRecord[]> {
+   return processedData;
+ }
+ 
+-import { checkSubscriptionLimit } from '@/lib/subscription';
+-
+-function generateTemporaryPassword() {
+-  return `Bella-${randomBytes(9).toString('base64url')}1aA!`;
+-}
+-
+ function getErrorMessage(error: unknown, fallback = 'Loi he thong') {
+   if (error instanceof Error) return error.message;
+   if (typeof error === 'object' && error && 'message' in error) {
+@@ -242,88 +239,6 @@ async function rollbackUserUpdate(
+   return error?.message || '';
+ }
+ 
+-function toUserInsertSnapshot(user: UserRow): UserInsert {
+-  return {
+-    avatar_url: user.avatar_url,
+-    base_salary: user.base_salary,
+-    created_at: user.created_at,
+-    email: user.email,
+-    full_name: user.full_name,
+-    hire_date: user.hire_date,
+-    id: user.id,
+-    phone: user.phone,
+-    resignation_date: user.resignation_date,
+-    role: user.role,
+-    status: user.status,
+-    tenant_id: user.tenant_id,
+-    updated_at: user.updated_at,
+-  };
+-}
+-
+-function toUserAuditSnapshot(user: UserRow) {
+-  return toUserInsertSnapshot(user);
+-}
+-
+-function _toStaffLeaveInsertSnapshot(leave: StaffLeaveRow): StaffLeaveInsert {
+-  return {
+-    approved_by: leave.approved_by,
+-    created_at: leave.created_at,
+-    id: leave.id,
+-    leave_date: leave.leave_date,
+-    leave_type: leave.leave_type,
+-    reason: leave.reason,
+-    rejection_reason: leave.rejection_reason,
+-    status: leave.status,
+-    tenant_id: leave.tenant_id,
+-    updated_at: leave.updated_at,
+-    user_id: leave.user_id,
+-  };
+-}
+-
+-async function _restoreDeletedUser(
+-  supabase: SupabaseClient,
+-  payload: UserInsert,
+-) {
+-  const { error } = await supabase
+-    .from('users')
+-    .insert([payload]);
+-
+-  return error?.message || '';
+-}
+-
+-async function _restoreDeletedStaffLeaves(
+-  supabase: SupabaseClient,
+-  payloads: StaffLeaveInsert[],
+-) {
+-  if (payloads.length === 0) return '';
+-
+-  const { error } = await supabase
+-    .from('staff_leaves')
+-    .insert(payloads);
+-
+-  return error?.message || '';
+-}
+-
+-async function rollbackCreatedAuthUser(
+-  supabaseAdmin: AdminSupabaseClient,
+-  authUserId: string,
+-) {
+-  const { error } = await supabaseAdmin.auth.admin.deleteUser(authUserId);
+-  return error?.message || '';
+-}
+-
+-async function rollbackCreatedUserProfile(
+-  supabaseAdmin: AdminSupabaseClient,
+-  authUserId: string,
+-) {
+-  const { error } = await supabaseAdmin
+-    .from('users')
+-    .delete()
+-    .eq('id', authUserId);
+-
+-  return error?.message || '';
+-}
+-
+ function formatRollbackNotes(notes: Array<[string, string]>) {
+   return notes
+     .filter(([, message]) => message)
+@@ -371,157 +286,10 @@ async function rollbackBaseSalaryChange(
+   ]);
+ }
+ 
+-export async function createUser(formData: CreateUserInput) {
+-  try {
+-    const currentUser = await getCurrentUser();
+-    if (!currentUser?.tenant_id) {
+-      return { error: 'Không xác định được chi nhánh của người dùng hiện tại.' };
+-    }
+-
+-    const targetRole = (formData.role || 'ktv').trim().toLowerCase();
+-
+-    if (targetRole === 'ktv' || targetRole === 'ktv_lead') {
+-      const ktvLimit = await checkSubscriptionLimit(currentUser.tenant_id, 'ktv');
+-      if (ktvLimit.isBlocked) {
+-        return { error: 'Vượt quá giới hạn nhân sự kỹ thuật viên của gói dịch vụ hiện tại. Vui lòng nâng cấp gói cước.' };
+-      }
+-    }
+-
+-    // STEP 1 — Create the Supabase Auth account first so the employee can log in.
+-    // Without this, the public.users row was a dead record (no auth → no login).
+-    // Pattern mirrors registerNewTenant() in onboarding-actions.ts.
+-    const serviceRoleKey = getSupabaseAdminKey();
+-    const supabaseUrl = getSupabaseAdminUrl();
+-    console.warn('[createUser] env check', {
+-      hasAdminKey: !!serviceRoleKey,
+-      hasUrl: !!supabaseUrl,
+-    });
+-
+-    if (!serviceRoleKey) {
+-      return { error: 'Hệ thống chưa cấu hình SUPABASE_SECRET_KEY/SUPABASE_SERVICE_ROLE_KEY ở Vercel — không thể tạo tài khoản đăng nhập. Vào Vercel → Settings → Environment Variables để thêm.' };
+-    }
+-    if (!supabaseUrl) {
+-      return { error: 'Hệ thống chưa cấu hình NEXT_PUBLIC_SUPABASE_URL — không thể kết nối Supabase.' };
+-    }
+-
+-    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js');
+-    const supabaseAdmin = createSupabaseClient(
+-      supabaseUrl,
+-      serviceRoleKey,
+-      { auth: { persistSession: false, autoRefreshToken: false } }
+-    );
+-
+-    const temporaryPassword = generateTemporaryPassword();
+-
+-    const { data: adminData, error: adminError } = await supabaseAdmin.auth.admin.createUser({
+-      email: formData.email,
+-      password: temporaryPassword,
+-      email_confirm: true, // bypass confirmation email (rate limit + UX)
+-      user_metadata: { full_name: formData.full_name },
+-    });
+-
+-    console.warn('[createUser] auth.admin.createUser result', {
+-      hasUser: !!adminData?.user?.id,
+-      authUserId: adminData?.user?.id ?? null,
+-      errorMessage: adminError?.message ?? null,
+-      errorStatus: (adminError as { status?: number } | null)?.status ?? null,
+-    });
+-
+-    if (adminError) {
+-      console.error('[createUser] Auth user creation failed:', adminError);
+-      if (adminError.message?.toLowerCase().includes('already') || adminError.message?.includes('registered')) {
+-        return { error: 'Email này đã được sử dụng trong hệ thống. Vui lòng sử dụng email khác.' };
+-      }
+-      return { error: `Không thể tạo tài khoản đăng nhập: ${adminError.message}` };
+-    }
+-
+-    const authUserId = adminData?.user?.id;
+-    if (!authUserId) {
+-      return { error: 'Tạo tài khoản đăng nhập không thành công (auth user id rỗng).' };
+-    }
+-
+-    // STEP 2 — Insert the profile row with id matching the auth user, so
+-    // getCurrentUser()'s primary id lookup (users.id = auth.uid) hits directly.
+-    // Uses supabaseAdmin (service role) to bypass any RLS policy that might
+-    // restrict cross-user inserts on public.users (id != auth.uid()).
+-    const userPayload: UserInsert = {
+-      id: authUserId,
+-      email: formData.email,
+-      full_name: formData.full_name,
+-      role: targetRole,
+-      status: 'active',
+-      tenant_id: currentUser.tenant_id,
+-    };
+-
+-    const { data, error } = await supabaseAdmin
+-      .from('users')
+-      .insert([userPayload])
+-      .select()
+-      .single();
+-
+-    if (error) {
+-      // Rollback the auth user so we don't leave an orphan account hanging.
+-      const authRollbackError = await rollbackCreatedAuthUser(supabaseAdmin, authUserId);
+-      console.error('[createUser] Profile insert failed:', error);
+-      const rollbackNote = formatRollbackNotes([
+-        ['auth rollback', authRollbackError],
+-      ]);
+-      if (!rollbackNote && (error.code === '23505' || error.message?.includes('users_email_key'))) {
+-        return { error: 'Email này đã được sử dụng trong hệ thống. Vui lòng sử dụng email khác.' };
+-      }
+-      return { error: `${error.message}${rollbackNote}` };
+-    }
+-
+-    try {
+-      await recordAuditLog({
+-        action: 'INSERT',
+-        table_name: 'users',
+-        record_id: data.id,
+-        new_data: {
+-          full_name: formData.full_name,
+-          email: formData.email,
+-          role: targetRole,
+-        },
+-      });
+-    } catch (auditError: unknown) {
+-      const profileRollbackError = await rollbackCreatedUserProfile(supabaseAdmin, authUserId);
+-      const authRollbackError = await rollbackCreatedAuthUser(supabaseAdmin, authUserId);
+-      const rollbackNote = formatRollbackNotes([
+-        ['profile rollback', profileRollbackError],
+-        ['auth rollback', authRollbackError],
+-      ]);
+-      return { error: `Failed to record user create audit log: ${getErrorMessage(auditError)}${rollbackNote}` };
+-    }
+-
+-    await safeRevalidatePath('/dashboard/settings');
+-
+-    let emailSent = false;
+-    let emailError: string | undefined;
+-
+-    try {
+-      const mailResult = await sendTemporaryPasswordEmail(
+-        formData.email,
+-        formData.full_name,
+-        temporaryPassword
+-      );
+-      emailSent = mailResult.success;
+-      emailError = mailResult.error;
+-    } catch (err: unknown) {
+-      console.error('[createUser] Error calling sendTemporaryPasswordEmail:', err);
+-      emailError = getErrorMessage(err, 'UNKNOWN_MAIL_ERROR');
+-    }
+-
+-    return {
+-      data,
+-      defaultPassword: temporaryPassword,
+-      emailSent,
+-      emailError,
+-    };
+-  } catch (err: unknown) {
+-    const message = getErrorMessage(err);
+-    console.error('[createUser] Exception thrown:', err);
+-    return { error: `Lỗi khởi tạo nhân sự: ${message}` };
+-  }
++export async function createUser(_formData: CreateUserInput): Promise<CreateUserResult> {
++  // Temporary containment: the canonical management and assignable-role contract is unproven.
++  // Hold every caller before account, profile, audit, cache, or email side effects.
++  return { error: IDENTITY_MANAGEMENT_HOLD };
+ }
+ 
+ export async function updateUserStatus(id: string, status: 'active' | 'inactive') {
+@@ -686,92 +454,9 @@ export async function updateUser(
+   return { success: true };
+ }
+ 
+-export async function deleteUser(id: string) {
+-  const supabase = await createClient();
+-  const currentUser = await getCurrentUser();
+-  const tenantId = currentUser?.tenant_id;
+-  if (!tenantId) {
+-    return { error: 'Khong xac dinh duoc chi nhanh cua nguoi dung hien tai.' };
+-  }
+-
+-  const {
+-    data: previousUser,
+-    error: snapshotError,
+-  }: { data: UserRow | null; error: { message?: string } | null } = await supabase
+-    .from('users')
+-    .select('*')
+-    .eq('id', id)
+-    .eq('tenant_id', tenantId)
+-    .single();
+-
+-  if (snapshotError || !previousUser) {
+-    return { error: snapshotError?.message || 'User not found' };
+-  }
+-
+-  const {
+-    data: _previousStaffLeaves,
+-    error: staffLeavesSnapshotError,
+-  }: { data: StaffLeaveRow[] | null; error: { message?: string } | null } = await supabase
+-    .from('staff_leaves')
+-    .select('*')
+-    .eq('user_id', id)
+-    .eq('tenant_id', tenantId);
+-
+-  if (staffLeavesSnapshotError) {
+-    return { error: staffLeavesSnapshotError.message || 'Failed to snapshot staff leaves' };
+-  }
+-  
+-  // Always use soft delete to prevent foreign key constraint violations
+-  // Many tables reference users: bookings, attendance, sessions, salary_records, 
+-  // expenses, audit_logs, kpi_records, leave_requests, product_sales, etc.
+-  
+-  // IMPORTANT: Delete from Supabase Auth first to free email for reuse
+-  const { deleteAuthUser } = await import('@/lib/supabase-admin');
+-  const authDeleteError = await deleteAuthUser(id);
+-  if (authDeleteError) {
+-    console.warn('[deleteUser] Failed to delete from auth.users:', authDeleteError);
+-    // Continue with soft delete anyway - auth deletion is best-effort
+-  }
+-  
+-  // Soft delete in public.users: Set resignation_date + archive email
+-  const timestamp = Date.now();
+-  const originalEmail = previousUser.email;
+-  const archivedEmail = originalEmail ? `${timestamp}.deleted.${originalEmail}` : `${timestamp}.deleted@archived.local`;
+-  
+-  const { error: softDeleteError } = await supabase
+-    .from('users')
+-    .update({ 
+-      resignation_date: new Date().toISOString().split('T')[0],
+-      email: archivedEmail, // Archive email to free it for reuse
+-      updated_at: new Date().toISOString()
+-    })
+-    .eq('id', id)
+-    .eq('tenant_id', tenantId);
+-  
+-  if (softDeleteError) {
+-    console.error('Error soft deleting user:', softDeleteError);
+-    return { error: 'Không thể xóa nhân sự: ' + softDeleteError.message };
+-  }
+-  
+-  // Record audit log for soft delete
+-  try {
+-    await recordAuditLog({
+-      action: 'UPDATE',
+-      table_name: 'users',
+-      record_id: id,
+-      old_data: toUserAuditSnapshot(previousUser),
+-      new_data: { resignation_date: new Date().toISOString().split('T')[0] }
+-    });
+-  } catch (auditError: unknown) {
+-    console.warn('Failed to record soft delete audit log:', auditError);
+-    // Don't rollback soft delete if audit fails
+-  }
+-  
+-  await safeRevalidatePath('/dashboard/settings');
+-  return { 
+-    success: true,
+-    message: 'Nhân sự đã được đánh dấu nghỉ việc.'
+-  };
++export async function deleteUser(_id: string): Promise<DeleteUserResult> {
++  // Do not delete Auth identities before a denied profile mutation or infer management authority.
++  return { error: IDENTITY_MANAGEMENT_HOLD };
+ }
+ 
+ export async function updateBaseSalary(id: string, base_salary: number) {
+diff --git a/src/services/onboarding-actions.ts b/src/services/onboarding-actions.ts
+index fac8e9f7a..7277524b4 100644
+--- a/src/services/onboarding-actions.ts
++++ b/src/services/onboarding-actions.ts
+@@ -1,6 +1,5 @@
+ 'use server';
+ 
+-import { createClient } from '@/lib/supabase-server';
+ import { safeRevalidatePath } from '@/lib/revalidate';
+ import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
+ import {
+@@ -60,13 +59,9 @@ function formatCleanupNote(label: string, message: string) {
+ }
+ 
+ async function rollbackCreatedAuthUser(
+-  supabaseAdmin: AdminAuthClient | null,
++  supabaseAdmin: AdminAuthClient,
+   authUserId: string,
+ ) {
+-  if (!supabaseAdmin) {
+-    return '';
+-  }
+-
+   const { error } = await supabaseAdmin.auth.admin.deleteUser(authUserId);
+   return error?.message || '';
+ }
+@@ -192,8 +187,6 @@ async function assertProductSetupAllowed(productKey: RegisterTenantProductKey) {
+  * Leverages the database SECURITY DEFINER function onboard_tenant.
+  */
+ export async function registerNewTenant(input: RegisterTenantInput) {
+-  const supabase = await createClient();
+-
+   try {
+     // 1. Validate parameters
+     if (!input.spaName || !input.adminName || !input.adminEmail) {
+@@ -215,84 +208,39 @@ export async function registerNewTenant(input: RegisterTenantInput) {
+       return { success: false, error: hospitalityProfileResult.error };
+     }
+ 
+-    // 2. Auth SignUp
+-    // Create the Auth User. If a Supabase admin key is available, we use the Admin API
+-    // with email_confirm: true to completely bypass email sending and avoid "email rate limit exceeded".
+-    const password = input.adminPassword || 'Password123!';
+-    let authUser: AuthUser | null = null;
+-    let supabaseAdminForAuthRollback: AdminAuthClient | null = null;
+-    let supabaseAdminForTenantSetup: SupabaseClient<Database> | null = null;
++    // Provisioning requires the retained privileged client; never fall back to a client RPC or signUp.
+     const adminUrl = getSupabaseAdminUrl();
+     const serviceRoleKey = getSupabaseAdminKey();
++    if (!adminUrl || !serviceRoleKey) {
++      return {
++        success: false,
++        error: 'ONBOARDING_SETUP_UNAVAILABLE: Hệ thống chưa cấu hình kết nối quản trị để tạo tenant.',
++      };
++    }
+ 
+-    if (adminUrl && serviceRoleKey) {
+-      console.log('[registerNewTenant] Creating confirmed user via admin client to bypass email rate limits');
+-      const { createClient: createSupabaseClient } = await import('@supabase/supabase-js');
+-      const supabaseAdmin = createSupabaseClient<Database>(
+-        adminUrl,
+-        serviceRoleKey,
+-        {
+-          auth: {
+-            persistSession: false,
+-            autoRefreshToken: false,
+-          }
+-        }
+-      );
+-      supabaseAdminForAuthRollback = supabaseAdmin as AdminAuthClient;
+-      supabaseAdminForTenantSetup = supabaseAdmin;
+-
+-      const { data: adminData, error: adminError } = await supabaseAdmin.auth.admin.createUser({
+-        email: input.adminEmail,
+-        password: password,
+-        email_confirm: true,
+-        user_metadata: {
+-          full_name: input.adminName,
+-        }
+-      });
+-
+-      if (adminError) {
+-        console.error('[registerNewTenant] Admin auth signup failed:', adminError.message);
+-        return { success: false, error: adminError.message };
+-      }
+-
+-      authUser = adminData?.user?.id ? { id: adminData.user.id } : null;
+-    } else {
+-      console.log('[registerNewTenant] Supabase admin key not found. Attempting custom RPC create_onboarding_user to bypass rate limits');
+-      const { data: userId, error: rpcErr } = await supabase.rpc('create_onboarding_user', {
+-        p_email: input.adminEmail,
+-        p_password: password,
+-        p_full_name: input.adminName
+-      });
+-
+-      if (rpcErr) {
+-        console.error('[registerNewTenant] Custom RPC signup failed, falling back to standard signUp:', rpcErr.message);
+-        
+-        // Final fallback to standard signUp if custom RPC fails
+-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+-          email: input.adminEmail,
+-          password: password,
+-          options: {
+-            data: {
+-              full_name: input.adminName,
+-            }
+-          }
+-        });
+-
+-        if (signUpError) {
+-          console.error('[registerNewTenant] Standard auth signup failed:', signUpError.message);
+-          return { success: false, error: signUpError.message };
+-        }
++    const password = input.adminPassword || 'Password123!';
++    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js');
++    const supabaseAdmin = createSupabaseClient<Database>(adminUrl, serviceRoleKey, {
++      auth: {
++        persistSession: false,
++        autoRefreshToken: false,
++      },
++    });
++    const { data: adminData, error: adminError } = await supabaseAdmin.auth.admin.createUser({
++      email: input.adminEmail,
++      password,
++      email_confirm: true,
++      user_metadata: {
++        full_name: input.adminName,
++      },
++    });
+ 
+-        authUser = signUpData?.user?.id ? { id: signUpData.user.id } : null;
+-      } else if (!userId) {
+-        console.error('[registerNewTenant] Custom RPC returned null user ID');
+-        return { success: false, error: 'Không thể tạo tài khoản xác thực qua database.' };
+-      } else {
+-        console.log('[registerNewTenant] Custom RPC signup succeeded, user ID:', userId);
+-        authUser = { id: userId as string };
+-      }
++    if (adminError) {
++      console.error('[registerNewTenant] Admin auth signup failed:', adminError.message);
++      return { success: false, error: adminError.message };
+     }
+ 
++    const authUser: AuthUser | null = adminData?.user?.id ? { id: adminData.user.id } : null;
+     if (!authUser) {
+       return { success: false, error: 'Không thể tạo tài khoản xác thực. Vui lòng thử lại.' };
+     }
+@@ -311,8 +259,7 @@ export async function registerNewTenant(input: RegisterTenantInput) {
+       }
+     ) => Promise<{ data: string | null; error: { message: string } | null }>;
+ 
+-    const adminRpc = supabaseAdminForTenantSetup as unknown as { rpc?: OnboardTenantRpc } | null;
+-    const onboardingRpcClient = (adminRpc?.rpc ? adminRpc : supabase) as unknown as { rpc: OnboardTenantRpc };
++    const onboardingRpcClient = supabaseAdmin as unknown as { rpc: OnboardTenantRpc };
+     const { data: tenantId, error: rpcError } = await onboardingRpcClient.rpc('onboard_tenant', {
+       p_spa_name: input.spaName,
+       p_contact_phone: input.contactPhone || '',
+@@ -325,13 +272,13 @@ export async function registerNewTenant(input: RegisterTenantInput) {
+  
+     if (rpcError) {
+       console.error('[registerNewTenant] Database onboarding RPC failed:', rpcError.message);
+-      const authRollbackError = await rollbackCreatedAuthUser(supabaseAdminForAuthRollback, authUser.id);
++      const authRollbackError = await rollbackCreatedAuthUser(supabaseAdmin, authUser.id);
+       const rollbackNote = formatCleanupNote('auth cleanup', authRollbackError);
+       return { success: false, error: `${rpcError.message}${rollbackNote}` };
+     }
+ 
+     // 3.1. Update HQ-managed tenant setup fields after the base onboarding RPC.
+-    const tenantSetupClient = supabaseAdminForTenantSetup ?? supabase;
++    const tenantSetupClient = supabaseAdmin;
+     const postOnboardingUpdate: TenantUpdate = {
+       product_key: productKey,
+       enabled_modules: toEnabledModulesJsonForBusinessModule(businessModule),
+diff --git a/src/__tests__/user-actions.test.ts b/src/__tests__/user-actions.test.ts
+index b6fadf38d..e58baf862 100644
+--- a/src/__tests__/user-actions.test.ts
++++ b/src/__tests__/user-actions.test.ts
+@@ -1,4 +1,6 @@
+ import { createUser, deleteUser, getCurrentUser, updateBaseSalary, updateUser, updateUserStatus } from '../services/user-actions';
++import { createClient as createSessionClient } from '@/lib/supabase-server';
++import { createClient as createAdminClient } from '@supabase/supabase-js';
+ 
+ const mockFrom = jest.fn();
+ const mockGetSession = jest.fn();
+@@ -6,6 +8,8 @@ const mockGetUser = jest.fn();
+ const mockAdminFrom = jest.fn();
+ const mockCreateAdminUser = jest.fn();
+ const mockDeleteAuthUser = jest.fn();
++const mockPrivilegedDeleteAuthUser = jest.fn();
++const mockSendTemporaryPasswordEmail = jest.fn();
+ const mockRecordAuditLog = jest.fn();
+ const mockSafeRevalidatePath = jest.fn();
+ const mockRecalculateAndSaveSalaryRecordEngine = jest.fn();
+@@ -34,6 +38,14 @@ jest.mock('@supabase/supabase-js', () => ({
+   })),
+ }));
+ 
++jest.mock('../lib/supabase-admin', () => ({
++  deleteAuthUser: (...args: unknown[]) => mockPrivilegedDeleteAuthUser(...args),
++}));
++
++jest.mock('../lib/mail', () => ({
++  sendTemporaryPasswordEmail: (...args: unknown[]) => mockSendTemporaryPasswordEmail(...args),
++}));
++
+ jest.mock('../services/audit-actions', () => ({
+   recordAuditLog: (payload: unknown) => mockRecordAuditLog(payload),
+ }));
+@@ -175,12 +187,6 @@ describe('user update audit rollback', () => {
+     return calls;
+   }
+ 
+-  function installScriptedAdminSupabase(scripts: ScriptedResult[]) {
+-    const calls: DbCall[] = [];
+-    mockAdminFrom.mockImplementation((table: string) => new ScriptedQueryBuilder(table, scripts, calls));
+-    return calls;
+-  }
+-
+   function installCurrentUser() {
+     return installScriptedSupabase([
+       {
+@@ -317,294 +323,68 @@ describe('user update audit rollback', () => {
+     expect(mockFrom).not.toHaveBeenCalled();
+   });
+ 
+-  const deletedUserSnapshot = {
+-    avatar_url: null,
+-    base_salary: 9000000,
+-    created_at: '2026-05-01T00:00:00.000Z',
+-    email: 'delete.me@bella.test',
+-    full_name: 'Delete Me',
+-    hire_date: '2026-05-01',
+-    id: 'delete-user-1',
+-    phone: '0900000000',
+-    resignation_date: null,
+-    role: 'ktv',
+-    status: 'active',
+-    tenant_id: 'tenant-1',
+-    updated_at: '2026-05-20T00:00:00.000Z',
+-  };
+-
+-  const deletedStaffLeaveSnapshot = {
+-    approved_by: null,
+-    created_at: '2026-05-10T00:00:00.000Z',
+-    id: 'leave-1',
+-    leave_date: '2026-05-20',
+-    leave_type: 'full_day',
+-    reason: 'Personal',
+-    rejection_reason: null,
+-    status: 'pending',
+-    tenant_id: 'tenant-1',
+-    updated_at: '2026-05-10T00:00:00.000Z',
+-    user_id: 'delete-user-1',
+-  };
+-
+-  it('creates auth user, profile row, audit log, and revalidates on success', async () => {
+-    installCurrentUser();
+-    const adminCalls = installScriptedAdminSupabase([
+-      {
+-        table: 'users',
+-        op: 'insert',
+-        data: {
+-          id: 'created-user-1',
+-          email: createUserInput.email,
+-          full_name: createUserInput.full_name,
+-          role: createUserInput.role,
+-          tenant_id: 'tenant-1',
+-          status: 'active',
+-        },
+-      },
+-    ]);
+-
+-    const result = await createUser(createUserInput);
+-
+-    expect(result.data).toEqual(expect.objectContaining({ id: 'created-user-1' }));
+-    expect(result.defaultPassword).toEqual(expect.stringMatching(/^Bella-.+1aA!$/));
+-    expect(mockCreateAdminUser).toHaveBeenCalledWith(expect.objectContaining({
+-      email: createUserInput.email,
+-      email_confirm: true,
+-      user_metadata: { full_name: createUserInput.full_name },
+-    }));
+-    expect(adminCalls.map(c => c.payload)).toEqual([[
+-      {
+-        id: 'created-user-1',
+-        email: createUserInput.email,
+-        full_name: createUserInput.full_name,
+-        role: createUserInput.role,
+-        status: 'active',
+-        tenant_id: 'tenant-1',
+-      },
+-    ]]);
+-    expect(mockRecordAuditLog).toHaveBeenCalledWith(expect.objectContaining({
+-      action: 'INSERT',
+-      table_name: 'users',
+-      record_id: 'created-user-1',
+-      new_data: {
+-        full_name: createUserInput.full_name,
+-        email: createUserInput.email,
+-        role: createUserInput.role,
+-      },
+-    }));
+-    expect(mockSafeRevalidatePath).toHaveBeenCalledWith('/dashboard/settings');
+-  });
+-
+-  it('rolls back auth user when profile insert fails', async () => {
+-    installCurrentUser();
+-    installScriptedAdminSupabase([
+-      { table: 'users', op: 'insert', error: { message: 'profile insert failed' } },
++  it.each([
++    { label: 'missing Auth', actorId: null, callerRole: null, targetRole: 'ktv' },
++    { label: 'admin', actorId: 'admin-1', callerRole: 'admin', targetRole: 'admin' },
++    { label: 'HR', actorId: 'hr-1', callerRole: 'hr', targetRole: 'admin' },
++    { label: 'manager', actorId: 'manager-1', callerRole: 'manager', targetRole: 'manager' },
++    { label: 'unrecognized role', actorId: 'unknown-1', callerRole: 'arbitrary_role', targetRole: 'super_admin' },
++  ])('holds createUser for $label before all identity side effects', async ({ actorId, callerRole, targetRole }) => {
++    mockGetUser.mockResolvedValue({ data: { user: actorId ? { id: actorId } : null }, error: null });
++    installScriptedSupabase([
++      { table: 'users', op: 'select', data: { id: actorId, role: callerRole, tenant_id: 'tenant-1', status: 'active' } },
++      { table: 'tenants', op: 'select', data: { status: 'active' } },
+     ]);
+ 
+-    const result = await createUser(createUserInput);
++    const result = await createUser({ ...createUserInput, role: targetRole });
+ 
+-    expect(result.error).toContain('profile insert failed');
+-    expect(mockDeleteAuthUser).toHaveBeenCalledWith('created-user-1');
++    expect(result.error).toContain('IDENTITY_MANAGEMENT_AUTHORIZATION_NOT_READY');
++    expect(result.data).toBeUndefined();
++    expect(result.defaultPassword).toBeUndefined();
++    expect(result.emailSent).toBeUndefined();
++    expect(createSessionClient).not.toHaveBeenCalled();
++    expect(createAdminClient).not.toHaveBeenCalled();
++    expect(mockGetUser).not.toHaveBeenCalled();
++    expect(mockFrom).not.toHaveBeenCalled();
++    expect(mockAdminFrom).not.toHaveBeenCalled();
++    expect(mockCreateAdminUser).not.toHaveBeenCalled();
++    expect(mockDeleteAuthUser).not.toHaveBeenCalled();
++    expect(mockPrivilegedDeleteAuthUser).not.toHaveBeenCalled();
++    expect(mockSendTemporaryPasswordEmail).not.toHaveBeenCalled();
+     expect(mockRecordAuditLog).not.toHaveBeenCalled();
+     expect(mockSafeRevalidatePath).not.toHaveBeenCalled();
+   });
+ 
+-  it('reports auth rollback failure when profile insert fails', async () => {
+-    installCurrentUser();
+-    installScriptedAdminSupabase([
+-      { table: 'users', op: 'insert', error: { message: 'profile insert failed' } },
+-    ]);
+-    mockDeleteAuthUser.mockResolvedValue({ error: { message: 'auth delete failed' } });
+-
+-    const result = await createUser(createUserInput);
+-
+-    expect(result.error).toContain('profile insert failed');
+-    expect(result.error).toContain('auth rollback failed: auth delete failed');
+-  });
+-
+-  it('rolls back profile and auth user when create audit logging fails', async () => {
+-    installCurrentUser();
+-    const adminCalls = installScriptedAdminSupabase([
+-      {
+-        table: 'users',
+-        op: 'insert',
+-        data: {
+-          id: 'created-user-1',
+-          email: createUserInput.email,
+-          full_name: createUserInput.full_name,
+-          role: createUserInput.role,
+-          tenant_id: 'tenant-1',
+-          status: 'active',
+-        },
+-      },
+-      { table: 'users', op: 'delete' },
+-    ]);
+-    mockRecordAuditLog.mockRejectedValue(new Error('audit failed'));
+-
+-    const result = await createUser(createUserInput);
+-
+-    expect(result.error).toContain('audit failed');
+-    expect(adminCalls.map(c => ({ op: c.op, payload: c.payload }))).toEqual([
+-      {
+-        op: 'insert',
+-        payload: [{
+-          id: 'created-user-1',
+-          email: createUserInput.email,
+-          full_name: createUserInput.full_name,
+-          role: createUserInput.role,
+-          status: 'active',
+-          tenant_id: 'tenant-1',
+-        }],
+-      },
+-      { op: 'delete', payload: undefined },
+-    ]);
+-    expect(mockDeleteAuthUser).toHaveBeenCalledWith('created-user-1');
+-    expect(mockSafeRevalidatePath).not.toHaveBeenCalled();
+-  });
+-
+-  it('reports cleanup failures when create audit rollback fails', async () => {
+-    installCurrentUser();
+-    installScriptedAdminSupabase([
+-      {
+-        table: 'users',
+-        op: 'insert',
+-        data: {
+-          id: 'created-user-1',
+-          email: createUserInput.email,
+-          full_name: createUserInput.full_name,
+-          role: createUserInput.role,
+-          tenant_id: 'tenant-1',
+-          status: 'active',
+-        },
+-      },
+-      { table: 'users', op: 'delete', error: { message: 'profile delete failed' } },
+-    ]);
+-    mockRecordAuditLog.mockRejectedValue(new Error('audit failed'));
+-    mockDeleteAuthUser.mockResolvedValue({ error: { message: 'auth delete failed' } });
+-
+-    const result = await createUser(createUserInput);
+-
+-    expect(result.error).toContain('audit failed');
+-    expect(result.error).toContain('profile rollback failed: profile delete failed');
+-    expect(result.error).toContain('auth rollback failed: auth delete failed');
+-  });
+-
+-  it('deletes user and records old audit data on success', async () => {
+-    const calls = installTenantScopedSupabase([
+-      { table: 'users', op: 'select', data: deletedUserSnapshot },
+-      { table: 'staff_leaves', op: 'select', data: [] },
+-      { table: 'users', op: 'update' },
+-    ]);
+-
+-    const result = await deleteUser('delete-user-1');
+-
+-    expect(result).toEqual({
+-      success: true,
+-      message: 'Nhân sự đã được đánh dấu nghỉ việc.',
+-    });
+-    expect(actionCalls(calls).map(c => `${c.table}.${c.op}`)).toEqual([
+-      'users.select',
+-      'staff_leaves.select',
+-      'users.update',
+-    ]);
+-    expect(actionCalls(calls)[0].filters).toEqual(expect.arrayContaining([
+-      { field: 'id', value: 'delete-user-1' },
+-      { field: 'tenant_id', value: 'tenant-1' },
+-    ]));
+-    expect(actionCalls(calls)[1].filters).toEqual(expect.arrayContaining([
+-      { field: 'user_id', value: 'delete-user-1' },
+-      { field: 'tenant_id', value: 'tenant-1' },
+-    ]));
+-    expect(actionCalls(calls)[2].filters).toEqual(expect.arrayContaining([
+-      { field: 'id', value: 'delete-user-1' },
+-      { field: 'tenant_id', value: 'tenant-1' },
+-    ]));
+-    expect(mockRecordAuditLog).toHaveBeenCalledWith({
+-      action: 'UPDATE',
+-      table_name: 'users',
+-      record_id: 'delete-user-1',
+-      old_data: expect.any(Object),
+-      new_data: expect.objectContaining({
+-        resignation_date: expect.any(String),
+-      }),
+-    });
+-    expect(mockSafeRevalidatePath).toHaveBeenCalledWith('/dashboard/settings');
+-  });
+-
+-  it('does not delete user when delete snapshot fails', async () => {
+-    const calls = installTenantScopedSupabase([
+-      { table: 'users', op: 'select', error: { message: 'snapshot failed' } },
++  it.each([
++    { label: 'missing Auth', actorId: null, callerRole: null },
++    { label: 'admin', actorId: 'admin-1', callerRole: 'admin' },
++    { label: 'HR', actorId: 'hr-1', callerRole: 'hr' },
++    { label: 'manager', actorId: 'manager-1', callerRole: 'manager' },
++    { label: 'unrecognized role', actorId: 'unknown-1', callerRole: 'arbitrary_role' },
++  ])('holds deleteUser for $label before Auth deletion or profile mutation', async ({ actorId, callerRole }) => {
++    mockGetUser.mockResolvedValue({ data: { user: actorId ? { id: actorId } : null }, error: null });
++    installScriptedSupabase([
++      { table: 'users', op: 'select', data: { id: actorId, role: callerRole, tenant_id: 'tenant-1', status: 'active' } },
++      { table: 'tenants', op: 'select', data: { status: 'active' } },
+     ]);
+ 
+     const result = await deleteUser('delete-user-1');
+ 
+-    expect(result.error).toContain('snapshot failed');
+-    expect(actionCalls(calls).map(c => c.op)).toEqual(['select']);
++    expect(result.error).toContain('IDENTITY_MANAGEMENT_AUTHORIZATION_NOT_READY');
++    expect(result.success).toBeUndefined();
++    expect(createSessionClient).not.toHaveBeenCalled();
++    expect(createAdminClient).not.toHaveBeenCalled();
++    expect(mockGetUser).not.toHaveBeenCalled();
++    expect(mockFrom).not.toHaveBeenCalled();
++    expect(mockAdminFrom).not.toHaveBeenCalled();
++    expect(mockCreateAdminUser).not.toHaveBeenCalled();
++    expect(mockDeleteAuthUser).not.toHaveBeenCalled();
++    expect(mockPrivilegedDeleteAuthUser).not.toHaveBeenCalled();
++    expect(mockSendTemporaryPasswordEmail).not.toHaveBeenCalled();
+     expect(mockRecordAuditLog).not.toHaveBeenCalled();
+     expect(mockSafeRevalidatePath).not.toHaveBeenCalled();
+   });
+ 
+-  it.skip('restores deleted user when delete audit logging fails', async () => {
+-    const calls = installTenantScopedSupabase([
+-      { table: 'users', op: 'select', data: deletedUserSnapshot },
+-      { table: 'staff_leaves', op: 'select', data: [deletedStaffLeaveSnapshot] },
+-      { table: 'users', op: 'delete' },
+-      { table: 'users', op: 'insert' },
+-      { table: 'staff_leaves', op: 'insert' },
+-    ]);
+-    mockRecordAuditLog.mockRejectedValue(new Error('audit failed'));
+-
+-    const result = await deleteUser('delete-user-1');
+-
+-    expect(result.error).toContain('audit failed');
+-    expect(actionCalls(calls).map(c => ({ table: c.table, op: c.op, payload: c.payload }))).toEqual([
+-      { table: 'users', op: 'select', payload: undefined },
+-      { table: 'staff_leaves', op: 'select', payload: undefined },
+-      { table: 'users', op: 'delete', payload: undefined },
+-      { table: 'users', op: 'insert', payload: [deletedUserSnapshot] },
+-      { table: 'staff_leaves', op: 'insert', payload: [deletedStaffLeaveSnapshot] },
+-    ]);
+-    expect(mockSafeRevalidatePath).not.toHaveBeenCalled();
+-  });
+-
+-  it.skip('reports restore failure when delete audit rollback fails', async () => {
+-    const calls = installTenantScopedSupabase([
+-      { table: 'users', op: 'select', data: deletedUserSnapshot },
+-      { table: 'staff_leaves', op: 'select', data: [deletedStaffLeaveSnapshot] },
+-      { table: 'users', op: 'delete' },
+-      { table: 'users', op: 'insert', error: { message: 'restore failed' } },
+-    ]);
+-    mockRecordAuditLog.mockRejectedValue(new Error('audit failed'));
+-
+-    const result = await deleteUser('delete-user-1');
+-
+-    expect(result.error).toContain('audit failed');
+-    expect(result.error).toContain('restore failed: restore failed');
+-    expect(actionCalls(calls).map(c => `${c.table}.${c.op}`)).toEqual([
+-      'users.select',
+-      'staff_leaves.select',
+-      'users.delete',
+-      'users.insert',
+-    ]);
+-  });
+-
+-  it.skip('reports staff leave restore failure when delete audit rollback partially fails', async () => {
+-    installTenantScopedSupabase([
+-      { table: 'users', op: 'select', data: deletedUserSnapshot },
+-      { table: 'staff_leaves', op: 'select', data: [deletedStaffLeaveSnapshot] },
+-      { table: 'users', op: 'delete' },
+-      { table: 'users', op: 'insert' },
+-      { table: 'staff_leaves', op: 'insert', error: { message: 'staff leave restore failed' } },
+-    ]);
+-    mockRecordAuditLog.mockRejectedValue(new Error('audit failed'));
+-
+-    const result = await deleteUser('delete-user-1');
+-
+-    expect(result.error).toContain('audit failed');
+-    expect(result.error).toContain('staff leaves restore failed: staff leave restore failed');
+-  });
+-
+   it('updates KTV base salary, recalculates salary, records audit, and revalidates', async () => {
+     installScriptedSupabase([
+       {
+diff --git a/src/__tests__/onboarding.test.ts b/src/__tests__/onboarding.test.ts
+index faa02755d..526dae708 100644
+--- a/src/__tests__/onboarding.test.ts
++++ b/src/__tests__/onboarding.test.ts
+@@ -21,12 +21,16 @@ jest.mock('server-only', () => ({}), { virtual: true });
+ // Setup global spies and mocks
+ const mockRpc = jest.fn();
+ const mockFrom = jest.fn();
++const mockSessionRpc = jest.fn();
++const mockSessionFrom = jest.fn();
++const mockSignUp = jest.fn();
+ const mockCheckHqAuth = jest.fn();
+ jest.mock('@/lib/supabase-server', () => ({
+-  createClient: () => Promise.resolve({
+-    rpc: mockRpc,
+-    from: mockFrom,
+-  }),
++  createClient: jest.fn(() => Promise.resolve({
++    rpc: mockSessionRpc,
++    from: mockSessionFrom,
++    auth: { signUp: mockSignUp },
++  })),
+ }));
+ 
+ jest.mock('@/services/hq-actions', () => ({
+@@ -73,6 +77,7 @@ import { registerNewTenant } from '../services/onboarding-actions';
+ import { recordAuditLog } from '@/services/audit-actions';
+ import { safeRevalidatePath } from '@/lib/revalidate';
+ import { createClient as createSupabaseJsClient } from '@supabase/supabase-js';
++import { createClient as createSessionClient } from '@/lib/supabase-server';
+ 
+ const mockRecordAuditLog = recordAuditLog as jest.Mock;
+ const mockSafeRevalidatePath = safeRevalidatePath as jest.Mock;
+@@ -90,6 +95,8 @@ describe('Tenant Onboarding System (Product Selection)', () => {
+     // Default setup: mock service role key for bypassing email signup
+     process.env.SUPABASE_SERVICE_ROLE_KEY = 'mock-service-role-key';
+     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://mock.supabase.co';
++    delete process.env.SUPABASE_SECRET_KEY;
++    delete process.env.SUPABASE_URL;
+     mockCreateUser.mockResolvedValue({
+       data: { user: { id: 'mock-auth-user-id' } },
+       error: null,
+@@ -109,6 +116,7 @@ describe('Tenant Onboarding System (Product Selection)', () => {
+         },
+       },
+       from: mockFrom,
++      rpc: mockRpc,
+     });
+ 
+     tenantQueryMock = new MockQueryBuilder({ success: true });
+@@ -129,8 +137,45 @@ describe('Tenant Onboarding System (Product Selection)', () => {
+   });
+ 
+   afterEach(() => {
++    expect(createSessionClient).not.toHaveBeenCalled();
++    expect(mockSessionRpc).not.toHaveBeenCalled();
++    expect(mockSessionFrom).not.toHaveBeenCalled();
++    expect(mockSignUp).not.toHaveBeenCalled();
+     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
++    delete process.env.SUPABASE_SECRET_KEY;
+     delete process.env.NEXT_PUBLIC_SUPABASE_URL;
++    delete process.env.SUPABASE_URL;
++  });
++
++  it.each([
++    { missing: 'admin key', publicUrl: 'http://127.0.0.1:1', serverUrl: '', serviceKey: '' },
++    { missing: 'admin URL', publicUrl: '', serverUrl: '', serviceKey: 'mock-service-role-key' },
++    { missing: 'admin URL and key', publicUrl: '', serverUrl: '', serviceKey: '' },
++  ])('fails before provisioning when $missing is missing', async ({ publicUrl, serverUrl, serviceKey }) => {
++    process.env.NEXT_PUBLIC_SUPABASE_URL = publicUrl;
++    process.env.SUPABASE_URL = serverUrl;
++    process.env.SUPABASE_SERVICE_ROLE_KEY = serviceKey;
++
++    const result = await registerNewTenant({
++      spaName: 'BabyCare Setup Unavailable',
++      contactPhone: '0900000000',
++      address: 'Synthetic address',
++      email: 'tenant@bella.test',
++      adminName: 'Test Admin',
++      adminEmail: 'admin@bella.test',
++      productKey: 'bella_babycare',
++    });
++
++    expect(result.success).toBe(false);
++    expect(result.error).toContain('ONBOARDING_SETUP_UNAVAILABLE');
++    expect(mockCreateSupabaseJsClient).not.toHaveBeenCalled();
++    expect(mockCreateUser).not.toHaveBeenCalled();
++    expect(mockDeleteUser).not.toHaveBeenCalled();
++    expect(mockRpc).not.toHaveBeenCalled();
++    expect(mockFrom).not.toHaveBeenCalled();
++    expect(mockRecordAuditLog).not.toHaveBeenCalled();
++    expect(mockSafeRevalidatePath).not.toHaveBeenCalled();
++    expect(mockCheckHqAuth).not.toHaveBeenCalled();
+   });
+ 
+   it('should successfully onboard a BabyCare tenant with explicit product identity', async () => {
+diff --git a/supabase/migrations/20261021030000_restrict_exec_sql_client_execution.sql b/supabase/migrations/20261021030000_restrict_exec_sql_client_execution.sql
+new file mode 100644
+index 000000000..11a4630bb
+--- /dev/null
++++ b/supabase/migrations/20261021030000_restrict_exec_sql_client_execution.sql
+@@ -0,0 +1,61 @@
++-- exec_sql is a maintenance helper, never an application-client capability.
++-- Preserve the existing owner/service_role/bella_migration_executor grants.
++-- The production delta was independently rehearsed and verified in Batch2B.
++-- Replaying this migration does not grant new privileges or change its body.
++DO $rpc_client_boundary$
++DECLARE
++  client_role text;
++  reviewed_clients text[] := ARRAY[
++    'anon', 'authenticated', 'authenticator', 'bella_developer',
++    'cli_login_postgres', 'dashboard_user', 'pg_checkpoint',
++    'pg_create_subscription', 'pg_database_owner', 'pg_execute_server_program',
++    'pg_maintain', 'pg_monitor', 'pg_read_all_data', 'pg_read_all_settings',
++    'pg_read_all_stats', 'pg_read_server_files', 'pg_signal_backend',
++    'pg_stat_scan_tables', 'pg_use_reserved_connections', 'pg_write_all_data',
++    'pg_write_server_files', 'pgbouncer', 'supabase_auth_admin',
++    'supabase_etl_admin', 'supabase_privileged_role', 'supabase_read_only_user',
++    'supabase_realtime_admin', 'supabase_replication_admin',
++    'supabase_storage_admin', 'verification_executor'
++  ];
++  maintenance_roles text[] := ARRAY['postgres', 'service_role', 'bella_migration_executor'];
++BEGIN
++  IF to_regprocedure('public.exec_sql(text)') IS NULL THEN
++    RETURN;
++  END IF;
++
++  IF EXISTS (
++    SELECT 1 FROM pg_proc p
++    CROSS JOIN LATERAL aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
++    WHERE p.oid = 'public.exec_sql(text)'::regprocedure
++      AND a.grantee <> 0
++      AND pg_get_userbyid(a.grantee) <> ALL(maintenance_roles || reviewed_clients)
++  ) THEN
++    RAISE EXCEPTION 'Unreviewed exec_sql grantee; review before changing privileges';
++  END IF;
++
++  REVOKE EXECUTE ON FUNCTION public.exec_sql(text) FROM PUBLIC;
++  FOREACH client_role IN ARRAY reviewed_clients LOOP
++    IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname = client_role) THEN
++      EXECUTE format('REVOKE EXECUTE ON FUNCTION public.exec_sql(text) FROM %I', client_role);
++    END IF;
++  END LOOP;
++
++  -- Reviewed client roles may inherit one another. Finish all direct revokes first.
++  FOREACH client_role IN ARRAY reviewed_clients LOOP
++    IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname = client_role) THEN
++      IF has_function_privilege(client_role, 'public.exec_sql(text)', 'EXECUTE') THEN
++        RAISE EXCEPTION 'Unreviewed inherited exec_sql privilege for %', client_role;
++      END IF;
++    END IF;
++  END LOOP;
++
++  IF EXISTS (
++    SELECT 1 FROM pg_proc p
++    CROSS JOIN LATERAL aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
++    WHERE p.oid = 'public.exec_sql(text)'::regprocedure
++      AND (a.grantee = 0 OR pg_get_userbyid(a.grantee) <> ALL(maintenance_roles))
++  ) THEN
++    RAISE EXCEPTION 'Unexpected exec_sql privileges remain';
++  END IF;
++END;
++$rpc_client_boundary$;
+diff --git a/supabase/migrations/20261021050000_contain_shared_identity_client_writes.sql b/supabase/migrations/20261021050000_contain_shared_identity_client_writes.sql
+new file mode 100644
+index 000000000..480dc47d8
+--- /dev/null
++++ b/supabase/migrations/20261021050000_contain_shared_identity_client_writes.sql
+@@ -0,0 +1,113 @@
++-- Owner-approved fail-closed identity containment. Preserve SELECT, policies,
++-- function bodies, maintenance ACLs, Auth data and all other relations.
++-- Reconcile staff/profile writer permissions through a proven contract before
++-- reopening any direct client mutation. Do not replace this with service bypass.
++DO $identity_client_boundary$
++DECLARE
++  client_role text;
++  privilege_name text;
++  writer_signature text;
++  writer_oid regprocedure;
++  execution_role record;
++  maintenance_roles text[] := ARRAY['postgres','service_role','bella_migration_executor'];
++  known_table_grantees text[] := ARRAY[
++    'postgres','anon','authenticated','service_role','bella_developer',
++    'bella_migration_executor','verification_executor'
++  ];
++BEGIN
++  IF to_regclass('public.users') IS NULL THEN
++    RAISE EXCEPTION 'Shared users prerequisite missing; do not apply partial identity containment';
++  END IF;
++
++  IF EXISTS (
++    SELECT 1 FROM pg_attribute
++    WHERE attrelid='public.users'::regclass AND attnum>0 AND NOT attisdropped
++      AND coalesce(cardinality(attacl),0)>0
++  ) THEN
++    RAISE EXCEPTION 'Unreviewed shared users column ACL; review before changing privileges';
++  END IF;
++
++  -- Do not silently absorb a new direct grantee or a column/inherited path.
++  IF EXISTS (
++    SELECT 1 FROM pg_class c
++    CROSS JOIN LATERAL aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) a
++    WHERE c.oid='public.users'::regclass
++      AND a.privilege_type<>'SELECT'
++      AND (a.grantee=0 OR pg_get_userbyid(a.grantee)<>ALL(known_table_grantees))
++  ) THEN
++    RAISE EXCEPTION 'Unreviewed shared users mutation grantee';
++  END IF;
++
++  FOREACH writer_signature IN ARRAY ARRAY[
++    'public.create_onboarding_user(text,text,text)',
++    'public.onboard_tenant(text,text,text,text,uuid,text,text)'
++  ] LOOP
++    writer_oid := to_regprocedure(writer_signature);
++    IF writer_oid IS NULL THEN
++      RAISE EXCEPTION 'Identity writer prerequisite missing: %',writer_signature;
++    END IF;
++    IF EXISTS (
++      SELECT 1 FROM pg_proc p
++      CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
++      WHERE p.oid=writer_oid AND a.grantee<>0
++        AND pg_get_userbyid(a.grantee)<>ALL(maintenance_roles || ARRAY['anon','authenticated'])
++    ) THEN
++      RAISE EXCEPTION 'Unreviewed identity writer grantee: %',writer_signature;
++    END IF;
++    EXECUTE format('REVOKE EXECUTE ON FUNCTION %s FROM PUBLIC',writer_oid);
++    FOREACH client_role IN ARRAY ARRAY['anon','authenticated'] LOOP
++      IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname=client_role) THEN
++        EXECUTE format('REVOKE EXECUTE ON FUNCTION %s FROM %I',writer_oid,client_role);
++      END IF;
++    END LOOP;
++  END LOOP;
++
++  FOREACH client_role IN ARRAY ARRAY['anon','authenticated'] LOOP
++    IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname=client_role) THEN
++      EXECUTE format('REVOKE INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN ON TABLE public.users FROM %I',client_role);
++      FOREACH privilege_name IN ARRAY ARRAY['INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN'] LOOP
++        IF has_table_privilege(client_role,'public.users',privilege_name) THEN
++          RAISE EXCEPTION 'Inherited users mutation privilege remains for %',client_role;
++        END IF;
++      END LOOP;
++      IF has_any_column_privilege(client_role,'public.users','INSERT,UPDATE,REFERENCES') THEN
++        RAISE EXCEPTION 'Column users mutation privilege remains for %',client_role;
++      END IF;
++      FOREACH writer_signature IN ARRAY ARRAY[
++        'public.create_onboarding_user(text,text,text)',
++        'public.onboard_tenant(text,text,text,text,uuid,text,text)'
++      ] LOOP
++        IF has_function_privilege(client_role,writer_signature,'EXECUTE') THEN
++          RAISE EXCEPTION 'Inherited identity writer privilege remains for %',client_role;
++        END IF;
++      END LOOP;
++    END IF;
++  END LOOP;
++
++  -- Removing PUBLIC intentionally removes inherited access for other client
++  -- roles too. Never convert their old PUBLIC access to explicit writer grants.
++  FOR execution_role IN SELECT rolname FROM pg_roles
++    WHERE NOT rolsuper AND rolname<>ALL(maintenance_roles)
++  LOOP
++    FOREACH writer_signature IN ARRAY ARRAY[
++      'public.create_onboarding_user(text,text,text)',
++      'public.onboard_tenant(text,text,text,text,uuid,text,text)'
++    ] LOOP
++      IF has_function_privilege(execution_role.rolname,writer_signature,'EXECUTE') THEN
++        RAISE EXCEPTION 'Unreviewed inherited identity writer privilege for %',execution_role.rolname;
++      END IF;
++    END LOOP;
++  END LOOP;
++
++  IF EXISTS (
++    SELECT 1 FROM pg_proc p
++    CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
++    WHERE p.oid IN(
++      'public.create_onboarding_user(text,text,text)'::regprocedure,
++      'public.onboard_tenant(text,text,text,text,uuid,text,text)'::regprocedure
++    ) AND (a.grantee=0 OR pg_get_userbyid(a.grantee)<>ALL(maintenance_roles))
++  ) THEN
++    RAISE EXCEPTION 'Unexpected identity writer grant remains';
++  END IF;
++END;
++$identity_client_boundary$;

@@ -1,0 +1,120 @@
+{
+  "target": "bmnbqbcdbuklhopfbopv",
+  "mode": "READ_ONLY_CATALOG",
+  "businessRowsRead": 0,
+  "mutations": 0,
+  "relations": [
+    {
+      "relname": "courses",
+      "relkind": "r",
+      "relrowsecurity": true
+    }
+  ],
+  "columns": [
+    {
+      "table_name": "courses",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "courses",
+      "column_name": "tenant_id",
+      "data_type": "uuid",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "courses",
+      "column_name": "module_key",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "courses",
+      "column_name": "title",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "courses",
+      "column_name": "description",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "courses",
+      "column_name": "specialty",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "courses",
+      "column_name": "tuition_amount",
+      "data_type": "numeric",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "courses",
+      "column_name": "theory_duration_minutes",
+      "data_type": "integer",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "courses",
+      "column_name": "status",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "courses",
+      "column_name": "created_by",
+      "data_type": "uuid",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "courses",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "courses",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO"
+    }
+  ],
+  "privileges": [
+    {
+      "relname": "courses",
+      "rolname": "anon",
+      "can_select": false
+    },
+    {
+      "relname": "courses",
+      "rolname": "authenticated",
+      "can_select": true
+    },
+    {
+      "relname": "courses",
+      "rolname": "service_role",
+      "can_select": true
+    }
+  ],
+  "policies": [
+    {
+      "tablename": "courses",
+      "policyname": "Training courses admin manage scoped tenant data",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE"
+    },
+    {
+      "tablename": "courses",
+      "policyname": "Training courses read scoped tenant data",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE"
+    }
+  ]
+}

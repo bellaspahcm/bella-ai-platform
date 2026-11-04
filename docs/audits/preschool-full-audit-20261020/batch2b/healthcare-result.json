@@ -1,0 +1,11 @@
+{
+  "mode": "healthcare",
+  "command": "npm.cmd run healthcare:verify",
+  "startedAt": "2026-10-20T20:18:10.837Z",
+  "finishedAt": "2026-10-20T20:19:41.365Z",
+  "exitCode": 1,
+  "signal": null,
+  "errorCode": null,
+  "networkConfig": "Process-scoped offline localhost endpoint and synthetic keys; no production DB business tests",
+  "rawLog": "healthcare.log"
+}

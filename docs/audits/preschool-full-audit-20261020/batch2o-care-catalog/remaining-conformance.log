@@ -1,0 +1,7 @@
+
+Test Suites: 2 passed, 2 total
+Tests:       16 passed, 16 total
+Snapshots:   0 total
+Time:        0.766 s
+Ran all test suites within paths "src/products/bella-education/__tests__/bella-education-customization-conformance.integration.test.ts", "src/products/bella-education/__tests__/bella-education-extension-conformance.integration.test.ts".
+Test results written to: docs\audits\preschool-full-audit-20261020\batch2o-care-catalog\remaining-conformance.json

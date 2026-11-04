@@ -16,6 +16,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import PreschoolSelect from '@/components/ui/PreschoolSelect';
 import {
   BarChart3,
   ArrowLeft,
@@ -456,17 +457,15 @@ function PreschoolReports({ tenantId }: { tenantId: string }) {
               </div>
 
               {/* Period report selector remains empty until a period contract exists. */}
-              <div className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700">
-                <select
-                  aria-label="Chọn kỳ báo cáo"
-                  aria-describedby="reports-period-note"
-                  value={selectedPeriod}
-                  onChange={(e) => setSelectedPeriod(e.target.value)}
-                  className="appearance-none bg-transparent text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
-                >
-              <option value="">Chưa có kỳ báo cáo</option>
-                </select>
-              </div>
+              <PreschoolSelect
+                aria-label="Chọn kỳ báo cáo"
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                wrapperClassName="min-w-[170px]"
+                className="py-2 px-3 text-xs font-bold"
+              >
+                <option value="">Chưa có kỳ báo cáo</option>
+              </PreschoolSelect>
 
               <button
                 type="button"
@@ -519,10 +518,16 @@ function PreschoolReports({ tenantId }: { tenantId: string }) {
         {branches.length > 1 && (
           <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
             Cơ sở
-            <select aria-label="Chọn cơ sở báo cáo" value={selectedBranchId ?? ''} onChange={(event) => { setDashboard(null); setSelectedBranchId(event.target.value || null); }} className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+            <PreschoolSelect
+              aria-label="Chọn cơ sở báo cáo"
+              value={selectedBranchId ?? ''}
+              onChange={(event) => { setDashboard(null); setSelectedBranchId(event.target.value || null); }}
+              wrapperClassName="min-w-[180px]"
+              className="py-2 text-xs font-semibold"
+            >
               <option value="">Chọn cơ sở</option>
               {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
-            </select>
+            </PreschoolSelect>
           </label>
         )}
         {!isLoading && !apiError && branches.length > 1 && !selectedBranchId && (

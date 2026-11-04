@@ -1,0 +1,63 @@
+{
+  "checkedAt": "2026-10-20T17:13:30.125Z",
+  "result": "PASS",
+  "target": "Isolated loopback PostgreSQL17.10",
+  "artifactSha256": "20e6b2e817b256b481ecefa5338ff5db0deafad8b4142cf8d818ffa79e32b027",
+  "tests": [
+    {
+      "name": "exactProductionSelectedCatalogRestored",
+      "result": "PASS"
+    },
+    {
+      "name": "baselineAnonymousActuallyReadsThreeSyntheticRows",
+      "result": "PASS"
+    },
+    {
+      "name": "failureBeforeMutation",
+      "result": "PASS"
+    },
+    {
+      "name": "failureAfterPartialMutation",
+      "result": "PASS"
+    },
+    {
+      "name": "failureAfterFullMutation",
+      "result": "PASS"
+    },
+    {
+      "name": "lockTimeoutRollsBackWithoutPartialDelta",
+      "result": "PASS"
+    },
+    {
+      "name": "exactApprovedArtifactCommitsLocally",
+      "result": "PASS"
+    },
+    {
+      "name": "all32AnonymousSelectAndWritesDenied",
+      "result": "PASS"
+    },
+    {
+      "name": "authenticatedActualReadsAndOwnedFixtureUpdatePreserved",
+      "result": "PASS"
+    },
+    {
+      "name": "serviceRoleActualReadsPreserved",
+      "result": "PASS"
+    },
+    {
+      "name": "scopedAclBackupCanRecoverInsideRolledBackLocalTrial",
+      "result": "PASS"
+    },
+    {
+      "name": "nonAnonymousAndPolicyHelperSchemaFingerprintPreserved",
+      "result": "PASS"
+    }
+  ],
+  "testsPassed": 12,
+  "anonymousSqlDeniedStatements": 160,
+  "authenticatedReadChecks": 35,
+  "serviceReadChecks": 35,
+  "productionRowsCopied": 0,
+  "productionChanges": 0,
+  "scope": "Actual PostgreSQL role/ACL/policy execution with canonical32-table shapes and local synthetic fixtures; not a browser Auth session or full business E2E"
+}

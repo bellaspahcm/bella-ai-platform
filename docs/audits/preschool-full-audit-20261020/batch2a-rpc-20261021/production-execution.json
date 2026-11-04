@@ -1,0 +1,12 @@
+{
+  "startedAt": "2026-10-20T17:18:47.546Z",
+  "finishedAt": "2026-10-20T17:18:50.820Z",
+  "target": "lvnvkpyxtuilhrabtlwv",
+  "artifactSha256": "20e6b2e817b256b481ecefa5338ff5db0deafad8b4142cf8d818ffa79e32b027",
+  "command": "node supabase/dist/supabase.js db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file EXECUTE_APPROVED_32_TABLE_ANON_CONTAINMENT.sql --output json --yes",
+  "exitCode": 0,
+  "signal": null,
+  "errorCode": null,
+  "postChangeVerificationRequired": true,
+  "automaticRetry": false
+}

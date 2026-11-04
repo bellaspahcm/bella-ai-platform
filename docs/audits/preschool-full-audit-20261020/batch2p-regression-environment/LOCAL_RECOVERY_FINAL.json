@@ -1,0 +1,37 @@
+{
+  "capturedAt": "2026-10-21T05:15:32.218Z",
+  "project": "bella-preschool-regression-20261021",
+  "result": "PASS_INDEPENDENT_OWNED_LOCAL_RECOVERY",
+  "ownedContainerCount": 0,
+  "ownedVolumeCount": 0,
+  "ownedNetworkCount": 0,
+  "freePorts": [
+    {
+      "port": 24430,
+      "free": true
+    },
+    {
+      "port": 24431,
+      "free": true
+    },
+    {
+      "port": 24432,
+      "free": true
+    }
+  ],
+  "foreignContainerIdsPreserved": [
+    "7726cccd8d41",
+    "a9929c8258ab",
+    "c3078034b1a6",
+    "f9a43026f1ee"
+  ],
+  "lastResetReceipt": "local-stack-reset-2026-10-21T05-12-49-559Z.json",
+  "retainedSandboxFiles": [
+    "owner-marker.json",
+    "supabase/.branches/_current_branch",
+    "supabase/.temp/cli-latest",
+    "supabase/config.toml"
+  ],
+  "remoteOperations": 0,
+  "productionOperations": 0
+}

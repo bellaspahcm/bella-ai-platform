@@ -1,0 +1,7 @@
+{
+  "capturedAt": "2026-10-21T05:16:49.951Z",
+  "result": "PASS_PATTERNS_ONLY",
+  "filesChecked": 95,
+  "detected": [],
+  "scope": "JWT/full Supabase key/credentialed Postgres URL patterns only; not universal proof. Local raw logs not retained; sanitized structure and metadata only."
+}

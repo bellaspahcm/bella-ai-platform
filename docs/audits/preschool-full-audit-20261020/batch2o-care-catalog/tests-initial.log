@@ -1,0 +1,7 @@
+
+Test Suites: 3 passed, 3 total
+Tests:       61 passed, 61 total
+Snapshots:   0 total
+Time:        3.305 s
+Ran all test suites within paths "src/app/api/education/care/classes/__tests__/access.test.ts", "src/app/api/education/care/classes/__tests__/catalog-contract.test.ts", "src/app/dashboard/education/care/__tests__/page.test.tsx".
+Test results written to: docs\audits\preschool-full-audit-20261020\batch2o-care-catalog\tests-initial.json

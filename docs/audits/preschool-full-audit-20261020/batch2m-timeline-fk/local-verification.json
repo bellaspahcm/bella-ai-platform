@@ -1,0 +1,7 @@
+{
+  "scope": "Local fault controls only; not Real DB proof",
+  "faultTestNativeExitCode": 0,
+  "capturedAt": "2026-10-21T02:25:59.1673386Z",
+  "harnessSha256": "cf6668792ab9779d5019aa01039e259baffd681dbba7248d96f7d7e84275cbb9",
+  "syntaxNativeExitCode": 0
+}

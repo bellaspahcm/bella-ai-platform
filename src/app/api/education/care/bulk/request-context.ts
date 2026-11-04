@@ -97,6 +97,7 @@ export async function authorizeCareCourse(
   if (!branch.data || branch.data.id !== branchId || branch.data.tenant_id !== tenantId || branch.data.unit_type !== 'branch' || branch.data.is_active !== true) {
     throw new CareAccessError(403, 'CARE_BRANCH_ACCESS_DENIED');
   }
+
   const access = await client.from('user_org_unit_access').select('user_id, tenant_id, org_unit_id')
     .eq('tenant_id', tenantId).eq('user_id', actorId).eq('org_unit_id', branchId);
   if (access.error) throw new CareAccessError(503, 'CARE_BRANCH_SCOPE_UNAVAILABLE');

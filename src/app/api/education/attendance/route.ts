@@ -66,7 +66,7 @@ export async function GET(request: Request) {
     const branchScope = new PreschoolAttendanceAccessService(trusted);
     await branchScope.assertCourseAccess(context.tenantId, context.actorId, courseId);
     const roster = await service.getCourseDailyAttendance({ tenantId: context.tenantId, courseId, schoolDay: day });
-    for (const row of roster) await branchScope.assertEnrollmentAccess(context.tenantId, context.actorId, row.enrollmentId, row.studentPartyId, courseId);
+    await Promise.all(roster.map(row => branchScope.assertEnrollmentAccess(context.tenantId, context.actorId, row.enrollmentId, row.studentPartyId, courseId)));
     // Pickup tables are intentionally not directly selectable by callers.
     // Their existing trusted reader is bounded by the authorized roster and
     // the per-enrollment branch checks above; no table grant is added.

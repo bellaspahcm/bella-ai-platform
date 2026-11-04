@@ -1,0 +1,4 @@
+{"stage":"TIMELINE_PREPARATION","result":"PASS"}
+{"stage":"PRIOR_FIXTURE_CLEANUP","result":"PASS"}
+{"stage":"PREPARATION","result":"FAIL"}
+{"result":"FAIL","counts":{"PASS":5,"FAIL":2,"NOT_PROVEN":0},"cleanup":"NOT_RUN_NO_FIXTURES","recovery":{"attempted":false},"primaryFailure":"QUERY_READ_TIMEOUT","cleanupFailures":0,"report":"C:\\Users\\DELL\\.codex\\worktrees\\preschool-real-auth-acceptance-20261021\\BELLA SPA ERP\\docs\\audits\\preschool-full-audit-20261020\\batch2m-timeline-fk\\care-rls-results-2026-10-21T02-06-10-467Z.json","exitCode":1}

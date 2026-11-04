@@ -4,6 +4,8 @@
 **Status:** IN PROGRESS  
 **Purpose:** Define Education Finance Capability Model and Policy Space for Contract Generality
 
+> **Bella Preschool Fee Program:** This gate covers general Education Finance capabilities and policy space. Fee Program definitions, immutable version publication, item applicability, and billing-period resolution for Bella Preschool are owned by the Product and specified in the [Bella Preschool Fee Program Publish Contract](../products/bella-preschool/FEE_PROGRAM_PUBLISH_CONTRACT.md). This gate does not define Preschool fee amounts or select its accounting policy.
+
 ---
 
 ## Document Purpose

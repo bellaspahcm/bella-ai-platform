@@ -1,0 +1,8 @@
+{
+  "command": "supabase db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-trigger-preflight-readonly.sql -o json",
+  "startedUtc": "2026-10-27T04:24:57.9428429+00:00",
+  "endedUtc": "2026-10-27T04:25:00.9902398+00:00",
+  "exitCode": 0,
+  "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "querySha256": "77a86adf9b65c66a1c581c0ef4bf5abc68205ea50f2fd691ca91cd4c8c84f836"
+}

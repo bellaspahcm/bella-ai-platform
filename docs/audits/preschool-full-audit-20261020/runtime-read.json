@@ -1,0 +1,189 @@
+{
+  "checkedAt": "2026-10-20T15:35:46.840Z",
+  "result": "READ_ONLY",
+  "preschoolTenantCount": 100,
+  "selection": "Exact tenant referenced by current development API defaults",
+  "productIdentity": {
+    "productKey": "bella_preschool",
+    "educationModuleDeclared": true
+  },
+  "actorAvailable": true,
+  "reads": [
+    {
+      "table": "edu_courses",
+      "admin": {
+        "count": 8,
+        "error": null
+      },
+      "anonymous": {
+        "count": null,
+        "error": {
+          "code": "FETCH_ERROR"
+        }
+      }
+    },
+    {
+      "table": "edu_enrollments",
+      "admin": {
+        "count": 186,
+        "error": null
+      },
+      "anonymous": {
+        "count": 0,
+        "error": null
+      }
+    },
+    {
+      "table": "students",
+      "admin": {
+        "count": 186,
+        "error": null
+      },
+      "anonymous": {
+        "count": 186,
+        "error": null
+      }
+    },
+    {
+      "table": "edu_attendance",
+      "admin": {
+        "count": 19,
+        "error": null
+      },
+      "anonymous": {
+        "count": 0,
+        "error": null
+      }
+    },
+    {
+      "table": "edu_attendance_daily_state",
+      "admin": {
+        "count": 198,
+        "error": null
+      },
+      "anonymous": {
+        "count": null,
+        "error": {
+          "code": "FETCH_ERROR"
+        }
+      }
+    },
+    {
+      "table": "preschool_chain_course_branch_assignments",
+      "admin": {
+        "count": null,
+        "error": null
+      },
+      "anonymous": {
+        "count": null,
+        "error": null
+      }
+    },
+    {
+      "table": "preschool_chain_enrollment_branch_assignments",
+      "admin": {
+        "count": null,
+        "error": null
+      },
+      "anonymous": {
+        "count": null,
+        "error": null
+      }
+    },
+    {
+      "table": "user_org_unit_access",
+      "admin": {
+        "count": null,
+        "error": {
+          "code": "FETCH_ERROR"
+        }
+      },
+      "anonymous": {
+        "count": null,
+        "error": {
+          "code": "FETCH_ERROR"
+        }
+      }
+    },
+    {
+      "table": "edu_fin_invoices",
+      "admin": {
+        "count": 28,
+        "error": null
+      },
+      "anonymous": {
+        "count": 28,
+        "error": null
+      }
+    },
+    {
+      "table": "edu_fin_payments",
+      "admin": {
+        "count": 0,
+        "error": null
+      },
+      "anonymous": {
+        "count": 0,
+        "error": null
+      }
+    },
+    {
+      "table": "edu_fin_tuition_service_period_completions",
+      "admin": {
+        "count": 0,
+        "error": null
+      },
+      "anonymous": {
+        "count": null,
+        "error": {
+          "code": "FETCH_ERROR"
+        }
+      }
+    },
+    {
+      "table": "edu_care_daily_logs",
+      "admin": {
+        "count": null,
+        "error": null
+      },
+      "anonymous": {
+        "count": null,
+        "error": null
+      }
+    },
+    {
+      "table": "edu_comm_messages",
+      "admin": {
+        "count": null,
+        "error": null
+      },
+      "anonymous": {
+        "count": null,
+        "error": null
+      }
+    },
+    {
+      "table": "edu_sched_shift_assignments",
+      "admin": {
+        "count": 0,
+        "error": null
+      },
+      "anonymous": {
+        "count": 0,
+        "error": null
+      }
+    },
+    {
+      "table": "edu_fac_assets",
+      "admin": {
+        "count": 7,
+        "error": null
+      },
+      "anonymous": {
+        "count": 7,
+        "error": null
+      }
+    }
+  ],
+  "caveat": "Admin counts do not prove RLS. Anonymous reads are executed via public API key without a user JWT. No fixtures created."
+}

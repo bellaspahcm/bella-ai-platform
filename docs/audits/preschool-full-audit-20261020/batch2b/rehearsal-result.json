@@ -1,0 +1,48 @@
+{
+  "checkedAt": "2026-10-20T20:14:49.450Z",
+  "result": "PASS",
+  "testsPassed": 9,
+  "tests": [
+    {
+      "name": "exactProductionRpcAnd32TableBaseline",
+      "result": "PASS"
+    },
+    {
+      "name": "failureBeforeRevoke",
+      "result": "PASS"
+    },
+    {
+      "name": "failureAfter15ClientRevokes",
+      "result": "PASS"
+    },
+    {
+      "name": "failureAfterFullRevoke",
+      "result": "PASS"
+    },
+    {
+      "name": "exactArtifactCommitsLocally",
+      "result": "PASS"
+    },
+    {
+      "name": "all30UntrustedRolesActuallyDenied",
+      "result": "PASS"
+    },
+    {
+      "name": "maintenanceAndInherentSuperuserActuallyAllowed",
+      "result": "PASS"
+    },
+    {
+      "name": "scopedAclRecoveryMatchesExactPrestate",
+      "result": "PASS"
+    },
+    {
+      "name": "all32TablesPoliciesHelpersAndMembershipsPreserved",
+      "result": "PASS"
+    }
+  ],
+  "actualDeniedRoles": 30,
+  "actualAllowedRoles": 4,
+  "artifactSha256": "68ab41b7fc4088914012d5781f982f07aeefe7296ead54ea6a5ded3f155a7d7e",
+  "productionRowsCopied": 0,
+  "productionChanges": 0
+}

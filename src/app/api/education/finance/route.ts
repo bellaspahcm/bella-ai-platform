@@ -93,7 +93,6 @@ async function resolveCallerFinanceClient(actorId: string, tenantId: string): Pr
   if (tenantError || !tenant || tenant.id !== tenantId || tenant.status !== 'active') {
     throw new Error('FINANCE_PRODUCT_UNAVAILABLE: Active canonical tenant context is required.');
   }
-  if (tenant.product_key === 'bella_preschool') throw new Error('PRESCHOOL_FINANCE_NOT_READY');
   return client;
 }
 
@@ -103,8 +102,49 @@ export async function GET(request?: Request) {
     const callerClient = await resolveCallerFinanceClient(actor.actorId, actor.tenantId);
     const branchId = request ? new URL(request.url).searchParams.get('branchId')?.trim() || null : null;
     const client = createAdminOperationClient() ?? callerClient;
+
+    if (!actor.isSuperAdmin && branchId === 'ALL') {
+      throw new Error('AUTH_ROLE_PERMISSION_ERROR: Quyền quản trị viên chi nhánh chỉ được xem dữ liệu cơ sở được phân công. Chỉ Super-Admin (Hiệu trưởng / Chủ trường) mới có quyền xem tổng hợp toàn chuỗi.');
+    }
+
+    if (!actor.isSuperAdmin && branchId) {
+      const { data: accessRows } = await client
+        .from('user_org_unit_access')
+        .select('org_unit_id')
+        .eq('tenant_id', actor.tenantId)
+        .eq('user_id', actor.actorId)
+        .not('relationship_id', 'is', null);
+
+      if (accessRows && accessRows.length > 0) {
+        const allowedBranchIds = new Set(accessRows.map((r) => r.org_unit_id).filter((id): id is string => Boolean(id)));
+        if (!allowedBranchIds.has(branchId)) {
+          throw new Error('AUTH_ROLE_PERMISSION_ERROR: Bạn không có quyền truy cập dữ liệu tài chính của chi nhánh này.');
+        }
+      }
+    }
+
     const state = await new PreschoolFinanceRepository(client).readBranchState(actor.tenantId, actor.actorId, branchId);
-    return NextResponse.json({ success: true, ...state });
+
+    if (!actor.isSuperAdmin) {
+      const { data: accessRows } = await client
+        .from('user_org_unit_access')
+        .select('org_unit_id')
+        .eq('tenant_id', actor.tenantId)
+        .eq('user_id', actor.actorId)
+        .not('relationship_id', 'is', null);
+
+      if (accessRows && accessRows.length > 0) {
+        const allowedBranchIds = new Set(accessRows.map((r) => r.org_unit_id).filter((id): id is string => Boolean(id)));
+        state.branches = state.branches.filter((b) => allowedBranchIds.has(b.id));
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      actorRole: actor.role,
+      isSuperAdmin: actor.isSuperAdmin,
+      ...state,
+    }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) { return jsonError(error); }
 }
 
@@ -118,8 +158,26 @@ export async function POST(request: Request) {
     const callerClient = await resolveCallerFinanceClient(actor.actorId, actor.tenantId);
     const branchId = asString(body.branchId);
     if (!branchId) throw new Error('AUTH_ROLE_PERMISSION_ERROR: Explicit Finance branch selection required.');
+    if (branchId === 'ALL') throw new Error('AUTH_ROLE_PERMISSION_ERROR: Thao tác tài chính phải thực hiện trên một cơ sở cụ thể, không được thực hiện trên chế độ tổng hợp toàn chuỗi.');
     if (action === 'completeTuitionServicePeriod') throw new Error('AUTH_ROLE_PERMISSION_ERROR: Tenant-wide completion is unavailable in branch Finance.');
     const client = createAdminOperationClient() ?? callerClient;
+
+    if (!actor.isSuperAdmin) {
+      const { data: accessRows } = await client
+        .from('user_org_unit_access')
+        .select('org_unit_id')
+        .eq('tenant_id', actor.tenantId)
+        .eq('user_id', actor.actorId)
+        .not('relationship_id', 'is', null);
+
+      if (accessRows && accessRows.length > 0) {
+        const allowedBranchIds = new Set(accessRows.map((r) => r.org_unit_id).filter((id): id is string => Boolean(id)));
+        if (!allowedBranchIds.has(branchId)) {
+          throw new Error('AUTH_ROLE_PERMISSION_ERROR: Bạn không có quyền thao tác tài chính trên chi nhánh này.');
+        }
+      }
+    }
+
     const repo = new PreschoolFinanceRepository(client, { tenantId: actor.tenantId, actorId: actor.actorId, branchId });
 
     if (action === 'recordAndReconcilePayment') {

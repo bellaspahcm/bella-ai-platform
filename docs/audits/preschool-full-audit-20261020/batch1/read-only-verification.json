@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-20T16:03:09.606Z",
+  "transactionReadOnlyBefore": "on",
+  "transactionReadOnlyAfter": "on",
+  "unchanged": {
+    "tables": true,
+    "policies": true,
+    "table_grants": true,
+    "column_grants": true,
+    "roles": true,
+    "role_memberships": true,
+    "schema_grants": true,
+    "default_acl": true,
+    "helpers": true,
+    "views": true
+  },
+  "allSelectedCatalogObjectsUnchanged": true,
+  "draftExecuted": false,
+  "businessMutationsRun": 0
+}

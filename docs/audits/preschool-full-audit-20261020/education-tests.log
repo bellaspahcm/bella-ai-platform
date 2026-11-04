@@ -1,0 +1,3109 @@
+
+FAIL src/platform/education/course/__tests__/course.integration.test.ts (85.603 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from .env.test // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+  ● Course Integration Tests › CRUD Operations › should create course
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      25 |
+      26 |   describe('CRUD Operations', () => {
+    > 27 |     it('should create course', async () => {
+         |     ^
+      28 |       const request: CreateCourseRequest = {
+      29 |         tenantId,
+      30 |         courseCode: 'CS101',
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:27:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › CRUD Operations › should reject duplicate course code in same tenant
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      50 |     });
+      51 |
+    > 52 |     it('should reject duplicate course code in same tenant', async () => {
+         |     ^
+      53 |       const request: CreateCourseRequest = {
+      54 |         tenantId,
+      55 |         courseCode: 'CS101', // Duplicate
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:52:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › CRUD Operations › should get course by ID
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      65 |     });
+      66 |
+    > 67 |     it('should get course by ID', async () => {
+         |     ^
+      68 |       const result = await CourseService.getCourseById(courseId, tenantId);
+      69 |
+      70 |       expect(result.success).toBe(true);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:67:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › CRUD Operations › should get course by course code
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      73 |     });
+      74 |
+    > 75 |     it('should get course by course code', async () => {
+         |     ^
+      76 |       const result = await CourseService.getCourseByCourseCode('CS101', tenantId);
+      77 |
+      78 |       expect(result.success).toBe(true);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:75:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › CRUD Operations › should update course
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      81 |     });
+      82 |
+    > 83 |     it('should update course', async () => {
+         |     ^
+      84 |       const request: UpdateCourseRequest = {
+      85 |         courseId,
+      86 |         tenantId,
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:83:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › CRUD Operations › should query courses by tenant
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+       97 |     });
+       98 |
+    >  99 |     it('should query courses by tenant', async () => {
+          |     ^
+      100 |       const result = await CourseService.queryCourses({ tenantId });
+      101 |
+      102 |       expect(result.success).toBe(true);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:99:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › CRUD Operations › should query courses by status
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      105 |     });
+      106 |
+    > 107 |     it('should query courses by status', async () => {
+          |     ^
+      108 |       const result = await CourseService.queryCourses({
+      109 |         tenantId,
+      110 |         status: 'draft',
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:107:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Tenant Isolation › should not find course from different tenant
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      117 |
+      118 |   describe('Tenant Isolation', () => {
+    > 119 |     it('should not find course from different tenant', async () => {
+          |     ^
+      120 |       const otherTenantId = '99999999-9999-9999-9999-999999999999';
+      121 |
+      122 |       const result = await CourseService.getCourseById(courseId, otherTenantId);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:119:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:118:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Tenant Isolation › should only return courses from same tenant in query
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      126 |     });
+      127 |
+    > 128 |     it('should only return courses from same tenant in query', async () => {
+          |     ^
+      129 |       const result = await CourseService.queryCourses({ tenantId });
+      130 |
+      131 |       expect(result.success).toBe(true);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:128:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:118:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Status Transitions › should activate course
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      135 |
+      136 |   describe('Status Transitions', () => {
+    > 137 |     it('should activate course', async () => {
+          |     ^
+      138 |       const result = await CourseService.activateCourse(courseId, tenantId, TEST_USER_UUID);
+      139 |
+      140 |       expect(result.success).toBe(true);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:137:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:136:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Status Transitions › should start course
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      142 |     });
+      143 |
+    > 144 |     it('should start course', async () => {
+          |     ^
+      145 |       // First, simulate enrollments to meet minimum
+      146 |       const supabase = await createClient();
+      147 |       await supabase
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:144:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:136:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Status Transitions › should complete course
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      156 |     });
+      157 |
+    > 158 |     it('should complete course', async () => {
+          |     ^
+      159 |       const result = await CourseService.completeCourse(courseId, tenantId, TEST_USER_UUID);
+      160 |
+      161 |       expect(result.success).toBe(true);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:158:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:136:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Status Transitions › should archive completed course
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      163 |     });
+      164 |
+    > 165 |     it('should archive completed course', async () => {
+          |     ^
+      166 |       const result = await CourseService.archiveCourse(courseId, tenantId, TEST_USER_UUID);
+      167 |
+      168 |       expect(result.success).toBe(true);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:165:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:136:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Business Rules › should reject starting course without minimum enrollment
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      174 |     let testCourseId: string;
+      175 |
+    > 176 |     beforeAll(async () => {
+          |     ^
+      177 |       // Create test course for business rules
+      178 |       const request: CreateCourseRequest = {
+      179 |         tenantId,
+
+      at beforeAll (src/platform/education/course/__tests__/course.integration.test.ts:176:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:173:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Business Rules › should reject cancelling completed course
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      174 |     let testCourseId: string;
+      175 |
+    > 176 |     beforeAll(async () => {
+          |     ^
+      177 |       // Create test course for business rules
+      178 |       const request: CreateCourseRequest = {
+      179 |         tenantId,
+
+      at beforeAll (src/platform/education/course/__tests__/course.integration.test.ts:176:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:173:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Business Rules › should reject archiving active course
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      174 |     let testCourseId: string;
+      175 |
+    > 176 |     beforeAll(async () => {
+          |     ^
+      177 |       // Create test course for business rules
+      178 |       const request: CreateCourseRequest = {
+      179 |         tenantId,
+
+      at beforeAll (src/platform/education/course/__tests__/course.integration.test.ts:176:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:173:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Validation › should reject course with zero credits
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      242 |
+      243 |   describe('Validation', () => {
+    > 244 |     it('should reject course with zero credits', async () => {
+          |     ^
+      245 |       const request: CreateCourseRequest = {
+      246 |         tenantId,
+      247 |         courseCode: 'INVALID1',
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:244:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:243:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Validation › should reject course with min > max students
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      257 |     });
+      258 |
+    > 259 |     it('should reject course with min > max students', async () => {
+          |     ^
+      260 |       const request: CreateCourseRequest = {
+      261 |         tenantId,
+      262 |         courseCode: 'INVALID2',
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:259:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:243:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Validation › should normalize course code to uppercase
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      274 |     });
+      275 |
+    > 276 |     it('should normalize course code to uppercase', async () => {
+          |     ^
+      277 |       const request: CreateCourseRequest = {
+      278 |         tenantId,
+      279 |         courseCode: 'cs104',
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:276:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:243:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+FAIL src/platform/education/__tests__/kernel-invariants.integration.test.ts
+  ● Console
+
+    console.log
+      ◇ injected env (0) from .env.test // tip: ◈ secrets for agents [www.dotenvx.com]
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+  ● Education OS — Kernel Invariants Integration Tests › Prerequisite Checks with Versioned Grading Rules › should validate prerequisite under Vietnamese 10-point scale: 4.5 -> BLOCK, 5.0 -> ALLOW
+
+    Failed to seed grading rule: TypeError: fetch failed
+
+      206 |
+      207 |     if (error) {
+    > 208 |       throw new Error(`Failed to seed grading rule: ${error.message}`);
+          |             ^
+      209 |     }
+      210 |     return data;
+      211 |   }
+
+      at seedGradingRule (src/platform/education/__tests__/kernel-invariants.integration.test.ts:208:13)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:216:7)
+
+  ● Education OS — Kernel Invariants Integration Tests › Prerequisite Checks with Versioned Grading Rules › should validate prerequisite under Percentage scale: 69 -> BLOCK, 70 -> ALLOW
+
+    Failed to seed grading rule: TypeError: fetch failed
+
+      206 |
+      207 |     if (error) {
+    > 208 |       throw new Error(`Failed to seed grading rule: ${error.message}`);
+          |             ^
+      209 |     }
+      210 |     return data;
+      211 |   }
+
+      at seedGradingRule (src/platform/education/__tests__/kernel-invariants.integration.test.ts:208:13)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:277:7)
+
+  ● Education OS — Kernel Invariants Integration Tests › Governed Override Invariants › should bypass prerequisite check when valid OverrideRequest payload is supplied
+
+    Failed to seed grading rule: TypeError: fetch failed
+
+      206 |
+      207 |     if (error) {
+    > 208 |       throw new Error(`Failed to seed grading rule: ${error.message}`);
+          |             ^
+      209 |     }
+      210 |     return data;
+      211 |   }
+
+      at seedGradingRule (src/platform/education/__tests__/kernel-invariants.integration.test.ts:208:13)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:339:7)
+
+  ● Education OS — Kernel Invariants Integration Tests › Governed Override Invariants › should reject override if OverrideRequest validation fails (missing fields)
+
+    Failed to seed grading rule: TypeError: fetch failed
+
+      206 |
+      207 |     if (error) {
+    > 208 |       throw new Error(`Failed to seed grading rule: ${error.message}`);
+          |             ^
+      209 |     }
+      210 |     return data;
+      211 |   }
+
+      at seedGradingRule (src/platform/education/__tests__/kernel-invariants.integration.test.ts:208:13)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:387:7)
+
+  ● Education OS — Kernel Invariants Integration Tests › Database Capacity Concurrency and Idempotency Invariants › should enforce course capacity: max_students = 2 -> only 2 enrollments succeed, others fail
+
+    PlatformError: Failed to save course 8384ffe2-a1dd-407c-a8c0-5cc24a765732: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at seedCourse (src/platform/education/__tests__/kernel-invariants.integration.test.ts:127:5)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:422:22)
+
+  ● Education OS — Kernel Invariants Integration Tests › Database Capacity Concurrency and Idempotency Invariants › should enforce idempotency retry: identical requests yield identical result without increasing enrollment count or emitting second event
+
+    PlatformError: Failed to save course 327529e8-a840-4d45-945f-7e66997c708e: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at seedCourse (src/platform/education/__tests__/kernel-invariants.integration.test.ts:127:5)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:462:22)
+
+  ● Education OS — Kernel Invariants Integration Tests › Database Capacity Concurrency and Idempotency Invariants › should return duplicate true instead of capacity exceeded for duplicate request on full course
+
+    PlatformError: Failed to save course 4a8fc4ae-57a0-4224-a68e-c0c0f1832099: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at seedCourse (src/platform/education/__tests__/kernel-invariants.integration.test.ts:127:5)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:507:22)
+
+  ● Education OS — Kernel Invariants Integration Tests › Database Capacity Concurrency and Idempotency Invariants › should not publish events on failure and correctly rollback transaction
+
+    PlatformError: Failed to save course 1bcb6cf4-0e58-4e5a-848e-3de957cf8d6d: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at seedCourse (src/platform/education/__tests__/kernel-invariants.integration.test.ts:127:5)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:542:22)
+
+FAIL src/platform/education/student/__tests__/student.integration.test.ts
+  ● Console
+
+    console.log
+      ◇ injected env (0) from .env.test // tip: ◈ secrets for agents [www.dotenvx.com]
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+  ● Student Integration Tests › R3 Student Identity › should persist and read back new canonical Party student without transitional Person mapping
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › R3 Student Identity › should read back created student through canonical partyId
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › R3 Student Identity › should reject student creation if Party does not exist
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › R3 Student Identity › should reject duplicate student code in same tenant
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Tenant Isolation › should not find student from different tenant
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Tenant Isolation › should find student only in same tenant
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › CRUD Operations › should get student by ID
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › CRUD Operations › should get student by student code
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › CRUD Operations › should preserve legacy lookup by person ID
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › CRUD Operations › should update student
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › CRUD Operations › should not allow updating different tenant
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Business Rules › should graduate student
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Business Rules › should not allow putting graduated student on leave
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Business Rules › should update academic progress
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Query Operations › should count students by status
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Query Operations › should check if student code exists
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Query Operations › should get students by program
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+FAIL src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts (21.513 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from .env.test // tip: ◈ encrypted .env [www.dotenvx.com]
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+    console.warn
+      [education/courses] COURSE_AUTHORIZATION_NOT_READY
+
+      314 |
+      315 | export async function POST() {
+    > 316 |   console.warn('[education/courses] COURSE_AUTHORIZATION_NOT_READY');
+          |           ^
+      317 |   // Temporary containment; does not infer permission from a mutable profile.
+      318 |   return NextResponse.json({
+      319 |     success: false,
+
+      at warn (src/app/api/education/courses/route.ts:316:11)
+      at Object.<anonymous> (src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts:110:35)
+
+    console.warn
+      [education/courses] COURSE_AUTHORIZATION_NOT_READY
+
+      314 |
+      315 | export async function POST() {
+    > 316 |   console.warn('[education/courses] COURSE_AUTHORIZATION_NOT_READY');
+          |           ^
+      317 |   // Temporary containment; does not infer permission from a mutable profile.
+      318 |   return NextResponse.json({
+      319 |     success: false,
+
+      at warn (src/app/api/education/courses/route.ts:316:11)
+      at Object.<anonymous> (src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts:160:41)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+  ● BELLA EDUCATION V1 — P3.2 CLASSROOM FIELD E2E INTEGRATION › Step 1: Create Class Workflow — should create classroom with lead teacher and write to PostgreSQL courses & teacher_assignments
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 503
+
+      111 |     const data = await res.json();
+      112 |
+    > 113 |     expect(res.status).toBe(200);
+          |                        ^
+      114 |     expect(data.success).toBe(true);
+      115 |     expect(data.course).toBeDefined();
+      116 |     expect(data.course.course_code).toBe('E2E-MAM-01');
+
+      at Object.toBe (src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts:113:24)
+
+  ● BELLA EDUCATION V1 — P3.2 CLASSROOM FIELD E2E INTEGRATION › Step 2: Critical Negative Path — attempting to assign same Lead Teacher to 2nd classroom in same academic year returns HTTP 409 Conflict
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 503
+
+      160 |     const createRes = await createCourse(createReq);
+      161 |     const createData = await createRes.json();
+    > 162 |     expect(createRes.status).toBe(200);
+          |                              ^
+      163 |
+      164 |     const class2Id = createData.course.course_id;
+      165 |     secondaryCourseId = class2Id;
+
+      at Object.toBe (src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts:162:30)
+
+  ● BELLA EDUCATION V1 — P3.2 CLASSROOM FIELD E2E INTEGRATION › Step 3: Classroom 360° Workspace — GET course detail returns canonical roster and classroom metadata
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+      297 |     const detailData = await detailRes.json();
+      298 |
+    > 299 |     expect(detailRes.status).toBe(200);
+          |                              ^
+      300 |     expect(detailData.success).toBe(true);
+      301 |     expect(detailData.classroom).toBeDefined();
+      302 |     expect(detailData.classroom.id).toBe(createdCourseId);
+
+      at Object.toBe (src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts:299:30)
+
+  ● BELLA EDUCATION V1 — P3.2 CLASSROOM FIELD E2E INTEGRATION › Step 4: Teacher Reassignment & Termination — terminate previous lead teacher, then assign new lead teacher
+
+    expect(received).not.toBeNull()
+
+    Received: null
+
+      351 |       .single();
+      352 |
+    > 353 |     expect(dbAssign).not.toBeNull();
+          |                          ^
+      354 |     const assignmentId = dbAssign?.assignment_id as string;
+      355 |
+      356 |     // 2. Terminate Teacher 1
+
+      at Object.toBeNull (src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts:353:26)
+
+  ● BELLA EDUCATION V1 — P3.2 CLASSROOM FIELD E2E INTEGRATION › Step 5: Tenant Isolation Gate — Tenant B querying classrooms receives ZERO classes of Tenant A
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      394 |     const dataA = await resA.json();
+      395 |
+    > 396 |     expect(dataA.success).toBe(true);
+          |                           ^
+      397 |     expect(dataA.classrooms.length).toBeGreaterThanOrEqual(2);
+      398 |
+      399 |     const reqB = new Request(`http://localhost/api/education/courses?tenantId=${TENANT_B}`);
+
+      at Object.toBe (src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts:396:27)
+
+FAIL src/platform/education/enrollment/__tests__/enrollment.integration.test.ts
+  ● Console
+
+    console.log
+      ◇ injected env (0) from .env.test // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.error
+      Person creation error: {
+        code: 'CREATE_PERSON_FAILED',
+        message: 'Failed to save person: TypeError: fetch failed',
+        timestamp: '2026-10-20T15:32:35.017Z'
+      }
+
+      34 |     
+      35 |     if (!personResult.success) {
+    > 36 |       console.error('Person creation error:', personResult.error);
+         |               ^
+      37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+      38 |     }
+      39 |     if (!personResult.data) {
+
+      at Object.error (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:36:15)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+  ● Enrollment Integration Tests › FK Validation › should create enrollment with valid Student and Course
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › FK Validation › should reject enrollment if Student does not exist
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › FK Validation › should reject enrollment if Course does not exist
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › FK Validation › should reject duplicate enrollment (same Student + Course)
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › Business Rules › should reject enrollment of graduated student
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › Tenant Isolation › should not find enrollment from different tenant
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › Tenant Isolation › should find enrollment only in same tenant
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › CRUD Operations › should get enrollment by ID
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › CRUD Operations › should get enrollments by student
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › CRUD Operations › should get enrollments by course
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › CRUD Operations › should update enrollment
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › Status Transitions › should activate pending enrollment
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › Status Transitions › should complete active enrollment
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › Status Transitions › should assign grade to enrollment
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+FAIL src/platform/education/__tests__/verification-gates.test.ts (20.347 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from .env.test // tip: ⌁ auth for agents [www.vestauth.com]
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+  ● Education OS — 11 Automated Verification Gates › Gate 2: Contract Boundary Compliance › should retrieve course and register student using Public Contract implementation classes
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      117 |    */
+      118 |   describe('Gate 2: Contract Boundary Compliance', () => {
+    > 119 |     it('should retrieve course and register student using Public Contract implementation classes', async () => {
+          |     ^
+      120 |       const courseContract = new CourseContractImpl();
+      121 |       const studentContract = new StudentContractImpl();
+      122 |
+
+      at it (src/platform/education/__tests__/verification-gates.test.ts:119:5)
+      at describe (src/platform/education/__tests__/verification-gates.test.ts:118:3)
+      at Object.describe (src/platform/education/__tests__/verification-gates.test.ts:23:1)
+
+  ● Education OS — 11 Automated Verification Gates › Gate 3: Tenant Isolation › should completely isolate student and course records between Tenant A and Tenant B
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      158 |    */
+      159 |   describe('Gate 3: Tenant Isolation', () => {
+    > 160 |     it('should completely isolate student and course records between Tenant A and Tenant B', async () => {
+          |     ^
+      161 |       // Create course in Tenant A
+      162 |       const courseA = await CourseService.createCourse({
+      163 |         tenantId: TENANT_A,
+
+      at it (src/platform/education/__tests__/verification-gates.test.ts:160:5)
+      at describe (src/platform/education/__tests__/verification-gates.test.ts:159:3)
+      at Object.describe (src/platform/education/__tests__/verification-gates.test.ts:23:1)
+
+  ● Education OS — 11 Automated Verification Gates › Gate 4: RLS Policies Enforcement › should have RLS enabled on all core education tables in Supabase schema
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      181 |    */
+      182 |   describe('Gate 4: RLS Policies Enforcement', () => {
+    > 183 |     it('should have RLS enabled on all core education tables in Supabase schema', async () => {
+          |     ^
+      184 |       const tables = ['students', 'courses', 'enrollments', 'edu_attendance', 'edu_assessments'];
+      185 |       
+      186 |       for (const table of tables) {
+
+      at it (src/platform/education/__tests__/verification-gates.test.ts:183:5)
+      at describe (src/platform/education/__tests__/verification-gates.test.ts:182:3)
+      at Object.describe (src/platform/education/__tests__/verification-gates.test.ts:23:1)
+
+  ● Education OS — 11 Automated Verification Gates › Gate 5: Database Migration Safety › should verify that all required Education OS tables exist in the schema
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      210 |    */
+      211 |   describe('Gate 5: Database Migration Safety', () => {
+    > 212 |     it('should verify that all required Education OS tables exist in the schema', async () => {
+          |     ^
+      213 |       const requiredTables = ['students', 'courses', 'enrollments', 'attendances', 'assessments', 'assessment_results'];
+      214 |       
+      215 |       for (const table of requiredTables) {
+
+      at it (src/platform/education/__tests__/verification-gates.test.ts:212:5)
+      at describe (src/platform/education/__tests__/verification-gates.test.ts:211:3)
+      at Object.describe (src/platform/education/__tests__/verification-gates.test.ts:23:1)
+
+  ● Education OS — 11 Automated Verification Gates › Gate 6: Event-After-Persistence Flow › should publish enrollment created event only after DB write success
+
+    PlatformError: Failed to save course 6b2ab833-a031-42a9-982c-07c00ae91b60: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at Object.<anonymous> (src/platform/education/__tests__/verification-gates.test.ts:245:7)
+
+  ● Education OS — 11 Automated Verification Gates › Gate 8: Temporal Provenance › should log academic status changes inside platform timeline primitive
+
+    TypeError: Cannot read properties of undefined (reading 'personId')
+
+      316 |       const student = await StudentService.createStudent({
+      317 |         tenantId: TENANT_A,
+    > 318 |         partyId: person.data!.personId,
+          |                               ^
+      319 |         personId: person.data!.personId,
+      320 |         studentCode: 'EDU-2026-999',
+      321 |         academicStatus: 'enrolled',
+
+      at Object.personId (src/platform/education/__tests__/verification-gates.test.ts:318:31)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "Table students check failed with error: {
+      message: 'TypeError: fetch failed',
+      details: 'TypeError: fetch failed\n' +
+        '\n' +
+        'Caused by: Error: getaddrinfo ENOTFOUND mock.supabase.co (ENOTFOUND)\n' +
+        'Error: getaddrinfo ENOTFOUND mock.supabase.co\n' +
+        '    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:121:26)',
+      hint: '',
+      code: ''
+    }".
+
+      220 |         
+      221 |         if (error) {
+    > 222 |           console.error(`Table ${table} check failed with error:`, error);
+          |                   ^
+      223 |           expect(error.code).not.toBe('PGRST205'); // PGRST205 is table not found
+      224 |         }
+      225 |       }
+
+      at console.error (node_modules/@jest/console/build/index.js:124:10)
+      at Object.error (src/platform/education/__tests__/verification-gates.test.ts:222:19)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "Table courses check failed with error: {
+      message: 'TypeError: fetch failed',
+      details: 'TypeError: fetch failed\n' +
+        '\n' +
+        'Caused by: Error: getaddrinfo ENOTFOUND mock.supabase.co (ENOTFOUND)\n' +
+        'Error: getaddrinfo ENOTFOUND mock.supabase.co\n' +
+        '    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:121:26)',
+      hint: '',
+      code: ''
+    }".
+
+      220 |         
+      221 |         if (error) {
+    > 222 |           console.error(`Table ${table} check failed with error:`, error);
+          |                   ^
+      223 |           expect(error.code).not.toBe('PGRST205'); // PGRST205 is table not found
+      224 |         }
+      225 |       }
+
+      at console.error (node_modules/@jest/console/build/index.js:124:10)
+      at Object.error (src/platform/education/__tests__/verification-gates.test.ts:222:19)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "Table enrollments check failed with error: {
+      message: 'TypeError: fetch failed',
+      details: 'TypeError: fetch failed\n' +
+        '\n' +
+        'Caused by: Error: getaddrinfo ENOTFOUND mock.supabase.co (ENOTFOUND)\n' +
+        'Error: getaddrinfo ENOTFOUND mock.supabase.co\n' +
+        '    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:121:26)',
+      hint: '',
+      code: ''
+    }".
+
+      220 |         
+      221 |         if (error) {
+    > 222 |           console.error(`Table ${table} check failed with error:`, error);
+          |                   ^
+      223 |           expect(error.code).not.toBe('PGRST205'); // PGRST205 is table not found
+      224 |         }
+      225 |       }
+
+      at console.error (node_modules/@jest/console/build/index.js:124:10)
+      at Object.error (src/platform/education/__tests__/verification-gates.test.ts:222:19)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "Table attendances check failed with error: {
+      message: 'TypeError: fetch failed',
+      details: 'TypeError: fetch failed\n' +
+        '\n' +
+        'Caused by: Error: getaddrinfo ENOTFOUND mock.supabase.co (ENOTFOUND)\n' +
+        'Error: getaddrinfo ENOTFOUND mock.supabase.co\n' +
+        '    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:121:26)',
+      hint: '',
+      code: ''
+    }".
+
+      220 |         
+      221 |         if (error) {
+    > 222 |           console.error(`Table ${table} check failed with error:`, error);
+          |                   ^
+      223 |           expect(error.code).not.toBe('PGRST205'); // PGRST205 is table not found
+      224 |         }
+      225 |       }
+
+      at console.error (node_modules/@jest/console/build/index.js:124:10)
+      at Object.error (src/platform/education/__tests__/verification-gates.test.ts:222:19)
+
+FAIL src/products/bella-education/__tests__/preschool-enrollment-operational.integration.test.ts (21.282 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from .env.test // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+    console.log
+      [createServerClient] Test environment detected - using service role client
+
+      at log (src/lib/supabase-server.ts:25:13)
+
+  ● Preschool New Student Enrollment Operational Path › creates Party, Student, edu_enrollment, and reads back canonical party identity
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 201
+    Received: 500
+
+       95 |     const body = await response.json();
+       96 |
+    >  97 |     expect(response.status).toBe(201);
+          |                             ^
+       98 |     expect(body.success).toBe(true);
+       99 |     expect(body.student.partyId).toEqual(expect.any(String));
+      100 |     expect(body.student.guardianPartyId).toEqual(expect.any(String));
+
+      at Object.toBe (src/products/bella-education/__tests__/preschool-enrollment-operational.integration.test.ts:97:29)
+
+FAIL src/platform/education/__tests__/education-engine.integration.test.ts
+  ● Console
+
+    console.log
+      ◇ injected env (0) from .env.test // tip: ⌘ override existing { override: true }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Student Role & Party Validation Invariants › should reject enrollment if student party does not exist
+
+    PlatformError: Failed to save course f11bd029-ddb6-468c-8e72-ec204fdbae33: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at Object.<anonymous> (src/platform/education/__tests__/education-engine.integration.test.ts:72:7)
+
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Student Role & Party Validation Invariants › should reject enrollment if party is an organization (not a person)
+
+    PlatformError: Failed to save course dbf7debb-23f0-49ec-a1b4-090a90719d43: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at Object.<anonymous> (src/platform/education/__tests__/education-engine.integration.test.ts:86:7)
+
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Student Role & Party Validation Invariants › should reject enrollment if student belongs to a different tenant
+
+    PlatformError: Failed to save course 6d351265-56b6-40a6-9a66-c0e8c0a7e25d: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at Object.<anonymous> (src/platform/education/__tests__/education-engine.integration.test.ts:100:7)
+
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Enrollment Workflow & Event-After-Persistence › should enroll student, persist to database, and publish edu.enrollment.created.v1 event
+
+    PlatformError: Failed to save course ad361c33-7e53-400d-9d0a-1729fe579762: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at Object.<anonymous> (src/platform/education/__tests__/education-engine.integration.test.ts:117:7)
+
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Enrollment Workflow & Event-After-Persistence › should enforce idempotency on duplicate requests without creating second record or emitting second event
+
+    PlatformError: Failed to save course 985cd6f0-096d-42fb-bcac-8ce9ce8cf061: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at Object.<anonymous> (src/platform/education/__tests__/education-engine.integration.test.ts:150:7)
+
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Multi-Tenant RLS & Isolation › should isolate Education records between tenants
+
+    PlatformError: Failed to save course 17ea4076-e27b-450e-9b8f-360ea4af2a1f: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at Object.<anonymous> (src/platform/education/__tests__/education-engine.integration.test.ts:188:7)
+
+FAIL src/platform/education/__tests__/capacity-concurrency.integration.test.ts
+  ● Console
+
+    console.log
+      ◇ injected env (0) from .env.test // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+  ● Education OS — Capacity Concurrency Invariant Bounded Check › should enforce 25/25 full course concurrency: 2 concurrent requests on full course MUST BOTH FAIL without over-subscribing
+
+    PlatformError: Failed to save course 0a5ac63e-2c3c-4eb9-9bab-2982768a4b4d: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at seedCourse (src/platform/education/__tests__/capacity-concurrency.integration.test.ts:116:5)
+      at Object.<anonymous> (src/platform/education/__tests__/capacity-concurrency.integration.test.ts:133:20)
+
+  ● Education OS — Capacity Concurrency Invariant Bounded Check › should enforce 24/25 single-slot concurrency: 2 concurrent requests on 24/25 course -> EXACTLY 1 succeeds, EXACTLY 1 fails
+
+    PlatformError: Failed to save course 61e502fc-451e-44f4-b7cc-8347fa3eb04a: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at seedCourse (src/platform/education/__tests__/capacity-concurrency.integration.test.ts:116:5)
+      at Object.<anonymous> (src/platform/education/__tests__/capacity-concurrency.integration.test.ts:174:20)
+
+  ● Education OS — Capacity Concurrency Invariant Bounded Check › should prove database check constraint supremacy (chk_edu_courses_capacity blocks direct SQL update exceeding max_students)
+
+    PlatformError: Failed to save course 0052f844-fef4-496b-9fc0-c56d6c1d50d7: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at seedCourse (src/platform/education/__tests__/capacity-concurrency.integration.test.ts:116:5)
+      at Object.<anonymous> (src/platform/education/__tests__/capacity-concurrency.integration.test.ts:212:20)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "Table assessments check failed with error: {
+      message: 'TypeError: fetch failed',
+      details: 'TypeError: fetch failed\n' +
+        '\n' +
+        'Caused by: Error: getaddrinfo ENOTFOUND mock.supabase.co (ENOTFOUND)\n' +
+        'Error: getaddrinfo ENOTFOUND mock.supabase.co\n' +
+        '    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:121:26)',
+      hint: '',
+      code: ''
+    }".
+
+      220 |         
+      221 |         if (error) {
+    > 222 |           console.error(`Table ${table} check failed with error:`, error);
+          |                   ^
+      223 |           expect(error.code).not.toBe('PGRST205'); // PGRST205 is table not found
+      224 |         }
+      225 |       }
+
+      at console.error (node_modules/@jest/console/build/index.js:124:10)
+      at Object.error (src/platform/education/__tests__/verification-gates.test.ts:222:19)
+
+FAIL src/platform/education/__tests__/teacher-assignment.integration.test.ts
+  ● Console
+
+    console.log
+      ◇ injected env (0) from .env.test // tip: ⌘ override existing { override: true }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+  ● Education OS — Teacher Assignment Bounded Check › should assign primary lead teacher to course for Academic Year 2025-2026
+
+    Failed to seed course: TypeError: fetch failed
+
+      54 |       status: 'active',
+      55 |     });
+    > 56 |     if (courseErr) throw new Error(`Failed to seed course: ${courseErr.message}`);
+         |                          ^
+      57 |
+      58 |     // 3. Seed teacher parties in party_parties + persons
+      59 |     teacherPartyA = crypto.randomUUID();
+
+      at Object.<anonymous> (src/platform/education/__tests__/teacher-assignment.integration.test.ts:56:26)
+
+  ● Education OS — Teacher Assignment Bounded Check › should enforce hard invariant: attempting to assign second lead teacher for same course and academic year throws TEACHER_ASSIGNMENT_CONFLICT
+
+    Failed to seed course: TypeError: fetch failed
+
+      54 |       status: 'active',
+      55 |     });
+    > 56 |     if (courseErr) throw new Error(`Failed to seed course: ${courseErr.message}`);
+         |                          ^
+      57 |
+      58 |     // 3. Seed teacher parties in party_parties + persons
+      59 |     teacherPartyA = crypto.randomUUID();
+
+      at Object.<anonymous> (src/platform/education/__tests__/teacher-assignment.integration.test.ts:56:26)
+
+  ● Education OS — Teacher Assignment Bounded Check › should allow assigning co-teacher alongside active lead teacher for same course & academic year
+
+    Failed to seed course: TypeError: fetch failed
+
+      54 |       status: 'active',
+      55 |     });
+    > 56 |     if (courseErr) throw new Error(`Failed to seed course: ${courseErr.message}`);
+         |                          ^
+      57 |
+      58 |     // 3. Seed teacher parties in party_parties + persons
+      59 |     teacherPartyA = crypto.randomUUID();
+
+      at Object.<anonymous> (src/platform/education/__tests__/teacher-assignment.integration.test.ts:56:26)
+
+  ● Education OS — Teacher Assignment Bounded Check › should allow assigning new lead teacher after terminating previous lead teacher
+
+    Failed to seed course: TypeError: fetch failed
+
+      54 |       status: 'active',
+      55 |     });
+    > 56 |     if (courseErr) throw new Error(`Failed to seed course: ${courseErr.message}`);
+         |                          ^
+      57 |
+      58 |     // 3. Seed teacher parties in party_parties + persons
+      59 |     teacherPartyA = crypto.randomUUID();
+
+      at Object.<anonymous> (src/platform/education/__tests__/teacher-assignment.integration.test.ts:56:26)
+
+  ● Education OS — Teacher Assignment Bounded Check › should verify ZERO shadow persistence in courses.metadata
+
+    Failed to seed course: TypeError: fetch failed
+
+      54 |       status: 'active',
+      55 |     });
+    > 56 |     if (courseErr) throw new Error(`Failed to seed course: ${courseErr.message}`);
+         |                          ^
+      57 |
+      58 |     // 3. Seed teacher parties in party_parties + persons
+      59 |     teacherPartyA = crypto.randomUUID();
+
+      at Object.<anonymous> (src/platform/education/__tests__/teacher-assignment.integration.test.ts:56:26)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "Table assessment_results check failed with error: {
+      message: 'TypeError: fetch failed',
+      details: 'TypeError: fetch failed\n' +
+        '\n' +
+        'Caused by: Error: getaddrinfo ENOTFOUND mock.supabase.co (ENOTFOUND)\n' +
+        'Error: getaddrinfo ENOTFOUND mock.supabase.co\n' +
+        '    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:121:26)',
+      hint: '',
+      code: ''
+    }".
+
+      220 |         
+      221 |         if (error) {
+    > 222 |           console.error(`Table ${table} check failed with error:`, error);
+          |                   ^
+      223 |           expect(error.code).not.toBe('PGRST205'); // PGRST205 is table not found
+      224 |         }
+      225 |       }
+
+      at console.error (node_modules/@jest/console/build/index.js:124:10)
+      at Object.error (src/platform/education/__tests__/verification-gates.test.ts:222:19)
+
+
+Summary of all failing tests
+FAIL src/platform/education/course/__tests__/course.integration.test.ts (85.603 s)
+  ● Course Integration Tests › CRUD Operations › should create course
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      25 |
+      26 |   describe('CRUD Operations', () => {
+    > 27 |     it('should create course', async () => {
+         |     ^
+      28 |       const request: CreateCourseRequest = {
+      29 |         tenantId,
+      30 |         courseCode: 'CS101',
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:27:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › CRUD Operations › should reject duplicate course code in same tenant
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      50 |     });
+      51 |
+    > 52 |     it('should reject duplicate course code in same tenant', async () => {
+         |     ^
+      53 |       const request: CreateCourseRequest = {
+      54 |         tenantId,
+      55 |         courseCode: 'CS101', // Duplicate
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:52:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › CRUD Operations › should get course by ID
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      65 |     });
+      66 |
+    > 67 |     it('should get course by ID', async () => {
+         |     ^
+      68 |       const result = await CourseService.getCourseById(courseId, tenantId);
+      69 |
+      70 |       expect(result.success).toBe(true);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:67:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › CRUD Operations › should get course by course code
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      73 |     });
+      74 |
+    > 75 |     it('should get course by course code', async () => {
+         |     ^
+      76 |       const result = await CourseService.getCourseByCourseCode('CS101', tenantId);
+      77 |
+      78 |       expect(result.success).toBe(true);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:75:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › CRUD Operations › should update course
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      81 |     });
+      82 |
+    > 83 |     it('should update course', async () => {
+         |     ^
+      84 |       const request: UpdateCourseRequest = {
+      85 |         courseId,
+      86 |         tenantId,
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:83:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › CRUD Operations › should query courses by tenant
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+       97 |     });
+       98 |
+    >  99 |     it('should query courses by tenant', async () => {
+          |     ^
+      100 |       const result = await CourseService.queryCourses({ tenantId });
+      101 |
+      102 |       expect(result.success).toBe(true);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:99:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › CRUD Operations › should query courses by status
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      105 |     });
+      106 |
+    > 107 |     it('should query courses by status', async () => {
+          |     ^
+      108 |       const result = await CourseService.queryCourses({
+      109 |         tenantId,
+      110 |         status: 'draft',
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:107:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Tenant Isolation › should not find course from different tenant
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      117 |
+      118 |   describe('Tenant Isolation', () => {
+    > 119 |     it('should not find course from different tenant', async () => {
+          |     ^
+      120 |       const otherTenantId = '99999999-9999-9999-9999-999999999999';
+      121 |
+      122 |       const result = await CourseService.getCourseById(courseId, otherTenantId);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:119:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:118:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Tenant Isolation › should only return courses from same tenant in query
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      126 |     });
+      127 |
+    > 128 |     it('should only return courses from same tenant in query', async () => {
+          |     ^
+      129 |       const result = await CourseService.queryCourses({ tenantId });
+      130 |
+      131 |       expect(result.success).toBe(true);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:128:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:118:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Status Transitions › should activate course
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      135 |
+      136 |   describe('Status Transitions', () => {
+    > 137 |     it('should activate course', async () => {
+          |     ^
+      138 |       const result = await CourseService.activateCourse(courseId, tenantId, TEST_USER_UUID);
+      139 |
+      140 |       expect(result.success).toBe(true);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:137:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:136:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Status Transitions › should start course
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      142 |     });
+      143 |
+    > 144 |     it('should start course', async () => {
+          |     ^
+      145 |       // First, simulate enrollments to meet minimum
+      146 |       const supabase = await createClient();
+      147 |       await supabase
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:144:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:136:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Status Transitions › should complete course
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      156 |     });
+      157 |
+    > 158 |     it('should complete course', async () => {
+          |     ^
+      159 |       const result = await CourseService.completeCourse(courseId, tenantId, TEST_USER_UUID);
+      160 |
+      161 |       expect(result.success).toBe(true);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:158:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:136:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Status Transitions › should archive completed course
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      163 |     });
+      164 |
+    > 165 |     it('should archive completed course', async () => {
+          |     ^
+      166 |       const result = await CourseService.archiveCourse(courseId, tenantId, TEST_USER_UUID);
+      167 |
+      168 |       expect(result.success).toBe(true);
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:165:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:136:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Business Rules › should reject starting course without minimum enrollment
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      174 |     let testCourseId: string;
+      175 |
+    > 176 |     beforeAll(async () => {
+          |     ^
+      177 |       // Create test course for business rules
+      178 |       const request: CreateCourseRequest = {
+      179 |         tenantId,
+
+      at beforeAll (src/platform/education/course/__tests__/course.integration.test.ts:176:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:173:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Business Rules › should reject cancelling completed course
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      174 |     let testCourseId: string;
+      175 |
+    > 176 |     beforeAll(async () => {
+          |     ^
+      177 |       // Create test course for business rules
+      178 |       const request: CreateCourseRequest = {
+      179 |         tenantId,
+
+      at beforeAll (src/platform/education/course/__tests__/course.integration.test.ts:176:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:173:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Business Rules › should reject archiving active course
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      174 |     let testCourseId: string;
+      175 |
+    > 176 |     beforeAll(async () => {
+          |     ^
+      177 |       // Create test course for business rules
+      178 |       const request: CreateCourseRequest = {
+      179 |         tenantId,
+
+      at beforeAll (src/platform/education/course/__tests__/course.integration.test.ts:176:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:173:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Validation › should reject course with zero credits
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      242 |
+      243 |   describe('Validation', () => {
+    > 244 |     it('should reject course with zero credits', async () => {
+          |     ^
+      245 |       const request: CreateCourseRequest = {
+      246 |         tenantId,
+      247 |         courseCode: 'INVALID1',
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:244:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:243:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Validation › should reject course with min > max students
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      257 |     });
+      258 |
+    > 259 |     it('should reject course with min > max students', async () => {
+          |     ^
+      260 |       const request: CreateCourseRequest = {
+      261 |         tenantId,
+      262 |         courseCode: 'INVALID2',
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:259:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:243:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+  ● Course Integration Tests › Validation › should normalize course code to uppercase
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      274 |     });
+      275 |
+    > 276 |     it('should normalize course code to uppercase', async () => {
+          |     ^
+      277 |       const request: CreateCourseRequest = {
+      278 |         tenantId,
+      279 |         courseCode: 'cs104',
+
+      at it (src/platform/education/course/__tests__/course.integration.test.ts:276:5)
+      at describe (src/platform/education/course/__tests__/course.integration.test.ts:243:3)
+      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)
+
+FAIL src/platform/education/__tests__/kernel-invariants.integration.test.ts
+  ● Education OS — Kernel Invariants Integration Tests › Prerequisite Checks with Versioned Grading Rules › should validate prerequisite under Vietnamese 10-point scale: 4.5 -> BLOCK, 5.0 -> ALLOW
+
+    Failed to seed grading rule: TypeError: fetch failed
+
+      206 |
+      207 |     if (error) {
+    > 208 |       throw new Error(`Failed to seed grading rule: ${error.message}`);
+          |             ^
+      209 |     }
+      210 |     return data;
+      211 |   }
+
+      at seedGradingRule (src/platform/education/__tests__/kernel-invariants.integration.test.ts:208:13)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:216:7)
+
+  ● Education OS — Kernel Invariants Integration Tests › Prerequisite Checks with Versioned Grading Rules › should validate prerequisite under Percentage scale: 69 -> BLOCK, 70 -> ALLOW
+
+    Failed to seed grading rule: TypeError: fetch failed
+
+      206 |
+      207 |     if (error) {
+    > 208 |       throw new Error(`Failed to seed grading rule: ${error.message}`);
+          |             ^
+      209 |     }
+      210 |     return data;
+      211 |   }
+
+      at seedGradingRule (src/platform/education/__tests__/kernel-invariants.integration.test.ts:208:13)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:277:7)
+
+  ● Education OS — Kernel Invariants Integration Tests › Governed Override Invariants › should bypass prerequisite check when valid OverrideRequest payload is supplied
+
+    Failed to seed grading rule: TypeError: fetch failed
+
+      206 |
+      207 |     if (error) {
+    > 208 |       throw new Error(`Failed to seed grading rule: ${error.message}`);
+          |             ^
+      209 |     }
+      210 |     return data;
+      211 |   }
+
+      at seedGradingRule (src/platform/education/__tests__/kernel-invariants.integration.test.ts:208:13)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:339:7)
+
+  ● Education OS — Kernel Invariants Integration Tests › Governed Override Invariants › should reject override if OverrideRequest validation fails (missing fields)
+
+    Failed to seed grading rule: TypeError: fetch failed
+
+      206 |
+      207 |     if (error) {
+    > 208 |       throw new Error(`Failed to seed grading rule: ${error.message}`);
+          |             ^
+      209 |     }
+      210 |     return data;
+      211 |   }
+
+      at seedGradingRule (src/platform/education/__tests__/kernel-invariants.integration.test.ts:208:13)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:387:7)
+
+  ● Education OS — Kernel Invariants Integration Tests › Database Capacity Concurrency and Idempotency Invariants › should enforce course capacity: max_students = 2 -> only 2 enrollments succeed, others fail
+
+    PlatformError: Failed to save course 8384ffe2-a1dd-407c-a8c0-5cc24a765732: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at seedCourse (src/platform/education/__tests__/kernel-invariants.integration.test.ts:127:5)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:422:22)
+
+  ● Education OS — Kernel Invariants Integration Tests › Database Capacity Concurrency and Idempotency Invariants › should enforce idempotency retry: identical requests yield identical result without increasing enrollment count or emitting second event
+
+    PlatformError: Failed to save course 327529e8-a840-4d45-945f-7e66997c708e: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at seedCourse (src/platform/education/__tests__/kernel-invariants.integration.test.ts:127:5)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:462:22)
+
+  ● Education OS — Kernel Invariants Integration Tests › Database Capacity Concurrency and Idempotency Invariants › should return duplicate true instead of capacity exceeded for duplicate request on full course
+
+    PlatformError: Failed to save course 4a8fc4ae-57a0-4224-a68e-c0c0f1832099: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at seedCourse (src/platform/education/__tests__/kernel-invariants.integration.test.ts:127:5)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:507:22)
+
+  ● Education OS — Kernel Invariants Integration Tests › Database Capacity Concurrency and Idempotency Invariants › should not publish events on failure and correctly rollback transaction
+
+    PlatformError: Failed to save course 1bcb6cf4-0e58-4e5a-848e-3de957cf8d6d: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at seedCourse (src/platform/education/__tests__/kernel-invariants.integration.test.ts:127:5)
+      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:542:22)
+
+FAIL src/platform/education/student/__tests__/student.integration.test.ts
+  ● Student Integration Tests › R3 Student Identity › should persist and read back new canonical Party student without transitional Person mapping
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › R3 Student Identity › should read back created student through canonical partyId
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › R3 Student Identity › should reject student creation if Party does not exist
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › R3 Student Identity › should reject duplicate student code in same tenant
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Tenant Isolation › should not find student from different tenant
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Tenant Isolation › should find student only in same tenant
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › CRUD Operations › should get student by ID
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › CRUD Operations › should get student by student code
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › CRUD Operations › should preserve legacy lookup by person ID
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › CRUD Operations › should update student
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › CRUD Operations › should not allow updating different tenant
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Business Rules › should graduate student
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Business Rules › should not allow putting graduated student on leave
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Business Rules › should update academic progress
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Query Operations › should count students by status
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Query Operations › should check if student code exists
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+  ● Student Integration Tests › Query Operations › should get students by program
+
+    Failed to create test tenant 1: TypeError: fetch failed
+
+      37 |       });
+      38 |     if (tenant1Error) {
+    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);
+         |             ^
+      40 |     }
+      41 |
+      42 |     const { error: tenant2Error } = await supabase
+
+      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)
+
+FAIL src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts (21.513 s)
+  ● BELLA EDUCATION V1 — P3.2 CLASSROOM FIELD E2E INTEGRATION › Step 1: Create Class Workflow — should create classroom with lead teacher and write to PostgreSQL courses & teacher_assignments
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 503
+
+      111 |     const data = await res.json();
+      112 |
+    > 113 |     expect(res.status).toBe(200);
+          |                        ^
+      114 |     expect(data.success).toBe(true);
+      115 |     expect(data.course).toBeDefined();
+      116 |     expect(data.course.course_code).toBe('E2E-MAM-01');
+
+      at Object.toBe (src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts:113:24)
+
+  ● BELLA EDUCATION V1 — P3.2 CLASSROOM FIELD E2E INTEGRATION › Step 2: Critical Negative Path — attempting to assign same Lead Teacher to 2nd classroom in same academic year returns HTTP 409 Conflict
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 503
+
+      160 |     const createRes = await createCourse(createReq);
+      161 |     const createData = await createRes.json();
+    > 162 |     expect(createRes.status).toBe(200);
+          |                              ^
+      163 |
+      164 |     const class2Id = createData.course.course_id;
+      165 |     secondaryCourseId = class2Id;
+
+      at Object.toBe (src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts:162:30)
+
+  ● BELLA EDUCATION V1 — P3.2 CLASSROOM FIELD E2E INTEGRATION › Step 3: Classroom 360° Workspace — GET course detail returns canonical roster and classroom metadata
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+      297 |     const detailData = await detailRes.json();
+      298 |
+    > 299 |     expect(detailRes.status).toBe(200);
+          |                              ^
+      300 |     expect(detailData.success).toBe(true);
+      301 |     expect(detailData.classroom).toBeDefined();
+      302 |     expect(detailData.classroom.id).toBe(createdCourseId);
+
+      at Object.toBe (src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts:299:30)
+
+  ● BELLA EDUCATION V1 — P3.2 CLASSROOM FIELD E2E INTEGRATION › Step 4: Teacher Reassignment & Termination — terminate previous lead teacher, then assign new lead teacher
+
+    expect(received).not.toBeNull()
+
+    Received: null
+
+      351 |       .single();
+      352 |
+    > 353 |     expect(dbAssign).not.toBeNull();
+          |                          ^
+      354 |     const assignmentId = dbAssign?.assignment_id as string;
+      355 |
+      356 |     // 2. Terminate Teacher 1
+
+      at Object.toBeNull (src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts:353:26)
+
+  ● BELLA EDUCATION V1 — P3.2 CLASSROOM FIELD E2E INTEGRATION › Step 5: Tenant Isolation Gate — Tenant B querying classrooms receives ZERO classes of Tenant A
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      394 |     const dataA = await resA.json();
+      395 |
+    > 396 |     expect(dataA.success).toBe(true);
+          |                           ^
+      397 |     expect(dataA.classrooms.length).toBeGreaterThanOrEqual(2);
+      398 |
+      399 |     const reqB = new Request(`http://localhost/api/education/courses?tenantId=${TENANT_B}`);
+
+      at Object.toBe (src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts:396:27)
+
+FAIL src/platform/education/enrollment/__tests__/enrollment.integration.test.ts
+  ● Enrollment Integration Tests › FK Validation › should create enrollment with valid Student and Course
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › FK Validation › should reject enrollment if Student does not exist
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › FK Validation › should reject enrollment if Course does not exist
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › FK Validation › should reject duplicate enrollment (same Student + Course)
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › Business Rules › should reject enrollment of graduated student
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › Tenant Isolation › should not find enrollment from different tenant
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › Tenant Isolation › should find enrollment only in same tenant
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › CRUD Operations › should get enrollment by ID
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › CRUD Operations › should get enrollments by student
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › CRUD Operations › should get enrollments by course
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › CRUD Operations › should update enrollment
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › Status Transitions › should activate pending enrollment
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › Status Transitions › should complete active enrollment
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+  ● Enrollment Integration Tests › Status Transitions › should assign grade to enrollment
+
+    Person creation failed: Failed to save person: TypeError: fetch failed
+
+      35 |     if (!personResult.success) {
+      36 |       console.error('Person creation error:', personResult.error);
+    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);
+         |             ^
+      38 |     }
+      39 |     if (!personResult.data) {
+      40 |       throw new Error('Person creation returned no data');
+
+      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)
+
+FAIL src/platform/education/__tests__/verification-gates.test.ts (20.347 s)
+  ● Education OS — 11 Automated Verification Gates › Gate 2: Contract Boundary Compliance › should retrieve course and register student using Public Contract implementation classes
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      117 |    */
+      118 |   describe('Gate 2: Contract Boundary Compliance', () => {
+    > 119 |     it('should retrieve course and register student using Public Contract implementation classes', async () => {
+          |     ^
+      120 |       const courseContract = new CourseContractImpl();
+      121 |       const studentContract = new StudentContractImpl();
+      122 |
+
+      at it (src/platform/education/__tests__/verification-gates.test.ts:119:5)
+      at describe (src/platform/education/__tests__/verification-gates.test.ts:118:3)
+      at Object.describe (src/platform/education/__tests__/verification-gates.test.ts:23:1)
+
+  ● Education OS — 11 Automated Verification Gates › Gate 3: Tenant Isolation › should completely isolate student and course records between Tenant A and Tenant B
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      158 |    */
+      159 |   describe('Gate 3: Tenant Isolation', () => {
+    > 160 |     it('should completely isolate student and course records between Tenant A and Tenant B', async () => {
+          |     ^
+      161 |       // Create course in Tenant A
+      162 |       const courseA = await CourseService.createCourse({
+      163 |         tenantId: TENANT_A,
+
+      at it (src/platform/education/__tests__/verification-gates.test.ts:160:5)
+      at describe (src/platform/education/__tests__/verification-gates.test.ts:159:3)
+      at Object.describe (src/platform/education/__tests__/verification-gates.test.ts:23:1)
+
+  ● Education OS — 11 Automated Verification Gates › Gate 4: RLS Policies Enforcement › should have RLS enabled on all core education tables in Supabase schema
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      181 |    */
+      182 |   describe('Gate 4: RLS Policies Enforcement', () => {
+    > 183 |     it('should have RLS enabled on all core education tables in Supabase schema', async () => {
+          |     ^
+      184 |       const tables = ['students', 'courses', 'enrollments', 'edu_attendance', 'edu_assessments'];
+      185 |       
+      186 |       for (const table of tables) {
+
+      at it (src/platform/education/__tests__/verification-gates.test.ts:183:5)
+      at describe (src/platform/education/__tests__/verification-gates.test.ts:182:3)
+      at Object.describe (src/platform/education/__tests__/verification-gates.test.ts:23:1)
+
+  ● Education OS — 11 Automated Verification Gates › Gate 5: Database Migration Safety › should verify that all required Education OS tables exist in the schema
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      210 |    */
+      211 |   describe('Gate 5: Database Migration Safety', () => {
+    > 212 |     it('should verify that all required Education OS tables exist in the schema', async () => {
+          |     ^
+      213 |       const requiredTables = ['students', 'courses', 'enrollments', 'attendances', 'assessments', 'assessment_results'];
+      214 |       
+      215 |       for (const table of requiredTables) {
+
+      at it (src/platform/education/__tests__/verification-gates.test.ts:212:5)
+      at describe (src/platform/education/__tests__/verification-gates.test.ts:211:3)
+      at Object.describe (src/platform/education/__tests__/verification-gates.test.ts:23:1)
+
+  ● Education OS — 11 Automated Verification Gates › Gate 6: Event-After-Persistence Flow › should publish enrollment created event only after DB write success
+
+    PlatformError: Failed to save course 6b2ab833-a031-42a9-982c-07c00ae91b60: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at Object.<anonymous> (src/platform/education/__tests__/verification-gates.test.ts:245:7)
+
+  ● Education OS — 11 Automated Verification Gates › Gate 8: Temporal Provenance › should log academic status changes inside platform timeline primitive
+
+    TypeError: Cannot read properties of undefined (reading 'personId')
+
+      316 |       const student = await StudentService.createStudent({
+      317 |         tenantId: TENANT_A,
+    > 318 |         partyId: person.data!.personId,
+          |                               ^
+      319 |         personId: person.data!.personId,
+      320 |         studentCode: 'EDU-2026-999',
+      321 |         academicStatus: 'enrolled',
+
+      at Object.personId (src/platform/education/__tests__/verification-gates.test.ts:318:31)
+
+FAIL src/products/bella-education/__tests__/preschool-enrollment-operational.integration.test.ts (21.282 s)
+  ● Preschool New Student Enrollment Operational Path › creates Party, Student, edu_enrollment, and reads back canonical party identity
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 201
+    Received: 500
+
+       95 |     const body = await response.json();
+       96 |
+    >  97 |     expect(response.status).toBe(201);
+          |                             ^
+       98 |     expect(body.success).toBe(true);
+       99 |     expect(body.student.partyId).toEqual(expect.any(String));
+      100 |     expect(body.student.guardianPartyId).toEqual(expect.any(String));
+
+      at Object.toBe (src/products/bella-education/__tests__/preschool-enrollment-operational.integration.test.ts:97:29)
+
+FAIL src/platform/education/__tests__/education-engine.integration.test.ts
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Student Role & Party Validation Invariants › should reject enrollment if student party does not exist
+
+    PlatformError: Failed to save course f11bd029-ddb6-468c-8e72-ec204fdbae33: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at Object.<anonymous> (src/platform/education/__tests__/education-engine.integration.test.ts:72:7)
+
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Student Role & Party Validation Invariants › should reject enrollment if party is an organization (not a person)
+
+    PlatformError: Failed to save course dbf7debb-23f0-49ec-a1b4-090a90719d43: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at Object.<anonymous> (src/platform/education/__tests__/education-engine.integration.test.ts:86:7)
+
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Student Role & Party Validation Invariants › should reject enrollment if student belongs to a different tenant
+
+    PlatformError: Failed to save course 6d351265-56b6-40a6-9a66-c0e8c0a7e25d: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at Object.<anonymous> (src/platform/education/__tests__/education-engine.integration.test.ts:100:7)
+
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Enrollment Workflow & Event-After-Persistence › should enroll student, persist to database, and publish edu.enrollment.created.v1 event
+
+    PlatformError: Failed to save course ad361c33-7e53-400d-9d0a-1729fe579762: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at Object.<anonymous> (src/platform/education/__tests__/education-engine.integration.test.ts:117:7)
+
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Enrollment Workflow & Event-After-Persistence › should enforce idempotency on duplicate requests without creating second record or emitting second event
+
+    PlatformError: Failed to save course 985cd6f0-096d-42fb-bcac-8ce9ce8cf061: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at Object.<anonymous> (src/platform/education/__tests__/education-engine.integration.test.ts:150:7)
+
+  ● Education OS — Integration Tests (Common Core Reuse Proof) › Multi-Tenant RLS & Isolation › should isolate Education records between tenants
+
+    PlatformError: Failed to save course 17ea4076-e27b-450e-9b8f-360ea4af2a1f: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at Object.<anonymous> (src/platform/education/__tests__/education-engine.integration.test.ts:188:7)
+
+FAIL src/platform/education/__tests__/capacity-concurrency.integration.test.ts
+  ● Education OS — Capacity Concurrency Invariant Bounded Check › should enforce 25/25 full course concurrency: 2 concurrent requests on full course MUST BOTH FAIL without over-subscribing
+
+    PlatformError: Failed to save course 0a5ac63e-2c3c-4eb9-9bab-2982768a4b4d: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at seedCourse (src/platform/education/__tests__/capacity-concurrency.integration.test.ts:116:5)
+      at Object.<anonymous> (src/platform/education/__tests__/capacity-concurrency.integration.test.ts:133:20)
+
+  ● Education OS — Capacity Concurrency Invariant Bounded Check › should enforce 24/25 single-slot concurrency: 2 concurrent requests on 24/25 course -> EXACTLY 1 succeeds, EXACTLY 1 fails
+
+    PlatformError: Failed to save course 61e502fc-451e-44f4-b7cc-8347fa3eb04a: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at seedCourse (src/platform/education/__tests__/capacity-concurrency.integration.test.ts:116:5)
+      at Object.<anonymous> (src/platform/education/__tests__/capacity-concurrency.integration.test.ts:174:20)
+
+  ● Education OS — Capacity Concurrency Invariant Bounded Check › should prove database check constraint supremacy (chk_edu_courses_capacity blocks direct SQL update exceeding max_students)
+
+    PlatformError: Failed to save course 0052f844-fef4-496b-9fc0-c56d6c1d50d7: TypeError: fetch failed
+
+      35 |     }
+      36 |
+    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });
+         |            ^
+      38 |   }
+      39 |
+      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {
+
+      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)
+      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)
+      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)
+      at seedCourse (src/platform/education/__tests__/capacity-concurrency.integration.test.ts:116:5)
+      at Object.<anonymous> (src/platform/education/__tests__/capacity-concurrency.integration.test.ts:212:20)
+
+FAIL src/platform/education/__tests__/teacher-assignment.integration.test.ts
+  ● Education OS — Teacher Assignment Bounded Check › should assign primary lead teacher to course for Academic Year 2025-2026
+
+    Failed to seed course: TypeError: fetch failed
+
+      54 |       status: 'active',
+      55 |     });
+    > 56 |     if (courseErr) throw new Error(`Failed to seed course: ${courseErr.message}`);
+         |                          ^
+      57 |
+      58 |     // 3. Seed teacher parties in party_parties + persons
+      59 |     teacherPartyA = crypto.randomUUID();
+
+      at Object.<anonymous> (src/platform/education/__tests__/teacher-assignment.integration.test.ts:56:26)
+
+  ● Education OS — Teacher Assignment Bounded Check › should enforce hard invariant: attempting to assign second lead teacher for same course and academic year throws TEACHER_ASSIGNMENT_CONFLICT
+
+    Failed to seed course: TypeError: fetch failed
+
+      54 |       status: 'active',
+      55 |     });
+    > 56 |     if (courseErr) throw new Error(`Failed to seed course: ${courseErr.message}`);
+         |                          ^
+      57 |
+      58 |     // 3. Seed teacher parties in party_parties + persons
+      59 |     teacherPartyA = crypto.randomUUID();
+
+      at Object.<anonymous> (src/platform/education/__tests__/teacher-assignment.integration.test.ts:56:26)
+
+  ● Education OS — Teacher Assignment Bounded Check › should allow assigning co-teacher alongside active lead teacher for same course & academic year
+
+    Failed to seed course: TypeError: fetch failed
+
+      54 |       status: 'active',
+      55 |     });
+    > 56 |     if (courseErr) throw new Error(`Failed to seed course: ${courseErr.message}`);
+         |                          ^
+      57 |
+      58 |     // 3. Seed teacher parties in party_parties + persons
+      59 |     teacherPartyA = crypto.randomUUID();
+
+      at Object.<anonymous> (src/platform/education/__tests__/teacher-assignment.integration.test.ts:56:26)
+
+  ● Education OS — Teacher Assignment Bounded Check › should allow assigning new lead teacher after terminating previous lead teacher
+
+    Failed to seed course: TypeError: fetch failed
+
+      54 |       status: 'active',
+      55 |     });
+    > 56 |     if (courseErr) throw new Error(`Failed to seed course: ${courseErr.message}`);
+         |                          ^
+      57 |
+      58 |     // 3. Seed teacher parties in party_parties + persons
+      59 |     teacherPartyA = crypto.randomUUID();
+
+      at Object.<anonymous> (src/platform/education/__tests__/teacher-assignment.integration.test.ts:56:26)
+
+  ● Education OS — Teacher Assignment Bounded Check › should verify ZERO shadow persistence in courses.metadata
+
+    Failed to seed course: TypeError: fetch failed
+
+      54 |       status: 'active',
+      55 |     });
+    > 56 |     if (courseErr) throw new Error(`Failed to seed course: ${courseErr.message}`);
+         |                          ^
+      57 |
+      58 |     // 3. Seed teacher parties in party_parties + persons
+      59 |     teacherPartyA = crypto.randomUUID();
+
+      at Object.<anonymous> (src/platform/education/__tests__/teacher-assignment.integration.test.ts:56:26)
+
+
+Test Suites: 10 failed, 45 passed, 55 total
+Tests:       84 failed, 450 passed, 534 total
+Snapshots:   0 total
+Time:        177.801 s, estimated 219 s
+Ran all test suites within paths "src\products\bella-education\__tests__\bella-education-architecture.test.ts", "src\products\bella-education\__tests__\bella-education-conformance.integration.test.ts", "src\products\bella-education\__tests__\bella-education-customization-architecture.test.ts", "src\products\bella-education\__tests__\bella-education-customization-conformance.integration.test.ts", "src\products\bella-education\__tests__\bella-education-extension-conformance.integration.test.ts", "src\products\bella-education\__tests__\bella-education-extension-sandbox.test.ts", "src\products\bella-education\__tests__\child-pii-shield-security.test.ts", "src\products\bella-education\__tests__\p32-classroom-field-e2e.integration.test.ts", "src\products\bella-education\__tests__\preschool-activity-feed-aggregator.test.ts", "src\products\bella-education\__tests__\preschool-admin-ai-copilot.test.ts", "src\products\bella-education\__tests__\preschool-ai-copilot.test.ts", "src\products\bella-education\__tests__\preschool-analytics-canonical-readback.service.test.ts", "src\products\bella-education\__tests__\preschool-chain.service.test.ts", "src\products\bella-education\__tests__\preschool-daily-care-canonical.service.test.ts", "src\products\bella-education\__tests__\preschool-enrollment-operational.integration.test.ts", "src\products\bella-education\__tests__\preschool-finance-billing-period-provenance.test.ts", "src\products\bella-education\__tests__\preschool-finance-canonical-student-connection.service.test.ts", "src\products\bella-education\__tests__\preschool-finance-period-completion-operation.test.ts", "src\products\bella-education\__tests__\preschool-finance-tenant-actor-authorization.service.test.ts", "src\products\bella-education\__tests__\preschool-finance-tt99-recognition.service.test.ts", "src\products\bella-education\__tests__\preschool-guardian-authorization.service.test.ts", "src\products\bella-education\__tests__\preschool-parent-daily-experience.service.test.ts", "src\products\bella-education\__tests__\preschool-parent-portal.service.test.ts", "src\products\bella-education\__tests__\preschool-parent-user-role-migration.test.ts", "src\products\bella-education\__tests__\preschool-safe-pickup-handover.service.test.ts", "src\platform\education\assessment\__tests__\assessment.aggregate.test.ts", "src\platform\education\attendance\__tests__\attendance.aggregate.test.ts", "src\platform\education\course\__tests__\course.aggregate.test.ts", "src\platform\education\course\__tests__\course.integration.test.ts", "src\platform\education\domain\__tests__\course-enrollment.domain.test.ts", "src\platform\education\enrollment\__tests__\enrollment.aggregate.test.ts", "src\platform\education\enrollment\__tests__\enrollment.integration.test.ts", "src\platform\education\student\__tests__\student.aggregate.test.ts", "src\platform\education\student\__tests__\student.integration.test.ts", "src\platform\education\__tests__\capacity-concurrency.integration.test.ts", "src\platform\education\__tests__\education-engine.integration.test.ts", "src\platform\education\__tests__\kernel-invariants.integration.test.ts", "src\platform\education\__tests__\r3-student-identity-query.test.ts", "src\platform\education\__tests__\teacher-assignment.integration.test.ts", "src\platform\education\__tests__\verification-gates.test.ts", "src\app\api\education\analytics\__tests__\route.test.ts", "src\app\api\education\attendance\handover\__tests__\route.test.ts", "src\app\api\education\attendance\__tests__\route.test.ts", "src\app\api\education\branches\__tests__\route.test.ts", "src\app\api\education\courses\__tests__\route.test.ts", "src\app\api\education\enrollments\__tests__\route.test.ts", "src\app\api\education\parent-daily\__tests__\route.test.ts", "src\app\api\education\work-queue\__tests__\route.test.ts", "src\app\dashboard\education\attendance\__tests__\page.test.tsx", "src\app\dashboard\education\communication\__tests__\page.test.tsx", "src\app\dashboard\education\finance\__tests__\page.test.tsx", "src\app\dashboard\education\grades\__tests__\page.test.tsx", "src\app\dashboard\education\learning\__tests__\page.test.tsx", "src\app\dashboard\education\reports\__tests__\page.test.tsx", "src\app\dashboard\education\work-queue\__tests__\page.test.tsx".
+Test results written to: docs\audits\preschool-full-audit-20261020\education-jest.json

@@ -1,0 +1,4742 @@
+{
+  "createdAt": "2026-10-21T04:59:04.236Z",
+  "sourceRevision": "6b031511fd37e5ee22288676b833cf855d40b43f",
+  "target": "OWNED_LOCAL_SANDBOX_ONLY",
+  "semantics": "Healthcare reference schema from owning DDL. Complete Phase B/C calculation provenance is preserved; explicitly labeled temporary stub dependencies in the clinical-orders recreation script are not selected. No production-schema equivalence claim.",
+  "selection": "Exact canonical DDL statements only. Exclude data migration/backfill/preflight, demo data, unrelated initial tables, table drops and transaction wrappers. No test or runtime source edits.",
+  "sources": [
+    {
+      "path": "supabase/migrations/20260511000000_initial_schema.sql",
+      "sha256": "bac51db3da0e71479cd9bbe0d1c6297f017aed3c8d46ba65e918dcbc82a356ce",
+      "mode": "customers"
+    },
+    {
+      "path": "supabase/migrations/20260511500000_create_inventory_items.sql",
+      "sha256": "c6e478227a05953bede173bcb2aa308fd97e48c1c63516799f405b03d271f320",
+      "mode": "inventory"
+    },
+    {
+      "path": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "sha256": "8372e4ce3a183c3c181742da361fb6d8de47da75eaea4eeee247b1022c72cd46",
+      "mode": "healthcareCore"
+    },
+    {
+      "path": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "sha256": "5bc249236630da662f8a4b1b7d883567475a0f0e74788a28b83db7e014167a66",
+      "mode": "healthcareExtended"
+    },
+    {
+      "path": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "sha256": "5d2500e0998b2de9c39d250b2415af6067fa6563170c13ce34b345a651783ac6",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260807040000_add_completed_at_to_hc_encounters.sql",
+      "sha256": "4f63432ce6cb9a73ad361ea77968303641ef6161cc584433f5f9038096d42e02",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260807050000_add_status_to_hc_prescriptions.sql",
+      "sha256": "22b19229dd476200af01a3f478c1597255b08a184cf5620c7ac45c19fbf96e73",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "sha256": "e568828c83089fea8bf227877b49e90ea37564a33390e0f113562410142278f5",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260812010000_make_care_journey_id_nullable.sql",
+      "sha256": "701e677d9bf99f2feb7a74920ee70b4df424d675b7dfae72982a1d25dd552304",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260812020000_drop_care_journey_fk.sql",
+      "sha256": "6ac5f996bf5fcc15ee30a8f9c99eda0256009b1afccbec8cbbfd7a104e9690e4",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "sha256": "fe0dda79b246c5601aec93ac0e0a0a9dff793e7261330410496c87138d18abc6",
+      "mode": "encounterUnique"
+    },
+    {
+      "path": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "sha256": "db97d125f7e3c211e8661784109b9818b3d7bc00256f76f66fa9f65ca5a6ba3f",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "sha256": "c9f629565022b3131bd8cd76d6b2596ac001733e76ad6ebefa8beff2891dc882",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "sha256": "6a870c66a4fcccddba2ba3c7faa5ef4b2a031023b8c39e2e2d27d0dc5ffb613b",
+      "mode": "clinicalOrdersOnly"
+    },
+    {
+      "path": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "sha256": "f324f88a1a73e6cfefbf2a66d6303bdbff0b5bdde202b0e070ee53d4e0640661",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260812050000_extend_pharmacy_schema.sql",
+      "sha256": "1cbeee164a946117198ce8bb4e06b5ac63499ef7256f03c6a2607b4d856ce36d",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "sha256": "d853887989d2c0f67274c87f0aa77e9f1567bd0af3cb30a546cc7eb58de7e293",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "sha256": "856e8a41a0fcb5e8040cc99c4093646502b40fc6e03e520f460e3c326bbc8093",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "sha256": "93f663d71898b19d0c3ce503ef3af2bf0cf483c27ef05f42de2f0c899a9283d3",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "sha256": "ca347f3c752c7f5f56e012d4b89178e69d0ad73f66e7c606ef326c6e2eaf16af",
+      "mode": "ddl"
+    }
+  ],
+  "statements": [
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 0,
+      "end": 468,
+      "line": 1,
+      "sha256": "e5bf9b3c410bc45e65ac45949f391d55c899bf04981430b0c199711d22c1797b",
+      "kind": "CREATE EXTENSION IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 0,
+      "end": 487,
+      "line": 1,
+      "sha256": "297af75e952330dddfa6017e2f77d4939f683d8f5eb875be62d4f69c62aac01d",
+      "kind": "CREATE EXTENSION IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 1107,
+      "end": 1619,
+      "line": 32,
+      "sha256": "8d27ed4ee87013f9f9accfc662c77fae324b98229e91443fbbb46166ab6c2a5f",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260511500000_create_inventory_items.sql",
+      "start": 0,
+      "end": 1524,
+      "line": 1,
+      "sha256": "25a7f22754dbad5ccf7c71c2eea3139559647a5b9eccfb53dc3d67ba476cdaa7",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 0,
+      "end": 1531,
+      "line": 1,
+      "sha256": "cc2ae2df9fcf2a6c33aff0504ff6cc17782b73b7d1ef6f8394c8421e56088119",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 5707,
+      "end": 6406,
+      "line": 167,
+      "sha256": "6c141e3fd90169aa01eb3b06946c267118a89c8dc0569e0e24037fe6a12d5662",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 2026,
+      "end": 2984,
+      "line": 36,
+      "sha256": "985ceb8e111234cd997666f5125235c15c182b428d1cce7191305841ccc9be9b",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 0,
+      "end": 1370,
+      "line": 1,
+      "sha256": "c42ba507751d3319db7ffe3c2cc2feccdffc086b3d8fc56b6e50c93f1bf6c2aa",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 5022,
+      "end": 5740,
+      "line": 93,
+      "sha256": "6e0e7cbf5a90918069cfb80e66476d9f80c9e9006595f45ad168692339738c0b",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 5938,
+      "end": 6791,
+      "line": 112,
+      "sha256": "281b6fa433c860f02e50054875d8857ce15d3fecf30ebcddab873fc1799edf69",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 0,
+      "end": 1026,
+      "line": 1,
+      "sha256": "4dbb4dc7e9936d78115e54b25bfb1f463d6607c79a9d38f22e8ae5e858a64092",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 1026,
+      "end": 1413,
+      "line": 22,
+      "sha256": "039efb34c7429f1b2c60133f5a54361cd4108a1f37ddc90519a53799f0828321",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 1413,
+      "end": 1833,
+      "line": 32,
+      "sha256": "a2f75d67b4a49b5eee38699117fe44b61ebad90b75820b96de076b2064a5d1f8",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 1833,
+      "end": 2319,
+      "line": 42,
+      "sha256": "a832fb7914feb699577c914e44a277130e4886803da9bd1d110f514d5bf2f8be",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 2319,
+      "end": 2942,
+      "line": 53,
+      "sha256": "c678dfad8f94920c5179977d157dfd2600ec3d177048add79eaf1af4e3136c7c",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 2942,
+      "end": 3868,
+      "line": 67,
+      "sha256": "76793a9c1d3bad4e5f3ffe3490df47639613f8f7b12376026aaa44f76ffeea4c",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 3868,
+      "end": 4588,
+      "line": 86,
+      "sha256": "7734f1ace7ed560d69fcf78b5a7e751df3d30e907e131479bb596493e5c8873e",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 4588,
+      "end": 5283,
+      "line": 103,
+      "sha256": "b0f962689aeccee4142f20fe12ae40d279a01efa6870e726d9b86ab135055eee",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 5283,
+      "end": 5837,
+      "line": 119,
+      "sha256": "6b2756a65ae2b8a98fce06e65d34ec71c4b0ec28fb0c6493c0c653dab0877c6f",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 5837,
+      "end": 6305,
+      "line": 133,
+      "sha256": "55f162cab7e2b4b5efe7e02b4919d54ece36d9e0c0e6564ad7d4037efb3e5b98",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 468,
+      "end": 1106,
+      "line": 8,
+      "sha256": "27a4312db62387868f643976ac3329a5c78b8ea35906258abdcbe1f425c75422",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 1653,
+      "end": 1996,
+      "line": 34,
+      "sha256": "5b1bd9143b8ef35a3ca7cbe012bf03e34dfe6fecb4bd0a24f4f8067f5d17d691",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 2111,
+      "end": 2661,
+      "line": 46,
+      "sha256": "04a0f545b617a1033b20841844f3f6ee74421fa4666169ba611c7022265337a7",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 2762,
+      "end": 3646,
+      "line": 60,
+      "sha256": "a0a5208176ed3f18cfbac7c759aef4d8e8af626a067823bf5857eb67a1b1fe70",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 3954,
+      "end": 4613,
+      "line": 81,
+      "sha256": "de730b7c49eab462192ebe8a15589e58ca8ac823da3592eb196b7a2e1d1dc0d8",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 4815,
+      "end": 5508,
+      "line": 96,
+      "sha256": "a8980cf68460f763df7d5c6bcf606e0b4d091b05dfe74c56536f1b02451752de",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 5709,
+      "end": 6701,
+      "line": 111,
+      "sha256": "0e1e7b7b241c31288b591e46b1297a410a98a20fbd20de86fa3a6dff067298fc",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 6950,
+      "end": 7641,
+      "line": 132,
+      "sha256": "e27a4e2e35a81160554f34240c3954b99657d8b326812cc1ac9ded2510bf1217",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 7858,
+      "end": 8367,
+      "line": 148,
+      "sha256": "1e72d2014431b9ebfee20ab5a5324126775aac00f12656afafa04ce61d8fc589",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 8708,
+      "end": 9391,
+      "line": 163,
+      "sha256": "97f5ebf0529f2bae744ef290fddad3fe51a2df6df7aba27851b242816003df21",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 9616,
+      "end": 10432,
+      "line": 180,
+      "sha256": "8d7da5a230c4f794e0be116bf9e3214abf702ef0aadc51217b06e28463fe9a1c",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 10637,
+      "end": 11352,
+      "line": 198,
+      "sha256": "4631383c7b689f4eb4d40647c1c050de11a6f4916682ebadaeb4860e2ddbdccb",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 11533,
+      "end": 12059,
+      "line": 215,
+      "sha256": "ce096f44a09121dd6596ac6166e013a64cf6f0851c31ac0d065b666bc57ddb9b",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 12236,
+      "end": 12800,
+      "line": 229,
+      "sha256": "e88f404dc1b87ca393dc06f471c6588283dc047115171a437fdb880073439c8b",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 12889,
+      "end": 13463,
+      "line": 243,
+      "sha256": "24498f5965c69d908b138e4c4ca284442f89de2d29722b4b8b70a0874424f553",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 13556,
+      "end": 14084,
+      "line": 258,
+      "sha256": "b178e8c25f9bd3d6d8220898037dc0682f7af3a5053132a1385729e280fc4bae",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 14291,
+      "end": 14947,
+      "line": 271,
+      "sha256": "d1fdff12d30c543cc8ef0f246cef21b372e4e59e39292862555a57103e381ea5",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 487,
+      "end": 1027,
+      "line": 8,
+      "sha256": "fb7681ab840b52141d9a6bc73f789e3f595038e4742bf3a72bfd6b12dd1f476c",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 1114,
+      "end": 1818,
+      "line": 21,
+      "sha256": "d2027814ba36af0d6d018960e38b6fcb3273ec405925084d58d9f0ff715557f6",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 2107,
+      "end": 3096,
+      "line": 37,
+      "sha256": "5ce71a0ac62fe7c34f7ab3d35459036e886f5c49b35e67e0b8c08292ad4a9e9d",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 3441,
+      "end": 3913,
+      "line": 57,
+      "sha256": "c95659603297d6d11999c617341cb9cda9142b27b6f7135aab91f29bffe5a107",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 4023,
+      "end": 4882,
+      "line": 70,
+      "sha256": "67d4c1d0c9dd25f34613d96eec6e4a1deface4d5376a619a1a4de3a8a3f1b111",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 5088,
+      "end": 5680,
+      "line": 88,
+      "sha256": "d1a548a57c597c070d394b92d2bafe752d97daee2e70de81d4aaeffa3db0dfd9",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 5876,
+      "end": 6675,
+      "line": 104,
+      "sha256": "cf1673c5dd7935e77174738180c86c9e92ffda800e2507196715338b1ba3d397",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 6879,
+      "end": 7822,
+      "line": 120,
+      "sha256": "6b97732135fda7df7ddff99ce15fd1a101763613cca6bfac76fd3b2523dcb242",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 7915,
+      "end": 8832,
+      "line": 137,
+      "sha256": "5919e3812b2c1804c1d28bbe2633449e450f479af3aa160e3029ef98e190e4a7",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 9151,
+      "end": 10109,
+      "line": 156,
+      "sha256": "618af3460c4dfc747af70ebdd783ee8b8cd7896786aa7a788916a37d518f2732",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 10827,
+      "end": 11730,
+      "line": 185,
+      "sha256": "cb7fa0cd43253d9e277cc537dd0558268b0c67424a054e802a6b02e61c6930e6",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 1844,
+      "end": 3866,
+      "line": 44,
+      "sha256": "fea64cbfc4e2b1d0dd080b571905b3cd89428bcb009b4a5e30270e02c20a7911",
+      "kind": "CREATE TABLE public.hc_clinical_orders ("
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 2674,
+      "end": 3688,
+      "line": 52,
+      "sha256": "9c6b83dcdda882043d6f5254b5f0165c19e2b013f0120ca2e506f074b91fd4f6",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 4438,
+      "end": 5787,
+      "line": 90,
+      "sha256": "343da7c1c206343d5f43b4110804d01feafc08b2bb6c22a810037c99941de593",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 6510,
+      "end": 7532,
+      "line": 121,
+      "sha256": "a7216e86df56d9219882d0f002f1606e7daadda500fb796a1034dbdfff1edef0",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 8191,
+      "end": 9828,
+      "line": 148,
+      "sha256": "a0e70ca3436faf244e906c25b7fe1442fc1b06b24395e8810c8b6628ed7147dd",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 10165,
+      "end": 11149,
+      "line": 182,
+      "sha256": "a647c91387a4147bd70ef1a390029255c7e6347e6bd892b5c2fa2dcfb2cd867c",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 13384,
+      "end": 14316,
+      "line": 240,
+      "sha256": "6500ee942dbe361fe7702e9653fb66ae59390425bca816cc5a008c2c9fad0621",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 0,
+      "end": 1522,
+      "line": 1,
+      "sha256": "cb5d50bc64e82a0cdc6b8db4cc8a4e246d1e3790f0687a3720b7b27b85f2baf7",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 1783,
+      "end": 2304,
+      "line": 34,
+      "sha256": "d0a4c97dddc5f09fe776d2fb6364546c8640c75779cc9a8bbef775caf5e4e907",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 2427,
+      "end": 3233,
+      "line": 48,
+      "sha256": "fd8867d3798059f3057c0a26ac34207f972016a7efdd3388ba6e54218b2d8568",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 3349,
+      "end": 4463,
+      "line": 68,
+      "sha256": "4bfbf3b47836c6805ab267b8d3ee8ff61116c9a94f09986e5a4269e28e6156c2",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 4596,
+      "end": 5222,
+      "line": 93,
+      "sha256": "5c40e6575c7add3e88d4baa13c7c221c1ee5439a432362b2879fc27e4bfaa61b",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "start": 133,
+      "end": 748,
+      "line": 4,
+      "sha256": "66ee76ad37993f3714c464b58527821f6105e717b0a3398c74d84263997f5f61",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "start": 1278,
+      "end": 1803,
+      "line": 31,
+      "sha256": "947ce5930062c92d78657c2fdb5237d9eb35a79188e3057129ded5fcbf3e08b1",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 133,
+      "end": 1137,
+      "line": 4,
+      "sha256": "aa298adc9e95227cd0d83921cece4da8f5c5cff38e8e5652e26fb52247723ad6",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 1511,
+      "end": 1988,
+      "line": 33,
+      "sha256": "91e76d0b8e492826f35a5add0097a2c1c254b77c3a5eed857245261b1d07f9e8",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 133,
+      "end": 992,
+      "line": 4,
+      "sha256": "0a82e91c4e0d9d0f5305d8570492524fd91e45fdba7778308e7ccdcec315ce42",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 1262,
+      "end": 1859,
+      "line": 30,
+      "sha256": "2ee334a3521736188346ea6e54d739ab63aff651cc915a4c69b048bceaab6b2d",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 1989,
+      "end": 2604,
+      "line": 46,
+      "sha256": "16ff2c866f24405edada1d86797df4674fb6bb58b7ec7ae43930b4e0a71cbe73",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 1531,
+      "end": 1622,
+      "line": 30,
+      "sha256": "1b1bce9f70249184b73b936150ff8e5c1d520c4c2a4ec85bbceff8785a34b024",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 1622,
+      "end": 1718,
+      "line": 32,
+      "sha256": "224a97acdf0a8cc665f806b92c36add79c0ab77ef3fadc9242c34863ae6ff0a9",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 1718,
+      "end": 1815,
+      "line": 33,
+      "sha256": "c88997db6368d5dc74b5c12fa6f0303e5047c49958476ffd1a5c433bcfe9ed16",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 1815,
+      "end": 1910,
+      "line": 34,
+      "sha256": "7b30698ccf7297a34f1207bc1e25428887d77d24fb676f244f3c67a71c24644d",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 1910,
+      "end": 2026,
+      "line": 35,
+      "sha256": "86977cbbd4c0483c33d7c915825d5334eb387eaff844b57ba8e2a69ccca0a186",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 2984,
+      "end": 3081,
+      "line": 56,
+      "sha256": "c50e97b31e1d061b01510bfbb9a3e892f6b2afbc99ae59d1e0fdb768bad77ace",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 3081,
+      "end": 3182,
+      "line": 58,
+      "sha256": "1af62403695786a6de14a3c4adc9c2549011601c9ce524de710bdc2c71eacb74",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 3182,
+      "end": 3285,
+      "line": 59,
+      "sha256": "e0119eee38e337274e033dd103a847383e4b0fbfccc698256e128c7690ff8d27",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 4228,
+      "end": 4330,
+      "line": 77,
+      "sha256": "09f06aaae5c41ad5dec4b04d0713a8c8884b23f64e25c8492105a0aa4da1f1b0",
+      "kind": "ALTER TABLE public.hc_encounters ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 4330,
+      "end": 4394,
+      "line": 80,
+      "sha256": "ff98e61cca49cb2dba55241f3e82b40c3b74b027a46fb26d76b5783dc213e782",
+      "kind": "ALTER TABLE public.hc_prescriptions ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 4457,
+      "end": 4829,
+      "line": 82,
+      "sha256": "6112b6d27c9fd471999860829c1ea23c39ad6a4dd7d4c7ec946b8d259ae51ce5",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 4829,
+      "end": 5169,
+      "line": 90,
+      "sha256": "433f0034645ee3ad50c63f0a17578991cfecfef9a6966ada03ca38dfff167df6",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 1370,
+      "end": 1467,
+      "line": 27,
+      "sha256": "824640436628c4363f71c5d6e2d22f2900d410990e2fb5fac37fa2af781bc046",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 1467,
+      "end": 1566,
+      "line": 29,
+      "sha256": "6e1ad11f544c4686e064af7605dcb20aba4401dc51f040b133b89b95aaa63dbb",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 1566,
+      "end": 1659,
+      "line": 30,
+      "sha256": "59d2e9c31c0ac20b1303e1285988de81adf3fe0e8c28dbfd73f3c81e981462ef",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 3743,
+      "end": 3834,
+      "line": 70,
+      "sha256": "651be240ecdec378162b272ee65af5790fc49bee8074501e8e16dbb5c9879b3f",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 3834,
+      "end": 3933,
+      "line": 72,
+      "sha256": "024e57fc5bcc557b39ff1741c9c1d3230a11fc18b345937a98c0e27ca62bca10",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 3933,
+      "end": 4028,
+      "line": 73,
+      "sha256": "f3848eeb12a2472c0f072edf96e917c795c157b45d3b26e9efd2c173ac3728cc",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 4816,
+      "end": 4915,
+      "line": 90,
+      "sha256": "a569be69bab7e424ebd23dbe3145c1ea653a6281d3a07e6a6f346d46cb22a6e1",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 4915,
+      "end": 5022,
+      "line": 92,
+      "sha256": "9b32452fdedffb6fbb7455c1cdd8e6ced68760ffb407720e7ddf171d76855886",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 5740,
+      "end": 5837,
+      "line": 109,
+      "sha256": "a97d302d72d2b8f09555ea6dd49de479a0200b4dfb2e3016eab9830eb072f609",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 5837,
+      "end": 5938,
+      "line": 111,
+      "sha256": "f0d11ef8a103920c3faad547da1db60c0ed8a6f69557d62793a2babaca12bbb4",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 6791,
+      "end": 6890,
+      "line": 126,
+      "sha256": "bd7da70ef59307f7b0b1fd3074bbb81ceea5c6a17d790ef3578c0fb687c29461",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 6890,
+      "end": 6993,
+      "line": 128,
+      "sha256": "0e782b94fce750062e924dc507277c5e2e88fb829d5ab20f6304a068b0dc59ca",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 6993,
+      "end": 7116,
+      "line": 129,
+      "sha256": "69de793bf5c03459665ec19c2a31af8af4092eba24c00a73a23ee54d130f1d85",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 7116,
+      "end": 7200,
+      "line": 130,
+      "sha256": "51a8c0936e3f72090ab2a4bc11a46c4f89cc83ecf4d34bd2edd23f8eec87ccac",
+      "kind": "ALTER TABLE public.patient_profiles ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 7266,
+      "end": 7327,
+      "line": 134,
+      "sha256": "d6b609ec4b41cc4b3e82e1dc19205dcb812f1caed9b0202b2b0ba81fd99a1be6",
+      "kind": "ALTER TABLE public.hc_lab_orders ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 7327,
+      "end": 7392,
+      "line": 135,
+      "sha256": "92370b790b93d49f67c23f639e37a98dd4090c871ef443b0caf38fe962259d35",
+      "kind": "ALTER TABLE public.hc_imaging_orders ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 7392,
+      "end": 7456,
+      "line": 136,
+      "sha256": "9e3638ac045a246586fcd4791c00f8503e9014393e715a9cc6c5581cbe7aef4f",
+      "kind": "ALTER TABLE public.hc_drug_profiles ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 7456,
+      "end": 7521,
+      "line": 137,
+      "sha256": "bfab593631e0c9e2a3c485cd32f03981c5d4c71668d0fb68267a154dd070ed3f",
+      "kind": "ALTER TABLE public.hc_patient_queues ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 7521,
+      "end": 7916,
+      "line": 138,
+      "sha256": "4709eb450d6b3c59128eb743a326bb7be618f09f23815cbafc276931faf67167",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 8273,
+      "end": 8610,
+      "line": 155,
+      "sha256": "5175182f03cc76f9fddc3a2dcdc7a472a1afceaabb252125da36fa5e69ec99b7",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 8610,
+      "end": 8963,
+      "line": 163,
+      "sha256": "d6fd72deaf84fd3cb7de3b5583b68e54bac6948928748de75c154542fb685a4a",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 8963,
+      "end": 9312,
+      "line": 171,
+      "sha256": "ac18ebd2d34b612ece1af4114d28a18f0c152f50da427177ef411fc8615efb2e",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 9312,
+      "end": 9665,
+      "line": 179,
+      "sha256": "7351aaafb7ac73d5bbd343b5b46b51523fd438b8029ffeebe7fa148367cfea39",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 6305,
+      "end": 6456,
+      "line": 145,
+      "sha256": "2a4a32d6ae0e9532615ee34360f609740d7db7c60a4a63a55b23c937a2e5d68b",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 6456,
+      "end": 6544,
+      "line": 148,
+      "sha256": "4b798697d225305efe9ca90ce679a645f2c7a0c43503a20772d46127c32750cb",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 6544,
+      "end": 6660,
+      "line": 149,
+      "sha256": "03bdd275296ca59485bfefe3e9c6a0e9c08ba24d9e7ffdfc0ca6898f8cb13f74",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 6660,
+      "end": 6770,
+      "line": 150,
+      "sha256": "42609da4741e4645026ac904e5fa812c18a5f661009068cdbdb7919205f11c86",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 6770,
+      "end": 6917,
+      "line": 151,
+      "sha256": "40f3168cac1e74c90fc706083e9de2971443ae1b5b6ecf13c9c4c31f6dad312f",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 6917,
+      "end": 7036,
+      "line": 152,
+      "sha256": "d7183233d7c0bcf621f31fbab8a506138b921cb012add0712af543925f75c620",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 7036,
+      "end": 7135,
+      "line": 153,
+      "sha256": "bf34da174ac4a04c02763da35f96b4ced452ed06d781ecc4950b3b0fc99be3aa",
+      "kind": "ALTER TABLE public.hc_master_patient_index ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 7135,
+      "end": 7195,
+      "line": 156,
+      "sha256": "3c9c4542d3f65c82521dc46c2869b38f97a2e483d19719f1723cbfc056912dad",
+      "kind": "ALTER TABLE public.hc_buildings ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 7195,
+      "end": 7251,
+      "line": 157,
+      "sha256": "c71fa0dc10631f4eb31d30d7a267462a21763c1ca2f54de6a9d91cf24eb3054d",
+      "kind": "ALTER TABLE public.hc_wards ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 7251,
+      "end": 7307,
+      "line": 158,
+      "sha256": "986603c75b5494ec1455e96ec6747c37fc5c9a96930f00a5573d222f881dead5",
+      "kind": "ALTER TABLE public.hc_rooms ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 7307,
+      "end": 7362,
+      "line": 159,
+      "sha256": "7bdcc10daee65682dcab79d28d9cd143e5b37eb3ce8a037e6f4d89d16d91d1eb",
+      "kind": "ALTER TABLE public.hc_beds ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 7362,
+      "end": 7433,
+      "line": 160,
+      "sha256": "f3d041ad6fa6ef3f533f52366a27e9517fc4857b8ece27941110a57cea883c6f",
+      "kind": "ALTER TABLE public.hc_inpatient_admissions ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 7433,
+      "end": 7503,
+      "line": 161,
+      "sha256": "9c7a3a095fde6b7b7c86982bb8de1a00ed421e276e35ecb6452db65d211d7c31",
+      "kind": "ALTER TABLE public.hc_nursing_vital_signs ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 7503,
+      "end": 7587,
+      "line": 162,
+      "sha256": "c72025fac97629514b77927d15fc6cc015009b909c0bb4b2587e38db484149d5",
+      "kind": "ALTER TABLE public.hc_medication_administration_records ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 7587,
+      "end": 7663,
+      "line": 163,
+      "sha256": "edf087b2ef57fa28ff0967df65e75e6c7feff550f4731f5623fa4a853a69e6d7",
+      "kind": "ALTER TABLE public.hc_security_break_glass_logs ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 7663,
+      "end": 7735,
+      "line": 164,
+      "sha256": "ffa1ceacfc751e0342fcfc11f6daa1e02c276ef451c66b29a1971ce55984b714",
+      "kind": "ALTER TABLE public.hc_enterprise_registries ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 7735,
+      "end": 7859,
+      "line": 165,
+      "sha256": "e1380809fac799668b7e636717e5e17aac690e07303328e2156cbe2b0f56abe1",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 7859,
+      "end": 7953,
+      "line": 168,
+      "sha256": "c72c28b8904189c6fe26435b5f41c3a3ad57c1c163cce41fd06d3fe80b813803",
+      "kind": "CREATE POLICY \"hc_mpi_tenant_policy\" ON"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 7953,
+      "end": 8031,
+      "line": 169,
+      "sha256": "3fe1d39031de5f1cca9a531f92f19bad4ad6f3d867cd2e446df20e1b787d6378",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 8031,
+      "end": 8120,
+      "line": 171,
+      "sha256": "129ee338b2f4ca675b63a3e7d0fadb175582b0b16fdd11fbc7782a97d89c81a3",
+      "kind": "CREATE POLICY \"hc_buildings_tenant_policy\" ON"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 8120,
+      "end": 8190,
+      "line": 172,
+      "sha256": "6b488780cf97949ed8f93c92eeb97dd60fed1f578456df735a1a3ff8e6c6fceb",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 8190,
+      "end": 8271,
+      "line": 174,
+      "sha256": "3dd80bf15c1d308a966e30789034c2bdded0cfadb530738ec2c9f9b72b251f1d",
+      "kind": "CREATE POLICY \"hc_wards_tenant_policy\" ON"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 8271,
+      "end": 8341,
+      "line": 175,
+      "sha256": "2b438f8b320b282a013d5e6ed74ab629343af3e85d6263e424bdbd0381f97866",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 8341,
+      "end": 8422,
+      "line": 177,
+      "sha256": "8c2bd736260742c84dcfed5301014fb7a5c5f5e628bc7ea5c48ee69e06024afb",
+      "kind": "CREATE POLICY \"hc_rooms_tenant_policy\" ON"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 8422,
+      "end": 8490,
+      "line": 178,
+      "sha256": "54a2ce880a899cd639a2c3db2d35c5bdaa8a4024bb0e5a8dbcdebc30672ea459",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 8490,
+      "end": 8569,
+      "line": 180,
+      "sha256": "42f8615f8c543df294ee35e5acff3c9a6a6f973dcd19faeff12bb59617f08205",
+      "kind": "CREATE POLICY \"hc_beds_tenant_policy\" ON"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 8569,
+      "end": 8659,
+      "line": 181,
+      "sha256": "50f395667880416e0da1afc2317aab3fe92a28cce7fdf7efb2f1a34786d86d3a",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 8659,
+      "end": 8760,
+      "line": 183,
+      "sha256": "98b13fc068cc13fc1142b054824bd4f7f28ad0699adf4e0255b832f90be6fa5a",
+      "kind": "CREATE POLICY \"hc_admissions_tenant_policy\" ON"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 8760,
+      "end": 8845,
+      "line": 184,
+      "sha256": "e798cd9b9a1a89555de225ae65bc59413551f37c7f84b993c2d54a1bf0c432a6",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 8845,
+      "end": 8941,
+      "line": 186,
+      "sha256": "eae3fa26be87d526fbfe22879429354fc0348be02b330e18424a46af59554c28",
+      "kind": "CREATE POLICY \"hc_vitals_tenant_policy\" ON"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 8941,
+      "end": 9037,
+      "line": 187,
+      "sha256": "55d77aee93b7366cce143fd14dba2e09e130bd5b10b3487e1eb1fba5fbc1456a",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 9037,
+      "end": 9144,
+      "line": 189,
+      "sha256": "d875732c37a13fe533ac70f8a28ed97dda4f0253b1dd6824e380460fb129f02c",
+      "kind": "CREATE POLICY \"hc_mar_tenant_policy\" ON"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 9144,
+      "end": 9240,
+      "line": 190,
+      "sha256": "004520f9e04ea46bfe1303471a3972145e1f9af317c8d4aad3fd7ea8e03130fd",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 9240,
+      "end": 9347,
+      "line": 192,
+      "sha256": "0b009c5aa3a70f01b48a71dd2169dbd0ddb72bcef23371f7d533792e4a03a48b",
+      "kind": "CREATE POLICY \"hc_break_glass_tenant_policy\" ON"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 9347,
+      "end": 9438,
+      "line": 193,
+      "sha256": "d7e2e29854b2d1d5641f9e21e101a3b304c358a6504d33e5ce80c3d33f93692c",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260807100000_hospital_inpatient_his_baseline.sql",
+      "start": 9438,
+      "end": 9540,
+      "line": 195,
+      "sha256": "265f5478601cb33f6e89cf953a7f4ecfac23239a8fdb261f0173f4a4cc4b0cf8",
+      "kind": "CREATE POLICY \"hc_registries_tenant_policy\" ON"
+    },
+    {
+      "source": "supabase/migrations/20260807040000_add_completed_at_to_hc_encounters.sql",
+      "start": 0,
+      "end": 136,
+      "line": 1,
+      "sha256": "05cce5b73bd62cc8c72b93a00de06688d5e0ce79d2360ccdb07efc288beae45c",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260807040000_add_completed_at_to_hc_encounters.sql",
+      "start": 136,
+      "end": 284,
+      "line": 3,
+      "sha256": "1993aa8d29eca45781f7b2b7d92c028b8e9af4b76ca52a285379b7cee3602eb1",
+      "kind": "ALTER TABLE public.hc_encounters DROP"
+    },
+    {
+      "source": "supabase/migrations/20260807040000_add_completed_at_to_hc_encounters.sql",
+      "start": 284,
+      "end": 468,
+      "line": 6,
+      "sha256": "8c552185adf1a1fd180f38dc0465a04acaee06f7c0c7d5ddafe93021113b28ec",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260807050000_add_status_to_hc_prescriptions.sql",
+      "start": 0,
+      "end": 413,
+      "line": 1,
+      "sha256": "7f5785bfded2d18f603e4299db6830ad1be17ef6446543b8f1eae1f492828cd9",
+      "kind": "ALTER TABLE public.hc_prescriptions ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 1457,
+      "end": 1592,
+      "line": 37,
+      "sha256": "f3e8c9412e6f2ffd29936aca26b0d9f2467341c152dbea95a753a6381618b322",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 1592,
+      "end": 1731,
+      "line": 41,
+      "sha256": "e6907dc487776bec8ac88c812af8e473f01d19eb2377a78179b7dce191a658a2",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 1731,
+      "end": 1819,
+      "line": 45,
+      "sha256": "9afe269ca4db6d301516962b23031835ef60fa00264dfc0a8f2aa31b5c9fd07a",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 1819,
+      "end": 1981,
+      "line": 48,
+      "sha256": "1ba7f55518983a6512658d9131585bba5cb56a682ed235997d99eb89db2ade3a",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 1981,
+      "end": 2089,
+      "line": 53,
+      "sha256": "35f43076de924334306b7f2bff5edcedbd61b60eddd38343e76e04be3ba3b28f",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 2089,
+      "end": 2171,
+      "line": 57,
+      "sha256": "008968a64f45a3c6b83b55478ab395f1c6922ae808397dbb9b4728d2f03e090d",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 2171,
+      "end": 2305,
+      "line": 60,
+      "sha256": "1f7a4e0017b764549e995f1256caf940bd24159cfa510d9a17763141dfb5452e",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 2305,
+      "end": 2406,
+      "line": 64,
+      "sha256": "31b5110d4b7cb609021b7b6241b4a7105e9ca52851126b40e71af70b58c767f3",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 2406,
+      "end": 2544,
+      "line": 67,
+      "sha256": "3bf4e9653b2c00407c0d886d4bda60dcf37d32ff4283ac194899b0bd9fc7fd4b",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 4947,
+      "end": 5111,
+      "line": 145,
+      "sha256": "6668ab0a596227cb82e2e3edfa9224de36de93570a99f124c05db2ef8a508be2",
+      "kind": "ALTER TABLE public.hc_encounters DROP"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 5111,
+      "end": 5328,
+      "line": 149,
+      "sha256": "b50522f755f848caeece55c42fc1bbac1d19f2b14d4da2ddef847223ec990d4a",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 6498,
+      "end": 6680,
+      "line": 190,
+      "sha256": "e4eeed629ee083c57764d4fbfa7289d467a793a41f1dcef1a72c3aed0dfbd1df",
+      "kind": "ALTER TABLE public.hc_encounters DROP"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 6680,
+      "end": 6928,
+      "line": 194,
+      "sha256": "01a5a184c8d3902ce6c0ae5960847f7a368bb1462ebcd0dc1773ac311ff41cbc",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 8186,
+      "end": 8362,
+      "line": 240,
+      "sha256": "cfc20e1c365283f5bc82249cbe1a5044418e56e25317edee375f3df3b6e96869",
+      "kind": "COMMENT ON COLUMN public.hc_encounters.patient_party_id"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 8362,
+      "end": 8525,
+      "line": 243,
+      "sha256": "8fa9632655afe0f0aa0d22cc94be00a80c79771da0adfe14ff05d67a29abe9fc",
+      "kind": "COMMENT ON COLUMN public.hc_encounters.doctor_party_id"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 8525,
+      "end": 8691,
+      "line": 246,
+      "sha256": "69dbea8ffad2547edba36b417dd4089a89351d60936fad9ff83d132a6e36d4f6",
+      "kind": "COMMENT ON COLUMN public.hc_encounters.care_journey_id"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 8691,
+      "end": 8842,
+      "line": 249,
+      "sha256": "83a6b6e9c9ac0bdbcb1363942c1d75e900151e5a3507e046d7f3be2a9b4ed8b4",
+      "kind": "COMMENT ON COLUMN public.hc_encounters.queue_number"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 8842,
+      "end": 8992,
+      "line": 252,
+      "sha256": "4c8772776e77e748e3f4e13f6883c959eb36b06d4cd7dafb84a8ce9755fb5cb7",
+      "kind": "COMMENT ON COLUMN public.hc_encounters.chief_complaint"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 8992,
+      "end": 9131,
+      "line": 255,
+      "sha256": "a1b8e9efb92e180f17d22da4ba679388a36edd06bc879de3758879025ad07862",
+      "kind": "COMMENT ON COLUMN public.hc_encounters.notes"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 9131,
+      "end": 9264,
+      "line": 258,
+      "sha256": "5a2233ba78c43dea6c12a02e5a5fe0f6e9dc3d7e86dcdeff732b47d46f364697",
+      "kind": "COMMENT ON COLUMN public.hc_encounters.scheduled_at"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 9264,
+      "end": 9377,
+      "line": 261,
+      "sha256": "838992fec8b8fc13dabdc8bf75da5584818509d1b5914f6d81ac72986ce80f1e",
+      "kind": "COMMENT ON COLUMN public.hc_encounters.arrived_at"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 9377,
+      "end": 9490,
+      "line": 264,
+      "sha256": "e3ffb8f45af7a46380d9c1213c59827c608a467b8d682e84c018240b86f83940",
+      "kind": "COMMENT ON COLUMN public.hc_encounters.started_at"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 9490,
+      "end": 9620,
+      "line": 267,
+      "sha256": "89735e132b4b5dc0ddc9d2679b4b16dbc520cae355cdc11507e8e637ef3de9b8",
+      "kind": "COMMENT ON COLUMN public.hc_encounters.finished_at"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 9620,
+      "end": 9751,
+      "line": 270,
+      "sha256": "f398ecb638e93225d7b03c940ffcd29a876f2a9a34a910ef61c78f5aeca62e4e",
+      "kind": "COMMENT ON COLUMN public.hc_encounters.completed_at"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 10174,
+      "end": 10283,
+      "line": 287,
+      "sha256": "319f21e44a3bfbe3b5c4f1a1eb1aad816b5529b66464505c9bb9b12261619210",
+      "kind": "ALTER TABLE public.hc_encounters ALTER"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 10283,
+      "end": 10388,
+      "line": 291,
+      "sha256": "869d07dfe2775fa6d73422cb3e932ba047a3206221171aac21ea40e61fc71e55",
+      "kind": "ALTER TABLE public.hc_encounters ALTER"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 10388,
+      "end": 10546,
+      "line": 295,
+      "sha256": "6e023282305f85b8b6e06b6516b1144eb919ca98a582822cfe19e3bb1a79180c",
+      "kind": "ALTER TABLE public.hc_encounters DROP"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 10546,
+      "end": 10735,
+      "line": 299,
+      "sha256": "2446b597558a5ead152b0726fbb18234cc1b06653d833abcffcd54becec139ff",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 10735,
+      "end": 10911,
+      "line": 303,
+      "sha256": "89e04ec1d1207c9e50ff2ba7e92055f7947f7f84b53c5619ec4e89629a5fc1c4",
+      "kind": "ALTER TABLE public.hc_encounters DROP"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 10911,
+      "end": 11068,
+      "line": 307,
+      "sha256": "dc3d3a9012a41e67561180d2c502b7b467906e2abb2eefbcc490b966a150a8ff",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 11068,
+      "end": 11299,
+      "line": 311,
+      "sha256": "9517bb856d569782bf0953dbce5f512f125670f3fbc27ae7d6853842934c02c8",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 11299,
+      "end": 11496,
+      "line": 316,
+      "sha256": "6d6454a058d3bc20ac7e54aa5aa99f82f0662f31fbd16f4b0756642d14d6c0b7",
+      "kind": "ALTER TABLE public.hc_encounters ADD"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 11874,
+      "end": 12265,
+      "line": 335,
+      "sha256": "2e52e635436b45e71d79402c222be6d917e682005259efe5d1c2ea46bfe1c3ee",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 12265,
+      "end": 12387,
+      "line": 347,
+      "sha256": "b75be98d59f9f84c3792e4864e784743ae0b80c486a0a09c075a76b059ec7ff4",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 12387,
+      "end": 12458,
+      "line": 350,
+      "sha256": "43c9f0e8b03102562bc7dc58db4dea717d1bae4679ec7cada7c87148497918f6",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 12458,
+      "end": 12638,
+      "line": 351,
+      "sha256": "182cbf388bf614f4a85eee03c40b60b465adc224be4a945fc26db49bed34987e",
+      "kind": "CREATE POLICY tenant_isolation_select ON"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 12638,
+      "end": 12891,
+      "line": 356,
+      "sha256": "6b5090ac86a91a4c57fca6902e99f9e29617f6d6d97ba7bff6aeb49f44641ec0",
+      "kind": "CREATE POLICY tenant_isolation_write ON"
+    },
+    {
+      "source": "supabase/migrations/20260812010000_make_care_journey_id_nullable.sql",
+      "start": 1029,
+      "end": 1134,
+      "line": 27,
+      "sha256": "a79f90d428c12b96d9fc12f2ff47496193e80665a6bcbce7a06efdbe25a4e8aa",
+      "kind": "ALTER TABLE public.hc_encounters ALTER"
+    },
+    {
+      "source": "supabase/migrations/20260812010000_make_care_journey_id_nullable.sql",
+      "start": 1556,
+      "end": 1795,
+      "line": 48,
+      "sha256": "667f8589d6ba8af30d04bd06569736398b34b0e1ed2900ab85b51587edda12f1",
+      "kind": "COMMENT ON COLUMN public.hc_encounters.care_journey_id"
+    },
+    {
+      "source": "supabase/migrations/20260812020000_drop_care_journey_fk.sql",
+      "start": 989,
+      "end": 1113,
+      "line": 28,
+      "sha256": "f6bee278c3f322f97564339ab4013bac9e4d4619862343d41a8b949085e46300",
+      "kind": "ALTER TABLE public.hc_encounters DROP"
+    },
+    {
+      "source": "supabase/migrations/20260812020000_drop_care_journey_fk.sql",
+      "start": 1549,
+      "end": 1806,
+      "line": 50,
+      "sha256": "e4932fa682ab73218430938a2610acd36e2cc33110b35a4b39d95d0c320846a7",
+      "kind": "COMMENT ON COLUMN public.hc_encounters.care_journey_id"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 1106,
+      "end": 1225,
+      "line": 21,
+      "sha256": "db1d67a479a2a2d5a4c1b48f785a271b3d977b4ff483c61951ea03b294973c5c",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 1225,
+      "end": 1454,
+      "line": 23,
+      "sha256": "04e9f20f68c289af07fca51bd59d5262ed1372f7b149abe26eaa2410546e9052",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 1454,
+      "end": 1653,
+      "line": 30,
+      "sha256": "18a905faa0a05e6af3def32d1c6df08f8a3a3dac3e389f47f4cea59d524a6d83",
+      "kind": "CREATE TRIGGER trigger_block_safety_profile_mutation BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 1996,
+      "end": 2111,
+      "line": 44,
+      "sha256": "63a6db8a085e46f3437b515275ea0c0b5f29ad00ba28677168c88dff77f8be4a",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 2661,
+      "end": 2762,
+      "line": 58,
+      "sha256": "d8d8b728d7980d7540cce3fb9d0e22102bce6b9bae2d5a9b0c90d3b26147466c",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 3646,
+      "end": 3741,
+      "line": 77,
+      "sha256": "57542b225fd04721239cf76005248ec01c80319d8d7d8765bfa9562f66d3f87a",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 3741,
+      "end": 3840,
+      "line": 79,
+      "sha256": "08a23ddb8b33f9a417b34ccefcedeb62c35c35baf86d5dd1d237301cf601b597",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 3840,
+      "end": 3954,
+      "line": 80,
+      "sha256": "c008bcbe9ea4009f073ea0c691f33cd7d3ba2846bbf7e032499eb9d0bdff0732",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 4613,
+      "end": 4712,
+      "line": 93,
+      "sha256": "78c31b6afe1c6898bcd4c391bd6091f04c698bb9295ce1cb27833b878c4fbe0e",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 4712,
+      "end": 4815,
+      "line": 95,
+      "sha256": "968573a6b7d958d62ce81d55d5e759585c0e7a06426f2b875f576f8c02bc7bc9",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 5508,
+      "end": 5607,
+      "line": 108,
+      "sha256": "153112561c842427a635c9a0b50c7a7c1c4bd0a37688df78059d9942fe2cc4a8",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 5607,
+      "end": 5709,
+      "line": 110,
+      "sha256": "16b23371f3d995059d0c8f33c20f44c790f87c132040cf09d3ed80e992c93590",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 6701,
+      "end": 6824,
+      "line": 129,
+      "sha256": "94e436fd569362da7bda9c3d9da98b602311bd1567045e69bc7fac6b9ff81612",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 6824,
+      "end": 6950,
+      "line": 131,
+      "sha256": "2deb062069c663afec8fb0b2c92c8faf85a5481774c3c873517448d2fbc74b01",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 7641,
+      "end": 7748,
+      "line": 145,
+      "sha256": "16e8cc6e05352307bb91d4601c9450ce24cb0f1e2f124d6db794e397dc1cf125",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 7748,
+      "end": 7858,
+      "line": 147,
+      "sha256": "105a1782f492aeaf68a7791d18d5813c12da81caaeb008a4fa19dbdafc9980f5",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 8367,
+      "end": 8475,
+      "line": 159,
+      "sha256": "61828fb346248f08b543258651f5f51e5fd610c665f18ea4372286721828abb4",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 8475,
+      "end": 8592,
+      "line": 161,
+      "sha256": "1422dc1dc913de775a7c3207f45c80f5249dde3a712bb20ba9f64e597913243e",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 8592,
+      "end": 8708,
+      "line": 162,
+      "sha256": "f7fcc55a2fd2fac62a2e4f166113e65e8345049b87b5581181512a8f4a2dd590",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 9391,
+      "end": 9499,
+      "line": 177,
+      "sha256": "7f0cd6173e9d3fca8eb58eb9bd9ce3480076a02c60ef217837db5df1b88c6abb",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 9499,
+      "end": 9616,
+      "line": 179,
+      "sha256": "a5ba293fdc25f52c8bc20858266f1d429596ba31283d34eb9db5dc6166c1f663",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 10432,
+      "end": 10533,
+      "line": 195,
+      "sha256": "7df4ea24e98712eaa7941a4cdecbb42d4ee849b788d2585cda43443221627be6",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 10533,
+      "end": 10637,
+      "line": 197,
+      "sha256": "fecbb47edcb2051d6178805286d4602d94012a936ec3e97412f73c727e21afa3",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 11352,
+      "end": 11441,
+      "line": 212,
+      "sha256": "b27c06a3fa7b27f7d92a771d740730a19c5361047ac8c434d45fa4d488738ea0",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 11441,
+      "end": 11533,
+      "line": 214,
+      "sha256": "2f8e7375999bc966ed8ec2e0107b7b935dc0ac557b695e465a1f814321c9533c",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 12059,
+      "end": 12146,
+      "line": 226,
+      "sha256": "d86b2886d29ff1fb3b88d2828ca21caa342887bdb90533d3bf74f9a9cfb9b4c7",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 12146,
+      "end": 12236,
+      "line": 228,
+      "sha256": "886225160e9f1b27c42163d5ac5f486ab7df85175640eb870e8117fa11823df3",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 12800,
+      "end": 12889,
+      "line": 241,
+      "sha256": "ca9b5f919ecabaef787d812f2bd38318c0cce5482a48e21f6842545d309d2e7c",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 13463,
+      "end": 13556,
+      "line": 256,
+      "sha256": "8ca3a35fb12c832d3cdd281b414186b653f99ec3f87d6ddef1798a651cc7df2f",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 14084,
+      "end": 14187,
+      "line": 268,
+      "sha256": "1509ed896047b7473be009746e7868cedd96ff7330da609f5e44ab5dac04a9e5",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 14187,
+      "end": 14291,
+      "line": 270,
+      "sha256": "b34e5d2aeb749ea7a9d2fbc4e438558b33cb50f0a7bc5172205d7d8293152c72",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 14947,
+      "end": 15050,
+      "line": 283,
+      "sha256": "9adc871fcc3ba3b9cfc22e2c2a47f6d5af24d10752f21e508b1084e484051bea",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 15050,
+      "end": 15156,
+      "line": 285,
+      "sha256": "598d1eb5eef31388847387ca5f1e305e11378f010dc8b54202c7176da37f2d6e",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 15156,
+      "end": 15440,
+      "line": 286,
+      "sha256": "9a3e4a12d608fb292cdf627aafaff6a6ff68e69615a5d327a1933acf7f8aeba9",
+      "kind": "ALTER TABLE public.hc_clinical_safety_profiles ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 15440,
+      "end": 15507,
+      "line": 292,
+      "sha256": "8c245d232b49fdb499f8454ef0e5bb0156487c758f214e315a0ef52b208d521f",
+      "kind": "ALTER TABLE public.hc_idempotency_keys ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 15507,
+      "end": 15573,
+      "line": 293,
+      "sha256": "3fb1440ea33125998594c002c75bd26aab058027cb0c7251928666262e7de270",
+      "kind": "ALTER TABLE public.hc_operating_rooms ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 15573,
+      "end": 15636,
+      "line": 294,
+      "sha256": "95b1749658e8b19e504c3afaa5d92c0cc903ad65c5546a2a5d2c75f958fb714d",
+      "kind": "ALTER TABLE public.hc_or_schedules ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 15636,
+      "end": 15701,
+      "line": 295,
+      "sha256": "8a63171ac8d5b1ee732ad8b4760262f06a5b6e8479551a88d6b715243dcb6618",
+      "kind": "ALTER TABLE public.hc_surgical_cases ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 15701,
+      "end": 15766,
+      "line": 296,
+      "sha256": "dfe265ee922c16b2835b83a6491de18329dffc327c7dcb849ee04ca762f5b2fa",
+      "kind": "ALTER TABLE public.hc_surgical_teams ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 15766,
+      "end": 15843,
+      "line": 297,
+      "sha256": "d3e1d74118772a79592e389902202008843dcffe5e2e64c50bc6cd11ffa1acec",
+      "kind": "ALTER TABLE public.hc_surgical_safety_checklists ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 15843,
+      "end": 15912,
+      "line": 298,
+      "sha256": "75ea33bc4781302ebd17a1f7eceab8549dd995c3ef06a0c6928ac927fe45daba",
+      "kind": "ALTER TABLE public.hc_anesthesia_records ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 15912,
+      "end": 15986,
+      "line": 299,
+      "sha256": "097ba975bffb81279b56fb404b5a585ba29c027d5389cfe1085533c99e643987",
+      "kind": "ALTER TABLE public.hc_anesthesia_observations ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 15986,
+      "end": 16059,
+      "line": 300,
+      "sha256": "2ff9e351c0bf7e41d8536d05e621eda338e4640b67a1acf5080a4988ac9e0c12",
+      "kind": "ALTER TABLE public.hc_anesthesia_medications ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 16059,
+      "end": 16125,
+      "line": 301,
+      "sha256": "bcbcfdd2933a7fed63fa4e3809a073aa79701bbd7fe3b408c8ab2e8546475ff0",
+      "kind": "ALTER TABLE public.hc_pacu_admissions ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 16125,
+      "end": 16185,
+      "line": 302,
+      "sha256": "ba95473c60c1d9493c5e58f1892fb8fb4174a68a24ca58fb11a36076d2d29086",
+      "kind": "ALTER TABLE public.hc_specimens ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 16185,
+      "end": 16244,
+      "line": 303,
+      "sha256": "1c467eb3dcce9c606f3789ca4a9400c60d628b2c8a10ed159c3bd0d3c0293677",
+      "kind": "ALTER TABLE public.hc_implants ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 16244,
+      "end": 16304,
+      "line": 304,
+      "sha256": "3e1aec674104443f082540bd949006d765fb48b0a20a890ca5550f1cdf43a5f6",
+      "kind": "ALTER TABLE public.hc_equipment ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 16304,
+      "end": 16366,
+      "line": 305,
+      "sha256": "ecea0af1040721bb84e3b5184356f365ec4004d8976aa2fdceda65ec31bdab21",
+      "kind": "ALTER TABLE public.hc_cssd_cycles ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 16366,
+      "end": 16433,
+      "line": 306,
+      "sha256": "c63d3a6b3ac58f3437d818d46d0d850f0417a33c165a985139f3326680371c9f",
+      "kind": "ALTER TABLE public.hc_cssd_cycle_items ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 16433,
+      "end": 16502,
+      "line": 307,
+      "sha256": "475d427d59c151692c346c98052a50e845179948d32f1fc8646764c3fa1d57b2",
+      "kind": "ALTER TABLE public.hc_or_equipment_usage ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 16502,
+      "end": 16955,
+      "line": 308,
+      "sha256": "1badb0976ab0e36e80955e524b3de14801c2ebfe112e2118c939a6c54d08b3f1",
+      "kind": "CREATE POLICY tenant_isolation_profiles ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 16955,
+      "end": 17187,
+      "line": 316,
+      "sha256": "bdc2f95753a1775f9bd8a3aee5ad44ff5b58268aa1b84315f57e390ff3f39f4d",
+      "kind": "CREATE POLICY tenant_isolation_idempotency ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 17187,
+      "end": 17411,
+      "line": 320,
+      "sha256": "145bf9f6ae9a2b2d9b7a1d315a04965068d58088d79ad1f35e36e4902fc522ca",
+      "kind": "CREATE POLICY tenant_isolation_rooms ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 17411,
+      "end": 17633,
+      "line": 324,
+      "sha256": "ff408f9c649685c66d8d7d6d0a951516579a87c26c91adf790fabc4d72ff1d1d",
+      "kind": "CREATE POLICY tenant_isolation_schedules ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 17633,
+      "end": 17855,
+      "line": 328,
+      "sha256": "01d3811be519cf58bb347aeefecd5153ef1af81074fc67dd25bda5e97b715583",
+      "kind": "CREATE POLICY tenant_isolation_cases ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 17855,
+      "end": 18077,
+      "line": 332,
+      "sha256": "6362eaa2d0e2c05208ce24e413aa9cb6d51d30e7e061bc68745f9a63d804cb55",
+      "kind": "CREATE POLICY tenant_isolation_teams ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 18077,
+      "end": 18319,
+      "line": 336,
+      "sha256": "add6073a9f0522eb754a9063c4149ff1e69e87550cbed5e9f3bfabd9342a9667",
+      "kind": "CREATE POLICY tenant_isolation_checklists ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 18319,
+      "end": 18554,
+      "line": 340,
+      "sha256": "5cbd576e400ed149d95a5bce1baa393e0125e4409a64c728bb8abbfdb3f6e3e2",
+      "kind": "CREATE POLICY tenant_isolation_anesthesia ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 18554,
+      "end": 18801,
+      "line": 344,
+      "sha256": "81384d6e013795bba6b26cfcd7bb2a8bcc60e9e505d564578a1360bc2c8efc4f",
+      "kind": "CREATE POLICY tenant_isolation_observations ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 18801,
+      "end": 19046,
+      "line": 348,
+      "sha256": "616bb4f99c882a4dd14e233dcc6d609c107d15acd72c24d779300a87e02ba235",
+      "kind": "CREATE POLICY tenant_isolation_medications ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 19046,
+      "end": 19270,
+      "line": 352,
+      "sha256": "e8c8519b31d40f943b111552dde6f791990e31b54681a1725e9bf18dc914088b",
+      "kind": "CREATE POLICY tenant_isolation_pacu ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 19270,
+      "end": 19487,
+      "line": 356,
+      "sha256": "76b6ce6de15a7574639dbc08648a6cb0138b0bad17c9be8757626290cae9628b",
+      "kind": "CREATE POLICY tenant_isolation_specimens ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 19487,
+      "end": 19701,
+      "line": 360,
+      "sha256": "1aa9362cc2bb86a907db20ccec591d2ed8babeadbfabd0f469f530f692ce38c6",
+      "kind": "CREATE POLICY tenant_isolation_implants ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 19701,
+      "end": 19918,
+      "line": 364,
+      "sha256": "97cec98aa1a2987062047af9a3c919223509dff73040b0c6007e66e6ed79f574",
+      "kind": "CREATE POLICY tenant_isolation_equipment ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 19918,
+      "end": 20134,
+      "line": 368,
+      "sha256": "e3830228aa225f3d03a5d8d04b837e59048c5ea4b4be09617a570221e60aa44b",
+      "kind": "CREATE POLICY tenant_isolation_cssd ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 20134,
+      "end": 20366,
+      "line": 372,
+      "sha256": "dd193d3ef366cbe98b0617b2e6bcb93f8295ed6f64c587a76496da54c471a4de",
+      "kind": "CREATE POLICY tenant_isolation_cssd_items ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000004_create_perioperative_platform.sql",
+      "start": 20366,
+      "end": 20600,
+      "line": 376,
+      "sha256": "f9f8c4f80e69afe48b44dfc91a14027aefe80c3621d3363263029a9203c2e7be",
+      "kind": "CREATE POLICY tenant_isolation_or_equip ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 1027,
+      "end": 1114,
+      "line": 19,
+      "sha256": "2ccc36a822f220e7a49cbecb536e8595a28ec56823e6f3d14eeea31a0590893c",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 1818,
+      "end": 1912,
+      "line": 33,
+      "sha256": "f68a0743f3a6f2c968413fcf23311cd330e92e8e5bd2df44ed069ec5012feb66",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 1912,
+      "end": 2010,
+      "line": 35,
+      "sha256": "26830786e9cdffe64f6675c692fb8ff8d7fbc38770fe60dc42f772dceaf992cd",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 2010,
+      "end": 2107,
+      "line": 36,
+      "sha256": "becf99d6527d01181f1b6eeb7944eb014eac473768e5f8ad0c5add2c48c68ab7",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 3096,
+      "end": 3201,
+      "line": 53,
+      "sha256": "4d35a72b3160b9eec7ed471cafe5ed91a926fa491ddbfd53ea85663031d68a63",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 3201,
+      "end": 3310,
+      "line": 55,
+      "sha256": "22bea66a81847cf0d8e7938371bcda6d3604fa0fbae62a97d59c62adaf2e05b2",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 3310,
+      "end": 3441,
+      "line": 56,
+      "sha256": "55cbd879a4eb518ed6fcc3d6135c778a0444579554122f00903e4931fe88b516",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 3913,
+      "end": 4023,
+      "line": 68,
+      "sha256": "8f56adff9b8003144b1c88584b4f40d9cf169840a0754b359495c50a6c00e2c6",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 4882,
+      "end": 4983,
+      "line": 85,
+      "sha256": "7f08067fe49547e8ab7246bd51cf19082d4a620e1648b6e363d2d5c30cdd8350",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 4983,
+      "end": 5088,
+      "line": 87,
+      "sha256": "a9134d65671b5290ab633a70e0faf9b93edee92b3ba5f75b6e2662fe06d3648c",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 5680,
+      "end": 5776,
+      "line": 101,
+      "sha256": "d150ebc7a2686cafbf5a3faa165a0b330b730d33ad9098b938aed60d24350606",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 5776,
+      "end": 5876,
+      "line": 103,
+      "sha256": "69dfa226d2e14c3a06fb84bf3434e5fcc80decf7e299af43aeb2999e4b1f5481",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 6675,
+      "end": 6774,
+      "line": 117,
+      "sha256": "8facc982e7fe84633340f7f8af2cbc4063a59ae4d5051e056d7d5964a2998fbf",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 6774,
+      "end": 6879,
+      "line": 119,
+      "sha256": "90995d9c0381c3f2e39546f6899e52258400500aaf0d76c66274de8b6de8b2d2",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 7822,
+      "end": 7915,
+      "line": 135,
+      "sha256": "01288d1d151e3678ff49ea730c1a4a4e5415aee9d03355728c6a9cc03c137252",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 8832,
+      "end": 8937,
+      "line": 152,
+      "sha256": "7d55c7ef7ae241b28f0dd885e2e7ada317df16f952e5683fbe840456e8eaf9d7",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 8937,
+      "end": 9046,
+      "line": 154,
+      "sha256": "bc807301f1e543cc1f95f58f17b3731fea913d8257727f8f308eeffe8d30c7c9",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 9046,
+      "end": 9151,
+      "line": 155,
+      "sha256": "c57bec88a8cdcf700d1806db1b593e1d0d9f6af193f19d7ae1cd78ef2375d96e",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 10109,
+      "end": 10214,
+      "line": 170,
+      "sha256": "8cde5030af2334eea01a800fefff6d2938dcdadee2638ba9536a703bdae49d05",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 10214,
+      "end": 10323,
+      "line": 172,
+      "sha256": "e48bf7d15c0296aa4b975d333941335def46933852aafa73cfb38fd43f553505",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 10323,
+      "end": 10616,
+      "line": 173,
+      "sha256": "ca90b05a7020c8afa93729db091d6ab410699768e51fb12ce4f75917b3c1d91c",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 10616,
+      "end": 10827,
+      "line": 181,
+      "sha256": "558f82cd5d44edc4096d1e5fc111d1be3b08427ef0cce92d98b06a2705d1ae3a",
+      "kind": "CREATE TRIGGER trigger_block_transfusion_verification_mutation BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 11730,
+      "end": 11829,
+      "line": 201,
+      "sha256": "da58c4c4e93ef4f2e3bea939263eb5b7c4e338790b6d33a4b7f44aca678fddc9",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 11829,
+      "end": 11932,
+      "line": 203,
+      "sha256": "b85168da3f7b6e2038b4d17e7c59f74d8304b255dffb913fb9a3301f0d934a06",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 11932,
+      "end": 12198,
+      "line": 204,
+      "sha256": "02086554b349f1f7e713d7e5cef408f664015dd8b3a968262d9391438dc9ce83",
+      "kind": "ALTER TABLE public.hc_icu_beds ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 12198,
+      "end": 12265,
+      "line": 209,
+      "sha256": "40196086459640fa7b9775aa64ccfaf7ad428ed7a1b5bff9b8723395ccf81050",
+      "kind": "ALTER TABLE public.hc_icu_observations ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 12265,
+      "end": 12337,
+      "line": 210,
+      "sha256": "ac8edc08cd960b2f71c91ba156748dcfe8c1ccfe7f0b6e883c9fd98d5b757bc9",
+      "kind": "ALTER TABLE public.hc_clinical_calculations ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 12337,
+      "end": 12414,
+      "line": 211,
+      "sha256": "e45923a6f9b9db80cb7d041aa97247ab8d888d1a83b36bd77b30d1ec599db2b3",
+      "kind": "ALTER TABLE public.hc_ventilator_safety_policies ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 12414,
+      "end": 12483,
+      "line": 212,
+      "sha256": "2e6f550686d9023e02e23fc17d0d8f0c50f5d2d8546ef2e1d49ed11a3979bc09",
+      "kind": "ALTER TABLE public.hc_ventilator_records ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 12483,
+      "end": 12550,
+      "line": 213,
+      "sha256": "11d834690e02fe2b32237781d5b73d171ff71bb8c8b9a0a16209172261844991",
+      "kind": "ALTER TABLE public.hc_emergency_visits ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 12550,
+      "end": 12619,
+      "line": 214,
+      "sha256": "202e6e9026f8e9a22b0b3b2e6bd3505b45ebb800ce85bb2e23f82226fa31a630",
+      "kind": "ALTER TABLE public.hc_triage_assessments ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 12619,
+      "end": 12681,
+      "line": 215,
+      "sha256": "d17fef092d966de2e5f71910cfb5941a3d40dc5bb81debbbf7437a575e5bfd71",
+      "kind": "ALTER TABLE public.hc_blood_units ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 12681,
+      "end": 12756,
+      "line": 216,
+      "sha256": "de93d1992f50ba57d4a4b0f7a6a3b7c6c683804dd5d200a510ec0bf46ea67afd",
+      "kind": "ALTER TABLE public.hc_blood_crossmatch_records ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 12756,
+      "end": 12832,
+      "line": 217,
+      "sha256": "a37564406567fe658d3a1f97eefe5d37a3c6df3f39b273bb014468ea47841136",
+      "kind": "ALTER TABLE public.hc_transfusion_verifications ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 12832,
+      "end": 12902,
+      "line": 218,
+      "sha256": "f7fe79ea781ff515a872be1b707febcbe60fffbead85a162dfbb77e80d2d56a1",
+      "kind": "ALTER TABLE public.hc_transfusion_records ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 12902,
+      "end": 13122,
+      "line": 219,
+      "sha256": "43d7583c32c4357f80ab0146c0219eb5e1ad91e3f59cf3f6ec8260cbd36d6b53",
+      "kind": "CREATE POLICY tenant_isolation_icu_beds ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 13122,
+      "end": 13357,
+      "line": 223,
+      "sha256": "3c89ee8639aa23dab1664e04bc3f6b4ab19a38b5561b7432db539244b9d4b237",
+      "kind": "CREATE POLICY tenant_isolation_icu_obs ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 13357,
+      "end": 13607,
+      "line": 227,
+      "sha256": "c551f73d55efa638693c599871e7efd95bf36dae3f9f6ad62300be4142d8a172",
+      "kind": "CREATE POLICY tenant_isolation_calculations ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 13607,
+      "end": 13868,
+      "line": 231,
+      "sha256": "f714eb41d6da0f50fd37620e02e1eff445261fa5b7bcf2d50ac2a372c99087fe",
+      "kind": "CREATE POLICY tenant_isolation_vent_policies ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 13868,
+      "end": 14112,
+      "line": 235,
+      "sha256": "3110e1ff2ab5f73238c1e03828e9660554abb7d683829e787b7917cfbfc75de7",
+      "kind": "CREATE POLICY tenant_isolation_vent_records ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 14112,
+      "end": 14349,
+      "line": 239,
+      "sha256": "021864eed6bc74da7b4866444d59e09a7aefe23ef7cf734867fbe3f3f643a6d2",
+      "kind": "CREATE POLICY tenant_isolation_em_visits ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 14349,
+      "end": 14591,
+      "line": 243,
+      "sha256": "2b278aea04188bf40262f785c55798798354420e2fc02e9e174cda6bce53944d",
+      "kind": "CREATE POLICY tenant_isolation_triage_ass ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 14591,
+      "end": 14820,
+      "line": 247,
+      "sha256": "3a6e3f6d0f5d9b9c81096a1a698366fbc20f26cc214624a0326ec742392a7a8c",
+      "kind": "CREATE POLICY tenant_isolation_blood_units ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 14820,
+      "end": 15074,
+      "line": 251,
+      "sha256": "06f0dd792799b0ca7eb1b9dda4e4f2e56211be2a0cb5af5935bda50f0988263f",
+      "kind": "CREATE POLICY tenant_isolation_crossmatch ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 15074,
+      "end": 15330,
+      "line": 255,
+      "sha256": "cc86287bee43673774fcbf84851f6b03ca0b8db0b7b9fd2fa04226375df066bd",
+      "kind": "CREATE POLICY tenant_isolation_trans_ver ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000005_create_icu_ed_bloodbank_tables.sql",
+      "start": 15330,
+      "end": 15574,
+      "line": 259,
+      "sha256": "d51f297a2970160684a6a6a65c99804a8b78fe1f10659e1aa23229175fe9250c",
+      "kind": "CREATE POLICY tenant_isolation_trans_rec ON"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 3866,
+      "end": 4150,
+      "line": 97,
+      "sha256": "665d837afce6dacbcefa0df63bcd0b8908391aead45e149d51282a749cbfb875",
+      "kind": "CREATE INDEX idx_hc_clinical_orders_encounter ON"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 4150,
+      "end": 4260,
+      "line": 104,
+      "sha256": "469458d239c303e2d5a4e1392a46f792f543ce023640c69e6b76b4c316badce0",
+      "kind": "CREATE INDEX idx_hc_clinical_orders_patient ON"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 4260,
+      "end": 4365,
+      "line": 107,
+      "sha256": "4978d5fdfdb56b9ac0e48e5b3aebdcb155dfa6dd3e2c2b89931794dc50339e05",
+      "kind": "CREATE INDEX idx_hc_clinical_orders_status ON"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 4365,
+      "end": 4487,
+      "line": 110,
+      "sha256": "8741fb293c32dac943e4159fb89a94347c7d473b053acef1f1f3bd29ab9cd439",
+      "kind": "CREATE INDEX idx_hc_clinical_orders_type_status ON"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 4487,
+      "end": 4599,
+      "line": 113,
+      "sha256": "5b2b4a7e0cf4b9e4c765aaeba227a0238ae4d652e39c0ada9f4a02d6f0f16ee5",
+      "kind": "CREATE INDEX idx_hc_clinical_orders_ordered_at ON"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 4599,
+      "end": 4704,
+      "line": 116,
+      "sha256": "2b696e5e00d2a2ce1326be5c39d1e91abe968f13f1f8de1416f1173e8253f2a9",
+      "kind": "CREATE INDEX idx_hc_clinical_orders_version ON"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 4704,
+      "end": 4849,
+      "line": 119,
+      "sha256": "ea55bb861b6b03d1635f2b7153c5fd02bab54a7bf6838cac5a9f12a3201de240",
+      "kind": "CREATE UNIQUE INDEX idx_hc_clinical_orders_request_id"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 4849,
+      "end": 5104,
+      "line": 123,
+      "sha256": "550cee98344fcccd584e8ae6f2350d2290609a7bb6aa9f9f48b77e04de70dcf9",
+      "kind": "ALTER TABLE public.hc_clinical_orders ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 5104,
+      "end": 5320,
+      "line": 129,
+      "sha256": "b689a009f04aa36e420641baa47f00f15b8bdd9984071ffd2b5f90b84aff971e",
+      "kind": "CREATE POLICY tenant_isolation_clinical_orders ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 0,
+      "end": 1456,
+      "line": 1,
+      "sha256": "daf55854b4e8f0d5c108a47f8160c71c8bbb748cd4bd8ceab6f20ef179ecfc60",
+      "kind": "ALTER TABLE public.hc_clinical_calculations ADD"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 1456,
+      "end": 1633,
+      "line": 25,
+      "sha256": "64f91a9698f11f1a099371c4a606e4bbc702830ce775382664987e45532c8fcd",
+      "kind": "ALTER TABLE public.hc_clinical_calculations DROP"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 1633,
+      "end": 1964,
+      "line": 29,
+      "sha256": "6d78efe8e93f86c8d87ec657d8cb1bd42d3375f68a20a9b9c26bf706a6dbd4df",
+      "kind": "ALTER TABLE public.hc_clinical_calculations ADD"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 1964,
+      "end": 2367,
+      "line": 38,
+      "sha256": "58b19fd2cbd0f6a0f254be53baf044688dce626b0d49425ca7529b119e852f29",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 2367,
+      "end": 2473,
+      "line": 47,
+      "sha256": "9619932f7bb8d1592f1e563c67a395944eef33b93106b39b8bec9d5b1da7e51a",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 2473,
+      "end": 2674,
+      "line": 49,
+      "sha256": "c982c6b520d44b33e09ae881b0f69953b4e862350aa6da2375c0d626d2b6245f",
+      "kind": "CREATE TRIGGER trigger_block_clinical_calculation_mutation BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 3688,
+      "end": 3790,
+      "line": 74,
+      "sha256": "694e53f4aec1964989e8251fc8fb1af060e2e096b23fac982e54e283b197cadb",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 3790,
+      "end": 3892,
+      "line": 76,
+      "sha256": "428760a01ba20b846fa4b7e4717bcd662d19fea2937c8c1bd03abc743e5a96d4",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 3892,
+      "end": 4198,
+      "line": 77,
+      "sha256": "66cce4a4b271d46ad032aa0691bc16e5bd136ba925f471222d17ac81ee9b684e",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 4198,
+      "end": 4276,
+      "line": 85,
+      "sha256": "1eca3df0bba4610a0664527d16e8a964ed9bb5138df37f4c53ef9eb24cdbff53",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 4276,
+      "end": 4438,
+      "line": 87,
+      "sha256": "7b8b0f13220f44cc386018d4ca07de351cbf1744e76f27ed8c4546982eaf32a2",
+      "kind": "CREATE TRIGGER trigger_block_hc_drugs_mutation BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 5787,
+      "end": 5982,
+      "line": 111,
+      "sha256": "c35bfe106294da1d1f3b3fbf3d1f1cf9b0a8caa9c90f78ef08205a12ce415529",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 5982,
+      "end": 6096,
+      "line": 114,
+      "sha256": "c2478cf4140de1fe978c38bc28fbf482058c0a06f63e4ae4d18579b3fe33fc1c",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 6096,
+      "end": 6222,
+      "line": 115,
+      "sha256": "975b7c19e1f005fcb3e8d88553c3b87a51377da265c787b3770773567cd8cadf",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 6222,
+      "end": 6324,
+      "line": 116,
+      "sha256": "2acdbb4091a66b85e8a25a0ac3043dfd33c39fd8446770c156c4d4d04006afa9",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 6324,
+      "end": 6510,
+      "line": 118,
+      "sha256": "d880f4b5ab952d7e1acc0919fd73d8321d6e7ba3338c9d06244fa5ac9c8f05cf",
+      "kind": "CREATE TRIGGER trigger_block_hc_drug_interactions_mutation BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 7532,
+      "end": 7651,
+      "line": 139,
+      "sha256": "2bcdc315aba2f107dd3e294abed2bcef8876d52db643b2c06444e27b42173d49",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 7651,
+      "end": 7770,
+      "line": 141,
+      "sha256": "4e4f3474a96508d9a82a125649c8a9bd98e97d0d185b53a1a910cbd419e1a5fb",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 7770,
+      "end": 7899,
+      "line": 142,
+      "sha256": "e6eb2a04273a23dda2e3755b3a4073aed609351d6ad331a762f0649c84056c7a",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 7899,
+      "end": 8003,
+      "line": 143,
+      "sha256": "5f0a39db534f457932ad0d8382626b91c9055c6786e64fbab402a10fea2ebf51",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 8003,
+      "end": 8191,
+      "line": 145,
+      "sha256": "e0cd38d6c0224086fe59f177a26e68f07017efb7fa2623bf6fb71e96e826cdc6",
+      "kind": "CREATE TRIGGER trigger_block_hc_clinical_protocols_mutation BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 9828,
+      "end": 9937,
+      "line": 178,
+      "sha256": "adae6a534087604118b7a8a63b35db8bc9a0f1bb32040facb675a8a962c6c099",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 9937,
+      "end": 10054,
+      "line": 180,
+      "sha256": "d1aeb7c821579cf62be91ec403944c50d385851acc93d1b09e9d5703713f83fc",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 10054,
+      "end": 10165,
+      "line": 181,
+      "sha256": "711812546b0c46e45642aba619c78a53bfac39e580b4f7fba6b12fbb7cd3cb68",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 11149,
+      "end": 11290,
+      "line": 201,
+      "sha256": "8616f4fc29da2a093274180cc669ffcece94b3744b56d1be49b1b0042974ed72",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 11290,
+      "end": 11410,
+      "line": 203,
+      "sha256": "125297a22383d6978a1b291bcc7f326495f1290af9967b2d26e31fc6c093239f",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 11410,
+      "end": 11553,
+      "line": 204,
+      "sha256": "84ddced77768479c849c356bd87e9cb8d40a01aa94eb571d8bd94fbf55c5b88e",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 13023,
+      "end": 13141,
+      "line": 236,
+      "sha256": "76c902941643e0c993f539fe98686cdd5dd7b34180e7d50bc26ae745320dca23",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 13141,
+      "end": 13254,
+      "line": 238,
+      "sha256": "ff1a6089f926027723e334209d6bfa61de60bbe62c62a72c64ed86f8bb516d2b",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 13254,
+      "end": 13384,
+      "line": 239,
+      "sha256": "5978ef83e972cdfb2999d0f69efcd45522930def358e40c181cc8767c2db409b",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 14316,
+      "end": 14423,
+      "line": 255,
+      "sha256": "4267e1d68d42cccc0158542b66371550b126c6a8d576b6c7af5c81c6d815cd44",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 14423,
+      "end": 14530,
+      "line": 257,
+      "sha256": "a2c99356a94b95c227b8d6d8f58887aff1ed4dd879313f156236f7a23759380d",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 14530,
+      "end": 14855,
+      "line": 258,
+      "sha256": "f1418f77fa4b89c88ce0da297bcddde6e873f7ed8b0419cee2d13775b912cebd",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 14855,
+      "end": 14951,
+      "line": 266,
+      "sha256": "f89c1bc5bb70828a0c61044c4448cc3e4934b0b46812fbb05da9d41a36ae6d87",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 14951,
+      "end": 15134,
+      "line": 268,
+      "sha256": "d4016f053848bab64ec3ac6d235a438e3d017b19499f91ae6bcea0a1090af87e",
+      "kind": "CREATE TRIGGER trigger_block_cds_override_mutation BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 15134,
+      "end": 15541,
+      "line": 271,
+      "sha256": "c9e6185d062b4c1b6f005916ae5ebf9ab9e443c43fdecc5411b65794cab82899",
+      "kind": "ALTER TABLE public.hc_drugs ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 15541,
+      "end": 15609,
+      "line": 279,
+      "sha256": "5d560273762768c80e99b40f274a6f3151eedf2a319740afd8b0d4fe17831f0d",
+      "kind": "ALTER TABLE public.hc_drug_interactions ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 15609,
+      "end": 15678,
+      "line": 280,
+      "sha256": "13cb7c390c6cccc9a6b428e656ec8a57767772531b1c7e32523efa2b96e3f874",
+      "kind": "ALTER TABLE public.hc_clinical_protocols ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 15678,
+      "end": 15838,
+      "line": 281,
+      "sha256": "aa7c120d0eeaf2d48b5d364975535844c45d726b28d8a525e536700d8cfc69c4",
+      "kind": "CREATE POLICY global_kb_read_all ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 15838,
+      "end": 15952,
+      "line": 285,
+      "sha256": "265004b1510af228e712809fb933027c16a20ca3276ef1828a78e564194e89d1",
+      "kind": "CREATE POLICY global_kb_read_all_ddi ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 15952,
+      "end": 16073,
+      "line": 287,
+      "sha256": "327c7901db181a7940cb56b9bca08a71b195b8f669f29d8924eb60183bb57c54",
+      "kind": "CREATE POLICY global_kb_read_all_protocols ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 16073,
+      "end": 16190,
+      "line": 289,
+      "sha256": "6140c752ec45bc47d0a3a799eedfa06b42bceb4b8d8151da6c9759e2cf9db0aa",
+      "kind": "ALTER TABLE public.hc_tenant_cds_policies ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 16190,
+      "end": 16258,
+      "line": 292,
+      "sha256": "a04f849e89e9c0f939a43b70ad46de1161fe6399804775039dddd40fee748aec",
+      "kind": "ALTER TABLE public.hc_patient_allergies ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 16258,
+      "end": 16324,
+      "line": 293,
+      "sha256": "e4997fe4af01b37f211e6b074d56cba669b8c77dfc8ee2043794803e494bc8df",
+      "kind": "ALTER TABLE public.hc_clinical_orders ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 16324,
+      "end": 16394,
+      "line": 294,
+      "sha256": "0de66b7dd437bcbedfc70a2a6959b46e953c50153bc86eb7deb93d391bf100a6",
+      "kind": "ALTER TABLE public.hc_order_cds_overrides ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 16394,
+      "end": 16607,
+      "line": 295,
+      "sha256": "d9ca7a7c085e1d19ae920354ad20dd5134c89a0501ba26139968840997ca982e",
+      "kind": "CREATE POLICY tenant_isolation_cds_policies ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 16607,
+      "end": 16823,
+      "line": 299,
+      "sha256": "85200582825ae5b612b9f5a869d2b42697e2ba7baca1c17105cb62c6b0b586cb",
+      "kind": "CREATE POLICY tenant_isolation_patient_allergies ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 16823,
+      "end": 17035,
+      "line": 303,
+      "sha256": "5c6dcb3c53d3ab78c79791829390eebf4d13a1c447170434a3ee3f040590769b",
+      "kind": "CREATE POLICY tenant_isolation_clinical_orders ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 17035,
+      "end": 17249,
+      "line": 307,
+      "sha256": "827663e4ae689634526d4802a2fe8ac7d77d1926ceb056051d5d34f4f4d9cfed",
+      "kind": "CREATE POLICY tenant_isolation_cds_overrides ON"
+    },
+    {
+      "source": "supabase/migrations/20260812050000_extend_pharmacy_schema.sql",
+      "start": 0,
+      "end": 507,
+      "line": 1,
+      "sha256": "92c3fd561cc9582c6a096eeb6ad53e1fc505cae6e32cf30b3d69f347762d92cf",
+      "kind": "ALTER TABLE public.hc_prescriptions ADD"
+    },
+    {
+      "source": "supabase/migrations/20260812050000_extend_pharmacy_schema.sql",
+      "start": 507,
+      "end": 703,
+      "line": 8,
+      "sha256": "794306159b47e5f93907c60f601bd1539e9dbbe30c0cc533ccc63161eec40b3e",
+      "kind": "ALTER TABLE public.hc_prescriptions ALTER"
+    },
+    {
+      "source": "supabase/migrations/20260812050000_extend_pharmacy_schema.sql",
+      "start": 703,
+      "end": 883,
+      "line": 12,
+      "sha256": "25fd4d8a379d6b4c40e89e9b72dec13c418902c1b95028e0fbf02d8ae7cb48f6",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260812050000_extend_pharmacy_schema.sql",
+      "start": 883,
+      "end": 1100,
+      "line": 16,
+      "sha256": "d9a0cbd58761451284d1b93117262ce2e1116da9242af8f1dd1f4e11a736ecd1",
+      "kind": "ALTER TABLE public.hc_medication_administration_records ALTER"
+    },
+    {
+      "source": "supabase/migrations/20260812050000_extend_pharmacy_schema.sql",
+      "start": 1100,
+      "end": 1264,
+      "line": 20,
+      "sha256": "adfdab7bf28eee181c56aa5b521c16cf7654ee928a322d6d73b65fe9c613a5ec",
+      "kind": "ALTER TABLE public.hc_medication_administration_records ADD"
+    },
+    {
+      "source": "supabase/migrations/20260812050000_extend_pharmacy_schema.sql",
+      "start": 1264,
+      "end": 1513,
+      "line": 23,
+      "sha256": "2940c76b5b37482b814d1c26fe341800618ea59dd491b57ea921d9f75c596eb4",
+      "kind": "ALTER TABLE public.hc_medication_administration_records ADD"
+    },
+    {
+      "source": "supabase/migrations/20260812050000_extend_pharmacy_schema.sql",
+      "start": 1513,
+      "end": 1690,
+      "line": 28,
+      "sha256": "9d229f90532a3d3dc1eeb01b258b9351d2e3e02a7f9e986efa9916b78548e761",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260812050000_extend_pharmacy_schema.sql",
+      "start": 1690,
+      "end": 2543,
+      "line": 32,
+      "sha256": "28060364c383c57ab845efd42b638e7797d1cd392e4b994ccee328f712fb91fe",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260812050000_extend_pharmacy_schema.sql",
+      "start": 2543,
+      "end": 2654,
+      "line": 53,
+      "sha256": "de10d991efd54c6086b7bbbda1adc2f100fd86a3cd732292a1ce193601ead2ea",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260812050000_extend_pharmacy_schema.sql",
+      "start": 2654,
+      "end": 2861,
+      "line": 55,
+      "sha256": "a051b2f9607482658a8a35156209c1c5975bbba7135a243e5363c116632335ae",
+      "kind": "CREATE TRIGGER trg_verify_mar_encounter_consistency BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 1522,
+      "end": 1658,
+      "line": 28,
+      "sha256": "a21fe137f1ad15f2862445d0d1537036a5338c1f162905e665180afc17a210f9",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 1658,
+      "end": 1783,
+      "line": 31,
+      "sha256": "f7e40168921d297c86098ff08a8e3e7ae8416b0d7b86cec73468d5a88e36d218",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 2304,
+      "end": 2427,
+      "line": 45,
+      "sha256": "b550bce36809c47f248a3d1097c5b365c858ade76bd1135d41feec7c6ff7e798",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 3233,
+      "end": 3349,
+      "line": 65,
+      "sha256": "255e93d2342cb943d40c2c0e376ba2240dc4e18ff23151b2fa43956b466392aa",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 4463,
+      "end": 4596,
+      "line": 90,
+      "sha256": "c7745a62154af026c2ce601b6d85728e50b0ec9895561d0c75294039f896c65f",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 5222,
+      "end": 5353,
+      "line": 108,
+      "sha256": "642b63dcca1a78fc23cf362b83441e3037b180fdfb2a532f3ac2e15328cbeb33",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 5353,
+      "end": 5454,
+      "line": 111,
+      "sha256": "efb08d281543b8a7efd7e327fbf88165bd23cc7f2d2e757b6561695415acbb23",
+      "kind": "ALTER TABLE public.hc_clinical_context_snapshots ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 5454,
+      "end": 5525,
+      "line": 114,
+      "sha256": "7f9c96f81a72e7f396c2211f54be03faeccb794dc86bcb944819aba2ed817814",
+      "kind": "ALTER TABLE public.hc_cds_processed_events ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 5525,
+      "end": 5585,
+      "line": 115,
+      "sha256": "10ac82b23d8c2080f4dbeb144a444b65b393601a08a5e988eccd62b035a9b91d",
+      "kind": "ALTER TABLE public.hc_cds_rules ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 5585,
+      "end": 5654,
+      "line": 116,
+      "sha256": "cd849c09dfe77583a55e729320818bca11ac87b76a4d99ac3a28f4a720f9ad17",
+      "kind": "ALTER TABLE public.hc_clinical_decisions ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 5654,
+      "end": 5723,
+      "line": 117,
+      "sha256": "15f7299f661d01f8597730a1c6acce7ebd0c8db13de221c1a2eeaed094f25a89",
+      "kind": "ALTER TABLE public.hc_decision_overrides ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 5723,
+      "end": 7478,
+      "line": 118,
+      "sha256": "8fd4997a99bc3b19522df4733e06552e5b807ca9ef5c38ae190b731c019e0b00",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 7478,
+      "end": 7714,
+      "line": 146,
+      "sha256": "61111f658ce902319728012efb715f5beff58a8dc40061d4a268f4e7a77d8ce1",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 7714,
+      "end": 7889,
+      "line": 154,
+      "sha256": "8910ba3d62c37835aa9f865ccc0e5569ced99eb95cfc73a568e808425810decf",
+      "kind": "CREATE TRIGGER tr_block_mutation_decisions BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 7889,
+      "end": 8064,
+      "line": 158,
+      "sha256": "d81cd856729f52cb8946da2ffa0f9b9c5ba635f67f6c20318102171c126b99f7",
+      "kind": "CREATE TRIGGER tr_block_mutation_overrides BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 8064,
+      "end": 9784,
+      "line": 162,
+      "sha256": "0a53676198af4d28e22926581961e3147a104843c9f6d3f32cd5932314a377b2",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 9784,
+      "end": 9954,
+      "line": 205,
+      "sha256": "2658b77cde388821b3bc34235ebb41de5f2b9a2b4f5c272e9567cc744d0ebcf2",
+      "kind": "CREATE TRIGGER tr_validate_decision_override BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260813000000_create_h8_cds_schema.sql",
+      "start": 9954,
+      "end": 13737,
+      "line": 209,
+      "sha256": "edc80fb309f9cfe0682a4dfac7d7b3f0da619a34554aa0ec7c0724943d08e62e",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "start": 748,
+      "end": 941,
+      "line": 20,
+      "sha256": "96a4f0ea50c09aef12861fdd5b94724a16fb1a5705cb021218357334c0cbd8fb",
+      "kind": "CREATE UNIQUE INDEX IF"
+    },
+    {
+      "source": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "start": 941,
+      "end": 1138,
+      "line": 24,
+      "sha256": "b153563c4c3c94e999d8d2f5068cada793cb6e5350eb4833209201eb4b5e6d68",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "start": 1138,
+      "end": 1278,
+      "line": 28,
+      "sha256": "ecad1f470abe85efabefb93d7473f4c02e3b36b9470ec48de0d47d718621ab94",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "start": 1803,
+      "end": 1954,
+      "line": 45,
+      "sha256": "d9dd59366c9e89e845bd08c95153a2381c7ecf70283395b26bea45cf1e939d35",
+      "kind": "CREATE UNIQUE INDEX IF"
+    },
+    {
+      "source": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "start": 1954,
+      "end": 2199,
+      "line": 48,
+      "sha256": "5ce923bb95a2c1a2bfa3c357db1040abe6608100fa1c4d9aa2fb110415dc8953",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "start": 2199,
+      "end": 2288,
+      "line": 57,
+      "sha256": "382a56b3121a0b30efe5c5291d685181b19a814252330d9bcd52696236dd88ab",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "start": 2288,
+      "end": 2477,
+      "line": 59,
+      "sha256": "2debba5c8cce0763c0afd8de1e5a521fb33f09a594d38aab7a1fcb93ff18f64d",
+      "kind": "CREATE TRIGGER trg_hc_temporal_events_immutable BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "start": 2477,
+      "end": 2572,
+      "line": 63,
+      "sha256": "c356689b9403b83dc8a2a4b8307ad45ea324db7d379bbe2dec3280d136453847",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "start": 2572,
+      "end": 2767,
+      "line": 65,
+      "sha256": "c75217ac300112e63e74e7ccf7a2dfafe83cea815137c57743eb4d3c1e033d28",
+      "kind": "CREATE TRIGGER trg_hc_temporal_snapshots_immutable BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "start": 2767,
+      "end": 7505,
+      "line": 69,
+      "sha256": "f492e09898f5b61a3d898a249499cf65e2f47dbaedfa0b584a58e076886c5992",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 1137,
+      "end": 1335,
+      "line": 26,
+      "sha256": "77e4636cfc1ab9b2e65a87ae3fb7b59a0cbd1229519487de25572a50cdba257d",
+      "kind": "CREATE UNIQUE INDEX IF"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 1335,
+      "end": 1511,
+      "line": 30,
+      "sha256": "29730abf4857f5cc146ddd1e29d0eac424dc3201e5fd85d6d50279ad3dfa8a1c",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 1988,
+      "end": 2106,
+      "line": 48,
+      "sha256": "3a69b9105a17cc7bd3ded294d585ec1fdbd264f5bcd19b5f12139c6cad9f41ee",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 2106,
+      "end": 3106,
+      "line": 51,
+      "sha256": "cef58ef0824f21593a8f33649236284bd18677ff9c15b2e0e4662bd5d7a17daa",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 3106,
+      "end": 3194,
+      "line": 80,
+      "sha256": "ef349cc41b886a84f26ded117a01e1a264266bb0056e11c161b8b0f566b83d88",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 3194,
+      "end": 3381,
+      "line": 82,
+      "sha256": "06c61f89fc420a0d1d7f1bb7175b6c51ecd64d06eb89cdd80c804e4f3349c9b9",
+      "kind": "CREATE TRIGGER trg_hc_rule_non_overlap BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 3381,
+      "end": 4081,
+      "line": 86,
+      "sha256": "fe1c35917ddcb025c7c62968a43af458609dfba71f2269b414b0ed1eb845752f",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 4081,
+      "end": 4177,
+      "line": 102,
+      "sha256": "fce9113258002cbf8e0df693a06c5d4cf908776ed13276c4e3229a1e2aac6ffa",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 4177,
+      "end": 4363,
+      "line": 104,
+      "sha256": "9324a8fe1f6dd028076f5da3af41f37087c3ca594a8b66523602299f79856596",
+      "kind": "CREATE TRIGGER trg_hc_rule_governance_approval BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 4363,
+      "end": 5533,
+      "line": 108,
+      "sha256": "50378db26b7af94cdd6345152ee3381786b3e3a4c5e7dcc8e8d29248af25fe61",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 5533,
+      "end": 5629,
+      "line": 136,
+      "sha256": "e8b2e5bc91c99745eeff8252fa330cc654fc432edbf904ce2fb426d717711dc3",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 5629,
+      "end": 5827,
+      "line": 138,
+      "sha256": "55a2cbd31a21bc7cb912497603741fa853d7d9063825388cfe42a658658561bc",
+      "kind": "CREATE TRIGGER trg_hc_governed_rules_immutable BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 5827,
+      "end": 7194,
+      "line": 142,
+      "sha256": "daa006d0e6105e9c36f12442088ed0c94093e4576bacd1f4cc57e1528611ffd2",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 992,
+      "end": 1113,
+      "line": 24,
+      "sha256": "ef848724d2afff6d1da6c81b2a98eebce2231a7ad5eeaa7748442f3131eebbe7",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 1113,
+      "end": 1262,
+      "line": 27,
+      "sha256": "5e0d4a3ee7284579f71e7ab0b0710a7f36efe26acb45ea73917062f66dce8ec8",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 1859,
+      "end": 1989,
+      "line": 43,
+      "sha256": "9fafd1937062dc3eb9e0f1abe29bd027ac78dd1613decd1deb56212e83487ff9",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 2604,
+      "end": 2730,
+      "line": 61,
+      "sha256": "3fe7acccfdf25c6a97ea83ba7d636fa6a6c011bf7a815059b21f015eca247a92",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 2730,
+      "end": 3102,
+      "line": 64,
+      "sha256": "cf1b2e98b1062dc0564bd18e1e92f914826096fab4feb5f50a2a5742a9185989",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 3102,
+      "end": 3194,
+      "line": 74,
+      "sha256": "6a954b775208d2358cc15a36c1cac6703c575235ce3911710c609f9623f543b0",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 3194,
+      "end": 3389,
+      "line": 76,
+      "sha256": "8453cf40a1c334870a36e966ee5adcae74895e9dad0250a281be7bfe369dd023",
+      "kind": "CREATE TRIGGER trg_hc_audit_ledger_immutable BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 3389,
+      "end": 3491,
+      "line": 80,
+      "sha256": "b684dcfa9aae546aec29fc80613c3389d9348d2c381c32eba3d356e653ca81fb",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 3491,
+      "end": 3696,
+      "line": 82,
+      "sha256": "654f8a6dd1b10170c2692b524752c8d9ae615ff4d6ae982ae8462d317f686d4b",
+      "kind": "CREATE TRIGGER trg_hc_evidence_packages_immutable BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 3696,
+      "end": 3786,
+      "line": 86,
+      "sha256": "ff248478d9e0f428752623f35b884e091db04ebe4e68a01d65aa8dcc004cd6df",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 3786,
+      "end": 3979,
+      "line": 88,
+      "sha256": "84dacaebc97580971716927578cffc24dbee0df39a927ebfa23aa5e2be975828",
+      "kind": "CREATE TRIGGER trg_hc_exceptions_immutable BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 3979,
+      "end": 5747,
+      "line": 92,
+      "sha256": "982c1ad93d9e75d8b6de0a841d53090220a280e05164aa678a98351235008bc6",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    }
+  ],
+  "excluded": [
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 0,
+      "end": 69,
+      "line": 1,
+      "sha256": "589f94cdc97ea8bd8a6565e8ca2a98f6bc2f5e6d053b935a8437344a1d2fc9bc",
+      "kind": "CREATE EXTENSION IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 69,
+      "end": 608,
+      "line": 2,
+      "sha256": "7e3b2d8f4a3f60254d11255ccb21240710cd377e01f0c706f2f7640fd6cab15e",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 608,
+      "end": 1107,
+      "line": 17,
+      "sha256": "00c1acd75189667fba7ba4d5bda1127181ccf0bbeafb2d27a01ea9e588f7b84d",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 1619,
+      "end": 2467,
+      "line": 50,
+      "sha256": "9006d578d4a6500c3cb487698c171f86b37b9919b9cc1d5cd8b8315430b1c1a4",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 2467,
+      "end": 2987,
+      "line": 72,
+      "sha256": "97026cbafd27eaef8d21dc87424b6ac5fa706bf72b7c9820a4a27dc874ea408b",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 2987,
+      "end": 3072,
+      "line": 86,
+      "sha256": "eb9089ba4f5da2308a305eaaba7abf6867da4ecc4bd5aabe226892f1f3bf2e7d",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 3072,
+      "end": 3165,
+      "line": 87,
+      "sha256": "201eaac2b0621397920b0090d28afd82bf51b88d28ad3818daaa589b52b88064",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 3165,
+      "end": 3805,
+      "line": 88,
+      "sha256": "943366d13d969e60886c0ba2c077ad2f6c13be1df028401009871b67a9603f9a",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 3805,
+      "end": 3888,
+      "line": 103,
+      "sha256": "82b6d87efe1335ce44c5c39d60e2b7a2316f046279149727695e40c9fc747c92",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 3888,
+      "end": 3987,
+      "line": 104,
+      "sha256": "6bb86f7cd1453e355dadba91f3b49267d1f9cceda9d7a97db06a956e4e8581f4",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 3987,
+      "end": 4406,
+      "line": 105,
+      "sha256": "d5b2369ac6646324d00a3cc99a5f56852d8aa830e91175d9324b10c1e450af3d",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 4406,
+      "end": 5052,
+      "line": 117,
+      "sha256": "4b11c528b41eb5ce9bace7dcc32691cbd6b2e5f2daa72b44e6ce8c82ea9838a9",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 5052,
+      "end": 5125,
+      "line": 137,
+      "sha256": "7aae0ad7b1b68c2edc9724514bbe970360de0ad328ec233f3efa9ed34e8d0800",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 5125,
+      "end": 5726,
+      "line": 138,
+      "sha256": "195edc7e4715b1009774637c080a8d6ed8cfcb4d5f037c228684a2035e7d2cb8",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 5726,
+      "end": 5818,
+      "line": 152,
+      "sha256": "363a04703dad02a04e634470da24f28327f561385522d26412f2b65f54d2e293",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 5818,
+      "end": 6302,
+      "line": 153,
+      "sha256": "1ab0bf625b76e09dc88323e6a8700de463d6238e956058eac389879c77387795",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 6302,
+      "end": 6394,
+      "line": 167,
+      "sha256": "b70660846bd7b33a209b5f1974804c839b2f6aceb26c337c45089c0e47a79c7c",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 6394,
+      "end": 6990,
+      "line": 168,
+      "sha256": "6588c0e07bb276613d9e24a926b0f557fce659cb72d1f61c6c7342b0b546958d",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 6990,
+      "end": 7078,
+      "line": 184,
+      "sha256": "df4b64d2fe1a5a16f2f401e8a97c2bdb22eba154a8c5c1b5aeb00d971241357c",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 7078,
+      "end": 7541,
+      "line": 185,
+      "sha256": "73fe83bd18ed3b7d11e7e80c0fe60f58af41b98749a661f2bd10acae0910db15",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 7541,
+      "end": 8090,
+      "line": 198,
+      "sha256": "aee66913eee1641d52fdc657cfd207720dbb9daa1d718cd45636a1cce38a2ea4",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 8090,
+      "end": 8579,
+      "line": 214,
+      "sha256": "09e8a27ffcbe9f1ed1ae82ba8b6fa2adda328183a08ec6b40329f813df7e23f1",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 8579,
+      "end": 9076,
+      "line": 228,
+      "sha256": "1c1b884b957779a64dbd8a5ebf5e93f482edcc2845094f3eac1fa6c0d4908714",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 9076,
+      "end": 9175,
+      "line": 242,
+      "sha256": "5ba6c8f68e815c52e4b23472a4e9bcb2be5131f1b1baf97bdb3fcbe28e9c18e3",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 9175,
+      "end": 9730,
+      "line": 243,
+      "sha256": "9778ee2ba57b7e4769174fe838a36853ecc639ce6af6dc14f01e79f03eac8db6",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 9730,
+      "end": 9920,
+      "line": 258,
+      "sha256": "433405cb66efabdb4ffe1f6c8d5402c5f7397a02ff91480826ba928bdd11323a",
+      "kind": "CREATE OR REPLACE FUNCTION",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 9920,
+      "end": 10117,
+      "line": 267,
+      "sha256": "db25156464643e758252a7476495400c179a3240edb8733f72085981c6c6aaf4",
+      "kind": "DO $$ BEGIN CREATE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 10117,
+      "end": 10310,
+      "line": 271,
+      "sha256": "fadee81ffed92da282514f531a63511f23a9dea2cc8f8737e012278653951144",
+      "kind": "DO $$ BEGIN CREATE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 10310,
+      "end": 10511,
+      "line": 275,
+      "sha256": "26a5bc8ba27bdf4f290277e6bd5f858a61a73f4a57abe24c53e467e74d3dcb8d",
+      "kind": "DO $$ BEGIN CREATE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 10511,
+      "end": 10710,
+      "line": 279,
+      "sha256": "6eb3e29e663a7a42651f4837d5411f1d11cb48d2317a5df8feea6501f494cdd5",
+      "kind": "DO $$ BEGIN CREATE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 10710,
+      "end": 10921,
+      "line": 283,
+      "sha256": "4210592a6ea5cfa429169fc4bf624f4746f3042db43cec697798860776be831b",
+      "kind": "DO $$ BEGIN CREATE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511500000_create_inventory_items.sql",
+      "start": 1524,
+      "end": 1759,
+      "line": 35,
+      "sha256": "ea3c5276d29a66f7d9cf5c20d93482e0798d0f16846622b3fa1bb6d72852ea32",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511500000_create_inventory_items.sql",
+      "start": 1759,
+      "end": 2044,
+      "line": 40,
+      "sha256": "aae939428da585a3186bfc76cf46746cdb2a00ccae52a37f9f60ee444e354cad",
+      "kind": "CREATE TRIGGER inventory_items_updated_at BEFORE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511500000_create_inventory_items.sql",
+      "start": 2044,
+      "end": 2263,
+      "line": 47,
+      "sha256": "237a3f20ecd9c628a3ed3f0ca657d53a3feb1655e00eef97b63ef497718ee424",
+      "kind": "COMMENT ON TABLE public.inventory_items",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511500000_create_inventory_items.sql",
+      "start": 2263,
+      "end": 2384,
+      "line": 51,
+      "sha256": "4c536db656cf5429cf6ba1e801407ee4300bc05cda9032286fe9d87499f635fa",
+      "kind": "COMMENT ON COLUMN public.inventory_items.tenant_id",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511500000_create_inventory_items.sql",
+      "start": 2384,
+      "end": 2499,
+      "line": 54,
+      "sha256": "a8b12ace2062d389b4580a3ac906f9363613b9a99c5430950eed50ee79757d53",
+      "kind": "COMMENT ON COLUMN public.inventory_items.stock_level",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511500000_create_inventory_items.sql",
+      "start": 2499,
+      "end": 2612,
+      "line": 57,
+      "sha256": "fddb4dc5a09b0ba8626a13444fb5e6126bacdbfb739df7d9c5102387ac063f5d",
+      "kind": "COMMENT ON COLUMN public.inventory_items.min_stock_level",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511500000_create_inventory_items.sql",
+      "start": 2612,
+      "end": 2735,
+      "line": 60,
+      "sha256": "0d2ef74b637f76562456e16d55579acb96a8f69c0dc6c730167c97176993dbc5",
+      "kind": "COMMENT ON COLUMN public.inventory_items.price_per_unit",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 3285,
+      "end": 4032,
+      "line": 60,
+      "sha256": "cbae5a0459ae4a630b6bcf76b5f966e4ec3df4e598be0ff76460d9b56a6deb7a",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 4032,
+      "end": 4127,
+      "line": 74,
+      "sha256": "3315dc44da47ba25263e064c5356cdcf1d547e1eea1c036e177947d552df07e3",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 4127,
+      "end": 4228,
+      "line": 76,
+      "sha256": "b500b73ed3a3648fe5c27e3ab34a3a06655659bef4a65d1f094af2223a67a226",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 4394,
+      "end": 4457,
+      "line": 81,
+      "sha256": "b91a72d54cca421c16a7a76e4a8084229581a03fb67bf3a96887e39e99fb6346",
+      "kind": "ALTER TABLE public.den_odontograms ENABLE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260806030000_healthcare_kernel_schema.sql",
+      "start": 5169,
+      "end": 5505,
+      "line": 97,
+      "sha256": "f27fefa507b609d8aface5748174527cdeba40738e1e66a04925c577cce7cca3",
+      "kind": "DO $$ BEGIN IF",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 1659,
+      "end": 2600,
+      "line": 31,
+      "sha256": "c1115409a1cecd2d1d395a2251543210b112bf20d2ab93a53c2f0f524f9c7982",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 2600,
+      "end": 2701,
+      "line": 46,
+      "sha256": "1ec24a8c6ffa1131f35e7ac0de35275e6cf61aea41251dde4af6b12adafcbf02",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 2701,
+      "end": 2806,
+      "line": 48,
+      "sha256": "31da21c1188187d5b44650ef6cd6508ee144b346af1b4d151da55ff27a1e5237",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 2806,
+      "end": 2909,
+      "line": 49,
+      "sha256": "625da0622dbdf8d0ce27a355a1a76544caa9d962325188b6bff81ddf4fd05986",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 2909,
+      "end": 3743,
+      "line": 50,
+      "sha256": "e280050d8508e5a4fa6f365eb2ec403379bcd5489de9c5388d797f388a9e5184",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 4028,
+      "end": 4816,
+      "line": 74,
+      "sha256": "51d165177b634bb3ba3593df2402b076a0a3f416fa98f041e537f1e8a271d61e",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 7200,
+      "end": 7266,
+      "line": 133,
+      "sha256": "e4997fe4af01b37f211e6b074d56cba669b8c77dfc8ee2043794803e494bc8df",
+      "kind": "ALTER TABLE public.hc_clinical_orders ENABLE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+      "start": 7916,
+      "end": 8273,
+      "line": 147,
+      "sha256": "6f4865a98391b31393015d8c43b82917a758bce6158c80ef27ad1f67c388dd0f",
+      "kind": "DO $$ BEGIN IF",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 0,
+      "end": 1160,
+      "line": 1,
+      "sha256": "d6fa7e4fcaa1ce881ddcdfabaa671f64235ac0a42849c46fd88cbe74631cd97b",
+      "kind": "BEGIN;",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 1160,
+      "end": 1457,
+      "line": 28,
+      "sha256": "48cb49f63ab7e2f14a2f8743f3e2836b6ed9a99a90b269784e0e06b6eacdfb9e",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 2544,
+      "end": 2635,
+      "line": 71,
+      "sha256": "911d7d7a86e607ba044db24b7c6729ab5c585bcded8463318811fb2e392e7762",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 2635,
+      "end": 2929,
+      "line": 76,
+      "sha256": "c0271e64ed5ef1258fa6e727d256f64ef71ea063f9622e0e9107777dad1d2a30",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 2929,
+      "end": 4221,
+      "line": 85,
+      "sha256": "826363f5545218004be5d1d872fd1170c5ab4cf9ea8d764a456df520f433a55b",
+      "kind": "UPDATE public.hc_encounters SET encounter_type",
+      "reason": "DATA_MIGRATION_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 4221,
+      "end": 4607,
+      "line": 123,
+      "sha256": "6ac491a3a6efe6fa56f6ab41ee7a91f25fb8ce121d9f984f2065bfb717be6966",
+      "kind": "DO $$ DECLARE updated_count",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 4607,
+      "end": 4947,
+      "line": 136,
+      "sha256": "171371bca2b85f3eebb4d7d12591ba843a61ad1631720ad165ffd4654b006761",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 5328,
+      "end": 5436,
+      "line": 153,
+      "sha256": "7dfd4c58e476f8fa1758443398ca8dae9ffab23d1569b963e060affc6c936e40",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 5436,
+      "end": 5737,
+      "line": 158,
+      "sha256": "20b3046104fa4efa5e49d96c8c650cbde052449b1214eaddcc97b6157e462819",
+      "kind": "UPDATE public.hc_encounters SET status",
+      "reason": "DATA_MIGRATION_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 5737,
+      "end": 6140,
+      "line": 166,
+      "sha256": "ea3a51f10a14a74252cce02ab38ece7c12fb73ee53f5dbb18994e18557387e35",
+      "kind": "DO $$ DECLARE legacy_count",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 6140,
+      "end": 6498,
+      "line": 181,
+      "sha256": "23a6281be7d13ebf3e297d7ce352a666e63f0a20be814de8f5a17c5e7ba9e093",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 6928,
+      "end": 7045,
+      "line": 198,
+      "sha256": "c2674b33dda2dc8db5e3ca57f70fe6b122729ec3ec6bb090127ef0d1e7963413",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 7045,
+      "end": 7421,
+      "line": 203,
+      "sha256": "aa277ecea9593f72967269cc1cb3f8ebba567f8efe06153b7b9079de39cdd305",
+      "kind": "UPDATE public.hc_encounters SET encounter_class",
+      "reason": "DATA_MIGRATION_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 7421,
+      "end": 7870,
+      "line": 216,
+      "sha256": "eb515af1eef42675c3905e43e5e4e8c8e183056f7e8a397664fa415c7976d300",
+      "kind": "DO $$ DECLARE legacy_count",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 7870,
+      "end": 8186,
+      "line": 231,
+      "sha256": "ebd5ab08a94f121be642c0ac5357c12c3c73ff6036d31fba7c872d1ba8773a56",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 9751,
+      "end": 9863,
+      "line": 273,
+      "sha256": "4a755afe5bec855cb4755a2c83bbbd323fdd8af4ccbf2d7fe4e31da12377dfcd",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 9863,
+      "end": 10174,
+      "line": 278,
+      "sha256": "ad7837e56777a19041097599f4d1065d3026e889e044f756e7ae340409c12809",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 11496,
+      "end": 11579,
+      "line": 321,
+      "sha256": "9e6b97133fb4ae21cfc3c31900048bb0297d0b2f8d852d3b602f15b62f2f0f4a",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 11579,
+      "end": 11874,
+      "line": 326,
+      "sha256": "2e3973d825ddc620692d74cd50dd18b61a8f63de560e639b963867e462c63782",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 12891,
+      "end": 13003,
+      "line": 362,
+      "sha256": "96729a65155a01155326e85c5107fc4de9b2c8506aabcfd34c07b755d04d62e6",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 13003,
+      "end": 13818,
+      "line": 367,
+      "sha256": "cf08f3e1c1d968f7ed2aa688af5749bfafce4622abd9c773df47f6473dd1dd6d",
+      "kind": "DO $$ DECLARE final_count",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260811120000_migrate_encounters_to_canonical_schema.sql",
+      "start": 13818,
+      "end": 13829,
+      "line": 391,
+      "sha256": "89b9ab2f764209db1b5d862a8e23f68ce7987102bbea0e485b2d70a39dd07b8a",
+      "kind": "COMMIT;",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812010000_make_care_journey_id_nullable.sql",
+      "start": 0,
+      "end": 949,
+      "line": 1,
+      "sha256": "0b56e7e9038f515ffc1e0515998fe8417cd0459746a2626d3a444f9ce1235b80",
+      "kind": "BEGIN;",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812010000_make_care_journey_id_nullable.sql",
+      "start": 949,
+      "end": 1029,
+      "line": 22,
+      "sha256": "53fd69b882e5c06942486ee32e68437de22f6ab43244f00affa0ab9caf780f41",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812010000_make_care_journey_id_nullable.sql",
+      "start": 1134,
+      "end": 1556,
+      "line": 31,
+      "sha256": "a6dbcaf38a982146131f4be076e20a3f500f83a4853740db50d0ffac9cda2611",
+      "kind": "DO $$ DECLARE is_nullable",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812010000_make_care_journey_id_nullable.sql",
+      "start": 1795,
+      "end": 2137,
+      "line": 52,
+      "sha256": "45b1e55cf52c43c1d9e0a5742d181d0d28da10560deabc3b75540187311fa250",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812010000_make_care_journey_id_nullable.sql",
+      "start": 2137,
+      "end": 2148,
+      "line": 62,
+      "sha256": "89b9ab2f764209db1b5d862a8e23f68ce7987102bbea0e485b2d70a39dd07b8a",
+      "kind": "COMMIT;",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812020000_drop_care_journey_fk.sql",
+      "start": 0,
+      "end": 902,
+      "line": 1,
+      "sha256": "8fa4eb6a98fbc8ed08407203a41fc899b4f209a52e41bdd1474fe8fe8034496d",
+      "kind": "BEGIN;",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812020000_drop_care_journey_fk.sql",
+      "start": 902,
+      "end": 989,
+      "line": 23,
+      "sha256": "563e99d2725cb20f1e5fdc0007697b483d9c4a9f88056b700a5c911d6a7e2062",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812020000_drop_care_journey_fk.sql",
+      "start": 1113,
+      "end": 1549,
+      "line": 32,
+      "sha256": "31a587a60131fee1f0377e900f12ed1183ff793b1b34505fdcbe7a5420162345",
+      "kind": "DO $$ DECLARE fk_exists",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812020000_drop_care_journey_fk.sql",
+      "start": 1806,
+      "end": 2127,
+      "line": 54,
+      "sha256": "900cdfe53aeb49ea2513c4e902125afab775e69970a339d7d74e96b9d5ca7159",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812020000_drop_care_journey_fk.sql",
+      "start": 2127,
+      "end": 2138,
+      "line": 64,
+      "sha256": "89b9ab2f764209db1b5d862a8e23f68ce7987102bbea0e485b2d70a39dd07b8a",
+      "kind": "COMMIT;",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 0,
+      "end": 1032,
+      "line": 1,
+      "sha256": "3544f025e590c72ebe25e3bf9f229384aaaa74378815e4c467fb3131406f6717",
+      "kind": "BEGIN;",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 1032,
+      "end": 1333,
+      "line": 24,
+      "sha256": "310a59965a6fd45e1b94eb611a6682d0b84baa9c125c0b1533082fc603073968",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 1333,
+      "end": 1491,
+      "line": 33,
+      "sha256": "834cd085a899d0c82166fecd3b9a54bd92242970c06f6fca3028d171f4c68ea5",
+      "kind": "ALTER TABLE public.hc_clinical_orders ADD",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 1491,
+      "end": 1648,
+      "line": 37,
+      "sha256": "a11e9dec819811ba8ffbc44d739299caac647738a1d88f8f3d3398e0482d4a56",
+      "kind": "ALTER TABLE public.hc_clinical_orders ADD",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 1648,
+      "end": 1823,
+      "line": 41,
+      "sha256": "d9032e9b11fb8d970ab97c96650af2f84133e273c0a2bd9d15fde759d709115c",
+      "kind": "ALTER TABLE public.hc_clinical_orders ADD",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 1823,
+      "end": 1905,
+      "line": 45,
+      "sha256": "546c7bd0260ba5f164533e5256697658f073cfac721d57951fa73a64eb760478",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 1905,
+      "end": 2230,
+      "line": 50,
+      "sha256": "028879d9d56f927fe866dafcfb11075cdee5466f1f14f551da90fdc1ea18ac0a",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 2230,
+      "end": 2404,
+      "line": 59,
+      "sha256": "a76e8d6680977b0a736cb56d339e0ea16fd034b9201dec79e5587364198c5e7e",
+      "kind": "UPDATE public.hc_clinical_orders o SET",
+      "reason": "DATA_MIGRATION_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 2404,
+      "end": 3262,
+      "line": 65,
+      "sha256": "c78a853cc81e3fca640132b1208e9dd5a8e78638ef439af12a4763608fd9388b",
+      "kind": "DO $$ DECLARE total_orders",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 3262,
+      "end": 3550,
+      "line": 87,
+      "sha256": "771f540b95d2b3d274c5347f20bb91d2fe9c2e96ddda138631c01787c0554c91",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 3550,
+      "end": 4052,
+      "line": 96,
+      "sha256": "fc07444aa0d29aaba0148057c6cc728bfba11229b69c6f2f158008a8e1b462cd",
+      "kind": "DO $$ DECLARE orphaned_count",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 4052,
+      "end": 4642,
+      "line": 113,
+      "sha256": "6be7869420eb61e2bd600b821ce08c7c4fdba62918f10f639ff24b627d7499d5",
+      "kind": "DO $$ DECLARE mismatch_count",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 4642,
+      "end": 5347,
+      "line": 131,
+      "sha256": "260ea2abe51cf320d0ca40e1c2aacf109c4adb68e36dbb64600548b9050f8e01",
+      "kind": "DO $$ DECLARE duplicate_count",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 5347,
+      "end": 5437,
+      "line": 153,
+      "sha256": "3f224dea6d259ef2bcc85fa2d93983a83ca52d6f4bdd698ba0cf4965197553b5",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 5437,
+      "end": 5707,
+      "line": 158,
+      "sha256": "3c5323b58cdda4641dedcb6c82b93a552276326a00c05e3842a6110bdcc64b41",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 6406,
+      "end": 6641,
+      "line": 186,
+      "sha256": "bec44cdaa53803447bc56ee0d96c41dfbe75816ca5b246c321031814533b0106",
+      "kind": "ALTER TABLE public.hc_clinical_orders ADD",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 6641,
+      "end": 6723,
+      "line": 193,
+      "sha256": "b5bc730782a477a849cfaa97378508b1dad772e0f6a059ee27c7e9ec26fc6855",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 6723,
+      "end": 7109,
+      "line": 198,
+      "sha256": "849d7a7f168b2d8d4804ad3b0980f414b1b43d29e03381a87cbf7d0f31c8f5f1",
+      "kind": "ALTER TABLE public.hc_clinical_orders ADD",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 7109,
+      "end": 7224,
+      "line": 206,
+      "sha256": "7291f514b91491b390e438b72b2a639df5dfe638405af4e25ca9f5ee099a573c",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 7224,
+      "end": 7507,
+      "line": 211,
+      "sha256": "6bd78ba2c82a407fd2668dacebfb37a2f232eded22db7244ddcc00d36abb2f96",
+      "kind": "CREATE UNIQUE INDEX IF",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 7507,
+      "end": 7601,
+      "line": 217,
+      "sha256": "3b4f52e6ec64e0903556a413a769b5f1b1faed671fcdf288a6024d5ff56f6a1d",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 7601,
+      "end": 7685,
+      "line": 222,
+      "sha256": "6b6f75fc3eb135d92280435d77a14ebb7972f1f9d21b0cc961c937cae3d16d76",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 7685,
+      "end": 7979,
+      "line": 227,
+      "sha256": "9a1c0fe0bc2d712b1853a5d1cdd059156b8c73bf3f4f3585656ce9ce469bffe5",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 7979,
+      "end": 8126,
+      "line": 236,
+      "sha256": "63127c396dc82224be3da4e876baba017555eabac4a2d026d19a0a1bc2d89b1c",
+      "kind": "ALTER TABLE public.hc_clinical_orders ALTER",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 8126,
+      "end": 8212,
+      "line": 240,
+      "sha256": "744bf845929feadfd94286c60ac7199bd083d7258e9fff6f81973ccad11306ca",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 8212,
+      "end": 8438,
+      "line": 245,
+      "sha256": "9effed8cee674a4860b06c24354c5c2afa480ec4c3794b5aba4272149079f2aa",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 8438,
+      "end": 8724,
+      "line": 253,
+      "sha256": "a9e553c71c91409f2533898b582d1a98c34e92061e0cf382453fd2d7b31d2c8f",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 8724,
+      "end": 8931,
+      "line": 262,
+      "sha256": "cf5af5ec7e2c3cc23fc18b0587877c0de75a802e3ee3cb360d99db466f2087db",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 8931,
+      "end": 9098,
+      "line": 266,
+      "sha256": "fc5860120be008066bf743ef57effa0cd3c3e1beb8bb00451edce9f67372effd",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 9098,
+      "end": 9349,
+      "line": 270,
+      "sha256": "84543008e6b841b3e956c7ae6f9c54566fc0d0a1d293f6b78bc0f8f465d6229b",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 9349,
+      "end": 9643,
+      "line": 278,
+      "sha256": "2f60ddfd729e30465d4399846df509c40420aa5a8200fd5c26e32cfbb421460a",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 9643,
+      "end": 9881,
+      "line": 287,
+      "sha256": "5588a4156592bd6edc1b063f889bae5bcb620089f310035d3df2f35764d7fedb",
+      "kind": "COMMENT ON COLUMN public.hc_clinical_orders.patient_party_id",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 9881,
+      "end": 10113,
+      "line": 290,
+      "sha256": "ead64dcfcdf6bcb603adaaa31407f2d0bfb60db3a27d6e116a5d0e028a3d298e",
+      "kind": "COMMENT ON COLUMN public.hc_clinical_orders.request_id",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 10113,
+      "end": 10336,
+      "line": 293,
+      "sha256": "d3220d39169305a30f4b7783d8ed59a1dd67f70f2301063b838688dfb767e691",
+      "kind": "COMMENT ON COLUMN public.hc_clinical_orders.version",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 10336,
+      "end": 10424,
+      "line": 296,
+      "sha256": "224fe85fc18b5804950ca7d0537f027996d6f2d5967c3ed2a961888168e657f7",
+      "kind": "DO $$ BEGIN RAISE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 10424,
+      "end": 12113,
+      "line": 301,
+      "sha256": "de32b39d5c750fa86b9407b75dbcc5d68af9fcbd766f3418357df06d9e8eab1e",
+      "kind": "DO $$ DECLARE total_orders",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812030000_extend_clinical_orders_table.sql",
+      "start": 12113,
+      "end": 12124,
+      "line": 336,
+      "sha256": "89b9ab2f764209db1b5d862a8e23f68ce7987102bbea0e485b2d70a39dd07b8a",
+      "kind": "COMMIT;",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 0,
+      "end": 496,
+      "line": 1,
+      "sha256": "b416df896fb3027f1e7169fefa8207e87d40220370f734a4b9dbf86d5f880ba6",
+      "kind": "DROP POLICY IF EXISTS",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 496,
+      "end": 615,
+      "line": 8,
+      "sha256": "a25a9fe9de2f9647614621abf62cad410adb24e1b34606c6e02b4ff9e472e295",
+      "kind": "DROP TABLE IF EXISTS",
+      "reason": "TABLE_DROP_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 615,
+      "end": 699,
+      "line": 11,
+      "sha256": "eb7801b1ac2013abaa8dddca4cb0f32891385053b22ab4b032dfb4f69283050b",
+      "kind": "DROP TABLE IF EXISTS",
+      "reason": "TABLE_DROP_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 699,
+      "end": 762,
+      "line": 14,
+      "sha256": "878d07c987dbb36947530a77d2eea64d6ad6effb1656909ea0a79437a6c704e8",
+      "kind": "DROP TABLE IF EXISTS",
+      "reason": "TABLE_DROP_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 762,
+      "end": 1571,
+      "line": 15,
+      "sha256": "81e953539571f35650ad47f1994724d26d8aacfd3582bc5a3ee316044a27feb6",
+      "kind": "CREATE TABLE public.hc_drugs (",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260812040000_recreate_clinical_orders_table.sql",
+      "start": 1571,
+      "end": 1844,
+      "line": 35,
+      "sha256": "271efa98857f5d57bc0bdd520e6f0b4afba2eb59504e25fa90948ec3021175b1",
+      "kind": "CREATE TABLE public.hc_clinical_calculations (",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 11553,
+      "end": 13023,
+      "line": 205,
+      "sha256": "c4622f4cecaf9488c0fc2ec47600d96570d8e6460a2029ac4f6f188497281aea",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 17249,
+      "end": 18683,
+      "line": 311,
+      "sha256": "0e9926cdd1523b7e945309559978d4690eb913c14a6b5431a6b3bd7865235de4",
+      "kind": "INSERT INTO public.hc_drugs (drug_code,",
+      "reason": "DATA_MIGRATION_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 18683,
+      "end": 23756,
+      "line": 330,
+      "sha256": "3911b64189f6a458dfd6ca86c44a30c75c3dfa74cc06c350bfbfdd125c3182d4",
+      "kind": "INSERT INTO public.hc_drug_interactions (drug_a_code,",
+      "reason": "DATA_MIGRATION_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260808000006_create_cds_order_tables.sql",
+      "start": 23756,
+      "end": 24672,
+      "line": 405,
+      "sha256": "788b526d5790d9a24bf48a24204a058f8bb967c15849771dd32df76b15e0174e",
+      "kind": "INSERT INTO public.hc_clinical_protocols (protocol_code,",
+      "reason": "DATA_MIGRATION_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "start": 0,
+      "end": 133,
+      "line": 1,
+      "sha256": "06a448f17e1bfe8ec7323ad30969b1d81dcc271af1d7070e585775f830d2d757",
+      "kind": "BEGIN;",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260813000009_temporal_engine_tables.sql",
+      "start": 7505,
+      "end": 7516,
+      "line": 178,
+      "sha256": "89b9ab2f764209db1b5d862a8e23f68ce7987102bbea0e485b2d70a39dd07b8a",
+      "kind": "COMMIT;",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 0,
+      "end": 133,
+      "line": 1,
+      "sha256": "0767ba5cb16bf51ff6de2da1febf4c9a04ff2009cb743720823c58de30aa38e4",
+      "kind": "BEGIN;",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260813000010_rule_governance_tables.sql",
+      "start": 7194,
+      "end": 7205,
+      "line": 194,
+      "sha256": "89b9ab2f764209db1b5d862a8e23f68ce7987102bbea0e485b2d70a39dd07b8a",
+      "kind": "COMMIT;",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 0,
+      "end": 133,
+      "line": 1,
+      "sha256": "8f19ff3e855a26233758b93bf35eb606c154c11c65ae1337b8b40b625fff4327",
+      "kind": "BEGIN;",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260813000011_clinical_audit_tables.sql",
+      "start": 5747,
+      "end": 5758,
+      "line": 136,
+      "sha256": "89b9ab2f764209db1b5d862a8e23f68ce7987102bbea0e485b2d70a39dd07b8a",
+      "kind": "COMMIT;",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    }
+  ],
+  "tables": [
+    "customers",
+    "hc_anesthesia_medications",
+    "hc_anesthesia_observations",
+    "hc_anesthesia_records",
+    "hc_beds",
+    "hc_blood_crossmatch_records",
+    "hc_blood_units",
+    "hc_buildings",
+    "hc_cds_processed_events",
+    "hc_cds_rules",
+    "hc_clinical_audit_ledger",
+    "hc_clinical_calculations",
+    "hc_clinical_context_snapshots",
+    "hc_clinical_decisions",
+    "hc_clinical_evidence_packages",
+    "hc_clinical_orders",
+    "hc_clinical_protocols",
+    "hc_clinical_safety_profiles",
+    "hc_compliance_exceptions",
+    "hc_cssd_cycle_items",
+    "hc_cssd_cycles",
+    "hc_decision_overrides",
+    "hc_drug_interactions",
+    "hc_drug_profiles",
+    "hc_drugs",
+    "hc_emergency_visits",
+    "hc_encounters",
+    "hc_enterprise_registries",
+    "hc_equipment",
+    "hc_governed_clinical_rules",
+    "hc_icu_beds",
+    "hc_icu_observations",
+    "hc_idempotency_keys",
+    "hc_implants",
+    "hc_inpatient_admissions",
+    "hc_master_patient_index",
+    "hc_medication_administration_records",
+    "hc_nursing_vital_signs",
+    "hc_operating_rooms",
+    "hc_or_equipment_usage",
+    "hc_or_schedules",
+    "hc_order_cds_overrides",
+    "hc_pacu_admissions",
+    "hc_patient_allergies",
+    "hc_patient_queues",
+    "hc_prescriptions",
+    "hc_rooms",
+    "hc_rule_governance_audit",
+    "hc_security_break_glass_logs",
+    "hc_specimens",
+    "hc_surgical_cases",
+    "hc_surgical_safety_checklists",
+    "hc_surgical_teams",
+    "hc_temporal_events",
+    "hc_temporal_snapshots",
+    "hc_tenant_cds_policies",
+    "hc_transfusion_records",
+    "hc_transfusion_verifications",
+    "hc_triage_assessments",
+    "hc_ventilator_records",
+    "hc_ventilator_safety_policies",
+    "hc_wards",
+    "inventory_items",
+    "patient_profiles"
+  ],
+  "sqlSha256": "c37bc62f412eda983906b99aee0c98526a8e3c74460e2471bae3aa9b263f9ab5",
+  "ordering": "Exact extension and CREATE TABLE statements topologically sorted by canonical FK dependencies; subsequent DDL retains source sequence. Existing Education data untouched.",
+  "statementCount": 417
+}

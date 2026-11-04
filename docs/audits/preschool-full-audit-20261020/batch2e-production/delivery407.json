@@ -1,0 +1,21 @@
+{
+  "recordedAt": "2026-10-20T22:53:23.6734138Z",
+  "branch": "codex/preschool-authorization-matrix-20261021",
+  "remoteSha": "b85722f6eab1aedc3d9bd977bd3deee19e5684e5",
+  "expectedHead": "b85722f6eab1aedc3d9bd977bd3deee19e5684e5",
+  "pushExitCode": 0,
+  "independentlyReadRemoteShaMatches": true,
+  "pullRequest": "https://github.com/bellaspahcm/bella-ai-platform/pull/407",
+  "draft": true,
+  "prCreateExitCode": 0,
+  "artifactAttached": true,
+  "sourcePaths": 21,
+  "totalPaths": 98,
+  "combinedTests": 286,
+  "combinedSuites": 10,
+  "sourceComposition": "Exact committed Git blobs plus original working SHA256 and CRLF-only equality",
+  "productionSourceRollout": "NOT_RUN",
+  "mergePerformed": false,
+  "authenticatedRls": "NOT_PROVEN",
+  "preschoolGoLive": "NOT_READY"
+}

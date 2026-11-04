@@ -1,0 +1,214 @@
+{
+  "startedAt": "2026-10-21T04:49:57.085Z",
+  "project": "bella-preschool-regression-20261021",
+  "source": "supabase/migrations/20260523030000_grant_service_role_schema_access.sql",
+  "sourceSha256": "4ade11887ec2719b0bc9e206b4a5ffb12f36a2be69e1edf3ee68ec1ace1f3cf1",
+  "scope": "Declared service-role fixture access in owned local schema only; not Auth/RLS proof",
+  "businessDataChanges": 0,
+  "before": [
+    {
+      "tablename": "assessment_results",
+      "access": true
+    },
+    {
+      "tablename": "assessments",
+      "access": true
+    },
+    {
+      "tablename": "attendances",
+      "access": true
+    },
+    {
+      "tablename": "courses",
+      "access": false
+    },
+    {
+      "tablename": "edu_assessments",
+      "access": false
+    },
+    {
+      "tablename": "edu_attendance",
+      "access": false
+    },
+    {
+      "tablename": "edu_attendance_daily_state",
+      "access": false
+    },
+    {
+      "tablename": "edu_courses",
+      "access": false
+    },
+    {
+      "tablename": "edu_enrollments",
+      "access": false
+    },
+    {
+      "tablename": "enrollments",
+      "access": false
+    },
+    {
+      "tablename": "journey_journeys",
+      "access": false
+    },
+    {
+      "tablename": "journey_milestones",
+      "access": false
+    },
+    {
+      "tablename": "journey_sub_journeys",
+      "access": false
+    },
+    {
+      "tablename": "party_identifiers",
+      "access": false
+    },
+    {
+      "tablename": "party_parties",
+      "access": false
+    },
+    {
+      "tablename": "party_relationships",
+      "access": false
+    },
+    {
+      "tablename": "party_roles",
+      "access": false
+    },
+    {
+      "tablename": "persons",
+      "access": false
+    },
+    {
+      "tablename": "platform_business_rules",
+      "access": false
+    },
+    {
+      "tablename": "platform_rule_evaluation_log",
+      "access": false
+    },
+    {
+      "tablename": "students",
+      "access": false
+    },
+    {
+      "tablename": "teacher_assignments",
+      "access": false
+    },
+    {
+      "tablename": "tenants",
+      "access": false
+    },
+    {
+      "tablename": "timeline_events",
+      "access": false
+    },
+    {
+      "tablename": "users",
+      "access": false
+    }
+  ],
+  "after": [
+    {
+      "tablename": "assessment_results",
+      "access": true
+    },
+    {
+      "tablename": "assessments",
+      "access": true
+    },
+    {
+      "tablename": "attendances",
+      "access": true
+    },
+    {
+      "tablename": "courses",
+      "access": true
+    },
+    {
+      "tablename": "edu_assessments",
+      "access": true
+    },
+    {
+      "tablename": "edu_attendance",
+      "access": true
+    },
+    {
+      "tablename": "edu_attendance_daily_state",
+      "access": true
+    },
+    {
+      "tablename": "edu_courses",
+      "access": true
+    },
+    {
+      "tablename": "edu_enrollments",
+      "access": true
+    },
+    {
+      "tablename": "enrollments",
+      "access": true
+    },
+    {
+      "tablename": "journey_journeys",
+      "access": true
+    },
+    {
+      "tablename": "journey_milestones",
+      "access": true
+    },
+    {
+      "tablename": "journey_sub_journeys",
+      "access": true
+    },
+    {
+      "tablename": "party_identifiers",
+      "access": true
+    },
+    {
+      "tablename": "party_parties",
+      "access": true
+    },
+    {
+      "tablename": "party_relationships",
+      "access": true
+    },
+    {
+      "tablename": "party_roles",
+      "access": true
+    },
+    {
+      "tablename": "persons",
+      "access": true
+    },
+    {
+      "tablename": "platform_business_rules",
+      "access": true
+    },
+    {
+      "tablename": "platform_rule_evaluation_log",
+      "access": true
+    },
+    {
+      "tablename": "students",
+      "access": true
+    },
+    {
+      "tablename": "teacher_assignments",
+      "access": true
+    },
+    {
+      "tablename": "tenants",
+      "access": true
+    },
+    {
+      "tablename": "timeline_events",
+      "access": true
+    },
+    {
+      "tablename": "users",
+      "access": true
+    }
+  ],
+  "result": "PASS_CANONICAL_LOCAL_SERVICE_FIXTURE_PREREQUISITE",
+  "finishedAt": "2026-10-21T04:49:57.130Z"
+}

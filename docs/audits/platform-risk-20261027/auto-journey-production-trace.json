@@ -1,0 +1,79 @@
+{
+  "reportUpdatedAtUtc": "2026-10-27T05:36:25Z",
+  "scope": "Read-only Auto journey UPDATE source, production availability, runtime evidence, and documented contract trace; no product or database writes",
+  "inspectionAttribution": {
+    "evidenceCollectedBy": "Batch executor through worktree, CLI, and read-only catalog observations",
+    "directUserInspectionOfWorktreeOrProduction": "NOT_CLAIMED"
+  },
+  "productionAvailability": {
+    "listedProductionCommit": "bb7007e7632c3bf7d88f760fc8239a0720d2d327",
+    "commitDate": "2026-10-23T20:47:27+07:00",
+    "route": "POST /api/bella-auto/transactions/[id]/rollback",
+    "routePresentAtListedCommit": true,
+    "actualProductionInvocation": "NOT_PROVEN"
+  },
+  "sourceTrace": {
+    "routeFile": "src/app/api/bella-auto/transactions/[id]/rollback/route.ts",
+    "databaseClientFactory": "getPrimaryClient",
+    "productionKeySource": "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "requestSessionForwardedToClient": false,
+    "serverAuthUserValidated": false,
+    "bodyIdentityFieldsRequired": ["userId", "userEmail"],
+    "identityProvenance": "Caller-provided request body; field presence does not establish Supabase Auth identity",
+    "productionDatabaseRole": "anon (source-inferred, not runtime-observed)",
+    "sourceCallSites": ["src/app/bella-auto/rollback-demo/page.tsx"],
+    "callerIsDemoPage": true,
+    "callerUsesMockIdentity": true,
+    "callerAddsAuthorizationHeader": false,
+    "deployedRouteAvailabilityDoesNotProveUse": true
+  },
+  "effectiveJourneyUpdateBoundary": {
+    "parentTable": "public.auto_customer_journeys",
+    "rlsEnabled": true,
+    "policies": 0,
+    "anonUpdateAcl": true,
+    "authenticatedUpdateAcl": true,
+    "effectiveAnonUpdate": "DENIED_BY_RLS_AND_CONTAINMENT_TRIGGER",
+    "authenticatedUpdateWithoutPolicy": "DENIED_BY_RLS",
+    "parentAclOrRlsWidened": false,
+    "roleOfSuccessfulProductionUpdate": "NOT_PROVEN"
+  },
+  "runtimeEvidence": {
+    "vercelLogs": {
+      "queryWindow": "30d",
+      "pathFilter": "/api/bella-auto/transactions",
+      "matchingEventsReturned": 0,
+      "interpretation": "No matching events returned by this query; absence is not proof of non-use"
+    },
+    "vercelInvocationMetrics": {
+      "result": "BLOCKED",
+      "reason": "payment_required; Observability Plus required",
+      "interpretation": "Production invocation count unavailable in the connected account"
+    },
+    "pgStatStatements": {
+      "parentJourneyUpdateRows": 0,
+      "statsResetAt": "2026-10-19T06:28:49.060113Z",
+      "serverStartedAt": "2026-10-19T06:28:49.237986Z",
+      "interpretation": "No matching parent UPDATE statement in the available statistics window; this does not prove route non-use or identify a successful request role"
+    },
+    "probeRole": "service_role",
+    "probeIsProductionRoleEvidence": false
+  },
+  "documentedContract": {
+    "apiDocumentation": "docs/BELLA_AUTO_API_DOCUMENTATION.md states all API calls require a Supabase session token and tenant RLS",
+    "apiDocumentationExampleConsistency": "The example says getPrimaryClient automatically uses the current session, but the implementation passes no request session",
+    "conflictingHistoricalDocuments": [
+      "docs/BELLA_AUTO_PHASES_11-15_FINAL_REPORT.md claims Phase 11 production-ready",
+      "docs/BELLA_AUTO_PRODUCTION_VERIFICATION_RESULTS.md says Phase 11-15 RPCs were not accessible and rollback stress verification was pending"
+    ],
+    "rollbackSpecificCanonicalAuthorizationContract": "NOT_FOUND",
+    "businessUseAndIntendedRole": "NOT_PROVEN"
+  },
+  "decision": {
+    "status": "NOT_PROVEN",
+    "parentPermissionExpansion": "NOT_AUTHORIZED_OR_PERFORMED",
+    "codeChanges": 0,
+    "productionChanges": 0,
+    "nextEvidenceNeeded": "Canonical owner-approved rollback authorization contract plus observed successful production request and database role"
+  }
+}

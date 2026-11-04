@@ -1,0 +1,31 @@
+{
+  "checkedAt": "2026-10-21T00:20:34.035Z",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "readOnly": true,
+  "constraints": [
+    {
+      "conname": "timeline_events_primary_party_id_fkey",
+      "definition": "FOREIGN KEY (primary_party_id) REFERENCES party_parties(id) ON DELETE CASCADE"
+    },
+    {
+      "conname": "timeline_events_recorded_by_fkey",
+      "definition": "FOREIGN KEY (recorded_by) REFERENCES party_parties(id)"
+    }
+  ],
+  "rules": [
+    {
+      "rulename": "timeline_events_no_delete",
+      "definition": "CREATE RULE timeline_events_no_delete AS\n    ON DELETE TO public.timeline_events DO INSTEAD NOTHING;"
+    },
+    {
+      "rulename": "timeline_events_no_update",
+      "definition": "CREATE RULE timeline_events_no_update AS\n    ON UPDATE TO public.timeline_events DO INSTEAD NOTHING;"
+    }
+  ],
+  "fixtureState": {
+    "retained_parties": 4,
+    "terminated_tenant_shells": 2,
+    "active_tenants": 0,
+    "referencing_events": 0
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "capturedAt": "2026-10-21T04:42:50.3051013Z",
+  "change": "Routine local port substitution only",
+  "from": [
+    55430,
+    55431,
+    55432
+  ],
+  "to": [
+    24430,
+    24431,
+    24432
+  ],
+  "reason": "Windows HNS exclusion 55415-55514; no listener at proposed ports",
+  "existingStackTouched": false,
+  "projectIdUnchanged": true,
+  "authority": "Scoped Autonomy: smallest compatible recoverable technical choice",
+  "originalProposalPreserved": true
+}

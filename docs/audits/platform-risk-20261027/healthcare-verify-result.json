@@ -1,0 +1,20 @@
+{
+  "command": "npm run healthcare:verify",
+  "exitCode": 1,
+  "architectureGuard": { "result": "PASS", "violations": 0 },
+  "healthcareArchitecture": { "suitesPassed": 2, "suitesFailed": 0, "testsPassed": 9, "testsFailed": 0 },
+  "healthcareConformance": { "suitesPassed": 1, "suitesFailed": 0, "testsPassed": 7, "testsFailed": 0 },
+  "healthcareTest": {
+    "suitesTotal": 61,
+    "suitesPassed": 39,
+    "suitesFailed": 18,
+    "suitesSkipped": 4,
+    "testsTotal": 530,
+    "testsPassed": 374,
+    "testsFailed": 151,
+    "testsSkipped": 5,
+    "failureRoot": "DNS ENOTFOUND mock.supabase.co during configured integration fixture setup; fixture cleanup/read failures were cascades"
+  },
+  "gateStatus": "BLOCKED_BY_TEST_ENVIRONMENT",
+  "primaryRollbackBehavioralProbe": "PASS"
+}

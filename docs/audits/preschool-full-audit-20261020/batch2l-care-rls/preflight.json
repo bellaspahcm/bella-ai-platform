@@ -1,0 +1,881 @@
+{
+  "checkedAt": "2026-10-20T23:51:47.182Z",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "readOnly": true,
+  "source": "4a7a855e3472dcfd86649b18f27671ccbe7188a1",
+  "catalog": {
+    "relations": [
+      {
+        "relname": "edu_courses",
+        "relkind": "r",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false,
+        "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+        "auth_select": false,
+        "auth_insert": false,
+        "anon_select": false
+      },
+      {
+        "relname": "edu_enrollments",
+        "relkind": "r",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false,
+        "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+        "auth_select": false,
+        "auth_insert": false,
+        "anon_select": false
+      },
+      {
+        "relname": "party_parties",
+        "relkind": "r",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false,
+        "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+        "auth_select": false,
+        "auth_insert": false,
+        "anon_select": false
+      },
+      {
+        "relname": "students",
+        "relkind": "r",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false,
+        "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,authenticated=arwd/postgres}",
+        "auth_select": true,
+        "auth_insert": true,
+        "anon_select": false
+      }
+    ],
+    "indexes": [
+      {
+        "tablename": "edu_courses",
+        "indexname": "edu_courses_pkey",
+        "indexdef": "CREATE UNIQUE INDEX edu_courses_pkey ON public.edu_courses USING btree (id)"
+      },
+      {
+        "tablename": "edu_courses",
+        "indexname": "idx_edu_courses_tenant",
+        "indexdef": "CREATE INDEX idx_edu_courses_tenant ON public.edu_courses USING btree (tenant_id)"
+      },
+      {
+        "tablename": "edu_courses",
+        "indexname": "uq_edu_courses_code",
+        "indexdef": "CREATE UNIQUE INDEX uq_edu_courses_code ON public.edu_courses USING btree (tenant_id, course_code)"
+      },
+      {
+        "tablename": "edu_enrollments",
+        "indexname": "edu_enrollments_pkey",
+        "indexdef": "CREATE UNIQUE INDEX edu_enrollments_pkey ON public.edu_enrollments USING btree (id)"
+      },
+      {
+        "tablename": "edu_enrollments",
+        "indexname": "idx_edu_enrollments_course",
+        "indexdef": "CREATE INDEX idx_edu_enrollments_course ON public.edu_enrollments USING btree (course_id)"
+      },
+      {
+        "tablename": "edu_enrollments",
+        "indexname": "idx_edu_enrollments_student",
+        "indexdef": "CREATE INDEX idx_edu_enrollments_student ON public.edu_enrollments USING btree (student_party_id)"
+      },
+      {
+        "tablename": "edu_enrollments",
+        "indexname": "idx_edu_enrollments_tenant",
+        "indexdef": "CREATE INDEX idx_edu_enrollments_tenant ON public.edu_enrollments USING btree (tenant_id)"
+      },
+      {
+        "tablename": "edu_enrollments",
+        "indexname": "uq_edu_enrollments_request_id",
+        "indexdef": "CREATE UNIQUE INDEX uq_edu_enrollments_request_id ON public.edu_enrollments USING btree (tenant_id, request_id)"
+      },
+      {
+        "tablename": "edu_enrollments",
+        "indexname": "uq_edu_enrollments_student_course",
+        "indexdef": "CREATE UNIQUE INDEX uq_edu_enrollments_student_course ON public.edu_enrollments USING btree (tenant_id, student_party_id, course_id)"
+      },
+      {
+        "tablename": "party_parties",
+        "indexname": "idx_party_parties_deleted",
+        "indexdef": "CREATE INDEX idx_party_parties_deleted ON public.party_parties USING btree (deleted_at) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "tablename": "party_parties",
+        "indexname": "idx_party_parties_tenant",
+        "indexdef": "CREATE INDEX idx_party_parties_tenant ON public.party_parties USING btree (tenant_id)"
+      },
+      {
+        "tablename": "party_parties",
+        "indexname": "idx_party_parties_type",
+        "indexdef": "CREATE INDEX idx_party_parties_type ON public.party_parties USING btree (party_type)"
+      },
+      {
+        "tablename": "party_parties",
+        "indexname": "party_parties_pkey",
+        "indexdef": "CREATE UNIQUE INDEX party_parties_pkey ON public.party_parties USING btree (id)"
+      },
+      {
+        "tablename": "students",
+        "indexname": "idx_students_academic_status",
+        "indexdef": "CREATE INDEX idx_students_academic_status ON public.students USING btree (academic_status)"
+      },
+      {
+        "tablename": "students",
+        "indexname": "idx_students_enrollment_date",
+        "indexdef": "CREATE INDEX idx_students_enrollment_date ON public.students USING btree (enrollment_date)"
+      },
+      {
+        "tablename": "students",
+        "indexname": "idx_students_metadata",
+        "indexdef": "CREATE INDEX idx_students_metadata ON public.students USING gin (metadata)"
+      },
+      {
+        "tablename": "students",
+        "indexname": "idx_students_party_id",
+        "indexdef": "CREATE INDEX idx_students_party_id ON public.students USING btree (party_id)"
+      },
+      {
+        "tablename": "students",
+        "indexname": "idx_students_person_id",
+        "indexdef": "CREATE INDEX idx_students_person_id ON public.students USING btree (person_id)"
+      },
+      {
+        "tablename": "students",
+        "indexname": "idx_students_program_id",
+        "indexdef": "CREATE INDEX idx_students_program_id ON public.students USING btree (program_id)"
+      },
+      {
+        "tablename": "students",
+        "indexname": "idx_students_student_code",
+        "indexdef": "CREATE INDEX idx_students_student_code ON public.students USING btree (student_code)"
+      },
+      {
+        "tablename": "students",
+        "indexname": "idx_students_tenant_status",
+        "indexdef": "CREATE INDEX idx_students_tenant_status ON public.students USING btree (tenant_id, enrollment_status)"
+      },
+      {
+        "tablename": "students",
+        "indexname": "idx_students_user_id",
+        "indexdef": "CREATE INDEX idx_students_user_id ON public.students USING btree (user_id)"
+      },
+      {
+        "tablename": "students",
+        "indexname": "students_pkey",
+        "indexdef": "CREATE UNIQUE INDEX students_pkey ON public.students USING btree (id)"
+      },
+      {
+        "tablename": "students",
+        "indexname": "students_student_id_unique",
+        "indexdef": "CREATE UNIQUE INDEX students_student_id_unique ON public.students USING btree (student_id)"
+      },
+      {
+        "tablename": "students",
+        "indexname": "students_tenant_student_code_unique",
+        "indexdef": "CREATE UNIQUE INDEX students_tenant_student_code_unique ON public.students USING btree (tenant_id, student_code) WHERE (student_code IS NOT NULL)"
+      },
+      {
+        "tablename": "students",
+        "indexname": "students_unique_user_course",
+        "indexdef": "CREATE UNIQUE INDEX students_unique_user_course ON public.students USING btree (user_id, course_id)"
+      }
+    ],
+    "policies": [
+      {
+        "tablename": "edu_courses",
+        "policyname": "edu_courses_tenant_isolation",
+        "permissive": "PERMISSIVE",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "(tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid)",
+        "with_check": null
+      },
+      {
+        "tablename": "edu_enrollments",
+        "policyname": "edu_enrollments_tenant_isolation",
+        "permissive": "PERMISSIVE",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "(tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid)",
+        "with_check": null
+      },
+      {
+        "tablename": "party_parties",
+        "policyname": "tenant_isolation_parties",
+        "permissive": "PERMISSIVE",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "(tenant_id = get_auth_tenant_id())",
+        "with_check": null
+      },
+      {
+        "tablename": "students",
+        "policyname": "Students admin manage scoped tenant data",
+        "permissive": "PERMISSIVE",
+        "roles": "{authenticated}",
+        "cmd": "ALL",
+        "qual": "(is_hq_super_admin() OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text, 'admin_staff'::text])))))))",
+        "with_check": "(is_hq_super_admin() OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text, 'admin_staff'::text])))))))"
+      },
+      {
+        "tablename": "students",
+        "policyname": "Students read own or scoped tenant data",
+        "permissive": "PERMISSIVE",
+        "roles": "{authenticated}",
+        "cmd": "SELECT",
+        "qual": "(is_hq_super_admin() OR (user_id = auth.uid()) OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text, 'admin_staff'::text, 'hr'::text, 'accountant'::text])))))))",
+        "with_check": null
+      },
+      {
+        "tablename": "students",
+        "policyname": "students_service_role",
+        "permissive": "PERMISSIVE",
+        "roles": "{service_role}",
+        "cmd": "ALL",
+        "qual": "true",
+        "with_check": null
+      }
+    ],
+    "columns": [
+      {
+        "table_name": "edu_courses",
+        "column_name": "id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": "gen_random_uuid()"
+      },
+      {
+        "table_name": "edu_courses",
+        "column_name": "tenant_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null
+      },
+      {
+        "table_name": "edu_courses",
+        "column_name": "course_code",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null
+      },
+      {
+        "table_name": "edu_courses",
+        "column_name": "title",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null
+      },
+      {
+        "table_name": "edu_courses",
+        "column_name": "status",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": "'active'::text"
+      },
+      {
+        "table_name": "edu_courses",
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()"
+      },
+      {
+        "table_name": "edu_courses",
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()"
+      },
+      {
+        "table_name": "edu_courses",
+        "column_name": "max_students",
+        "data_type": "integer",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "edu_courses",
+        "column_name": "current_enrollment",
+        "data_type": "integer",
+        "is_nullable": "YES",
+        "column_default": "0"
+      },
+      {
+        "table_name": "edu_courses",
+        "column_name": "prerequisite_course_codes",
+        "data_type": "ARRAY",
+        "is_nullable": "YES",
+        "column_default": "'{}'::text[]"
+      },
+      {
+        "table_name": "edu_enrollments",
+        "column_name": "id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": "gen_random_uuid()"
+      },
+      {
+        "table_name": "edu_enrollments",
+        "column_name": "tenant_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null
+      },
+      {
+        "table_name": "edu_enrollments",
+        "column_name": "student_party_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null
+      },
+      {
+        "table_name": "edu_enrollments",
+        "column_name": "course_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null
+      },
+      {
+        "table_name": "edu_enrollments",
+        "column_name": "status",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": "'pending'::text"
+      },
+      {
+        "table_name": "edu_enrollments",
+        "column_name": "enrolled_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()"
+      },
+      {
+        "table_name": "edu_enrollments",
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()"
+      },
+      {
+        "table_name": "edu_enrollments",
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()"
+      },
+      {
+        "table_name": "edu_enrollments",
+        "column_name": "request_id",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": "gen_random_uuid()"
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "tenant_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "party_type",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "display_name",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "legal_name",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "tax_code",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "dob",
+        "data_type": "date",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "gender",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "blood_type",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "version",
+        "data_type": "integer",
+        "is_nullable": "NO",
+        "column_default": "1"
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "created_by",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "updated_by",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()"
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()"
+      },
+      {
+        "table_name": "party_parties",
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": "gen_random_uuid()"
+      },
+      {
+        "table_name": "students",
+        "column_name": "tenant_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "user_id",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "course_id",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "full_name",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "phone",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "email",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "enrollment_status",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": "'active'::text"
+      },
+      {
+        "table_name": "students",
+        "column_name": "tuition_total",
+        "data_type": "numeric",
+        "is_nullable": "NO",
+        "column_default": "0"
+      },
+      {
+        "table_name": "students",
+        "column_name": "tuition_paid",
+        "data_type": "numeric",
+        "is_nullable": "NO",
+        "column_default": "0"
+      },
+      {
+        "table_name": "students",
+        "column_name": "enrolled_at",
+        "data_type": "date",
+        "is_nullable": "NO",
+        "column_default": "CURRENT_DATE"
+      },
+      {
+        "table_name": "students",
+        "column_name": "graduated_at",
+        "data_type": "date",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "notes",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()"
+      },
+      {
+        "table_name": "students",
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()"
+      },
+      {
+        "table_name": "students",
+        "column_name": "person_id",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "student_code",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "academic_status",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "enrollment_type",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "program_id",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "enrollment_date",
+        "data_type": "date",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "expected_graduation_date",
+        "data_type": "date",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "actual_graduation_date",
+        "data_type": "date",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "current_level",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "gpa",
+        "data_type": "numeric",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "total_credits",
+        "data_type": "integer",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "emergency_contact_name",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "emergency_contact_phone",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "emergency_contact_relationship",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "metadata",
+        "data_type": "jsonb",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "created_by",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "updated_by",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "party_id",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": null
+      },
+      {
+        "table_name": "students",
+        "column_name": "student_id",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": "gen_random_uuid()"
+      }
+    ],
+    "constraints": [
+      {
+        "relname": "edu_courses",
+        "conname": "chk_edu_courses_capacity",
+        "definition": "CHECK (((max_students IS NULL) OR (current_enrollment <= max_students)))"
+      },
+      {
+        "relname": "edu_courses",
+        "conname": "chk_edu_courses_current_enrollment",
+        "definition": "CHECK ((current_enrollment >= 0))"
+      },
+      {
+        "relname": "edu_courses",
+        "conname": "chk_edu_courses_max_students",
+        "definition": "CHECK (((max_students IS NULL) OR (max_students > 0)))"
+      },
+      {
+        "relname": "edu_courses",
+        "conname": "edu_courses_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "relname": "edu_courses",
+        "conname": "edu_courses_status_check",
+        "definition": "CHECK ((status = ANY (ARRAY['draft'::text, 'active'::text, 'archived'::text])))"
+      },
+      {
+        "relname": "edu_courses",
+        "conname": "edu_courses_tenant_id_fkey",
+        "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT"
+      },
+      {
+        "relname": "edu_courses",
+        "conname": "uq_edu_courses_code",
+        "definition": "UNIQUE (tenant_id, course_code)"
+      },
+      {
+        "relname": "edu_enrollments",
+        "conname": "edu_enrollments_course_id_fkey",
+        "definition": "FOREIGN KEY (course_id) REFERENCES edu_courses(id) ON DELETE RESTRICT"
+      },
+      {
+        "relname": "edu_enrollments",
+        "conname": "edu_enrollments_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "relname": "edu_enrollments",
+        "conname": "edu_enrollments_status_check",
+        "definition": "CHECK ((status = ANY (ARRAY['pending'::text, 'active'::text, 'completed'::text, 'cancelled'::text])))"
+      },
+      {
+        "relname": "edu_enrollments",
+        "conname": "edu_enrollments_student_party_id_fkey",
+        "definition": "FOREIGN KEY (student_party_id) REFERENCES party_parties(id) ON DELETE RESTRICT"
+      },
+      {
+        "relname": "edu_enrollments",
+        "conname": "edu_enrollments_tenant_id_fkey",
+        "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT"
+      },
+      {
+        "relname": "edu_enrollments",
+        "conname": "uq_edu_enrollments_request_id",
+        "definition": "UNIQUE (tenant_id, request_id)"
+      },
+      {
+        "relname": "edu_enrollments",
+        "conname": "uq_edu_enrollments_student_course",
+        "definition": "UNIQUE (tenant_id, student_party_id, course_id)"
+      },
+      {
+        "relname": "party_parties",
+        "conname": "party_parties_gender_check",
+        "definition": "CHECK ((gender = ANY (ARRAY['male'::text, 'female'::text, 'other'::text])))"
+      },
+      {
+        "relname": "party_parties",
+        "conname": "party_parties_party_type_check",
+        "definition": "CHECK ((party_type = ANY (ARRAY['person'::text, 'organization'::text])))"
+      },
+      {
+        "relname": "party_parties",
+        "conname": "party_parties_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "relname": "party_parties",
+        "conname": "party_parties_tenant_id_fkey",
+        "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+      },
+      {
+        "relname": "students",
+        "conname": "students_course_id_fkey",
+        "definition": "FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE RESTRICT"
+      },
+      {
+        "relname": "students",
+        "conname": "students_enrollment_status_check",
+        "definition": "CHECK ((enrollment_status = ANY (ARRAY['active'::text, 'paused'::text, 'graduated'::text, 'withdrawn'::text])))"
+      },
+      {
+        "relname": "students",
+        "conname": "students_paid_not_above_total",
+        "definition": "CHECK ((tuition_paid <= tuition_total))"
+      },
+      {
+        "relname": "students",
+        "conname": "students_party_id_fkey",
+        "definition": "FOREIGN KEY (party_id) REFERENCES party_parties(id) ON DELETE RESTRICT"
+      },
+      {
+        "relname": "students",
+        "conname": "students_person_fk",
+        "definition": "FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE"
+      },
+      {
+        "relname": "students",
+        "conname": "students_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "relname": "students",
+        "conname": "students_tenant_id_fkey",
+        "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+      },
+      {
+        "relname": "students",
+        "conname": "students_tuition_paid_check",
+        "definition": "CHECK ((tuition_paid >= (0)::numeric))"
+      },
+      {
+        "relname": "students",
+        "conname": "students_tuition_total_check",
+        "definition": "CHECK ((tuition_total >= (0)::numeric))"
+      },
+      {
+        "relname": "students",
+        "conname": "students_unique_user_course",
+        "definition": "UNIQUE (user_id, course_id)"
+      },
+      {
+        "relname": "students",
+        "conname": "students_user_id_fkey",
+        "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"
+      }
+    ]
+  },
+  "sourceHashes": [
+    {
+      "file": "supabase/migrations/20260909000052_p42_daily_care_operations.sql",
+      "sha256": "d646cf06d4e86a02bea11ed1fdce96c202e6cf308198fbb4802382ac018814e0"
+    },
+    {
+      "file": "supabase/migrations/20260927040000_preschool_daily_care_canonical_student_party.sql",
+      "sha256": "d3c0506255dac50257632f6a0ba5db0347e4b394cbd48baa444f20afd19f1bac"
+    },
+    {
+      "file": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "sha256": "95d00c9a1df775500386b86c571ae8dad1dbe58e77e415ca80701ebc23491b8c"
+    },
+    {
+      "file": "docs/products/bella-preschool/AUTHORIZATION_CONTRACT.md",
+      "sha256": "ea466acfed7ede22da339ce10d9bf784b44363824fa077fecc3c6392764fe3bb"
+    }
+  ]
+}

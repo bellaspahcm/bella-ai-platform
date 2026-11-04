@@ -1,0 +1,16 @@
+{
+  "capturedAt": "2026-10-21T04:00:58.155Z",
+  "source": "Direct human reply to OWNER_DECISION.md question in current conversation",
+  "verbatimReply": "Duyệt cả hai gói đúng phạm vi đề xuất",
+  "acr": "ACR-20261021-PRESCHOOL-COURSE-READ",
+  "decisions": [
+    "Exact Care bulk/classes proxy policy",
+    "Two named read-only Education catalog artifacts + Product consumer + ADR/unlock/reseal"
+  ],
+  "proposalHashes": {
+    "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/OWNER_DECISION.md": "dfd4a955ffcd875d6ed73c6892eec770e8fdee64552279ed404d16030e2ded9c",
+    "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/ACR_COURSE_CATALOG_READ.md": "e9bd8385189e50602358779a7a091bf7ed2efed3b85afbcea31b6a05fc9f289a"
+  },
+  "productionAuthorized": false,
+  "databaseChangesAuthorized": false
+}

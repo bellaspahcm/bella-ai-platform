@@ -1,0 +1,49 @@
+{
+  "startedAt": "2026-10-20T21:03:54.842Z",
+  "workspace": "C:/Users/DELL/.codex/worktrees/shared-identity-containment-20261021/BELLA SPA ERP",
+  "branch": "codex/shared-identity-containment-20261021",
+  "prior": "790caf5ee89cdf91020b48491ed37eae22ef581f",
+  "main": "f973dd7e56542aa7847b98c2a4236da86f1eabc3",
+  "beforeTree": "b034577c790247ba66c0fcc1d235b2d755b55f38",
+  "beforePrFiles": 46,
+  "expectedFinalFiles": 32,
+  "forced": false,
+  "source": [
+    {
+      "path": "src/services/user-actions.ts",
+      "blob": "d808dd8b77a819bb183699f75c1573dc68e786b9"
+    },
+    {
+      "path": "src/services/onboarding-actions.ts",
+      "blob": "7277524b4e78b6b8f350197afae99cb3e9945df7"
+    },
+    {
+      "path": "src/__tests__/user-actions.test.ts",
+      "blob": "e58baf86296ba9a9445ef1095bd38305ce12f0c5"
+    },
+    {
+      "path": "src/__tests__/onboarding.test.ts",
+      "blob": "526dae7087870cf096caac3b3200896d7ec050c2"
+    },
+    {
+      "path": "supabase/migrations/20261021030000_restrict_exec_sql_client_execution.sql",
+      "blob": "11a4630bb0cf45b3c3baea8b3286c38c0bbe6425"
+    },
+    {
+      "path": "supabase/migrations/20261021050000_contain_shared_identity_client_writes.sql",
+      "blob": "480dc47d8f6e88ac326fca66a012ae6d6a337b8b"
+    }
+  ],
+  "mergeExitCode": 0,
+  "commitExitCode": 0,
+  "head": "9b4ec3c3f2f044ad2dae5ffc6d9693afdf626179",
+  "afterTree": "b034577c790247ba66c0fcc1d235b2d755b55f38",
+  "pushExitCode": 0,
+  "remoteSha": "9b4ec3c3f2f044ad2dae5ffc6d9693afdf626179",
+  "finishedAt": "2026-10-20T21:04:03.578Z",
+  "treeUnchanged": true,
+  "sourceBlobsUnchanged": true,
+  "afterPrFiles": 32,
+  "onlyApprovedScope": true,
+  "worktreeClean": true
+}

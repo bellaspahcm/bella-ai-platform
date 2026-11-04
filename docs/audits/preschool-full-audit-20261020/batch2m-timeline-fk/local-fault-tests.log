@@ -1,0 +1,13 @@
+✔ Timeline lock timeout enters Care and FK recovery; no retained flags survive (10.8354ms)
+✔ Interrupted checkpoint write preserves the previous published JSON and records evidence failure (3.2571ms)
+✔ Pooled startup timeout loss is bounded per transaction; a failed standalone statement rolls back (3.9052ms)
+✔ Lost COMMIT and rollback acknowledgements block ordinary SQL until resynchronized; write outcome stays unproven (2.9583ms)
+✔ Replacement Party UUID is rejected before DELETE even with matching tenant census (7.0105ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 121.0895

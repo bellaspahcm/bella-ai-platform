@@ -1,0 +1,27 @@
+[codex/preschool-api-identity-20261021 88314bacf] fix(preschool): bind Copilot permissions to verified identity
+ 21 files changed, 802 insertions(+), 36 deletions(-)
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/ARCHITECTURE_GATE_RESULT.md
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/FINAL_REPORT.md
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/SPEC.md
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/education-command.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/healthcare-command.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/jest-command.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/jest-results.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/lint-command.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/local-http-assessment.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/local-http.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/review-results.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/run-check.cjs
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/secrets-command.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/source-manifest.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/typecheck-command.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/verification.json
+ create mode 100644 docs/products/bella-preschool/AUTHORIZATION_CONTRACT.md
+ create mode 100644 src/app/api/education/ai/copilot/__tests__/access.test.ts
+🔒 Architecture Guard — Git Pre-Commit Hook
+   Checking staged files for frozen kernel modifications...
+
+   ✅ Checked 21 staged file(s)
+   ✅ No frozen files modified
+   ✅ Commit allowed
+

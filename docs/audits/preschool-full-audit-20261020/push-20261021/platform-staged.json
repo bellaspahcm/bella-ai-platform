@@ -1,0 +1,76 @@
+{
+  "checkedAt": "2026-10-20T20:57:20.043Z",
+  "workspace": "C:\\Users\\DELL\\.codex\\worktrees\\shared-identity-containment-20261021\\BELLA SPA ERP",
+  "branch": "codex/shared-identity-containment-20261021",
+  "files": [
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/ARCHITECTURE_GATE_RESULT.md",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/AUTHORITY.md",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/DELIVERY_EVIDENCE.md",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/EXECUTE_IDENTITY_CONTAINMENT.sql",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/RECOVERY_LOCAL_ONLY.sql",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/check-results.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/execution-manifest.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/fresh-jest-results.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/http-after.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/jest-command.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/jest.log",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/lint-command.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/lint.log",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/post-verification.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/production-execution-cli.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/production-execution.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/production-identity.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/rehearsal-result.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/review-results.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/role-probes-cli.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/secrets-command.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/secrets.log",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/source-manifest.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/typecheck-command.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/typecheck.diagnostics.txt",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/typecheck.log",
+    "src/__tests__/onboarding.test.ts",
+    "src/__tests__/user-actions.test.ts",
+    "src/services/onboarding-actions.ts",
+    "src/services/user-actions.ts",
+    "supabase/migrations/20261021030000_restrict_exec_sql_client_execution.sql",
+    "supabase/migrations/20261021050000_contain_shared_identity_client_writes.sql"
+  ],
+  "sourceBlobs": [
+    {
+      "path": "src/services/user-actions.ts",
+      "expectedBlob": "d808dd8b77a819bb183699f75c1573dc68e786b9",
+      "stagedBlob": "d808dd8b77a819bb183699f75c1573dc68e786b9"
+    },
+    {
+      "path": "src/services/onboarding-actions.ts",
+      "expectedBlob": "7277524b4e78b6b8f350197afae99cb3e9945df7",
+      "stagedBlob": "7277524b4e78b6b8f350197afae99cb3e9945df7"
+    },
+    {
+      "path": "src/__tests__/user-actions.test.ts",
+      "expectedBlob": "e58baf86296ba9a9445ef1095bd38305ce12f0c5",
+      "stagedBlob": "e58baf86296ba9a9445ef1095bd38305ce12f0c5"
+    },
+    {
+      "path": "src/__tests__/onboarding.test.ts",
+      "expectedBlob": "526dae7087870cf096caac3b3200896d7ec050c2",
+      "stagedBlob": "526dae7087870cf096caac3b3200896d7ec050c2"
+    },
+    {
+      "path": "supabase/migrations/20261021030000_restrict_exec_sql_client_execution.sql",
+      "expectedBlob": "11a4630bb0cf45b3c3baea8b3286c38c0bbe6425",
+      "stagedBlob": "11a4630bb0cf45b3c3baea8b3286c38c0bbe6425"
+    },
+    {
+      "path": "supabase/migrations/20261021050000_contain_shared_identity_client_writes.sql",
+      "expectedBlob": "480dc47d8f6e88ac326fca66a012ae6d6a337b8b",
+      "stagedBlob": "480dc47d8f6e88ac326fca66a012ae6d6a337b8b"
+    }
+  ],
+  "sourceFiles": 6,
+  "totalFiles": 32,
+  "testsPassed": 56,
+  "secretsFound": 0,
+  "stagedDiffCheckExitCode": 0
+}

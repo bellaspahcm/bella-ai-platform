@@ -1,0 +1,6 @@
+{
+  "credentialsSupplied": false,
+  "actualNativeExitCode": 1,
+  "capturedAt": "2026-10-21T03:16:18.1599686Z",
+  "command": "npm run education:verify"
+}

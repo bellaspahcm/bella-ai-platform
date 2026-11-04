@@ -1,0 +1,54 @@
+{
+  "startedAt": "2026-10-21T00:11:53.929Z",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "baseline": "4a7a855e3472dcfd86649b18f27671ccbe7188a1",
+  "scope": "Exact six-relation E2E preparation and real Auth Care acceptance; no Production or Go-Live proof",
+  "checks": [
+    {
+      "name": "RUN_ABORT",
+      "result": "FAIL",
+      "code": "SELF_SIGNED_CERT_IN_CHAIN"
+    }
+  ],
+  "cleanup": {
+    "failures": [],
+    "result": "NOT_RUN_NO_FIXTURES"
+  },
+  "recovery": {
+    "attempted": false
+  },
+  "sqlSha256": "612277fd1d8aa49bd868e07652b10d89fce79fb5e6d567f1de9f18e70feac37e",
+  "preflightSha256": "d9923c014dff5d0752f769f36f72087a6fe1df1b57ad7ae74faf7d86174508a4",
+  "harnessSha256": "be754a916e9bdf302c488cf3523dca8d4542f88534c879523761f29f868595e7",
+  "retentionRequested": true,
+  "sourceBefore": {
+    "head": "4a7a855e3472dcfd86649b18f27671ccbe7188a1",
+    "tree": "f34b3482fc6a3bd453cb8c9f9e3bf55963d568ba",
+    "ancestor": true,
+    "changed": [],
+    "untracked": [],
+    "sha256": "0920ed219136130778192684467b8ae7f52545a1909d33650072b7b23c712cd5",
+    "environmentFiles": []
+  },
+  "sourceAfter": {
+    "head": "4a7a855e3472dcfd86649b18f27671ccbe7188a1",
+    "tree": "f34b3482fc6a3bd453cb8c9f9e3bf55963d568ba",
+    "ancestor": true,
+    "changed": [],
+    "untracked": [],
+    "sha256": "0920ed219136130778192684467b8ae7f52545a1909d33650072b7b23c712cd5",
+    "environmentFiles": []
+  },
+  "finishedAt": "2026-10-21T00:12:00.932Z",
+  "durationMs": 7003,
+  "counts": {
+    "PASS": 0,
+    "FAIL": 1,
+    "NOT_PROVEN": 0
+  },
+  "primaryFailure": "SELF_SIGNED_CERT_IN_CHAIN",
+  "functionalAcceptance": "FAIL",
+  "result": "FAIL",
+  "exitCode": 1,
+  "remainingProof": "Browser E2E, broad mandatory regression, Production deployment and Go-Live are not established by this harness."
+}

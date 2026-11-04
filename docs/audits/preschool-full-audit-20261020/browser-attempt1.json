@@ -1,0 +1,5 @@
+{
+  "result": "INVALID_HARNESS",
+  "reason": "Blanket POST blocking also blocked getCurrentUser/getTenantSettings. Stop-process query did not match the underlying process; the first run completed after the valid second run and overwrote the shared final JSON. Invalid output is preserved separately; final valid evidence is recovered without altering per-route records from the second run incremental snapshot, corroborated by its completed terminal output. Both browser runs have completed.",
+  "mutationRequestsAllowed": false
+}

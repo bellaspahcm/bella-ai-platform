@@ -1,0 +1,22 @@
+[
+  {
+    "file": ".env",
+    "apiOrigin": "https://lvnvkpyxtuilhrabtlwv.supabase.co"
+  },
+  {
+    "file": ".env.local",
+    "apiOrigin": "https://lvnvkpyxtuilhrabtlwv.supabase.co"
+  },
+  {
+    "file": ".env.e2e",
+    "apiOrigin": "https://bmnbqbcdbuklhopfbopv.supabase.co"
+  },
+  {
+    "file": ".env.test",
+    "apiOrigin": "https://lvnvkpyxtuilhrabtlwv.supabase.co"
+  },
+  {
+    "file": ".env.production",
+    "apiOrigin": "https://bella-erp-prod.supabase.co"
+  }
+]

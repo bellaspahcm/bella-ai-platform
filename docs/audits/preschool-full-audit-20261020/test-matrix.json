@@ -1,0 +1,332 @@
+[
+  {
+    "file": "/src/platform/education/course/__tests__/course.integration.test.ts",
+    "status": "failed",
+    "passed": 0,
+    "failed": 19
+  },
+  {
+    "file": "/src/platform/education/__tests__/kernel-invariants.integration.test.ts",
+    "status": "failed",
+    "passed": 0,
+    "failed": 8
+  },
+  {
+    "file": "/src/platform/education/student/__tests__/student.integration.test.ts",
+    "status": "failed",
+    "passed": 0,
+    "failed": 17
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts",
+    "status": "failed",
+    "passed": 0,
+    "failed": 5
+  },
+  {
+    "file": "/src/platform/education/enrollment/__tests__/enrollment.integration.test.ts",
+    "status": "failed",
+    "passed": 0,
+    "failed": 14
+  },
+  {
+    "file": "/src/platform/education/__tests__/verification-gates.test.ts",
+    "status": "failed",
+    "passed": 5,
+    "failed": 6
+  },
+  {
+    "file": "/src/app/api/education/work-queue/__tests__/route.test.ts",
+    "status": "passed",
+    "passed": 52,
+    "failed": 0
+  },
+  {
+    "file": "/src/app/dashboard/education/work-queue/__tests__/page.test.tsx",
+    "status": "passed",
+    "passed": 14,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-enrollment-operational.integration.test.ts",
+    "status": "failed",
+    "passed": 0,
+    "failed": 1
+  },
+  {
+    "file": "/src/app/dashboard/education/grades/__tests__/page.test.tsx",
+    "status": "passed",
+    "passed": 14,
+    "failed": 0
+  },
+  {
+    "file": "/src/platform/education/__tests__/education-engine.integration.test.ts",
+    "status": "failed",
+    "passed": 0,
+    "failed": 6
+  },
+  {
+    "file": "/src/platform/education/__tests__/capacity-concurrency.integration.test.ts",
+    "status": "failed",
+    "passed": 0,
+    "failed": 3
+  },
+  {
+    "file": "/src/app/dashboard/education/attendance/__tests__/page.test.tsx",
+    "status": "passed",
+    "passed": 21,
+    "failed": 0
+  },
+  {
+    "file": "/src/platform/education/__tests__/teacher-assignment.integration.test.ts",
+    "status": "failed",
+    "passed": 0,
+    "failed": 5
+  },
+  {
+    "file": "/src/app/dashboard/education/reports/__tests__/page.test.tsx",
+    "status": "passed",
+    "passed": 11,
+    "failed": 0
+  },
+  {
+    "file": "/src/app/dashboard/education/communication/__tests__/page.test.tsx",
+    "status": "passed",
+    "passed": 9,
+    "failed": 0
+  },
+  {
+    "file": "/src/app/dashboard/education/learning/__tests__/page.test.tsx",
+    "status": "passed",
+    "passed": 4,
+    "failed": 0
+  },
+  {
+    "file": "/src/app/dashboard/education/finance/__tests__/page.test.tsx",
+    "status": "passed",
+    "passed": 11,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/bella-education-customization-conformance.integration.test.ts",
+    "status": "passed",
+    "passed": 10,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-finance-canonical-student-connection.service.test.ts",
+    "status": "passed",
+    "passed": 6,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-parent-daily-experience.service.test.ts",
+    "status": "passed",
+    "passed": 4,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/bella-education-customization-architecture.test.ts",
+    "status": "passed",
+    "passed": 2,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-finance-tenant-actor-authorization.service.test.ts",
+    "status": "passed",
+    "passed": 5,
+    "failed": 0
+  },
+  {
+    "file": "/src/app/api/education/analytics/__tests__/route.test.ts",
+    "status": "passed",
+    "passed": 2,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts",
+    "status": "passed",
+    "passed": 11,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-finance-period-completion-operation.test.ts",
+    "status": "passed",
+    "passed": 6,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/bella-education-conformance.integration.test.ts",
+    "status": "passed",
+    "passed": 7,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-finance-tt99-recognition.service.test.ts",
+    "status": "passed",
+    "passed": 9,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-daily-care-canonical.service.test.ts",
+    "status": "passed",
+    "passed": 4,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/bella-education-extension-conformance.integration.test.ts",
+    "status": "passed",
+    "passed": 6,
+    "failed": 0
+  },
+  {
+    "file": "/src/app/api/education/attendance/__tests__/route.test.ts",
+    "status": "passed",
+    "passed": 3,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-parent-user-role-migration.test.ts",
+    "status": "passed",
+    "passed": 2,
+    "failed": 0
+  },
+  {
+    "file": "/src/app/api/education/attendance/handover/__tests__/route.test.ts",
+    "status": "passed",
+    "passed": 2,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/bella-education-extension-sandbox.test.ts",
+    "status": "passed",
+    "passed": 1,
+    "failed": 0
+  },
+  {
+    "file": "/src/platform/education/assessment/__tests__/assessment.aggregate.test.ts",
+    "status": "passed",
+    "passed": 32,
+    "failed": 0
+  },
+  {
+    "file": "/src/app/api/education/courses/__tests__/route.test.ts",
+    "status": "passed",
+    "passed": 3,
+    "failed": 0
+  },
+  {
+    "file": "/src/app/api/education/branches/__tests__/route.test.ts",
+    "status": "passed",
+    "passed": 2,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-safe-pickup-handover.service.test.ts",
+    "status": "passed",
+    "passed": 6,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-activity-feed-aggregator.test.ts",
+    "status": "passed",
+    "passed": 1,
+    "failed": 0
+  },
+  {
+    "file": "/src/platform/education/student/__tests__/student.aggregate.test.ts",
+    "status": "passed",
+    "passed": 32,
+    "failed": 0
+  },
+  {
+    "file": "/src/app/api/education/enrollments/__tests__/route.test.ts",
+    "status": "passed",
+    "passed": 6,
+    "failed": 0
+  },
+  {
+    "file": "/src/platform/education/domain/__tests__/course-enrollment.domain.test.ts",
+    "status": "passed",
+    "passed": 4,
+    "failed": 0
+  },
+  {
+    "file": "/src/platform/education/attendance/__tests__/attendance.aggregate.test.ts",
+    "status": "passed",
+    "passed": 27,
+    "failed": 0
+  },
+  {
+    "file": "/src/app/api/education/parent-daily/__tests__/route.test.ts",
+    "status": "passed",
+    "passed": 2,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-guardian-authorization.service.test.ts",
+    "status": "passed",
+    "passed": 3,
+    "failed": 0
+  },
+  {
+    "file": "/src/platform/education/course/__tests__/course.aggregate.test.ts",
+    "status": "passed",
+    "passed": 34,
+    "failed": 0
+  },
+  {
+    "file": "/src/platform/education/enrollment/__tests__/enrollment.aggregate.test.ts",
+    "status": "passed",
+    "passed": 22,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-parent-portal.service.test.ts",
+    "status": "passed",
+    "passed": 11,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-chain.service.test.ts",
+    "status": "passed",
+    "passed": 4,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-finance-billing-period-provenance.test.ts",
+    "status": "passed",
+    "passed": 3,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-analytics-canonical-readback.service.test.ts",
+    "status": "passed",
+    "passed": 1,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/bella-education-architecture.test.ts",
+    "status": "passed",
+    "passed": 4,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/preschool-ai-copilot.test.ts",
+    "status": "passed",
+    "passed": 19,
+    "failed": 0
+  },
+  {
+    "file": "/src/platform/education/__tests__/r3-student-identity-query.test.ts",
+    "status": "passed",
+    "passed": 2,
+    "failed": 0
+  },
+  {
+    "file": "/src/products/bella-education/__tests__/child-pii-shield-security.test.ts",
+    "status": "passed",
+    "passed": 11,
+    "failed": 0
+  }
+]

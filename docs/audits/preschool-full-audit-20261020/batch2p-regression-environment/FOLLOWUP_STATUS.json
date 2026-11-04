@@ -1,0 +1,47 @@
+{
+  "capturedAt": "2026-10-21T05:16:49.888Z",
+  "stage": "REGRESSION_ENVIRONMENT_REPAIRED_FROZEN_DEPENDENCIES_HELD",
+  "authority": "AUTHORITY.json",
+  "productionChange": "NOT_RUN",
+  "anonymousContainment": "NOT_PROVEN_THIS_BATCH",
+  "authenticatedAccessRegression": "NOT_PROVEN_FULL_PRODUCT",
+  "batch2bRbacRls": "IN_PROGRESS",
+  "preschoolGoLive": "NOT_READY",
+  "reseal": "HELD",
+  "educationFull": {
+    "report": "local-education-2026-10-21T04-49-57-192Z.json",
+    "nativeExit": 1,
+    "passedTests": 39,
+    "failedTests": 7,
+    "conformanceSuites": 8,
+    "failedSuites": 3
+  },
+  "healthcareFull": {
+    "report": "local-healthcare-2026-10-21T05-06-00-766Z.json",
+    "nativeExit": 1,
+    "passedTests": 518,
+    "failedTests": 11,
+    "skippedTests": 1,
+    "totalTests": 530,
+    "suites": 61,
+    "passedSuites": 56,
+    "failedSuites": 4,
+    "skippedSuites": 1
+  },
+  "laboratoryIsolated": {
+    "report": "local-healthcare-2026-10-21T05-10-28-791Z.json",
+    "nativeExit": 1,
+    "passedTests": 5,
+    "failedTests": 1,
+    "totalTests": 6,
+    "concurrencyExpectedSuccesses": 1,
+    "concurrencyActualSuccesses": 2
+  },
+  "note": "Raw aggregates retained. Isolated Lab outcome does not recalculate full Healthcare. No waiver or full PASS.",
+  "source": "CURRENT_SOURCE_AND_RUNTIME.json",
+  "proposedRpcRepair": "PROPOSED_ATTENDANCE_RPC.sql",
+  "proposedRpcExecuted": false,
+  "recovery": "LOCAL_RECOVERY_FINAL.json",
+  "committed": false,
+  "pushed": false
+}

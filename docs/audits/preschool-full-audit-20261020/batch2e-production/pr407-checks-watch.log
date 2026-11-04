@@ -1,0 +1,334 @@
+Refreshing checks status every 30 seconds. Press Ctrl+C to quit.
+
+Architecture Guard Verification	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083307	
+Dependency Boundary Check	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083673	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931083268	
+Detect Changed Scope	pass	10s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931084429	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931083583	
+Detect Changed Scope	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931083655	
+Gitleaks	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083437	
+Healthcare Constitution Enforcement	pass	7s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167680	
+SonarQube	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083645	
+quality-security	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931178873	
+Changed-file Lint	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158727	
+Migration Gates	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931161279	
+Real Database Business E2E	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931159912	
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+Affected Unit and Integration Tests	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158758	
+Type Check (changed)	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931182803	
+Relevant App Build	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158750	
+Core Freeze Verification	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931168943	
+Security Gates	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158642	
+Logistics Kernel Regression	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083603	
+Baseline Comparison	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815387/job/118931083191	
+Architecture Guard Summary	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931231158	
+Frozen File Check	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083744	
+Type Check Skipped	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931185561	
+Trivy filesystem	pass	14s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083165	
+Education Constitution Enforcement	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167561	
+CodeQL	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083448	
+Validate PR Scope	pass	11s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815469/job/118931083352	
+Semgrep CE	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083447	
+Vercel	pending	0	https://vercel.com/bella-spa-s-projects/bella-spa-erp/CxwkgfbVR889YBdj26dfqvmmsb79	Vercel is deploying your app
+Refreshing checks status every 30 seconds. Press Ctrl+C to quit.
+
+Affected Unit and Integration Tests	pass	38s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158758	
+Architecture Guard Verification	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083307	
+Changed-file Lint	pass	52s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158727	
+Dependency Boundary Check	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083673	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931083268	
+Detect Changed Scope	pass	10s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931084429	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931083583	
+Detect Changed Scope	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931083655	
+Education Constitution Enforcement	pass	51s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167561	
+Frozen File Check	pass	56s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083744	
+Gitleaks	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083437	
+Healthcare Constitution Enforcement	pass	7s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167680	
+Semgrep CE	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083447	
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+Architecture Guard Summary	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931231158	
+Baseline Comparison	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815387/job/118931083191	
+Validate PR Scope	pass	11s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815469/job/118931083352	
+Relevant App Build	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158750	
+Migration Gates	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931161279	
+CodeQL	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083448	
+Real Database Business E2E	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931159912	
+Logistics Kernel Regression	pass	1m4s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083603	
+Trivy filesystem	pass	14s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083165	
+Type Check Skipped	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931185561	
+Core Freeze Verification	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931168943	
+SonarQube	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083645	
+Security Gates	pass	46s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158642	
+Type Check (changed)	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931182803	
+Vercel	pending	0	https://vercel.com/bella-spa-s-projects/bella-spa-erp/CxwkgfbVR889YBdj26dfqvmmsb79	Vercel is deploying your app
+quality-security	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931178873	
+Refreshing checks status every 30 seconds. Press Ctrl+C to quit.
+
+Affected Unit and Integration Tests	pass	38s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158758	
+Architecture Guard Verification	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083307	
+Changed-file Lint	pass	52s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158727	
+Dependency Boundary Check	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083673	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931083268	
+Detect Changed Scope	pass	10s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931084429	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931083583	
+Detect Changed Scope	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931083655	
+Education Constitution Enforcement	pass	51s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167561	
+Frozen File Check	pass	56s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083744	
+Gitleaks	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083437	
+Healthcare Constitution Enforcement	pass	7s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167680	
+Logistics Kernel Regression	pass	1m4s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083603	
+Security Gates	pass	46s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158642	
+Semgrep CE	pass	1m35s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083447	
+Semgrep OSS	pass	3s	https://github.com/bellaspahcm/bella-ai-platform/runs/118931637334	
+SonarQube	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083645	
+Relevant App Build	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158750	
+Core Freeze Verification	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931168943	
+Migration Gates	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931161279	
+Baseline Comparison	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815387/job/118931083191	
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+Trivy filesystem	pass	14s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083165	
+Validate PR Scope	pass	11s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815469/job/118931083352	
+Type Check Skipped	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931185561	
+Real Database Business E2E	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931159912	
+Architecture Guard Summary	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931231158	
+Type Check (changed)	pass	1m2s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931182803	
+CodeQL	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083448	
+Vercel	pending	0	https://vercel.com/bella-spa-s-projects/bella-spa-erp/CxwkgfbVR889YBdj26dfqvmmsb79	Vercel is deploying your app
+quality-security	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931178873	
+Refreshing checks status every 30 seconds. Press Ctrl+C to quit.
+
+Affected Unit and Integration Tests	pass	38s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158758	
+Architecture Guard Verification	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083307	
+Changed-file Lint	pass	52s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158727	
+Dependency Boundary Check	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083673	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931083268	
+Detect Changed Scope	pass	10s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931084429	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931083583	
+Detect Changed Scope	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931083655	
+Education Constitution Enforcement	pass	51s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167561	
+Frozen File Check	pass	56s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083744	
+Gitleaks	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083437	
+Healthcare Constitution Enforcement	pass	7s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167680	
+Logistics Kernel Regression	pass	1m4s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083603	
+Security Gates	pass	46s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158642	
+Semgrep CE	pass	1m35s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083447	
+Semgrep OSS	pass	3s	https://github.com/bellaspahcm/bella-ai-platform/runs/118931637334	
+SonarQube	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083645	
+Relevant App Build	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158750	
+Core Freeze Verification	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931168943	
+Migration Gates	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931161279	
+Baseline Comparison	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815387/job/118931083191	
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+Trivy filesystem	pass	14s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083165	
+Validate PR Scope	pass	11s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815469/job/118931083352	
+Type Check Skipped	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931185561	
+Real Database Business E2E	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931159912	
+Architecture Guard Summary	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931231158	
+Type Check (changed)	pass	1m2s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931182803	
+CodeQL	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083448	
+Vercel	pending	0	https://vercel.com/bella-spa-s-projects/bella-spa-erp/CxwkgfbVR889YBdj26dfqvmmsb79	Vercel is deploying your app
+quality-security	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931178873	
+Refreshing checks status every 30 seconds. Press Ctrl+C to quit.
+
+Affected Unit and Integration Tests	pass	38s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158758	
+Architecture Guard Verification	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083307	
+Changed-file Lint	pass	52s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158727	
+CodeQL	pass	2m44s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083448	
+CodeQL	pass	4s	https://github.com/bellaspahcm/bella-ai-platform/runs/118932069243	
+Dependency Boundary Check	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083673	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931083268	
+Detect Changed Scope	pass	10s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931084429	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931083583	
+Detect Changed Scope	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931083655	
+Education Constitution Enforcement	pass	51s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167561	
+Frozen File Check	pass	56s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083744	
+Gitleaks	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083437	
+Healthcare Constitution Enforcement	pass	7s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167680	
+Logistics Kernel Regression	pass	1m4s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083603	
+Security Gates	pass	46s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158642	
+Architecture Guard Summary	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931231158	
+Baseline Comparison	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815387/job/118931083191	
+quality-security	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931178873	
+SonarQube	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083645	
+Type Check (changed)	pass	1m2s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931182803	
+Vercel	pending	0	https://vercel.com/bella-spa-s-projects/bella-spa-erp/CxwkgfbVR889YBdj26dfqvmmsb79	Vercel is deploying your app
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+Trivy filesystem	pass	14s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083165	
+Relevant App Build	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158750	
+Semgrep OSS	pass	3s	https://github.com/bellaspahcm/bella-ai-platform/runs/118931637334	
+Validate PR Scope	pass	11s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815469/job/118931083352	
+Semgrep CE	pass	1m35s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083447	
+Core Freeze Verification	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931168943	
+Migration Gates	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931161279	
+Real Database Business E2E	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931159912	
+Type Check Skipped	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931185561	
+Refreshing checks status every 30 seconds. Press Ctrl+C to quit.
+
+Baseline Comparison	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815387/job/118931083191	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931083583	
+Architecture Guard Summary	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931231158	
+Vercel	pending	0	https://vercel.com/bella-spa-s-projects/bella-spa-erp/CxwkgfbVR889YBdj26dfqvmmsb79	Vercel is deploying your app
+Type Check Skipped	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931185561	
+Dependency Boundary Check	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083673	
+Architecture Guard Verification	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083307	
+Detect Changed Scope	pass	10s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931084429	
+CodeQL	pass	4s	https://github.com/bellaspahcm/bella-ai-platform/runs/118932069243	
+Affected Unit and Integration Tests	pass	38s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158758	
+Changed-file Lint	pass	52s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158727	
+Relevant App Build	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158750	
+Core Freeze Verification	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931168943	
+Migration Gates	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931161279	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931083268	
+Real Database Business E2E	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931159912	
+CodeQL	pass	2m44s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083448	
+Detect Changed Scope	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931083655	
+Education Constitution Enforcement	pass	51s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167561	
+Frozen File Check	pass	56s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083744	
+Gitleaks	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083437	
+Healthcare Constitution Enforcement	pass	7s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167680	
+Logistics Kernel Regression	pass	1m4s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083603	
+Security Gates	pass	46s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158642	
+Semgrep CE	pass	1m35s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083447	
+Semgrep OSS	pass	3s	https://github.com/bellaspahcm/bella-ai-platform/runs/118931637334	
+SonarQube	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083645	
+Trivy filesystem	pass	14s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083165	
+Type Check (changed)	pass	1m2s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931182803	
+Validate PR Scope	pass	11s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815469/job/118931083352	
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+quality-security	pass	2m44s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931178873	
+Refreshing checks status every 30 seconds. Press Ctrl+C to quit.
+
+Architecture Guard Summary	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931231158	
+Core Freeze Verification	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931168943	
+Migration Gates	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931161279	
+Real Database Business E2E	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931159912	
+CodeQL	pass	2m44s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083448	
+Baseline Comparison	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815387/job/118931083191	
+Architecture Guard Verification	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083307	
+Type Check Skipped	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931185561	
+All Required Gates Passed	pass	2s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118932521961	
+Changed-file Lint	pass	52s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158727	
+Affected Unit and Integration Tests	pass	38s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158758	
+CodeQL	pass	4s	https://github.com/bellaspahcm/bella-ai-platform/runs/118932069243	
+Dependency Boundary Check	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083673	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931083268	
+Detect Changed Scope	pass	10s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931084429	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931083583	
+Detect Changed Scope	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931083655	
+Education Constitution Enforcement	pass	51s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167561	
+Frozen File Check	pass	56s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083744	
+Gitleaks	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083437	
+Healthcare Constitution Enforcement	pass	7s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167680	
+Logistics Kernel Regression	pass	1m4s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083603	
+Relevant App Build	pass	3m31s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158750	
+Security Gates	pass	46s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158642	
+Semgrep CE	pass	1m35s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083447	
+Semgrep OSS	pass	3s	https://github.com/bellaspahcm/bella-ai-platform/runs/118931637334	
+SonarQube	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083645	
+Trivy filesystem	pass	14s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083165	
+Type Check (changed)	pass	1m2s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931182803	
+Validate PR Scope	pass	11s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815469/job/118931083352	
+Vercel	pass	0	https://vercel.com/bella-spa-s-projects/bella-spa-erp/CxwkgfbVR889YBdj26dfqvmmsb79	Deployment has completed
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+quality-security	pass	2m44s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931178873	
+Refreshing checks status every 30 seconds. Press Ctrl+C to quit.
+
+Architecture Guard Summary	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931231158	
+Core Freeze Verification	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931168943	
+Migration Gates	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931161279	
+Real Database Business E2E	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931159912	
+CodeQL	pass	2m44s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083448	
+Baseline Comparison	pending	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815387/job/118931083191	
+Architecture Guard Verification	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083307	
+Type Check Skipped	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931185561	
+All Required Gates Passed	pass	2s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118932521961	
+Changed-file Lint	pass	52s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158727	
+Affected Unit and Integration Tests	pass	38s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158758	
+CodeQL	pass	4s	https://github.com/bellaspahcm/bella-ai-platform/runs/118932069243	
+Dependency Boundary Check	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083673	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931083268	
+Detect Changed Scope	pass	10s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931084429	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931083583	
+Detect Changed Scope	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931083655	
+Education Constitution Enforcement	pass	51s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167561	
+Frozen File Check	pass	56s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083744	
+Gitleaks	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083437	
+Healthcare Constitution Enforcement	pass	7s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167680	
+Logistics Kernel Regression	pass	1m4s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083603	
+Relevant App Build	pass	3m31s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158750	
+Security Gates	pass	46s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158642	
+Semgrep CE	pass	1m35s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083447	
+Semgrep OSS	pass	3s	https://github.com/bellaspahcm/bella-ai-platform/runs/118931637334	
+SonarQube	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083645	
+Trivy filesystem	pass	14s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083165	
+Type Check (changed)	pass	1m2s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931182803	
+Validate PR Scope	pass	11s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815469/job/118931083352	
+Vercel	pass	0	https://vercel.com/bella-spa-s-projects/bella-spa-erp/CxwkgfbVR889YBdj26dfqvmmsb79	Deployment has completed
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+quality-security	pass	2m44s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931178873	
+Architecture Guard Summary	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931231158	
+Core Freeze Verification	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931168943	
+Migration Gates	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931161279	
+Real Database Business E2E	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931159912	
+CodeQL	pass	2m44s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083448	
+Baseline Comparison	pass	4m51s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815387/job/118931083191	
+Architecture Guard Verification	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083307	
+Type Check Skipped	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931185561	
+All Required Gates Passed	pass	2s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118932521961	
+Changed-file Lint	pass	52s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158727	
+Affected Unit and Integration Tests	pass	38s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158758	
+CodeQL	pass	4s	https://github.com/bellaspahcm/bella-ai-platform/runs/118932069243	
+Dependency Boundary Check	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083673	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931083268	
+Detect Changed Scope	pass	10s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931084429	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931083583	
+Detect Changed Scope	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931083655	
+Education Constitution Enforcement	pass	51s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167561	
+Frozen File Check	pass	56s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083744	
+Gitleaks	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083437	
+Healthcare Constitution Enforcement	pass	7s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167680	
+Logistics Kernel Regression	pass	1m4s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083603	
+Relevant App Build	pass	3m31s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158750	
+Security Gates	pass	46s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158642	
+Semgrep CE	pass	1m35s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083447	
+Semgrep OSS	pass	3s	https://github.com/bellaspahcm/bella-ai-platform/runs/118931637334	
+SonarQube	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083645	
+Trivy filesystem	pass	14s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083165	
+Type Check (changed)	pass	1m2s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931182803	
+Validate PR Scope	pass	11s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815469/job/118931083352	
+Vercel	pass	0	https://vercel.com/bella-spa-s-projects/bella-spa-erp/CxwkgfbVR889YBdj26dfqvmmsb79	Deployment has completed
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+quality-security	pass	2m44s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931178873	
+Affected Unit and Integration Tests	pass	38s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158758	
+All Required Gates Passed	pass	2s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118932521961	
+Architecture Guard Verification	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083307	
+Baseline Comparison	pass	4m51s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815387/job/118931083191	
+Changed-file Lint	pass	52s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158727	
+CodeQL	pass	2m44s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083448	
+CodeQL	pass	4s	https://github.com/bellaspahcm/bella-ai-platform/runs/118932069243	
+Dependency Boundary Check	pass	42s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083673	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931083268	
+Detect Changed Scope	pass	10s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931084429	
+Detect Changed Scope	pass	13s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931083583	
+Detect Changed Scope	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931083655	
+Education Constitution Enforcement	pass	51s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167561	
+Frozen File Check	pass	56s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083744	
+Gitleaks	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083437	
+Healthcare Constitution Enforcement	pass	7s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167680	
+Logistics Kernel Regression	pass	1m4s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083603	
+Relevant App Build	pass	3m31s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158750	
+Security Gates	pass	46s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158642	
+Semgrep CE	pass	1m35s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083447	
+Semgrep OSS	pass	3s	https://github.com/bellaspahcm/bella-ai-platform/runs/118931637334	
+SonarQube	pass	12s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083645	
+Architecture Guard Summary	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931231158	
+Core Freeze Verification	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931168943	
+Migration Gates	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931161279	
+Real Database Business E2E	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931159912	
+Type Check Skipped	skipping	0	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931185561	
+Trivy filesystem	pass	14s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083165	
+Type Check (changed)	pass	1m2s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931182803	
+Validate PR Scope	pass	11s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815469/job/118931083352	
+Vercel	pass	0	https://vercel.com/bella-spa-s-projects/bella-spa-erp/CxwkgfbVR889YBdj26dfqvmmsb79	Deployment has completed
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+quality-security	pass	2m44s	https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931178873	

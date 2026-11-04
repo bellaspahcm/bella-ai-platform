@@ -1,0 +1,12 @@
+
+> bella-spa-erp@0.1.0 typecheck:changed
+> node scripts/ci-run-typecheck.mjs changed
+
+
+> node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile .cache/tsbuildinfo/education.tsbuildinfo
+src/app/api/education/care/classes/route.ts(51,88): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/app/api/education/care/classes/route.ts(54,22): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+TypeScript failed and no diagnostic baseline exists for scope "education".
+Add a reviewed baseline to .github/ci/tsc-diagnostic-baselines.json or fix the diagnostics.

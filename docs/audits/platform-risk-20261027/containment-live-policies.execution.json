@@ -1,0 +1,8 @@
+{
+  "command": "supabase db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-live-policies-readonly.sql -o json",
+  "startedUtc": "2026-10-27T04:36:39.6427247+00:00",
+  "endedUtc": "2026-10-27T04:36:42.0658382+00:00",
+  "exitCode": 0,
+  "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "querySha256": "904ab12b89a1b5ec11786f53ebc4ee05e86cacc23239027525617b9ecf8ce550"
+}

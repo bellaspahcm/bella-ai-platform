@@ -27,7 +27,7 @@ export async function allocateConfirmedBookingPaymentToFinanceAr(
     },
   });
   const service = new SemanticReceivableChargeService(
-    new SupabaseReceivableChargeGateway(supabase),
+    new SupabaseReceivableChargeGateway(supabase, 'service_role'),
   );
 
   return service.allocateConfirmedPaymentToReceivables({

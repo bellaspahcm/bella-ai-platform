@@ -1,0 +1,6 @@
+{
+  "command": "node inspect-cleanup-dependencies.cjs",
+  "actualNativeExitCode": 1,
+  "finishedAt": "2026-10-21T04:36:01.6370813Z",
+  "target": "E2E only; read-only transaction"
+}

@@ -1,0 +1,380 @@
+{
+  "baseRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "branch": "codex/audit-risk-20261027",
+  "worktree": "D:\\CodexWorktrees\\bella-audit-risk-20261027",
+  "inspectionAttribution": {
+    "evidenceCollectedBy": "Batch executor through worktree, CLI, and read-only catalog observations",
+    "worktreeDirectlyInspectedByUser": "NOT_CLAIMED",
+    "productionDirectlyInspectedByUser": "NOT_CLAIMED"
+  },
+  "executionRoute": "DIRECT_AUTHORIZED_WORKFLOW",
+  "factoryExecution": "NOT_RUN",
+  "dependencyCandidate": {
+    "scopedResult": "PASS",
+    "next": "16.4.1",
+    "sentryNextjs": "10.75.2",
+    "followRedirects": "1.16.1",
+    "rootZod": "4.6.6",
+    "regressionSuites": 20,
+    "regressionTestsPassed": 256,
+    "regressionTestsFailed": 0,
+    "regressionTestsSkipped": 0,
+    "buildExitCode": 0,
+    "fullTypecheck": "PASS in GitHub Type Check workflow at exact candidate SHA",
+    "runtimeHttpChecksPassed": 4,
+    "runtimeHttpChecksTotal": 4,
+    "runtimePortReleased": true,
+    "architectureGuardExitCode": 0,
+    "rawProductionAuditExitCode": 1,
+    "productionAuditPackageCounts": {
+      "critical": 0,
+      "high": 1,
+      "moderate": 2
+    },
+    "existingSecurityPolicyGateExitCode": 0,
+    "remainingProductionFindings": [
+      "xlsx",
+      "nodemailer",
+      "fast-uri"
+    ],
+    "devZod3FindingsRemain": true,
+    "independentReadOnlyReview": "COMPLETED_WITH_P2_ADDRESSED",
+    "repositoryCi": "PASS for selected GitHub CI gates; unit/integration, Real DB E2E, and migration jobs skipped by dependency scope router",
+    "releaseStatus": "NOT_DEPLOYED; KEEP_SEPARATE_FROM_CONTAINMENT",
+    "localCiEquivalent": {
+      "scopeRouter": "ALLOW/platform; dependencies changed; full typecheck, build, dependency audit, lightweight security selected; tests and Real DB E2E not selected",
+      "runtime": "Node 24.22.1",
+      "npmCi": "PASS; 1398 packages; --prefer-offline --no-audit --no-fund",
+      "typecheck": "PASS; zero diagnostics",
+      "productionAudit": "PASS under existing advisory allowlist; xlsx advisories remain allowlisted",
+      "secretLogGuard": "PASS",
+      "build": "PASS; exit 0 with Sentry and dynamic-dependency warnings",
+      "repositoryCi": "PASS on exact candidate SHA in GitHub Actions; see repositoryCiRuns"
+    },
+    "repositoryCiRuns": [
+      {
+        "workflow": "CI - Quality Gates",
+        "runId": 40463934237,
+        "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/40463934237",
+        "headSha": "dd0aa0fd000937ac2762fecc53ed17fedf3f118f",
+        "conclusion": "success",
+        "passedJobs": [
+          "Detect Changed Scope",
+          "Relevant App Build",
+          "Changed-file Lint",
+          "Security Gates",
+          "All Required Gates Passed"
+        ],
+        "skippedJobs": [
+          "Affected Unit and Integration Tests",
+          "Real Database Business E2E",
+          "Migration Gates"
+        ]
+      },
+      {
+        "workflow": "Type Check",
+        "runId": 40463958452,
+        "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/40463958452",
+        "headSha": "dd0aa0fd000937ac2762fecc53ed17fedf3f118f",
+        "conclusion": "success",
+        "passedJobs": [
+          "Detect Changed Scope",
+          "Type Check (full)"
+        ],
+        "skippedJobs": [
+          "Type Check Skipped"
+        ]
+      }
+    ]
+  },
+  "databaseVerification": {
+    "scope": "Catalog and aggregate reads, primary and E2E; no mutation",
+    "catalogQueriesExitCode": 0,
+    "primaryTenantRows": 5271,
+    "primaryRawGitOnlyMigrationFiles": 150,
+    "primaryRawGitOnlyMigrationIds": 143,
+    "primaryRemoteOnlyMigrationIds": 2,
+    "e2eRawGitOnlyMigrationFiles": 430,
+    "e2eRawGitOnlyMigrationIds": 421,
+    "e2eRemoteOnlyMigrationIds": 0,
+    "fullSchemaReplayEquivalence": "NOT_PROVEN",
+    "p0ApiTenantContainment": "CONFIRMED / CONTAINED_FOR_TESTED_ANON_AND_AUTHENTICATED_TENANT_SURFACES; PRIVILEGED_DB_EXECUTOR_EXCLUDED; NOT_A_SYSTEMWIDE_CERTIFICATION",
+    "confirmedAnonymousHistoryRows": 4,
+    "confirmedAnonymousHistoryDistinctTenants": 2,
+    "refreshedPreflightUtc": "2026-10-27T04:25:01Z",
+    "refreshedTablePreflightExitCode": 0,
+    "refreshedFunctionPreflightExitCode": 0,
+    "refreshedTriggerPreflightExitCode": 0,
+    "refreshedTableAclFingerprintsMatchPrior": true,
+    "publiclyExecutableAutoHistorySecurityDefinerRpcs": [
+      "get_booking_as_of",
+      "get_journey_as_of",
+      "get_temporal_vehicle_inventory",
+      "get_vehicle_as_of",
+      "get_vehicle_status_history"
+    ],
+    "enabledAutoHistoryInvokerTriggers": [
+      "auto_bookings.temporal_snapshot_auto_bookings",
+      "auto_customer_journeys.temporal_snapshot_auto_customer_journeys",
+      "auto_vehicles.temporal_snapshot_auto_vehicles"
+    ],
+    "h9ProductionConsumerRole": "SERVICE_ROLE_OBSERVED; CONSTRUCTOR_NOT_PROVEN",
+    "autoJourneyProductionUpdateRole": "NOT_PROVEN",
+    "containmentProposal": "PROPOSED_CONTAINMENT.sql (decision note only; no executable statements)",
+    "containmentFollowUpChecks": "containment-followup-checks.json",
+    "preliminaryTableOnlyProposal": "PRELIMINARY_CONTAINMENT_SUPERSEDED.sql (do not execute)",
+    "preliminaryProposalIndependentReview": "SUPERSEDED_BY_REFRESHED_TRIGGER_AND_RPC_EVIDENCE",
+    "containmentExecuted": true,
+    "remainingDependency": "No migration sync by authority; migration ledger reconciliation and Healthcare integration-test host remain separate",
+    "primaryContainment": {
+      "status": "CONFIRMED / CONTAINED",
+      "migrationFile": "supabase/migrations/20261027120000_temporal_history_tenant_containment.sql",
+      "migrationSha256": "08d2b6a10abe263b60ab515da0565e894feb7131f7ddfce141997dbafc5af03a",
+      "anonymousRestTablesDenied": 5,
+      "anonymousRpcCallsDenied": 6,
+      "authenticatedTenantCrossReadsDenied": 5,
+      "crossTenantRpcCallsDenied": 6,
+      "autoTriggersVerified": 3,
+      "h9ServiceRoleFlow": "PASS",
+      "persistentFixtures": 0,
+      "migrationLedgerChanged": false,
+      "authenticatedAutoRpcOwnTenantReads": 5
+    },
+    "privilegedDatabaseRoleException": "bella_migration_executor remains BYPASSRLS with SELECT ACL; outside tenant-scoped application boundary"
+  },
+  "postContainmentReview": {
+    "checkedAtUtc": "2026-10-27T05:27:07.6095772Z",
+    "executionRecord": "containment-post-review-execution.json",
+    "migrationSha256MatchesAppliedPrimaryRecord": true,
+    "migrationScope": {
+      "historyTablesWithRlsAclPolicies": 5,
+      "autoTriggerFunctionsUpdated": 3,
+      "rpcFunctionsUpdated": 6,
+      "parentTablePoliciesChanged": 0,
+      "triggerAttachmentsChanged": 0,
+      "tablesOrColumnsCreatedOrChanged": 0,
+      "otherKernelFunctionsChanged": 0
+    },
+    "currentPrimaryReadOnlyCatalog": {
+      "queriesPassed": 8,
+      "queriesFailed": 0,
+      "fiveTablesRlsAndAclVerified": true,
+      "fiveTenantReadPoliciesVerified": true,
+      "sixFunctionGrantsVerified": true,
+      "sixFunctionIdentityArgumentsAndReturnTypesVerified": true,
+      "threeAutoTriggersEnabledAndHardened": true,
+      "journeyParentRlsEnabled": true,
+      "journeyParentPolicies": 0,
+      "privilegedDbRoleExceptionRechecked": true
+    },
+    "autoJourneyProductionUpdate": {
+      "productionRouteFound": "POST /api/bella-auto/transactions/[id]/rollback",
+      "productionCommitContainingRoute": "bb7007e7632c3bf7d88f760fc8239a0720d2d327",
+      "productionInvocation": "NOT_PROVEN",
+      "clientFactory": "getPrimaryClient",
+      "productionClientKeySource": "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "requestSessionForwarded": false,
+      "serverAuthUserValidated": false,
+      "sourceCallSites": [
+        "src/app/bella-auto/rollback-demo/page.tsx"
+      ],
+      "callerUsesMockIdentity": true,
+      "bodyIdentityFieldsProveAuthentication": false,
+      "sourceInferredDatabaseRole": "anon",
+      "runtimeRoleObserved": false,
+      "journeyServiceProductionCallerFound": false,
+      "parentRlsEnabled": true,
+      "parentPolicies": 0,
+      "anonUpdateAcl": true,
+      "authenticatedUpdateAcl": true,
+      "effectiveClientUpdate": "DENIED_BY_RLS_WITH_NO_POLICY; ANON ALSO REJECTED BY CONTAINMENT TRIGGER",
+      "parentUpdateRowsInPgStatStatements": 0,
+      "pgStatStatsResetAt": "2026-10-19T06:28:49.060113Z",
+      "vercelLogQuery30dMatchingEvents": 0,
+      "vercelInvocationMetrics": "BLOCKED_PAYMENT_REQUIRED",
+      "rollbackSpecificCanonicalAuthorizationContract": "NOT_FOUND",
+      "sourceEvidenceArtifact": "auto-journey-production-trace.json",
+      "behavioralProbeRole": "service_role",
+      "containmentTriggerAllowsAnon": false,
+      "parentAclOrRlsWidened": false,
+      "status": "NOT_PROVEN"
+    },
+    "healthcareVerification": {
+      "rerun": false,
+      "reason": "Fresh Resolve-DnsName at 2026-10-27T05:36:25Z returned DNS name does not exist; the same fixture blocker remains",
+      "status": "BLOCKED_BY_TEST_ENVIRONMENT"
+    }
+  },
+  "originalAuditClaims": {
+    "sourceRunRevisionSelectorEnvironmentBinding": "NOT_PROVEN",
+    "unclassifiedOriginalTestCases": 203,
+    "originalPassAmongPassAndFailPercent": 98.83313885647608,
+    "trackedTestFilePatternCount": 953,
+    "currentJestDiscoveredFiles": 848,
+    "enterpriseOrGoLiveCertification": "NOT_PROVEN"
+  },
+  "remoteMutationsByThisBatch": "One scoped containment migration, two PostgreSQL password resets (first superseded, final password stored in the repository secret), and one EXECUTE revoke from bella_migration_executor; no migration-history sync",
+  "commitPushPullRequestMergeDeploy": "NOT_RUN",
+  "taskClosure": "P0 API/tenant containment remains scoped; exposed postgres credential rotated and current source copies removed; executor exec_sql grant revoked; executor BYPASSRLS remains; dependency local CI-equivalent passed selected gates; no deployment",
+  "healthcareVerify": {
+    "exitCode": 1,
+    "architectureGuard": "PASS",
+    "architectureSuites": "2/2",
+    "architectureTests": "9/9",
+    "conformanceSuites": "1/1",
+    "conformanceTests": "7/7",
+    "healthcareTestSuites": "39 passed, 18 failed, 4 skipped of 61",
+    "healthcareTests": "374 passed, 151 failed, 5 skipped of 530",
+    "failureRoot": "ENOTFOUND mock.supabase.co during integration fixture setup",
+    "status": "BLOCKED_BY_TEST_ENVIRONMENT"
+  },
+  "privilegedDatabaseRoleReview": {
+    "status": "TRACKED_POSTGRES_CREDENTIAL_ROTATED; EXEC_SQL_EXECUTOR_GRANT_REVOKED; BYPASSRLS_RETAINED",
+    "trackedPostgresCredentialValidity": "OLD_CREDENTIAL_INVALIDATED_BY_CONFIRMED_PASSWORD_ROTATION",
+    "currentTreeCopiesOfExactCredential": 0,
+    "secretChanges": {
+      "repositorySecretUpdated": "PRODUCTION_SUPABASE_DB_URL",
+      "updatedAt": "2026-10-27T13:11:47+07:00"
+    },
+    "execSqlEffectiveExecute": {
+      "bella_migration_executor": false,
+      "service_role": true,
+      "postgres": true,
+      "public": false
+    },
+    "executorBypassRls": "RETAINED",
+    "productionMigrationExecution": "NOT_RUN",
+    "evidence": [
+      "privileged-role-review.json",
+      "credential-execsql-change.json",
+      "exec-sql-executor-revoke-primary.sql",
+      "exec-sql-executor-revoke-postcheck-readonly.sql"
+    ]
+  },
+  "credentialAndExecSqlFollowUp": {
+    "date": "2026-10-27",
+    "projectRef": "lvnvkpyxtuilhrabtlwv",
+    "secretValueRecorded": false,
+    "credentialRotation": {
+      "exposedCredential": "[REDACTED_INVALIDATED_CREDENTIAL]",
+      "sourceCommit": "39d70165aec43927228a639fbdcc461c470b356d",
+      "introducedOn": "2026-08-22",
+      "checkoutRefsContainingCommit": 559,
+      "observedRefs": [
+        "origin/main",
+        "platform/main"
+      ],
+      "tagsContainingCommit": 2,
+      "currentTreeCopiesOfExactCredential": 0,
+      "historyRewrite": "NOT_PERFORMED; prior report stated historical text remains and the old password was invalidated; independent exact-value scan did not reproduce a Git blob match.",
+      "ownerConfirmedConsumers": [
+        ".github/workflows/deploy-production.yml",
+        ".github/workflows/bdgf-bella-auto-workshop-rls-production.yml",
+        ".github/workflows/bdgf-bella-auto-workshop-security-closure.yml"
+      ],
+      "managementApiResetHttpStatus": 200,
+      "resetAttempts": 2,
+      "supersededAttemptNote": "First reset was superseded after the local driver lacked the project CA; no secret was updated with that interim password.",
+      "secretMetadataUpdatedAt": "2026-10-27T13:11:47+07:00",
+      "finalDbConnection": {
+        "result": "PASS",
+        "currentUser": "postgres",
+        "currentDatabase": "postgres",
+        "query": "read-only identity check",
+        "tlsCaVerified": true,
+        "hostnameVerified": true
+      },
+      "sourceUsesReplaced": [
+        "scripts/bdgf/grant-bypassrls.mjs",
+        "scripts/bdgf/apply-rls-protection.mjs",
+        "scripts/bdgf/fix-rls.mjs",
+        "scripts/bdgf/r3-step2-update-env-helper.md"
+      ],
+      "replacementContract": "DATABASE_ADMIN_URL is required; fail closed if absent",
+      "repositorySecretName": "PRODUCTION_SUPABASE_DB_URL",
+      "repositorySecretNameClassification": "NON_SECRET_METADATA; exact identifier matches the three workflow consumers and GitHub repository-secret metadata timestamp; no secret value was retrieved.",
+      "credentialSourceVerification": "NOT_PROVEN; exact value matched 0 of 32,146 reachable Git blobs up to 5 MiB and did not match sourceCommit; sourceCommit remains an audit anchor, not a proven containing commit."
+    },
+    "execSqlAcl": {
+      "function": "public.exec_sql(text)",
+      "owner": "postgres",
+      "securityDefiner": true,
+      "preChangeExplicitGrantees": [
+        "postgres",
+        "service_role",
+        "bella_migration_executor"
+      ],
+      "publicExecuteBefore": false,
+      "mutation": "REVOKE EXECUTE ON FUNCTION public.exec_sql(text) FROM bella_migration_executor",
+      "mutationExecutedAs": "postgres on linked primary project",
+      "postChangeEffectiveExecute": {
+        "bella_migration_executor": false,
+        "service_role": true,
+        "postgres": true,
+        "public": false
+      },
+      "executorRoleAfter": {
+        "login": true,
+        "bypassrls": true,
+        "createdb": false,
+        "createrole": false
+      },
+      "tableAclOrDefaultAclChanged": false,
+      "productionMigrationExecuted": false,
+      "liveExecutorMigrationPath": "NOT_PROVEN"
+    },
+    "verification": {
+      "nodeCheckAdminScripts": "PASS",
+      "eslintAdminScripts": "PASS",
+      "sameCredentialCurrentTreeScan": "0 copies",
+      "secretLogGuard": "PASS",
+      "bdgfOwnerAuthorityTests": "19/19 PASS",
+      "bdgfProductionWorkflowTests": "12/12 PASS",
+      "bdgfSecurityClosureWorkflowTest": "11/12 PASS; local CRLF hash mismatch; LF-normalized digest matched workflow-bound expected digest",
+      "gitDiffCheck": "PASS"
+    },
+    "retainedBoundaries": {
+      "executorBypassrls": "RETAINED pending isolated migration/backfill/default-privilege rehearsal",
+      "autoJourneyProductionUpdate": "NOT_PROVEN",
+      "healthcare": "BLOCKED_BY_TEST_ENVIRONMENT",
+      "productionDeployment": "NOT_DEPLOYED",
+      "enterpriseGoLive": "NOT_PROVEN"
+    }
+  },
+  "executorPrivilegeRehearsal": {
+    "environment": "Disposable Supabase PostgreSQL 17.6 container, network none, synthetic two-tenant schema",
+    "status": "SYNTHETIC_POSTGRESQL_MECHANICS_PASS; BELLA_SOURCE_REPLAY_BLOCKED; EXECUTOR_WORKFLOW_NOT_PROVEN",
+    "observations": {
+      "bypassRlsBefore": "executor read both synthetic tenant rows",
+      "noBypassRlsAfter": "RLS honored current tenant context",
+      "nonRlsRelation": "executor still read and updated both tenants",
+      "ddl": "executor created and altered its own table; altering a postgres-owned table was denied",
+      "ownership": "executor owned newly created table; transferring it to postgres was denied",
+      "ownerRls": "executor-owned table bypassed RLS until FORCE ROW LEVEL SECURITY, then tenant policy applied",
+      "defaultPrivileges": "postgres default ACL granted executor access on postgres-created table"
+    },
+    "liveBellaMigrationRehearsal": "NOT_PROVEN",
+    "productionRoleOrSchemaChanges": false,
+    "unrelatedExistingLocalContainerUsed": false,
+    "cleanup": "container stopped and auto-removed",
+    "bellaSourceReplay": {
+      "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+      "supabaseCli": "2.115.0",
+      "configuredPostgresMajor": 17,
+      "command": "supabase start --yes",
+      "projectId": "BELLA_SPA_ERP",
+      "exitCode": 1,
+      "attemptedMigrationCount": 9,
+      "failedMigration": "20260515010000_the_great_purge.sql",
+      "sqlState": "42703",
+      "missingColumn": "public.bookings.package_name",
+      "interpretation": "Clean source migration replay cannot produce a consistent Bella schema from this baseline; no executor comparison was run against Bella.",
+      "cleanupCommand": "supabase stop --project-id BELLA_SPA_ERP --no-backup",
+      "cleanupExitCode": 0,
+      "productionOrPreschoolDatabaseUsed": false,
+      "migrationEditedSkippedReorderedOrMarkedApplied": false,
+      "sourceWorktree": "C:\\Users\\DELL\\.codex\\worktrees\\bella-executor-rehearsal\\BELLA SPA ERP",
+      "sourceWorktreeStatus": "Clean checkout remains attached; archive request was rejected because it is protected by a pinned task or workspace."
+    }
+  }
+}

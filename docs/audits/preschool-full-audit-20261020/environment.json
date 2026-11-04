@@ -1,0 +1,98 @@
+{
+  "checkedAt": "2026-10-20T15:29:58.315Z",
+  "targets": [
+    {
+      "file": ".env",
+      "publicApi": {
+        "present": true,
+        "valid": true,
+        "local": false,
+        "port": "default"
+      },
+      "database": {
+        "present": true,
+        "valid": false
+      },
+      "matchesConfiguredProductionApi": false,
+      "adminKeyPresent": true,
+      "publicKeyPresent": false
+    },
+    {
+      "file": ".env.local",
+      "publicApi": {
+        "present": true,
+        "valid": true,
+        "local": false,
+        "port": "default"
+      },
+      "database": {
+        "present": true,
+        "valid": false
+      },
+      "matchesConfiguredProductionApi": false,
+      "adminKeyPresent": true,
+      "publicKeyPresent": true
+    },
+    {
+      "file": ".env.e2e",
+      "publicApi": {
+        "present": true,
+        "valid": true,
+        "local": false,
+        "port": "default"
+      },
+      "database": {
+        "present": false
+      },
+      "matchesConfiguredProductionApi": false,
+      "adminKeyPresent": true,
+      "publicKeyPresent": true
+    },
+    {
+      "file": ".env.test",
+      "publicApi": {
+        "present": true,
+        "valid": true,
+        "local": false,
+        "port": "default"
+      },
+      "database": {
+        "present": true,
+        "valid": true,
+        "local": false,
+        "port": "6543"
+      },
+      "matchesConfiguredProductionApi": false,
+      "adminKeyPresent": true,
+      "publicKeyPresent": true
+    },
+    {
+      "file": ".env.production",
+      "publicApi": {
+        "present": true,
+        "valid": true,
+        "local": false,
+        "port": "default"
+      },
+      "database": {
+        "present": false
+      },
+      "matchesConfiguredProductionApi": true,
+      "adminKeyPresent": true,
+      "publicKeyPresent": true
+    },
+    {
+      "file": ".env.production.local",
+      "publicApi": {
+        "present": false
+      },
+      "database": {
+        "present": false
+      },
+      "matchesConfiguredProductionApi": false,
+      "adminKeyPresent": false,
+      "publicKeyPresent": false
+    }
+  ],
+  "fixtureWrites": "HELD: no isolated non-production target established"
+}

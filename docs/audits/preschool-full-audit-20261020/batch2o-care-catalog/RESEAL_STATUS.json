@@ -1,0 +1,19 @@
+{
+  "capturedAt": "2026-10-21T04:20:21.758Z",
+  "acr": "ACR-20261021-PRESCHOOL-COURSE-READ",
+  "authority": "AUTHORITY.json",
+  "globalEducationState": "FROZEN",
+  "existingFrozenFilesUnchanged": 332,
+  "exactAddedArtifacts": {
+    "src/platform/education/contracts/canonical-course-catalog.contract.ts": "786482c9253ae9846fdba79f5db8db7ee790de9c87743c614b65f3e0851cca18",
+    "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts": "63d202f07318fe32de41145df53295283adb93f3b1d63d0f470119d07d496924"
+  },
+  "guardAndProtectionEdits": false,
+  "sourceHashClosure": "PASS_EXACT_APPROVED_ADDITIONS_ONLY",
+  "reseal": "HELD",
+  "reason": "Mandatory full Education regression executed native1 with mock DB DNS/fixture failures; full regression PASS not proven. No baseline waiver or protection change.",
+  "mergeReleaseReadiness": "NOT_PROVEN",
+  "productionChange": "NOT_RUN",
+  "supplementalCleanup": "Raw native1 retained; exact owned1-profile recovery and independent all3-runs residue0 PASS; timeout root cause NOT_PROVEN",
+  "reviews": "Three fresh scoped reviews plus read-only recovery follow-up complete"
+}

@@ -1,0 +1,74 @@
+FAIL src/__tests__/preschool-containment.test.ts
+  ● Preschool parent daily temporary HTTP containment › serves the real held parent response over loopback HTTP
+
+    connect EACCES 127.0.0.1:54525
+
+
+FAIL src/platform/security/__tests__/current-actor-contract.test.ts
+  ● Platform signed-in actor public contract › declares zero-argument self-read public surfaces with explicit trust grants and no table grants
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "REVOKE ALL ON FUNCTION public.platform_current_actor_tenant_presentation()
+      FROM PUBLIC, anon, authenticated, service_role"
+    Received string:    "BEGIN;···
+    -- A separate, zero-argument contract keeps the existing actor-profile return·
+    -- shape stable; that contract is consumed by other Platform functions.·
+    -- The caller can only receive the presentation projection for auth.uid()'s·
+    -- active tenant. This does not grant table access or confer Product authority.·
+    CREATE FUNCTION public.platform_current_actor_tenant_presentation()·
+    RETURNS TABLE (·
+      tenant_id uuid,·
+      tenant_status text,·
+      name text,·
+      product_key text,·
+      enabled_modules jsonb,·
+      brand_theme jsonb,·
+      logo_url text·
+    )·
+    LANGUAGE plpgsql·
+    STABLE·
+    SECURITY DEFINER·
+    SET search_path = ''·
+    AS $$·
+    BEGIN·
+      IF auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' THEN·
+        RAISE EXCEPTION 'PLATFORM_CURRENT_ACTOR_TENANT_PRESENTATION_DENIED: Signed-in actor required.'·
+          USING ERRCODE = '42501';·
+      END IF;···
+      RETURN QUERY·
+        SELECT t.id, t.status::text, t.name::text, t.product_key::text,·
+          t.enabled_modules, t.brand_theme, t.logo_url::text·
+        FROM auth.users a·
+        JOIN public.users u ON u.id = a.id·
+        JOIN public.tenants t ON t.id = u.tenant_id·
+        WHERE a.id = auth.uid()·
+          AND a.deleted_at IS NULL·
+          AND (a.banned_until IS NULL OR a.banned_until <= now())·
+          AND u.status = 'active'·
+          AND t.status = 'active';···
+      IF NOT FOUND THEN·
+        RAISE EXCEPTION 'PLATFORM_CURRENT_ACTOR_TENANT_PRESENTATION_DENIED: Active identity and tenant required.'·
+          USING ERRCODE = '42501';·
+      END IF;·
+    END;·
+    $$;···
+    REVOKE ALL ON FUNCTION public.platform_current_actor_tenant_presentation()·
+      FROM PUBLIC, anon, authenticated, service_role;·
+    GRANT EXECUTE ON FUNCTION public.platform_current_actor_tenant_presentation()·
+      TO authenticated;···
+    COMMENT ON FUNCTION public.platform_current_actor_tenant_presentation() IS·
+      'Platform signed-in self tenant presentation: fixed display/routing fields for auth.uid() active tenant only; no tenant input, direct table grant, or Product action authority.';···
+    COMMIT;·
+    "
+
+
+
+      at Object.<anonymous> (src/platform/security/__tests__/current-actor-contract.test.ts:164:27)
+
+
+Test Suites: 2 failed, 4 passed, 6 total
+Tests:       2 failed, 58 passed, 60 total
+Snapshots:   0 total
+Time:        2.913 s
+Test results written to: docs\audits\preschool-operations-20261031\security-tests.json

@@ -1,0 +1,11 @@
+[@sentry/nextjs] Importing `withSentryConfig` from `@sentry/nextjs` is deprecated and will stop working in v11. Import it from `@sentry/nextjs/config` instead:
+  import { withSentryConfig } from '@sentry/nextjs/config';
+⚠ Compiled with warnings in 106s
+
+./scripts/check-business-invariants.cjs
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./scripts/check-business-invariants.cjs
+./src/core/services/accounting/business-health.ts
+

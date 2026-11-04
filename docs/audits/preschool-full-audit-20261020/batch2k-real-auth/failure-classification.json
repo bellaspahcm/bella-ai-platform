@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-10-20T23:30:29.321Z",
+  "sourceReport": "results-2026-10-20T23-25-34-690Z.json",
+  "rawResultUnchanged": "FAIL",
+  "rawFailCount": 72,
+  "allSameAssertion": true,
+  "priorAssertionsInHarness": [
+    "exact HTTP status",
+    "exact stable error code"
+  ],
+  "authorizationCasesReachedHeaderAssertion": 72,
+  "classification": "LOCAL_PROXY_HEADER_PRECEDENCE; exact cache header not saved in raw run; rerun captures it",
+  "runtimeChanges": 0,
+  "proofScope": "Analysis of saved report and harness control flow, not replacement of the raw FAIL report",
+  "sourcePointers": [
+    "src/proxy.ts:44",
+    "node_modules/next/dist/server/send-response.js:48"
+  ],
+  "firstRunMetadataFailure": {
+    "report": "results-2026-10-20T23-23-34-577Z.json",
+    "classification": "FIXTURE_ASSUMPTION_NOT_LIVE_AUTHORITY",
+    "naturalClaimsSyncAbsent": true,
+    "policyOrClaimsModified": false,
+    "authUsersRemaining": 0,
+    "activeFixtureUsers": 0,
+    "terminatedTenantShells": 2
+  }
+}

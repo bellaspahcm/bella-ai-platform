@@ -1,0 +1,10 @@
+{
+  "exitCode": 0,
+  "outputFile": "privileged-role-tenant-context-readonly.stdout.log",
+  "endedUtc": "2026-10-27T05:50:17.1118223+00:00",
+  "startedUtc": "2026-10-27T05:50:13.3409110+00:00",
+  "stderrFile": "privileged-role-tenant-context-readonly.stderr.log",
+  "querySha256": "9002a4f5c9c3e47a3f3295dfbad95c5d7f2f0ba8bfa313dca219577de388bf59",
+  "command": "supabase --output-format json db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/privileged-role-tenant-context-readonly.sql",
+  "readOnlyTransaction": true
+}

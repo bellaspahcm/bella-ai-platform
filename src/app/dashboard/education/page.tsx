@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 /**
  * Bella Education — Preschool Dashboard Page
@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-client';
 import { clearDashboardClientContextCache } from '@/lib/dashboard-client-context';
+import { PreschoolSelect } from '@/components/ui/PreschoolSelect';
 import { useUser } from '@/lib/user-context';
 import { parseAnalyticsResponse, vietnamDate } from '@/products/bella-education/analytics/domain/analytics-response';
 import type { 
@@ -69,6 +70,7 @@ import {
   Activity,
   Filter,
   Loader2,
+  RefreshCw,
 } from 'lucide-react';
 
 let executiveMessageSequence = 0;
@@ -206,13 +208,25 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
+  const [isRealtimeSyncing, setIsRealtimeSyncing] = useState(false);
+  const prevBranchIdRef = useRef(selectedBranchId);
+  const prevDateRef = useRef(vietnamDate(selectedDate));
   const selectedDateStr = vietnamDate(selectedDate);
 
   useEffect(() => {
     let active = true;
     const controller = new AbortController();
-    setLoadingDashboard(true);
-    setDashboardData(null);
+    const isSelectionChange = prevBranchIdRef.current !== selectedBranchId || prevDateRef.current !== selectedDateStr;
+    prevBranchIdRef.current = selectedBranchId;
+    prevDateRef.current = selectedDateStr;
+
+    if (isSelectionChange || !dashboardData) {
+      setLoadingDashboard(true);
+      setDashboardData(null);
+    } else {
+      setIsRealtimeSyncing(true);
+    }
     setAnalyticsError(null);
     const params = new URLSearchParams({ date: selectedDateStr });
     if (selectedBranchId) params.set('branchId', selectedBranchId);
@@ -255,11 +269,73 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
           }
         }
       } finally {
-        if (active) setLoadingDashboard(false);
+        if (active) {
+          setLoadingDashboard(false);
+          setIsRealtimeSyncing(false);
+        }
       }
     })();
     return () => { active = false; controller.abort(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDateStr, selectedBranchId, tenantId, refreshKey]);
+
+  // Realtime Supabase Channel Subscription for Live Attendance & Enrollment Changes
+  useEffect(() => {
+    if (!tenantId) return;
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefresh = () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        setRefreshKey((k) => k + 1);
+      }, 500);
+    };
+
+    let channel: ReturnType<NonNullable<ReturnType<typeof createClient>['channel']>> | null = null;
+    try {
+      const supabase = createClient();
+      if (supabase && typeof supabase.channel === 'function') {
+        channel = supabase
+          .channel(`education-dashboard-realtime-${tenantId}`)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'edu_attendance_daily_state', filter: `tenant_id=eq.${tenantId}` },
+            () => scheduleRefresh()
+          )
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'edu_enrollments', filter: `tenant_id=eq.${tenantId}` },
+            () => scheduleRefresh()
+          )
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'edu_courses', filter: `tenant_id=eq.${tenantId}` },
+            () => scheduleRefresh()
+          )
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              setIsRealtimeConnected(true);
+            } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+              setIsRealtimeConnected(false);
+            }
+          });
+      }
+    } catch {
+      // Non-fatal if Supabase client does not support channels in mock/test environment
+    }
+
+    return () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      setIsRealtimeConnected(false);
+      if (channel) {
+        try {
+          const supabase = createClient();
+          supabase?.removeChannel?.(channel);
+        } catch {
+          // Cleanup error ignored
+        }
+      }
+    };
+  }, [tenantId]);
 
   // Distinct students are supplied by the canonical API; class counts can overlap.
   const totalKidsCount = dashboardData?.enrollment.totalEnrolledStudents ?? null;
@@ -568,14 +644,20 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
     <div className="preschool-ui min-h-screen bg-background p-4 sm:p-6 lg:p-7 space-y-6 text-slate-800 dark:text-slate-100 font-sans">
       
       <section aria-label="Phạm vi Tổng quan" className="flex flex-wrap items-center gap-3">
-        <label className="text-sm font-semibold">Cơ sở
-          <select aria-label="Chọn cơ sở Tổng quan" value={selectedBranchId ?? ''} onChange={event => {
-            setDashboardData(null); setAnalyticsError(null); setLoadingDashboard(true); setCopilotNotice(null);
-            setSelectedBranchId(event.target.value || null);
-          }} className="ml-2 rounded-xl border border-slate-200 bg-white dark:bg-slate-900 px-3 py-2">
+        <label className="text-sm font-semibold flex items-center gap-2">Cơ sở
+          <PreschoolSelect
+            aria-label="Chọn cơ sở Tổng quan"
+            value={selectedBranchId ?? ''}
+            onChange={event => {
+              setDashboardData(null); setAnalyticsError(null); setLoadingDashboard(true); setCopilotNotice(null);
+              setSelectedBranchId(event.target.value || null);
+            }}
+            wrapperClassName="min-w-44"
+            className="py-2 text-xs"
+          >
             <option value="">Chọn cơ sở</option>
             {branches.map(branch => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
-          </select>
+          </PreschoolSelect>
         </label>
         <span className="text-sm text-slate-500">Dữ liệu ngày {selectedDateStr}, trong cơ sở đang chọn.</span>
         {(analyticsError || branchListError) && (
@@ -1165,18 +1247,35 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
               </span>
             </h2>
           </div>
-          <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 hidden sm:inline-flex items-center gap-1.5">
+          <div className="hidden sm:inline-flex items-center gap-2 text-xs font-semibold">
             {loadingDashboard ? (
-              <>
+              <span className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
                 <span>Đang tải số liệu</span>
-              </>
+              </span>
+            ) : isRealtimeConnected ? (
+              <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-medium" title="Đang đồng bộ trực tiếp từ Database">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                <span>Trực tiếp (Realtime)</span>
+                {isRealtimeSyncing && <Loader2 className="w-3 h-3 animate-spin text-emerald-600 ml-0.5" />}
+              </span>
             ) : dashboardData?.commandCenter ? (
-              'Dữ liệu tại lần tải gần nhất'
+              <span className="text-slate-600 dark:text-slate-300">Dữ liệu tại lần tải gần nhất</span>
             ) : (
-              'Không tải được số liệu cảnh báo'
+              <span className="text-slate-600 dark:text-slate-300">Không tải được số liệu cảnh báo</span>
             )}
-          </span>
+            <button
+              type="button"
+              onClick={() => setRefreshKey((k) => k + 1)}
+              title="Làm mới dữ liệu"
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRealtimeSyncing || loadingDashboard ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </div>
 
         {loadingDashboard ? (
@@ -1534,17 +1633,14 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
               {loadingDashboard && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />}
             </h3>
             {/* Period Selector */}
-            <div className="relative">
-              <select
-                value=""
-                disabled
-                aria-label="Kỳ doanh thu chưa khả dụng"
-                className="appearance-none bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 rounded-xl px-3 py-1.5 pr-7 focus:outline-none cursor-pointer"
-              >
-                <option value="">Chưa có dữ liệu doanh thu theo kỳ</option>
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
+            <PreschoolSelect
+              aria-label="Kỳ doanh thu chưa khả dụng"
+              value=""
+              disabled
+              className="py-1.5 text-xs font-medium"
+            >
+              <option value="">Chưa có dữ liệu doanh thu theo kỳ</option>
+            </PreschoolSelect>
           </div>
 
           {loadingDashboard ? (

@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-10-20T23:14:12.912Z",
+  "target": "lvnvkpyxtuilhrabtlwv",
+  "probeSql": "SELECT 1",
+  "businessTablesAccessed": [],
+  "mutationStatements": 0,
+  "tests": [
+    {
+      "role": "anon",
+      "status": 401,
+      "errorCode": "42501",
+      "result": "PASS"
+    },
+    {
+      "role": "service_role",
+      "status": 204,
+      "errorCode": null,
+      "result": "PASS"
+    }
+  ],
+  "result": "PASS"
+}

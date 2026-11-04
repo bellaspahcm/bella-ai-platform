@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-10-20T23:38:02.537Z",
+  "harnessSha256": "3d474b6a644b38ec28b1270011433940ef991ed04b31fdab1808870fd7093916",
+  "scope": "Pure guard function with fake fetch; not Auth/RLS/runtime evidence",
+  "networkRequests": 0,
+  "tests": [
+    {
+      "name": "APPROVED_TARGET_FORCES_REDIRECT_ERROR",
+      "result": "PASS"
+    },
+    {
+      "name": "OTHER_PROJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "HOST_SUFFIX",
+      "result": "PASS"
+    },
+    {
+      "name": "URL_USERINFO",
+      "result": "PASS"
+    }
+  ],
+  "result": "PASS"
+}

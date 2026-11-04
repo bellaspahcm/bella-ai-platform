@@ -1,0 +1,46 @@
+diff --git a/docs/audits/preschool-full-audit-20261020/batch2k-real-auth/harness-reviewed-d14ecb89b7c9c53444a59169dd5a313f6c241ddd84cbfd7e36cc11b7d25de0e6.txt b/scripts/verify-preschool-real-auth-acceptance.cjs
+index cbbb8d099..ecf98f145 100644
+--- a/docs/audits/preschool-full-audit-20261020/batch2k-real-auth/harness-reviewed-d14ecb89b7c9c53444a59169dd5a313f6c241ddd84cbfd7e36cc11b7d25de0e6.txt
++++ b/scripts/verify-preschool-real-auth-acceptance.cjs
+@@ -110,7 +110,7 @@ async function remoteFetch(input, init = {}) {
+   const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
+   must(url.origin === API && !url.username && !url.password, 'AUTH_OR_REST_TARGET_REJECTED');
+   const timeout = AbortSignal.timeout(25_000);
+-  return fetch(input, { ...init, signal: init.signal ? AbortSignal.any([init.signal, timeout]) : timeout });
++  return fetch(input, { ...init, redirect: 'error', signal: init.signal ? AbortSignal.any([init.signal, timeout]) : timeout });
+ }
+ async function catalog() {
+   await db.query('begin read only');
+@@ -311,7 +311,16 @@ async function verifyRls() {
+       const count = actor.role === 'accountant' ? 0 : 1;
+       must(!result.error && result.data?.length === count && result.data.every(row => row.user_id === actor.id
+         && row.tenant_id === fixture.tenant && row.org_unit_id === fixture.branch), 'PROJECTION_SCOPE_FAILED');
+-      return { allowedOwn: count, forbiddenOther: 0, positiveControl: actor.role !== 'accountant' };
++      const other = fixtures.find(item => item !== fixture);
++      const otherAdmin = other.actors.find(item => item.role === 'admin');
++      // Query a real foreign actor/branch pair. Filtering only by the caller's
++      // actor ID would exclude the foreign sentinel before RLS is exercised.
++      // The other admin's own iteration provides its positive control.
++      const foreign = await actor.client.from('user_org_unit_access').select('user_id,org_unit_id')
++        .eq('user_id', otherAdmin.id).eq('org_unit_id', other.branch);
++      must(!foreign.error && foreign.data?.length === 0, 'PROJECTION_FOREIGN_ACTOR_VISIBLE');
++      return { allowedOwn: count, forbiddenOther: foreign.data.length,
++        foreignActorAndBranchExplicitlyQueried: true, positiveControl: actor.role !== 'accountant' };
+     });
+   }
+   for (const table of ['edu_courses', 'edu_enrollments', 'party_parties']) {
+@@ -377,9 +386,11 @@ async function verifyHttp() {
+       `/api/education/courses?tenantId=${fixture.tenant}&tenantId=${other.tenant}`, 'GET', undefined, 403, 'TENANT_ISOLATION_VIOLATION');
+     const ownCourses = await http(administrator, '/api/education/courses');
+     const deniedAcl = catalogBefore.relations.find(item => item.name === 'edu_courses')?.auth_select === false;
+-    add(`COURSE_OWN_HTTP_${fixture.index}`, 'NOT_PROVEN', { status: ownCourses.status,
+-      code: ownCourses.status === 500 && deniedAcl && /permission denied/i.test(ownCourses.json?.error || '')
+-        ? 'AUTHENTICATED_SELECT_ACL_MISSING' : 'COURSE_PREREQUISITE_UNPROVEN' });
++    const knownMissingAcl = ownCourses.status === 500 && deniedAcl
++      && ownCourses.json?.success === false && /permission denied/i.test(ownCourses.json?.error || '')
++      && !Array.isArray(ownCourses.json?.classrooms);
++    add(`COURSE_OWN_HTTP_${fixture.index}`, knownMissingAcl ? 'NOT_PROVEN' : 'FAIL', { status: ownCourses.status,
++      code: knownMissingAcl ? 'AUTHENTICATED_SELECT_ACL_MISSING' : 'UNEXPECTED_COURSE_RESPONSE' });
+   }
+   for (const [index, actor] of [null, ...fixtures[0].actors].entries()) {
+     await expected(`MEDICATION_DISABLED_${index}`, actor, '/api/education/care/medication', 'POST', '{', 410, 'PRESCHOOL_MEDICATION_DISABLED');

@@ -27,8 +27,9 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense, type ChangeEvent } from 'react';
 import { PremiumSelect } from '@/components/ui/PremiumSelect';
+import { PreschoolSelect } from '@/components/ui/PreschoolSelect';
 import { paymentIntentStorageKey, parsePaymentIntent, preparePaymentIntent, type FinancePaymentIntent } from '@/products/bella-education/finance/services/preschool-finance-payment-intent';
-import type { FinanceBranchOption } from '@/products/bella-education/finance/services/preschool-finance-branch.contract';
+import type { FinanceBranchOption, FinanceBranchBreakdown } from '@/products/bella-education/finance/services/preschool-finance-branch.contract';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '@/lib/user-context';
@@ -107,6 +108,8 @@ export interface FinanceExceptionRow {
 export interface FinanceStateResponse {
   readonly success: boolean;
   readonly error?: string;
+  readonly actorRole?: string;
+  readonly isSuperAdmin?: boolean;
   readonly branches?: FinanceBranchOption[];
   readonly selectedBranchId?: string | null;
   readonly actorId?: string;
@@ -117,6 +120,7 @@ export interface FinanceStateResponse {
   readonly invoices?: Invoice[];
   readonly payments?: Payment[];
   readonly exceptions?: FinanceExceptionRow[];
+  readonly branchBreakdowns?: FinanceBranchBreakdown[];
 }
 
 export interface FinanceCommandResponse {
@@ -262,6 +266,13 @@ function FinancePageContent() {
   const studentParam = searchParams ? searchParams.get('student') : null;
   const tabParam = searchParams ? searchParams.get('tab') : null;
 
+  const { user } = useUser();
+  const userRole = (user?.role ?? '').trim().toLowerCase();
+  const isSuperAdminRole = userRole === 'super_admin' || userRole === 'owner';
+  const [serverIsSuperAdmin, setServerIsSuperAdmin] = useState<boolean>(false);
+  const effectiveIsSuperAdmin = isSuperAdminRole || serverIsSuperAdmin;
+  const [branchBreakdowns, setBranchBreakdowns] = useState<FinanceBranchBreakdown[]>([]);
+
   const [studentContextActive, setStudentContextActive] = useState(false);
   const [activeTab, setActiveTab] = useState<FinanceTabKey>('overview');
   const [branches, setBranches] = useState<FinanceBranchOption[]>([]);
@@ -367,7 +378,12 @@ function FinancePageContent() {
       }
 
       const nextStudents = payload.students || [];
-      setBranches(payload.branches || []);
+      const branchList = payload.branches || [];
+      setBranches(branchList);
+      if (typeof payload.isSuperAdmin === 'boolean') {
+        setServerIsSuperAdmin(payload.isSuperAdmin);
+      }
+      setBranchBreakdowns(payload.branchBreakdowns || []);
       setActorContext(payload.actorId && payload.tenantId ? { actorId: payload.actorId, tenantId: payload.tenantId } : null);
       if (selectedBranchId && payload.selectedBranchId !== selectedBranchId) throw new Error('Cơ sở phản hồi không khớp cơ sở đã chọn.');
       const nextBillingPeriods = payload.billingPeriods || [];
@@ -1080,15 +1096,73 @@ function FinancePageContent() {
       )}
 
       {/* ── UNIFIED HEADER MATCHING IMAGE 2 ── */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 p-4 space-y-2">
-        <PremiumSelect ariaLabel="Cơ sở tài chính" label="Cơ sở tài chính" placeholder="Chọn cơ sở được cấp quyền" value={selectedBranchId} disabled={loading}
-          options={branches.map(branch => ({ value: branch.id, label: branch.name }))}
-          onChange={branchId => {
-            ++loadSequence.current; setDataLoaded(false); setSelectedBranchId(branchId);
-            setPaymentInvoiceId(''); setRetainedIntent(null); setSelectedStudentPartyId(''); setSelectedBillingPeriodId('');
-          }} />
-        {!selectedBranchId && <p className="text-sm text-slate-600 dark:text-slate-300">Chọn cơ sở để tải hồ sơ tài chính. Không có cơ sở mặc định.</p>}
-        {dataLoaded && !loading && branches.length === 0 && <p className="text-sm text-slate-600 dark:text-slate-300">Chưa có cơ sở được cấp quyền.</p>}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 p-4 space-y-3 bg-white dark:bg-slate-900 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex-1">
+            <PremiumSelect
+              ariaLabel="Cơ sở tài chính"
+              label="Cơ sở tài chính"
+              placeholder={effectiveIsSuperAdmin ? "Chọn cơ sở hoặc xem tất cả chi nhánh" : "Chọn cơ sở được cấp quyền"}
+              value={selectedBranchId}
+              disabled={loading}
+              options={[
+                ...(effectiveIsSuperAdmin ? [{ value: 'ALL', label: '🌐 Tất cả chi nhánh (Tổng hợp toàn chuỗi)' }] : []),
+                ...branches.map(branch => ({
+                  value: branch.id,
+                  label: branch.name,
+                }))
+              ]}
+              onChange={branchId => {
+                ++loadSequence.current; setDataLoaded(false); setSelectedBranchId(branchId);
+                setPaymentInvoiceId(''); setRetainedIntent(null); setSelectedStudentPartyId(''); setSelectedBillingPeriodId('');
+              }}
+            />
+          </div>
+
+          {effectiveIsSuperAdmin && selectedBranchId && selectedBranchId !== 'ALL' && (
+            <button
+              type="button"
+              onClick={() => {
+                ++loadSequence.current;
+                setDataLoaded(false);
+                setSelectedBranchId('ALL');
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-50 text-[#0c513f] hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300 dark:hover:bg-emerald-900 border border-emerald-200/60 dark:border-emerald-800 transition-colors shrink-0"
+            >
+              <Building2 className="w-4 h-4" />
+              Xem tổng hợp tất cả chi nhánh
+            </button>
+          )}
+        </div>
+
+        {!selectedBranchId && (
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            {effectiveIsSuperAdmin
+              ? 'Chọn cơ sở cụ thể hoặc chọn "Tất cả chi nhánh" để xem báo cáo tổng hợp toàn chuỗi.'
+              : 'Chọn cơ sở để tải hồ sơ tài chính. Dữ liệu được giới hạn trong phạm vi cơ sở bạn được phân quyền.'}
+          </p>
+        )}
+        {dataLoaded && !loading && branches.length === 0 && (
+          <p className="text-sm text-slate-600 dark:text-slate-300">Chưa có cơ sở được cấp quyền.</p>
+        )}
+
+        {/* Role Scoping Indicator Badge */}
+        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span>
+              Phạm vi quyền:{' '}
+              <strong className="text-slate-700 dark:text-slate-200">
+                {effectiveIsSuperAdmin ? 'Hiệu trưởng / Chủ trường (Super Admin - Toàn quyền xem mọi chi nhánh)' : 'Quản trị viên chi nhánh (Giới hạn dữ liệu chi nhánh)'}
+              </strong>
+            </span>
+          </div>
+          {effectiveIsSuperAdmin && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
+              👑 Super-Admin
+            </span>
+          )}
+        </div>
       </div>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
@@ -1120,7 +1194,7 @@ function FinancePageContent() {
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Interactive Billing Period Selector */}
           <div className="relative">
-            <select
+            <PreschoolSelect
               aria-label="Chọn kỳ thu hoạt động"
               value={selectedBillingPeriodId}
               onChange={(e: ChangeEvent<HTMLSelectElement>) => {
@@ -1128,7 +1202,8 @@ function FinancePageContent() {
                 setSelectedBillingPeriodId(val);
                 setFilterBillingPeriodId(val ? val : 'ALL');
               }}
-              className="appearance-none pl-3.5 pr-8 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20 cursor-pointer"
+              wrapperClassName="min-w-44"
+              className="py-2 text-xs font-bold"
             >
               <option value="">Chưa chọn kỳ thu</option>
               {billingPeriods.map((period) => (
@@ -1136,8 +1211,7 @@ function FinancePageContent() {
                   {period.periodName} ({period.status === 'ACTIVE' ? 'Đang thu' : period.status})
                 </option>
               ))}
-            </select>
-            <Calendar className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </PreschoolSelect>
           </div>
 
           <button
@@ -1209,7 +1283,12 @@ function FinancePageContent() {
 
       {/* ── ACCESSIBILITY STATUS & ERROR ALERTS ── */}
       <div aria-live="polite" className="text-sm text-slate-700 dark:text-slate-200">
-        {loading && <p role="status">Đang tải hoặc xử lý dữ liệu tài chính…</p>}
+        {loading && (
+    <div className="flex items-center gap-2 p-4 text-xs font-semibold text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+      <RefreshCw className="w-4 h-4 animate-spin text-primary" />
+      <p role="status">Đang tải hoặc xử lý dữ liệu tài chính…</p>
+    </div>
+  )}
         {loadError && (
           <div role="alert" className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-200 space-y-2">
             <div className="flex items-center gap-2 font-bold text-xs">
@@ -1454,6 +1533,141 @@ function FinancePageContent() {
       {/* ========================================================================= */}
       {dataLoaded && activeTab === 'overview' && (
         <div className="space-y-6">
+          {/* ── CONSOLIDATED MULTI-BRANCH DASHBOARD (SUPER-ADMIN ONLY) ── */}
+          {selectedBranchId === 'ALL' && (
+            <div className="space-y-6">
+              <div className="rounded-2xl bg-gradient-to-r from-emerald-950 via-[#0c513f] to-teal-900 text-white p-6 shadow-md border border-emerald-800/60">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-emerald-300 shrink-0 border border-white/15">
+                      <Building2 className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-amber-950 uppercase tracking-wider">
+                          SUPER-ADMIN
+                        </span>
+                        <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                          Báo Cáo Tổng Hợp Dữ Liệu Toàn Chuỗi Mầm Non
+                        </h2>
+                      </div>
+                      <p className="text-xs text-emerald-100/90 mt-1 max-w-2xl leading-relaxed">
+                        Hệ thống đang hiển thị dữ liệu tài chính hợp nhất từ tất cả {branches.length} chi nhánh. 
+                        Hiệu trưởng và Chủ trường có quyền giám sát toàn bộ dòng tiền, hóa đơn, học phí và công nợ trên toàn chuỗi.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Multi-Branch Breakdown Table */}
+              {branchBreakdowns.length > 0 && (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+                  <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-[#0c513f] dark:text-emerald-400 flex items-center justify-center">
+                        <TrendingUp className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                          Bảng Phân Tích &amp; Đối Soát Từng Cơ Sở
+                        </h3>
+                        <p className="text-xs text-slate-500">So sánh doanh thu, công nợ và tỷ lệ thu hồi giữa các chi nhánh</p>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold">
+                      {branchBreakdowns.length} chi nhánh hoạt động
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-slate-50/80 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                        <tr>
+                          <th className="py-3 px-4">Cơ sở / Chi nhánh</th>
+                          <th className="py-3 px-4 text-center">Học sinh</th>
+                          <th className="py-3 px-4 text-center">Hóa đơn</th>
+                          <th className="py-3 px-4 text-right">Tổng phải thu</th>
+                          <th className="py-3 px-4 text-right">Đã thanh toán</th>
+                          <th className="py-3 px-4 text-right">Công nợ tồn</th>
+                          <th className="py-3 px-4 text-center">Tỷ lệ thu hồi</th>
+                          <th className="py-3 px-4 text-center">Nợ quá hạn</th>
+                          <th className="py-3 px-4 text-center">Hành động</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {branchBreakdowns.map((b) => (
+                          <tr key={b.branchId} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
+                            <td className="py-3.5 px-4">
+                              <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                <span>{b.branchName}</span>
+                              </div>
+                              {b.branchCode && (
+                                <span className="inline-block mt-0.5 text-[11px] font-mono text-slate-400 dark:text-slate-500">
+                                  Mã: {b.branchCode}
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-4 text-center font-medium text-slate-700 dark:text-slate-300">
+                              {b.studentCount}
+                            </td>
+                            <td className="py-3.5 px-4 text-center text-slate-600 dark:text-slate-400">
+                              {b.invoiceCount}
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-medium text-slate-900 dark:text-white">
+                              {formatCurrency(b.totalGross)}
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                              {formatCurrency(b.totalPaid)}
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-bold text-amber-600 dark:text-amber-400">
+                              {formatCurrency(b.totalDebt)}
+                            </td>
+                            <td className="py-3.5 px-4 text-center">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
+                                b.collectionRate >= 90
+                                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                  : b.collectionRate >= 70
+                                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                                  : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                              }`}>
+                                {b.collectionRate}%
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-center">
+                              {b.overdueCount > 0 ? (
+                                <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 dark:text-rose-400">
+                                  <AlertTriangle className="w-3.5 h-3.5" />
+                                  {b.overdueCount} HĐ
+                                </span>
+                              ) : (
+                                <span className="text-xs text-slate-400">0</span>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-4 text-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  ++loadSequence.current;
+                                  setDataLoaded(false);
+                                  setSelectedBranchId(b.branchId);
+                                }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-[#0c513f] hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300 dark:hover:bg-emerald-900 border border-emerald-200/60 dark:border-emerald-800 transition-colors"
+                                title={`Xem chi tiết cơ sở ${b.branchName}`}
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                Xem chi tiết
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           {/* 3 Analytics & Task Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Column 1: Biểu đồ thu phí */}
@@ -1736,12 +1950,14 @@ function FinancePageContent() {
                   </div>
 
                   {/* Student Dropdown */}
-                  <select
+                  <PreschoolSelect
+                    aria-label="Học sinh"
                     id="finance-student"
                     disabled={loading || !dataLoaded}
                     value={selectedStudentPartyId}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedStudentPartyId(e.target.value)}
-                    className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+                    wrapperClassName="w-full"
+                    className="py-2.5 text-xs"
                   >
                     <option value="">{students.length === 0 ? 'Chưa có học sinh đã ghi danh' : 'Chọn học sinh'}</option>
                     {selectedStudentPartyId && !selectedStudent && (
@@ -1759,7 +1975,7 @@ function FinancePageContent() {
                         {st.displayName} {st.studentCode ? `(${st.studentCode})` : ''}{st.className ? ` - ${st.className}` : ''}
                       </option>
                     ))}
-                  </select>
+                  </PreschoolSelect>
                 </div>
 
                 {/* Billing Period Selector */}
@@ -1768,12 +1984,14 @@ function FinancePageContent() {
                     <span>Kỳ thu</span>
                     <span className="text-rose-500">*</span>
                   </label>
-                  <select
+                  <PreschoolSelect
+                    aria-label="Kỳ thu"
                     id="finance-billing-period"
                     disabled={loading || !dataLoaded}
                     value={selectedBillingPeriodId}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedBillingPeriodId(e.target.value)}
-                    className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+                    wrapperClassName="w-full"
+                    className="py-2.5 text-xs"
                   >
                     <option value="">{billingPeriods.length === 0 ? 'Chưa có kỳ thu khả dụng' : 'Chọn kỳ thu'}</option>
                     {selectedBillingPeriodId && !selectedBillingPeriod && (
@@ -1786,7 +2004,7 @@ function FinancePageContent() {
                         {period.periodName} ({period.dueDate})
                       </option>
                     ))}
-                  </select>
+                  </PreschoolSelect>
                 </div>
 
                 {/* Service completion action confirmation preserved for compliance */}
@@ -1926,11 +2144,12 @@ function FinancePageContent() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <select
+                  <PreschoolSelect
                     aria-label="Lọc kỳ thu"
                     value={filterBillingPeriodId}
                     onChange={(event) => setFilterBillingPeriodId(event.target.value)}
-                    className="w-full py-2 px-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+                    wrapperClassName="w-full"
+                    className="py-2 text-xs"
                   >
                     <option value="ALL">Tất cả kỳ thu</option>
                     {Array.from(new Map(displayInvoices.map((invoice) => [invoice.billingPeriodId, invoice.billingPeriodDisplay]))).map(([id, label]) => (
@@ -1938,36 +2157,38 @@ function FinancePageContent() {
                         {label}
                       </option>
                     ))}
-                  </select>
+                  </PreschoolSelect>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <select
+                  <PreschoolSelect
                     aria-label="Lọc trạng thái phát hành"
                     value={filterIssuance}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterIssuance(e.target.value)}
-                    className="w-full py-2 px-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+                    wrapperClassName="w-full"
+                    className="py-2 text-xs"
                   >
                     <option value="ALL">Trạng thái phát hành ▾</option>
                     <option value="ISSUED">Đã phát hành</option>
                     <option value="DRAFT">Bản nháp</option>
                     <option value="VOID">Đã hủy</option>
-                  </select>
+                  </PreschoolSelect>
                 </div>
 
                 <div className="sm:col-span-3">
-                  <select
+                  <PreschoolSelect
                     aria-label="Lọc trạng thái thanh toán"
                     value={filterSettlement}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterSettlement(e.target.value)}
-                    className="w-full py-2 px-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+                    wrapperClassName="w-full"
+                    className="py-2 text-xs"
                   >
                     <option value="ALL">Trạng thái thanh toán ▾</option>
                     <option value="PAID">Đã thanh toán</option>
                     <option value="PARTIALLY_PAID">Một phần</option>
                     <option value="UNPAID">Chưa thanh toán</option>
                     <option value="OVERPAID">Thanh toán thừa</option>
-                  </select>
+                  </PreschoolSelect>
                 </div>
               </div>
 
@@ -2355,30 +2576,32 @@ function FinancePageContent() {
               </div>
 
               <div className="sm:col-span-3">
-                <select
-                  value={filterIssuance}
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterIssuance(e.target.value)}
-                  className="w-full py-2 px-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200"
-                >
+                <PreschoolSelect
+                value={filterIssuance}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterIssuance(e.target.value)}
+                wrapperClassName="w-full"
+                className="py-2 text-xs"
+              >
                   <option value="ALL">Tất cả trạng thái phát hành</option>
                   <option value="ISSUED">Đã phát hành</option>
                   <option value="DRAFT">Bản nháp</option>
                   <option value="VOID">Đã hủy</option>
-                </select>
+              </PreschoolSelect>
               </div>
 
               <div className="sm:col-span-3">
-                <select
+                <PreschoolSelect
                   value={filterSettlement}
                   onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterSettlement(e.target.value)}
-                  className="w-full py-2 px-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200"
+                  wrapperClassName="w-full"
+                  className="py-2 text-xs"
                 >
                   <option value="ALL">Tất cả trạng thái thanh toán</option>
                   <option value="PAID">Đã thanh toán</option>
                   <option value="PARTIALLY_PAID">Một phần</option>
                   <option value="UNPAID">Chưa thanh toán</option>
                   <option value="OVERPAID">Thanh toán thừa</option>
-                </select>
+                </PreschoolSelect>
               </div>
             </div>
 
@@ -3074,7 +3297,7 @@ function FinancePageContent() {
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   Chọn hóa đơn cần thanh toán *
                 </label>
-                <select
+                <PreschoolSelect
                   value={paymentTargetInvoice?.id || ''}
                   onChange={(e) => {
                     const found = displayInvoices.find((inv) => inv.id === e.target.value);
@@ -3083,7 +3306,8 @@ function FinancePageContent() {
                       setPaymentAmountInput(String(found.outstandingAmount > 0 ? found.outstandingAmount : found.amount));
                     }
                   }}
-                  className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+                  wrapperClassName="w-full"
+                  className="py-2.5 text-xs"
                 >
                   <option value="">Chọn hóa đơn cần nộp</option>
                   {displayInvoices
@@ -3093,7 +3317,7 @@ function FinancePageContent() {
                         {inv.invoiceNumber} — {inv.studentName} ({formatCurrency(inv.outstandingAmount > 0 ? inv.outstandingAmount : inv.amount)})
                       </option>
                     ))}
-                </select>
+                </PreschoolSelect>
               </div>
 
               {/* Amount Input */}
@@ -3341,6 +3565,27 @@ export default function FinancePage() {
   const { user, product, isLoading } = useUser();
   if (isLoading) return <p role="status">Đang xác minh tài khoản…</p>;
   if (!user?.tenant_id || !product) return <p role="alert">Không có quyền mở màn hình này.</p>;
+  const role = (user.role ?? '').trim().toLowerCase();
+  const isSuperAdmin = role === 'super_admin' || role === 'owner';
+  const isBranchAdmin = role === 'admin';
+  const isAccountant = role === 'accountant';
+  const hasFinanceAccess = isSuperAdmin || isBranchAdmin || isAccountant;
+
+  if (role === 'teacher' || (Boolean(role) && !hasFinanceAccess)) {
+    return (
+      <div className="p-8 text-center space-y-3">
+        <p role="alert" className="font-bold text-rose-600">
+          Bạn không có quyền truy cập thông tin tài chính &amp; học phí.
+        </p>
+        <p className="text-sm text-slate-500">
+          Chức năng này chỉ dành cho Hiệu trưởng / Chủ trường (Super Admin), Quản trị viên cơ sở (Admin) và Kế toán. Giáo viên không được cấp quyền truy cập.
+        </p>
+        <Link href="/dashboard/education" className="inline-block mt-4 px-4 py-2 bg-[#0c513f] text-white rounded-xl text-sm font-semibold">
+          Quay về Trang tổng quan
+        </Link>
+      </div>
+    );
+  }
   return (
     <Suspense
       fallback={

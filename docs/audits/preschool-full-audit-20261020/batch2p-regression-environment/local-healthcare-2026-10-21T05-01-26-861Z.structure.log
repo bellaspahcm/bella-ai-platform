@@ -1,0 +1,251 @@
+> bella-spa-erp@0.1.0 healthcare:verify
+> npm run healthcare:guard && npm run healthcare:architecture && npm run healthcare:conformance && npm run healthcare:test
+> bella-spa-erp@0.1.0 healthcare:guard
+> npx tsx scripts/healthcare/architecture-guard.ts
+> bella-spa-erp@0.1.0 healthcare:architecture
+> jest src/platform/healthcare/__tests__/engine-architecture-compliance.test.ts src/products/bella-medical/__tests__/bella-medical-architecture.test.ts --runInBand
+PASS src/platform/healthcare/__tests__/engine-architecture-compliance.test.ts
+  ● Console
+PASS src/products/bella-medical/__tests__/bella-medical-architecture.test.ts
+  ● Console
+Test Suites: 2 passed, 2 total
+Tests:       9 passed, 9 total
+Snapshots:   0 total
+Time:        1.992 s, estimated 2 s
+Ran all test suites matching src/platform/healthcare/__tests__/engine-architecture-compliance.test.ts|src/products/bella-medical/__tests__/bella-medical-architecture.test.ts.
+> bella-spa-erp@0.1.0 healthcare:conformance
+> jest src/products/bella-medical/__tests__/bella-medical-conformance.integration.test.ts --runInBand
+PASS src/products/bella-medical/__tests__/bella-medical-conformance.integration.test.ts
+Test Suites: 1 passed, 1 total
+Tests:       7 passed, 7 total
+Snapshots:   0 total
+Time:        0.58 s, estimated 1 s
+Ran all test suites matching src/products/bella-medical/__tests__/bella-medical-conformance.integration.test.ts.
+> bella-spa-erp@0.1.0 healthcare:test
+> jest src/platform/healthcare/ --runInBand
+FAIL src/platform/healthcare/engines/encounter-engine/__tests__/encounter-engine.integration.test.ts
+  ● Console
+  ● Encounter Engine - Integration Tests › End-to-End Persistence › should persist encounter to database and publish event
+  ● Encounter Engine - Integration Tests › End-to-End Persistence › should persist status transition and publish event
+  ● Encounter Engine - Integration Tests › Tenant Isolation › should prevent Tenant A from reading Tenant B encounter
+  ● Encounter Engine - Integration Tests › Tenant Isolation › should prevent Tenant A from updating Tenant B encounter
+  ● Encounter Engine - Integration Tests › Tenant Isolation › should ensure events maintain correct tenantId
+  ● Encounter Engine - Integration Tests › Transaction Consistency › should NOT leave partial state if status transition fails
+  ● Encounter Engine - Integration Tests › Event-After-Persistence › should publish event ONLY after successful DB write
+  ● Encounter Engine - Integration Tests › Failure Paths › should handle invalid diagnosis code
+  ● Encounter Engine - Integration Tests › Failure Paths › should handle event bus publish failure without breaking service
+  ● Encounter Engine - Integration Tests › Search with Tenant Isolation › should filter by patient within tenant
+FAIL src/platform/healthcare/engines/encounter-engine/__tests__/supabase-smoke.test.ts
+  ● Console
+  ● Supabase Connection Smoke Test › should insert a test encounter
+  ● Supabase Connection Smoke Test › should query the inserted encounter
+  ● Supabase Connection Smoke Test › should delete the test encounter (may fail if child records exist)
+FAIL src/platform/healthcare/engines/order-engine/repositories/__tests__/supabase-order-repository.integration.test.ts
+  ● Console
+  ● SupabaseOrderRepository Integration Tests › Creation & Mapping › should create new order with all fields
+  ● SupabaseOrderRepository Integration Tests › Creation & Mapping › should create order with minimal fields
+  ● SupabaseOrderRepository Integration Tests › Creation & Mapping › should create order with requestId for idempotency
+  ● SupabaseOrderRepository Integration Tests › Creation & Mapping › should correctly map domain to database
+  ● SupabaseOrderRepository Integration Tests › Creation & Mapping › should correctly reconstitute domain from database
+  ● SupabaseOrderRepository Integration Tests › Find & Query › should find order by ID with correct tenant
+  ● SupabaseOrderRepository Integration Tests › Find & Query › should return null when finding with wrong tenant
+  ● SupabaseOrderRepository Integration Tests › Find & Query › should find order by requestId
+  ● SupabaseOrderRepository Integration Tests › Find & Query › should find orders by filters
+  ● SupabaseOrderRepository Integration Tests › Find & Query › should find active orders for encounter
+  ● SupabaseOrderRepository Integration Tests › Tenant Isolation › should not find order created in different tenant
+  ● SupabaseOrderRepository Integration Tests › Tenant Isolation › should not allow update from different tenant
+  ● SupabaseOrderRepository Integration Tests › Tenant Isolation › should filter queries by tenant
+  ● SupabaseOrderRepository Integration Tests › Idempotency › should throw IdempotencyConflictError for duplicate requestId in same tenant
+  ● SupabaseOrderRepository Integration Tests › Idempotency › should allow same requestId in different tenants
+  ● SupabaseOrderRepository Integration Tests › Idempotency › should return existing order when querying by requestId
+  ● SupabaseOrderRepository Integration Tests › Optimistic Locking › should succeed update with correct expectedVersion
+  ● SupabaseOrderRepository Integration Tests › Optimistic Locking › should throw OptimisticLockError with stale expectedVersion
+  ● SupabaseOrderRepository Integration Tests › Optimistic Locking › should increment version on each update
+  ● SupabaseOrderRepository Integration Tests › Constraint & Error Handling › should reject order with wrong patient_party_id (composite FK)
+  ● SupabaseOrderRepository Integration Tests › Constraint & Error Handling › should handle database constraint errors gracefully
+  ● SupabaseOrderRepository Integration Tests › Constraint & Error Handling › should mark order as DISCONTINUED via softDelete
+  ● SupabaseOrderRepository Integration Tests › Exists Check › should check order existence without full reconstitution
+PASS src/platform/healthcare/__tests__/cross-engine-integration.test.ts
+  ● Console
+PASS src/platform/healthcare/__tests__/pharmacy-engine.integration.test.ts
+  ● Console
+FAIL src/platform/healthcare/__tests__/cds-engine.integration.test.ts
+  ● Console
+  ● CDS Engine H8 Integration Tests (6 Gates) › Gate 2: should dynamically evaluate snapshot as STALE if last processed event > 300s
+  ● CDS Engine H8 Integration Tests (6 Gates) › Gate 3: should escalate alerts to BLOCK when context snapshot is stale (escalation-only policy)
+  ● CDS Engine H8 Integration Tests (6 Gates) › Gate 4: should return cached decision for identical action contexts (SHA-256 fingerprinting)
+  ● CDS Engine H8 Integration Tests (6 Gates) › Gate 5: should block updates or deletions on decisions table via DB triggers
+PASS src/platform/healthcare/__tests__/platform-certification.integration.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/order-engine/services/__tests__/clinical-order.service.integration.test.ts
+  ● Console
+FAIL src/platform/healthcare/__tests__/laboratory-engine.integration.test.ts
+  ● Console
+  ● Laboratory Engine Integration Tests (6 Gates) › Gate 1 — Domain State Machine: should enforce sequential state transitions and prevent skips
+  ● Laboratory Engine Integration Tests (6 Gates) › Gate 2 — Diagnostic Range Safety: should correctly classify normal, abnormal, and critical ranges
+  ● Laboratory Engine Integration Tests (6 Gates) › Gate 3 — Critical Acknowledgment Safety: should enforce active clinician safety acknowledgment of panic values
+  ● Laboratory Engine Integration Tests (6 Gates) › Gate 5 — Event-After-Persistence: should verify correct event publish ordering and rollback safety
+  ● Laboratory Engine Integration Tests (6 Gates) › Gate 6 — Concurrent Verification: should defend against race conditions and enforce exactly one verification update
+PASS src/platform/healthcare/__tests__/blood-bank-engine.integration.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/pharmacy-engine/repositories/__tests__/supabase-pharmacy.repository.integration.test.ts
+  ● Console
+FAIL src/platform/healthcare/__tests__/temporal-engine.integration.test.ts
+  ● Console
+  ● Temporal & Clinical History Engine H9 Integration Tests (6 Gates) › Gate 4: should retrieve full temporal audit context for an H8 decision
+PASS src/platform/healthcare/__tests__/rule-engine.integration.test.ts
+  ● Console
+PASS src/platform/healthcare/__tests__/audit-compliance.integration.test.ts
+  ● Console
+PASS src/platform/healthcare/__tests__/performance-slo-benchmark.test.ts
+  ● Console
+PASS src/platform/healthcare/__tests__/healthcare-3-engine.integration.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/encounter-engine/infrastructure/__tests__/supabase-encounter.repository.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/pharmacy-engine/events/__tests__/order-approved-subscriber.integration.test.ts
+  ● Console
+PASS src/platform/healthcare/__tests__/laboratory-real-db-patient-linkage.test.ts
+  ● Console
+PASS src/platform/healthcare/__tests__/order-engine-real-db-patient-linkage.test.ts
+  ● Console
+FAIL src/platform/healthcare/__tests__/cds-calculation-persistence-contract.test.ts
+  ● Console
+  ● CDS calculation persistence contract › persists a valid calculation id before returning it
+PASS src/platform/healthcare/__tests__/engine-architecture-compliance.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/encounter-engine/domain/__tests__/encounter.entity.test.ts
+  ● Console
+PASS src/platform/healthcare/__tests__/service-locator-laboratory-wiring.test.ts
+  ● Console
+PASS src/platform/healthcare/__tests__/inpatient-vertical-slice.integration.test.ts
+  ● Console
+PASS src/platform/healthcare/__tests__/emergency-3-scenarios.integration.test.ts
+  ● Console
+PASS src/platform/healthcare/__tests__/icu-h2-h3-h1-continuity.integration.test.ts
+  ● Console
+PASS src/platform/healthcare/__tests__/healthcare-platform.bootstrap.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/order-engine/domain/__tests__/clinical-order.entity.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/encounter-engine/__tests__/encounter-engine.events.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/encounter-engine/__tests__/encounter-engine.service.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/order-engine/services/__tests__/clinical-order.service.test.ts
+  ● Console
+PASS src/platform/healthcare/contracts/__tests__/order-engine.contract.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/laboratory-engine/services/__tests__/laboratory-engine.service.test.ts
+  ● Console
+PASS src/platform/healthcare/__tests__/service-locator-cds-wiring.test.ts
+  ● Console
+PASS src/platform/healthcare/contracts/__tests__/imaging-public-contract-minimal-semantics.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/pharmacy-engine/domain/__tests__/prescription.entity.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/encounter-engine/__tests__/encounter-engine.contract.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/laboratory-engine/domain/__tests__/lab-order.entity.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/order-engine/repositories/__tests__/order-repository.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/surgical-engine/domain/__tests__/surgical-case.entity.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/bed-engine/__tests__/bed-concurrency.integration.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/icu-engine/__tests__/icu-engine.service.test.ts
+  ● Console
+PASS src/platform/healthcare/contracts/__tests__/laboratory-order-bootstrap-public-semantics.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/emergency-engine/__tests__/emergency-engine.service.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/icu-engine/domain/__tests__/ventilator-session.entity.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/blood-bank-engine/domain/__tests__/blood-crossmatch.entity.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/admission-engine/__tests__/admission-engine.service.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/emergency-engine/domain/__tests__/emergency-disposition.entity.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/icu-engine/domain/__tests__/icu-stay.entity.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/emergency-engine/domain/__tests__/emergency-bay.resource.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/emergency-engine/domain/__tests__/emergency-assessment.entity.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/icu-engine/__tests__/icu-bay.concurrency.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/emergency-engine/__tests__/emergency-bay.concurrency.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/admission-engine/domain/__tests__/inpatient-admission.entity.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/emergency-engine/domain/__tests__/esi-triage.protocol.test.ts
+  ● Console
+PASS src/platform/healthcare/__tests__/service-locator-imaging-wiring.test.ts
+  ● Console
+PASS src/platform/healthcare/__tests__/inpatient-core.integration.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/emergency-engine/domain/__tests__/triage.entity.test.ts
+  ● Console
+PASS src/platform/healthcare/engines/icu-engine/domain/__tests__/sofa-scoring.strategy.test.ts
+  ● Console
+FAIL src/platform/healthcare/engines/encounter-engine/__tests__/encounter-engine.integration.test.ts
+  ● Encounter Engine - Integration Tests › End-to-End Persistence › should persist encounter to database and publish event
+  ● Encounter Engine - Integration Tests › End-to-End Persistence › should persist status transition and publish event
+  ● Encounter Engine - Integration Tests › Tenant Isolation › should prevent Tenant A from reading Tenant B encounter
+  ● Encounter Engine - Integration Tests › Tenant Isolation › should prevent Tenant A from updating Tenant B encounter
+  ● Encounter Engine - Integration Tests › Tenant Isolation › should ensure events maintain correct tenantId
+  ● Encounter Engine - Integration Tests › Transaction Consistency › should NOT leave partial state if status transition fails
+  ● Encounter Engine - Integration Tests › Event-After-Persistence › should publish event ONLY after successful DB write
+  ● Encounter Engine - Integration Tests › Failure Paths › should handle invalid diagnosis code
+  ● Encounter Engine - Integration Tests › Failure Paths › should handle event bus publish failure without breaking service
+  ● Encounter Engine - Integration Tests › Search with Tenant Isolation › should filter by patient within tenant
+FAIL src/platform/healthcare/engines/encounter-engine/__tests__/supabase-smoke.test.ts
+  ● Supabase Connection Smoke Test › should insert a test encounter
+  ● Supabase Connection Smoke Test › should query the inserted encounter
+  ● Supabase Connection Smoke Test › should delete the test encounter (may fail if child records exist)
+FAIL src/platform/healthcare/engines/order-engine/repositories/__tests__/supabase-order-repository.integration.test.ts
+  ● SupabaseOrderRepository Integration Tests › Creation & Mapping › should create new order with all fields
+  ● SupabaseOrderRepository Integration Tests › Creation & Mapping › should create order with minimal fields
+  ● SupabaseOrderRepository Integration Tests › Creation & Mapping › should create order with requestId for idempotency
+  ● SupabaseOrderRepository Integration Tests › Creation & Mapping › should correctly map domain to database
+  ● SupabaseOrderRepository Integration Tests › Creation & Mapping › should correctly reconstitute domain from database
+  ● SupabaseOrderRepository Integration Tests › Find & Query › should find order by ID with correct tenant
+  ● SupabaseOrderRepository Integration Tests › Find & Query › should return null when finding with wrong tenant
+  ● SupabaseOrderRepository Integration Tests › Find & Query › should find order by requestId
+  ● SupabaseOrderRepository Integration Tests › Find & Query › should find orders by filters
+  ● SupabaseOrderRepository Integration Tests › Find & Query › should find active orders for encounter
+  ● SupabaseOrderRepository Integration Tests › Tenant Isolation › should not find order created in different tenant
+  ● SupabaseOrderRepository Integration Tests › Tenant Isolation › should not allow update from different tenant
+  ● SupabaseOrderRepository Integration Tests › Tenant Isolation › should filter queries by tenant
+  ● SupabaseOrderRepository Integration Tests › Idempotency › should throw IdempotencyConflictError for duplicate requestId in same tenant
+  ● SupabaseOrderRepository Integration Tests › Idempotency › should allow same requestId in different tenants
+  ● SupabaseOrderRepository Integration Tests › Idempotency › should return existing order when querying by requestId
+  ● SupabaseOrderRepository Integration Tests › Optimistic Locking › should succeed update with correct expectedVersion
+  ● SupabaseOrderRepository Integration Tests › Optimistic Locking › should throw OptimisticLockError with stale expectedVersion
+  ● SupabaseOrderRepository Integration Tests › Optimistic Locking › should increment version on each update
+  ● SupabaseOrderRepository Integration Tests › Constraint & Error Handling › should reject order with wrong patient_party_id (composite FK)
+  ● SupabaseOrderRepository Integration Tests › Constraint & Error Handling › should handle database constraint errors gracefully
+  ● SupabaseOrderRepository Integration Tests › Constraint & Error Handling › should mark order as DISCONTINUED via softDelete
+  ● SupabaseOrderRepository Integration Tests › Exists Check › should check order existence without full reconstitution
+FAIL src/platform/healthcare/__tests__/cds-engine.integration.test.ts
+  ● CDS Engine H8 Integration Tests (6 Gates) › Gate 2: should dynamically evaluate snapshot as STALE if last processed event > 300s
+  ● CDS Engine H8 Integration Tests (6 Gates) › Gate 3: should escalate alerts to BLOCK when context snapshot is stale (escalation-only policy)
+  ● CDS Engine H8 Integration Tests (6 Gates) › Gate 4: should return cached decision for identical action contexts (SHA-256 fingerprinting)
+  ● CDS Engine H8 Integration Tests (6 Gates) › Gate 5: should block updates or deletions on decisions table via DB triggers
+FAIL src/platform/healthcare/__tests__/laboratory-engine.integration.test.ts
+  ● Laboratory Engine Integration Tests (6 Gates) › Gate 1 — Domain State Machine: should enforce sequential state transitions and prevent skips
+  ● Laboratory Engine Integration Tests (6 Gates) › Gate 2 — Diagnostic Range Safety: should correctly classify normal, abnormal, and critical ranges
+  ● Laboratory Engine Integration Tests (6 Gates) › Gate 3 — Critical Acknowledgment Safety: should enforce active clinician safety acknowledgment of panic values
+  ● Laboratory Engine Integration Tests (6 Gates) › Gate 5 — Event-After-Persistence: should verify correct event publish ordering and rollback safety
+  ● Laboratory Engine Integration Tests (6 Gates) › Gate 6 — Concurrent Verification: should defend against race conditions and enforce exactly one verification update
+FAIL src/platform/healthcare/__tests__/temporal-engine.integration.test.ts
+  ● Temporal & Clinical History Engine H9 Integration Tests (6 Gates) › Gate 4: should retrieve full temporal audit context for an H8 decision
+FAIL src/platform/healthcare/__tests__/cds-calculation-persistence-contract.test.ts
+  ● CDS calculation persistence contract › persists a valid calculation id before returning it
+Test Suites: 7 failed, 1 skipped, 53 passed, 60 of 61 total
+Tests:       47 failed, 1 skipped, 482 passed, 530 total
+Snapshots:   0 total
+Time:        22.049 s, estimated 77 s
+Ran all test suites matching src/platform/healthcare/.

@@ -75,5 +75,6 @@ it('shows the same child/teacher in the existing detail tabs and enables the exi
   fireEvent.click(screen.getByRole('button', { name: 'Danh Sách Học Sinh', exact: true }));
   expect(await screen.findByText('Trẻ E2E')).toBeVisible();
   fireEvent.click(screen.getByRole('button', { name: 'Đội Ngũ GVN', exact: true }));
-  expect(screen.getByRole('button', { name: 'Phân công Giáo viên Mới' })).toBeEnabled();
+  const assignmentLink = screen.getByRole('link', { name: 'Phân công Giáo viên Mới' });
+  expect(assignmentLink).toHaveAttribute('href', '/dashboard/education/teachers');
 });

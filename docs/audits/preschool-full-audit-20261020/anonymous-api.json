@@ -1,0 +1,65 @@
+{
+  "checkedAt": "2026-10-20T15:40:18.285Z",
+  "base": "http://localhost:3000",
+  "session": "No cookies or Authorization header",
+  "runtime": "Existing Next development server, not production",
+  "probes": [
+    {
+      "path": "/api/education/courses",
+      "explicitTenantQuery": true,
+      "status": 200,
+      "success": true,
+      "collectionSizes": {
+        "classrooms": 8
+      }
+    },
+    {
+      "path": "/api/education/enrollments",
+      "explicitTenantQuery": false,
+      "status": 401,
+      "success": false,
+      "collectionSizes": {},
+      "errorCode": "Unauthorized"
+    },
+    {
+      "path": "/api/education/branches",
+      "explicitTenantQuery": false,
+      "status": 401,
+      "success": false,
+      "collectionSizes": {},
+      "errorCode": "Unauthorized"
+    },
+    {
+      "path": "/api/education/attendance",
+      "explicitTenantQuery": false,
+      "status": 400,
+      "success": false,
+      "collectionSizes": {},
+      "errorCode": "courseId is required"
+    },
+    {
+      "path": "/api/education/finance",
+      "explicitTenantQuery": false,
+      "status": 401,
+      "success": false,
+      "collectionSizes": {},
+      "errorCode": "FINANCE_UNAUTHENTICATED: Authenticated finance operator and tenant are required."
+    },
+    {
+      "path": "/api/education/work-queue",
+      "explicitTenantQuery": false,
+      "status": 401,
+      "success": false,
+      "collectionSizes": {},
+      "errorCode": "Cần đăng nhập bằng tài khoản đang hoạt động."
+    },
+    {
+      "path": "/api/education/parent-daily",
+      "explicitTenantQuery": false,
+      "status": 503,
+      "success": false,
+      "collectionSizes": {},
+      "errorCode": "PARENT_ACCESS_NOT_READY"
+    }
+  ]
+}

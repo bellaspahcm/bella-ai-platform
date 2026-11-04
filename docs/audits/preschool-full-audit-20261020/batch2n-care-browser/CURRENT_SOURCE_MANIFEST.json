@@ -1,0 +1,17 @@
+{
+  "capturedAt": "2026-10-21T03:51:22.788Z",
+  "baseline": "6b031511f",
+  "buildReceipt": "browser-results-2026-10-21T03-48-47-658Z.json",
+  "stableProductSource": true,
+  "buildNativeExit": 0,
+  "overallBuildOnlyExit": 0,
+  "buildId": "6tULBhKO45Ki7kWXwepA1",
+  "browserEndToEnd": "NOT_PROVEN",
+  "files": {
+    "src/app/dashboard/education/care/page.tsx": "c8a83eb52c4f8b13458322924e5412d0c4c195843d224c36bc138cb5283be8f6",
+    "src/app/dashboard/education/care/care-save.ts": "e9cd8d4a5646092bdd086c38e6aafd978cf07788f2cabb55dd8b88876e2a897b",
+    "src/app/dashboard/education/care/__tests__/page.test.tsx": "19ec847969f82886472c2353381ee7a6bbdb0e65254f83eb7dc74d44e9fbe735",
+    "src/app/dashboard/education/care/__tests__/care-save.test.ts": "c65bbd6b6bfa5590db0d0b2092990ef21a839ac0861e89a56a65bd402ab84fe8",
+    "scripts/verify-preschool-care-browser-e2e.cjs": "2742a8130222c617a13f19c9b296ce889dfe3747caa79a1425409e76f37d2218"
+  }
+}

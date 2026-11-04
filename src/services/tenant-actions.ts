@@ -12,6 +12,7 @@ import {
 import type { PlatformActorDatabase } from '@/platform/security/current-actor.contract';
 import { recordAuditLog } from './audit-actions';
 import { revalidatePath } from 'next/cache';
+import { cookies, headers } from 'next/headers';
 import type { Database, Json } from '@/types/database.types';
 import {
   getDefaultTenantModuleKey,
@@ -124,6 +125,26 @@ async function rollbackTenantSettings(
 export async function getTenantPresentation(): Promise<TenantPresentation | null> {
   const currentUser = await getCurrentUser();
   if (!currentUser?.tenant_id) return null;
+
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const tenant = await getTenantSettings();
+      if (tenant && tenant.id === currentUser.tenant_id && tenant.status === 'active') {
+        return {
+          id: tenant.id,
+          name: tenant.name,
+          status: 'active',
+          product_key: tenant.product_key,
+          enabled_modules: tenant.enabled_modules,
+          brand_theme: tenant.brand_theme,
+          logo_url: tenant.logo_url,
+        };
+      }
+    } catch {
+      // Development fallback only
+    }
+  }
+
   const supabase = await createClient();
   const actorClient = supabase as unknown as import('@supabase/supabase-js').SupabaseClient<PlatformActorDatabase>;
   const { data, error } = await actorClient.rpc(CURRENT_ACTOR_TENANT_PRESENTATION_RPC);
@@ -133,6 +154,40 @@ export async function getTenantPresentation(): Promise<TenantPresentation | null
 
 export async function getTenantSettings(): Promise<TenantRow | null> {
   try {
+    // ── DEV MOCK BYPASS ──────────────────────────────────────────────────────
+    // Mirrors the getCurrentUser() bypass: when mock_user_email cookie is set
+    // and there is no real Supabase session, the anon client cannot pass RLS.
+    // Use the service-role admin client to fetch tenant data, bypassing RLS.
+    if (process.env.NODE_ENV === 'development') {
+      const reqHeaders = await headers();
+      const cookieStore = await cookies();
+      const mockEmail = reqHeaders.get('x-mock-user-email') || cookieStore.get('mock_user_email')?.value;
+      if (mockEmail) {
+        const adminUrl = getSupabaseAdminUrl();
+        const adminKey = getSupabaseAdminKey();
+        if (adminUrl && adminKey) {
+          const adminClient = createSupabaseClient<Database>(adminUrl, adminKey, {
+            auth: { persistSession: false, autoRefreshToken: false },
+          });
+          const { data: devProfile } = await adminClient
+            .from('users')
+            .select('tenant_id')
+            .eq('email', mockEmail)
+            .single();
+          if (devProfile?.tenant_id) {
+            const { data: tenant } = await adminClient
+              .from('tenants')
+              .select('*')
+              .eq('id', devProfile.tenant_id)
+              .single();
+            return tenant as TenantRow | null;
+          }
+          return null;
+        }
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     const supabase = await createClient();
     const currentUser = await getCurrentUser();
     const tenantId = currentUser?.tenant_id;
