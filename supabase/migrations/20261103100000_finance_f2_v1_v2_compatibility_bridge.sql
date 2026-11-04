@@ -1,6 +1,8 @@
--- F2 additive compatibility bridge for the frozen F1 v1 outbox events.
+-- F2 additive compatibility bridge for the frozen F1 outbox events.
 -- Local/Test only under ACR-2026-025 and ADR-2026-025.
 -- This migration does not replace or alter any F1 object or privilege.
+-- It accepts only the canonical v1-only F1 bodies or the known legacy v1+v2 bodies.
+-- In the latter mode F1 already emits v2, so the bridge trigger is a no-op.
 
 DO $preflight$
 DECLARE
@@ -27,13 +29,37 @@ BEGIN
           AND p.proname IN ('finance_post_transaction', 'finance_reverse_transaction')
           AND r.rolname = 'postgres'
           AND p.prosecdef
-          AND COALESCE(pg_catalog.array_to_string(p.proacl, ','), '') =
-              '=X/postgres,postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres'
+          AND COALESCE(pg_catalog.array_to_string(p.proconfig, ','), '') = ''
+          AND ARRAY(
+              SELECT acl_entry::text
+              FROM pg_catalog.unnest(COALESCE(p.proacl, '{}'::aclitem[])) AS acl_entry
+              ORDER BY acl_entry::text
+          ) = ARRAY[
+              '=X/postgres',
+              'authenticated=X/postgres',
+              'postgres=X/postgres',
+              'service_role=X/postgres'
+          ]::text[]
           AND pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
           AND pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
           AND pg_catalog.has_function_privilege('service_role', p.oid, 'EXECUTE')
+          AND (
+              (p.proname = 'finance_post_transaction'
+               AND p.pronargs = 17
+               AND pg_catalog.md5(p.prosrc) IN (
+                   'b7d86bc278786b4945dd8c1e2a871044', -- canonical v1-only
+                   '465ad2cf3f4f60ad9ba6577768b275aa'  -- known legacy v1+v2
+               ))
+              OR
+              (p.proname = 'finance_reverse_transaction'
+               AND p.pronargs = 5
+               AND pg_catalog.md5(p.prosrc) IN (
+                   '335700b841b58910f7814de70aa577d3', -- canonical v1-only
+                   '02a7cb347d67d0e3b1c76e1b6eac49e4'  -- known legacy v1+v2
+               ))
+          )
     ) <> 2 THEN
-        RAISE EXCEPTION 'F1 owner/security/ACL baseline differs from the approved disposable snapshot';
+        RAISE EXCEPTION 'F2 bridge requires a recognized frozen F1 v1-only or legacy v1+v2 function catalog';
     END IF;
 
     IF NOT EXISTS (
@@ -74,6 +100,7 @@ DECLARE
     v_name_count       integer;
     v_all_definer      boolean;
     v_payload_type     regtype;
+    v_f1_body_md5      text;
     v_post             public.finance_transactions%ROWTYPE;
     v_original         public.finance_transactions%ROWTYPE;
 BEGIN
@@ -83,6 +110,40 @@ BEGIN
         'finance.transaction.reversed.v1'
     ) THEN
         RETURN NEW;
+    END IF;
+
+    -- The approved legacy F1 variant already inserts its v2 event after the
+    -- v1 event in the same function. Do not synthesize a duplicate v2 event.
+    IF NEW.event_type = 'finance.transaction.posted.v1' THEN
+        SELECT pg_catalog.md5(p.prosrc) INTO v_f1_body_md5
+        FROM pg_catalog.pg_proc AS p
+        JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace
+        WHERE n.nspname = 'public'
+          AND p.proname = 'finance_post_transaction'
+          AND p.pronargs = 17;
+
+        IF v_f1_body_md5 = '465ad2cf3f4f60ad9ba6577768b275aa' THEN
+            RETURN NEW;
+        END IF;
+        IF v_f1_body_md5 IS DISTINCT FROM 'b7d86bc278786b4945dd8c1e2a871044' THEN
+            RAISE EXCEPTION 'F2 bridge refuses an unrecognized F1 post function body'
+                USING ERRCODE = 'F2045';
+        END IF;
+    ELSE
+        SELECT pg_catalog.md5(p.prosrc) INTO v_f1_body_md5
+        FROM pg_catalog.pg_proc AS p
+        JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace
+        WHERE n.nspname = 'public'
+          AND p.proname = 'finance_reverse_transaction'
+          AND p.pronargs = 5;
+
+        IF v_f1_body_md5 = '02a7cb347d67d0e3b1c76e1b6eac49e4' THEN
+            RETURN NEW;
+        END IF;
+        IF v_f1_body_md5 IS DISTINCT FROM '335700b841b58910f7814de70aa577d3' THEN
+            RAISE EXCEPTION 'F2 bridge refuses an unrecognized F1 reversal function body'
+                USING ERRCODE = 'F2045';
+        END IF;
     END IF;
 
     -- F1's RPCs are SECURITY DEFINER. A direct client INSERT into the shared

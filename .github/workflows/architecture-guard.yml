@@ -111,7 +111,7 @@ jobs:
         env:
           WORKFLOW_STATUS: ${{ job.status }}
         run: |
-          echo "📊 Architecture Guard Results:"
+          echo "Architecture Guard Results:"
           echo "- ESLint rules: $WORKFLOW_STATUS"
           echo "- Healthcare guard: $WORKFLOW_STATUS"
           echo "- P1 boundary check: $WORKFLOW_STATUS"
@@ -168,6 +168,7 @@ jobs:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER_ENV: ${{ github.event.pull_request.number }}
           PUSH_BEFORE_SHA: ${{ github.event.before }}
+          PUSH_HEAD_SHA: ${{ github.sha }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             BASE_SHA="$PR_BASE_SHA"
@@ -175,7 +176,7 @@ jobs:
             PR_NUMBER="$PR_NUMBER_ENV"
           elif [ "$GITHUB_EVENT_NAME" = "push" ]; then
             BASE_SHA="$PUSH_BEFORE_SHA"
-            HEAD_SHA="${{ github.sha }}"
+            HEAD_SHA="$PUSH_HEAD_SHA"
             PR_NUMBER="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" --jq '.[0].number // empty')"
             if [ -z "$PR_NUMBER" ]; then
               echo "❌ Core changes on push must resolve to an approved PR."

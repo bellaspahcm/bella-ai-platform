@@ -23,6 +23,8 @@ const LOGISTICS_DOMAIN_KERNEL_MIGRATION =
   'migrations/logistics/20260822_logistics_os_domain_kernel.sql';
 const LOGISTICS_RUNTIME_PRIVILEGES_MIGRATION =
   'supabase/migrations/20261007090000_platform_logistics_runtime_privileges.sql';
+const F2_V1_V2_BRIDGE_MIGRATION =
+  'supabase/migrations/20261103100000_finance_f2_v1_v2_compatibility_bridge.sql';
 const PLATFORM_RULE_DOMAIN_TYPE_SQL = `
 DO $$ BEGIN
   CREATE TYPE public.platform_rule_domain AS ENUM (
@@ -110,6 +112,32 @@ async function ensureMigrationHistory(client) {
       name TEXT
     )
   `);
+}
+
+async function getF1CatalogSnapshot(client) {
+  const result = await client.query(`
+    SELECT p.proname,
+           pg_catalog.pg_get_functiondef(p.oid) AS function_definition,
+           r.rolname AS owner_name,
+           p.prosecdef,
+           COALESCE(pg_catalog.array_to_string(p.proconfig, ','), '') AS proconfig,
+           COALESCE(pg_catalog.array_to_string(p.proacl, ','), '') AS acl,
+           pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE') AS anon_exec,
+           pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE') AS authenticated_exec,
+           pg_catalog.has_function_privilege('service_role', p.oid, 'EXECUTE') AS service_role_exec
+    FROM pg_catalog.pg_proc AS p
+    JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace
+    JOIN pg_catalog.pg_roles AS r ON r.oid = p.proowner
+    WHERE n.nspname = 'public'
+      AND p.proname IN ('finance_post_transaction', 'finance_reverse_transaction')
+    ORDER BY p.proname
+  `);
+
+  if (result.rows.length !== 2) {
+    throw new Error('F1_FREEZE_CATALOG_INCOMPLETE: expected both frozen F1 RPCs before PR migration apply.');
+  }
+
+  return JSON.stringify(result.rows);
 }
 
 async function getMigrationHistoryColumns(client) {
@@ -669,8 +697,18 @@ async function main() {
     await ensureMigrationHistory(client);
     const migrations = files.map((file) => parseMigration(file));
     await ensureRequiredE2eBaseline(client, migrations);
+    const f1CatalogBefore = migrations.some((migration) => migration.file === F2_V1_V2_BRIDGE_MIGRATION)
+      ? await getF1CatalogSnapshot(client)
+      : null;
     for (const migration of migrations) {
       await applyMigration(client, migration);
+    }
+    if (f1CatalogBefore !== null) {
+      const f1CatalogAfter = await getF1CatalogSnapshot(client);
+      if (f1CatalogAfter !== f1CatalogBefore) {
+        throw new Error('F1_FREEZE_CATALOG_CHANGED: F1 definitions, owner, security, ACL, or effective EXECUTE changed.');
+      }
+      console.log('PASS F1 catalog unchanged across PR migration apply.');
     }
     await reloadPostgrestSchema(client);
   } finally {
