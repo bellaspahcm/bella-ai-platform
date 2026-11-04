@@ -433,6 +433,20 @@ async function main() {
     });
     assert(Array.isArray(result) && result.length === 1, 'SYNTHETIC_BRANCH_ENROLLMENT_ASSIGNMENT_CREATED');
   }
+  const courseAssignmentTime = await pgClient.query(`WITH fixture(tenant_id,course_id) AS (VALUES
+      ($2::uuid,$3::uuid),($4::uuid,$5::uuid),($6::uuid,$7::uuid))
+    UPDATE public.preschool_chain_course_branch_assignments assignment
+    SET created_at=$1,updated_at=$1 FROM fixture
+    WHERE assignment.tenant_id=fixture.tenant_id AND assignment.course_id=fixture.course_id`,
+  [fixtureCreatedAt, ids.tenantA, ids.courseA, ids.tenantA, ids.courseB, ids.tenantB, ids.courseC]);
+  const enrollmentAssignmentTime = await pgClient.query(`WITH fixture(tenant_id,enrollment_id) AS (VALUES
+      ($2::uuid,$3::uuid),($4::uuid,$5::uuid),($6::uuid,$7::uuid))
+    UPDATE public.preschool_chain_enrollment_branch_assignments assignment
+    SET created_at=$1,updated_at=$1 FROM fixture
+    WHERE assignment.tenant_id=fixture.tenant_id AND assignment.enrollment_id=fixture.enrollment_id`,
+  [fixtureCreatedAt, ids.tenantA, ids.enrollmentA, ids.tenantA, ids.enrollmentB, ids.tenantB, ids.enrollmentC]);
+  assert(courseAssignmentTime.rowCount === 3 && enrollmentAssignmentTime.rowCount === 3,
+    'SYNTHETIC_BRANCH_BINDINGS_PRECEDE_ROLL_CALL');
   currentPhase = 'jwt-database-acceptance';
   outcome.jwtDatabase.status = 'RUNNING';
   const guardianRead = await adminAClient.rpc('preschool_g1_guardians_read', { p_student_id: ids.studentA });
