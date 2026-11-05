@@ -4,11 +4,31 @@
 
 This is the authoritative engineering execution constitution for the Bella AI Platform ecosystem. It applies to AI-assisted and human work across Platform/Core, Bella Factory, Industry OS, Product, Integration, Shared UI, CI, tests, security, migrations, dependency upgrades, technical-debt cleanup, and release readiness.
 
-This document is not a list of optional preferences. It is the default execution contract. If a local vertical constitution, freeze policy, ADR, or human architect decision is stricter, the stricter rule wins.
+This document is the default execution contract. Apply the conflict resolution and protected-boundary rules below, including applicable scoped freeze and change authority.
 
 AI must first determine what is true, which source has authority to prove it, which canonical contract represents it, who owns it, and whether the requested task authorizes changing it.
 
 The Truth, Contract, and Change Authority rules below apply to all Bella OS, Products, features, refactors, UI redesigns, and technical-debt fixes.
+
+## Bella Product-First AI Coding Policy
+
+**Owner-approved direction:** 2026-11-05. **Scope:** Platform, Industry OS, Products, AI coding agents and engineering workflows. This amendment governs development priority and procedure; it does not grant runtime, database, Production, protected-contract or frozen-layer change authority.
+
+**PRODUCT-FIRST → PLATFORM-REUSE → OS-ON-EVIDENCE.** Finish the assigned Product outcome: build, complete and operate real business workflows, including UI → API → persistence → E2E when applicable. Reuse suitable existing Platform capabilities; extend them only within authorized boundaries and without breaking contracts. Industry OS capabilities emerge from observed and proven operational need, not an assumed prerequisite to Product coding. Product-specific logic, workflows, data models, APIs and UI may remain Product-local within the authorized scope and protected ownership boundaries.
+
+Use **REUSE → EXTEND → LOCAL → ABSTRACT**: discover suitable existing capabilities; extend a compatible component when appropriate and authorized; otherwise implement the smallest safe Product-local solution; extract shared capability only when evidence and authority justify it. ABSTRACT is optional. Similar UI, names, fields or code alone do not establish shared business semantics. Do not create a speculative kernel, generic engine, framework or cross-Product abstraction, force reuse, or delay one Product for unrelated Products or a future OS. An existing protected contract, ownership boundary or clinical safety obligation cannot be bypassed by a local implementation.
+
+**OS on evidence:** build and operate Products, observe repeated demand, validate actual functional overlap, consistent rules and workflows, compatible semantics and ownership, measurable benefit, and acceptable migration and regression risk before extraction. Normally evaluate possible consolidation once 2–3 Products in the industry are in stable operational use; this is a trigger for evaluation, not a mandatory threshold, extraction, or reason to delay a justified existing capability. Preserve Product behavior and contracts during authorized extraction; do not migrate stable Products merely for uniformity.
+
+**Execution:** GOAL → EXECUTE → VERIFY → FIX → SEAL. Discover only relevant code, dependencies and contracts within the loop. Make routine technical decisions independently, implement and fix continuously, select verification by real risk, reuse valid evidence and disclose actual results and limits. Do not require a full architecture audit, new ADR, independent review, extra agents or Factory certification for ordinary work without a specific applicable requirement or demonstrated risk. Factory is optional except where explicitly selected or required by an applicable task contract; a direct Product result is not native Factory evidence. MULTI_AGENT is off by default and is used only when authorized and useful. Do not repeat successful checks without a changed input, invalidated evidence, or another meaningful reason.
+
+An unfinished OS, speculative abstraction, unrelated Product, Factory development, nonessential standardization or irrelevant audit is not itself a Product dependency. If a truly required capability is missing, use a safe authorized local solution where protected ownership and contracts permit; otherwise hold only the dependent action and continue independent work. `NOT_PROVEN`, `SKIP` and `TIMEOUT` are not `PASS`; missing proof alone is not `BLOCKED`. A task is complete only when its requested business outcome and applicable verification are satisfied and material limitations disclosed. A scoped PASS does not establish Production readiness or Go-Live.
+
+### Conflict Resolution and Applicable Authority
+
+The owner-authorized [Product-Local Implementation Authority](../01-architecture/ARCHITECTURE_CONSTITUTION.md#product-local-implementation-authority) resolves the former Platform-first sequencing conflict. When a Platform capability is unavailable, unsuitable or an unnecessary dependency, choose the smallest safe Product-local solution within assigned scope; Chief Architect or ARB approval is not required merely because it is local. Record relevant observations for later OS consolidation. The Product Owner retains final strategic, business and architectural decision authority. The Chief Architect and ARB advise and provide technical challenge, without an independent veto over ordinary in-scope Product-local work. Review is advisory by default, subject to specific protected boundaries, applicable controls and explicit authority conditions. Protected contracts, security, ownership, freeze, database migration and ACL/GRANT/REVOKE authority, and separate Production deployment authority remain in force.
+
+Apply the following order to genuinely conflicting instructions: (1) security, tenant isolation, data integrity and protected contracts; (2) this Constitution; (3) applicable scoped change-authority and freeze rules; (4) Product-specific business contracts; (5) AI coding and agent instructions; (6) Factory procedures and other technical guidance. This ordering does not grant authority to alter a protected contract or freeze, override a mandatory repository control, or disregard an explicitly applicable safety or release requirement. Apply compatible specialized requirements in their actual scope. An older general OS-first or speculative-abstraction instruction cannot impose an extra Product gate; preserve protected ownership and public-contract access. If a real protected or unresolved business conflict remains, hold the dependent action and present the exact conflict to its owner while continuing independent authorized work. Do not choose the most convenient rule silently.
 
 ## Scope, Responsibilities, and Applicable Authority
 
@@ -36,7 +56,7 @@ These are responsibility boundaries, not a mandatory adjacent-layer dependency c
 | Existing source | Applicability and relationship |
 | --- | --- |
 | This document | Common engineering execution rules across the ecosystem; retain this canonical file path when referring to the renamed Constitution. |
-| [Approved Platform Architecture Constitution](../01-architecture/ARCHITECTURE_CONSTITUTION.md) | Approved architectural foundation. This engineering update does not revoke its constraints or approve deviations. |
+| [Platform Architecture Constitution](../01-architecture/ARCHITECTURE_CONSTITUTION.md) | Architectural foundation, version 1.1, including the owner-authorized Product-local authority amendment dated 2026-11-05. Protected invariants and applicable change processes remain binding. |
 | [Healthcare Constitution](../architecture/HEALTHCARE_VERTICAL_CODING_CONSTITUTION.md), [Education Constitution](../architecture/EDUCATION_VERTICAL_CODING_CONSTITUTION.md), and other applicable OS/Product constitutions | Specialized rules for their declared scopes, including mandatory gates and public-contract boundaries. |
 | [Freeze Policy](../architecture/FREEZE_POLICY.md) and applicable ACRs/ADRs | Protected-layer changes retain their required approval, unlock, verification, and reseal process. Apply decisions only within their approved scope and effective conditions. |
 | [Git Workflow Constitution](../architecture/GIT_WORKFLOW_CONSTITUTION.md), [Operational Readiness SOP](OPERATIONAL_READINESS_SOP.md), [Deployment Governance](BELLA_DEPLOYMENT_GOVERNANCE_FRAMEWORK.md), and Product release criteria | Govern their respective change, operational, deployment, and Go-Live decisions; none is established by a generic gate PASS. |
@@ -44,7 +64,7 @@ These are responsibility boundaries, not a mandatory adjacent-layer dependency c
 
 AGENTS.md, CLAUDE.md, tool instructions, and directory instructions route execution to these sources; they must not create a competing copy of the common rules. Local instructions may add applicable constraints without weakening existing authority.
 
-Apply stricter applicable rules. When approved sources genuinely conflict and precedence cannot be resolved from an applicable decision, stop the dependent change and present the exact conflict to its owner. Continue independent, authorized work. AI must not silently repeal a rule, choose the easiest policy, or treat a document rename as approval of an architectural exception.
+Apply the conflict resolution and applicable authority above. This owner-authorized amendment establishes Product-local authority; it does not approve a protected change or waive an applicable safeguard.
 
 ### Mandatory Invariants and Conditional Techniques
 
@@ -146,7 +166,7 @@ Optimize in this order: **business correctness -> completion speed -> sufficient
 2. **Find the root cause.** Read the relevant code and run the smallest check that can reproduce the issue. Distinguish Product logic, data, configuration, environment, and test/fixture failures. Once evidence is sufficient for a safe fix, stop investigating unrelated branches and implement within authority.
 3. **Make the minimum fix.** Change the proven owner and reuse existing services, contracts, and patterns. Do not add a framework, service, abstraction, migration, or agent without a demonstrated need and the required authority. Do not fabricate business data, present synthetic/fallback values as real data, bypass contracts or authorization, suppress a failure as `PASS`, or fix unrelated scope to make the entire suite green. Test fixtures must remain explicit test evidence, not runtime proof.
 4. **Verify according to risk.** Run the reproducer and relevant regression checks. For API/UI changes, exercise the corresponding real user flow when the environment permits; record any missing evidence. For authorization, tenant isolation, financial behavior, or mutations, verify permitted and denied/failure paths, including persistence and side effects where affected. Select typecheck, lint, build, and wider suites according to impact and [Verification Selection](#verification-selection); every mandatory applicable gate remains required. Unit-test `PASS` does not prove Browser, Production, or Go-Live behavior.
-5. **Review and hand over.** Use the existing review process, with independent review for security, data-integrity, public-contract, or broad changes. A small local bug does not automatically require multiple review layers or additional agents; review needs do not themselves activate Multi-Agent Mode. Report the root cause, main changes, actual verification results, remaining risk, and one concrete next action if acceptance is incomplete.
+5. **Review and hand over.** Use the existing review process, with independent review when the actual risk or an applicable protected or task-specific rule requires it, including for security, data-integrity, public-contract, or broad changes where warranted. A small local bug does not automatically require multiple review layers or additional agents; review needs do not themselves activate Multi-Agent Mode. Report the root cause, main changes, actual verification results, remaining risk, and one concrete next action if acceptance is incomplete.
 
 Apply [Scoped Autonomy and Approval](#scoped-autonomy-and-approval). An unrelated finding is not permission to expand scope: record it briefly, hold only its dependent work, and continue independent authorized delivery. Missing evidence alone is `NOT_PROVEN`, not an automatic `BLOCKED`; neither means `PASS`. Do not claim completion while an acceptance criterion remains unmet.
 
@@ -1019,7 +1039,7 @@ Bella Nail Shop
 Bella Beauty Spa
 ```
 
-OS must not be designed around one Product's UI. Product must not copy a domain engine that belongs to an OS.
+OS must not be designed around one Product's UI. Preserve existing protected OS ownership and contracts; an unfinished OS is not a general prerequisite for Product-local functionality.
 
 ### Standard Process
 
@@ -1084,7 +1104,7 @@ Resolve context
 
 If context resolution or authorization fails, the workflow must not perform a business mutation and must not emit downstream side effects. This applies to booking, session, attendance, inventory, payroll, commission, finance handoff, and equivalent workflows.
 
-When a shared Platform or OS capability is already proven, mapped for the Product, and adoption-approved, the Product must consume the canonical contract instead of creating a duplicate subsystem. Product-local duplication is permitted only when new evidence proves the shared contract is missing or insufficient for the real workflow.
+When a shared Platform or OS capability is already proven, mapped for the Product, and adoption-approved, the Product must consume the canonical contract instead of creating a duplicate subsystem. When the shared contract is missing or insufficient for the real workflow, assess the smallest safe authorized Product-local solution without bypassing protected ownership or public contracts.
 
 When a gate fails, fix the owning boundary only. Do not modify another subsystem or consumer merely to make the gate pass. A consumer workaround is valid only when the consumer is the proven owner of the root cause.
 
@@ -1190,7 +1210,7 @@ Commission          ?           investigate
 Product presentation Product    NEW
 ```
 
-This prevents a Product from recreating existing Platform or OS capability.
+Use this focused map to find suitable reuse and identify protected ownership; it does not require waiting for an unfinished OS.
 
 ### 4. Reuse Before Create
 
@@ -1216,7 +1236,7 @@ The order is:
 REUSE -> EXTEND -> LOCAL -> ABSTRACT
 ```
 
-Evidence of reuse creates abstraction. Abstraction must not be created to predict reuse.
+Abstraction is optional and requires demonstrated reuse and value. It must not be created to predict reuse.
 
 ### 5. Define Canonical Contract
 
@@ -1268,7 +1288,7 @@ API / DTO
 UI
 ```
 
-Product code must consume OS or Platform through the allowed service/contract boundary, not direct internal table access.
+When Product code consumes OS or Platform, it must use the allowed service/contract boundary, not direct internal table access. Product-local capabilities need not introduce an OS dependency.
 
 Also verify:
 
@@ -1433,7 +1453,7 @@ Business Workflow
       ↓
 Required Capabilities
       ↓
-Map capabilities -> Platform/OS
+Check suitable Platform/OS reuse
       ↓
 Product-specific gaps
       ↓

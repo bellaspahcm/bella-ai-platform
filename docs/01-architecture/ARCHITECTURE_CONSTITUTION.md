@@ -1,9 +1,13 @@
 # Bella AI Platform - Architecture Constitution
 
-**Version:** 1.0  
+**Version:** 1.1
+
 **Status:** APPROVED  
-**Effective Date:** 2026-08-02  
-**Approval Authority:** Chief Architect  
+
+**Effective Date:** 2026-08-02; Product-first authority amendment 2026-11-05
+
+**Approval Authority:** Product Owner
+
 **Review Cycle:** Quarterly
 
 ---
@@ -14,7 +18,7 @@ This document establishes the **architectural foundation** and **governing princ
 
 This is not a guideline. This is a **constitution**.
 
-Any deviation requires formal Architecture Review Board (ARB) approval with documented justification.
+The Product Owner has final authority over Bella's strategy, business and architecture. The Chief Architect and ARB advise and provide technical challenge; they have no independent veto over ordinary Product-local implementation within assigned scope. Product-local implementation is governed by the Product-Local Implementation Authority below. Protected contracts, security boundaries, frozen components and other explicitly restricted changes retain their applicable authorization and review requirements.
 
 ---
 
@@ -68,13 +72,19 @@ Bella AI Platform provides **unified business capabilities** (Identity, CRM, Fin
 
 ---
 
-### 2. Platform Before Industry
-**"Build platform capabilities before industry features."**
+<a id="2-platform-before-industry"></a>
+### 2. Platform Reuse and Product-Local Authority
+**Reuse suitable Platform capabilities; do not make their creation a prerequisite for Product completion.**
 
-❌ BAD: Build `PartnerRegistration` hardcoded for Real Estate  
-✅ GOOD: Build `IdentityRegistration` platform, then `RealEstatePartnerProvider`
+An existing suitable capability should be reused through its contract. If it is unavailable, unsuitable, or creates an unnecessary development dependency, use the smallest safe, authorized Product-local solution. For example, Product-specific registration workflow may remain local while respecting existing protected identity ownership and contracts. Platform extensions or new capabilities require their own assigned scope.
 
-**Rationale:** Industry-first thinking creates technical debt. Platform-first thinking creates reusable assets.
+#### Product-Local Implementation Authority
+
+Not every Product capability must originate from Bella Platform. AI Coding Agents may implement Product-local business logic, UI, APIs and data models within assigned scope and applicable change authority without ARB approval solely because the capability is local. A local solution must preserve security, tenant isolation, authorization, data integrity, ownership and protected contracts. It does not automatically become Platform or OS capability, and must not introduce unnecessary shared abstractions or cross-Product dependencies.
+
+Use **REUSE → EXTEND → LOCAL → ABSTRACT**. Record relevant observations for future evidence-based OS consolidation. Do not block independent Product work on unrelated Platform or OS development. Changes to protected Platform contracts, frozen components or explicitly restricted boundaries retain their applicable change authority; Production migration and deployment retain separately granted authority.
+
+The Product Owner retains final business and architectural decision authority. Architecture review is advisory by default; a specific protected boundary, applicable control or explicit authority condition may require authorization or review. This does not waive security, freeze, protected-contract or release controls. Platform architecture enables Product completion.
 
 ---
 
@@ -176,7 +186,7 @@ Commission → AI Validation → Finance Approval
 
 ## IV. Architectural Invariants
 
-These rules **CANNOT be violated** without Chief Architect approval.
+These invariants are mandatory. Owner architectural authority does not itself waive technical protections or grant authority to change protected contracts, security boundaries, frozen components, database permissions or Production. Any proposed protected change must follow its specific authorization, applicable review, verification and recovery requirements; an ordinary Product-local solution that respects them needs no Chief Architect or ARB approval.
 
 ### Invariant 1: Zero Regression Policy
 **"New features MUST NOT break existing tenants."**
@@ -441,17 +451,14 @@ These rules **CANNOT be violated** without Chief Architect approval.
 ### Architecture Review Board (ARB)
 **Members:** Chief Architect, Tech Leads, Product Owner
 
-**Responsibilities:**
-- Review ADRs before approval
-- Approve deviations from this Constitution
-- Quarterly architecture review
-- Resolve architectural disputes
+**Responsibilities:** The Chief Architect and ARB advise and challenge technical decisions; the Product Owner retains final strategic, business and architectural authority. Review or approval is mandatory only where a specific protected boundary, applicable control or explicit authority condition requires it. Neither role has an independent veto over ordinary in-scope Product-local implementation.
+
+- Advise on ADRs and protected changes when applicable or requested.
+- Provide technical challenge and recommendations on architecture questions.
+- Support periodic architecture review and bring unresolved decisions to the Product Owner.
 
 ### ADR Process
-1. Engineer proposes ADR (use template)
-2. ARB reviews within 5 business days
-3. ARB approves/rejects/requests changes
-4. Approved ADRs are immutable (create new ADR to supersede)
+When an ADR is required by an applicable protected change process or explicitly requested, use the existing template and required authorized review. Approved ADRs remain immutable; create a new ADR to supersede one. Ordinary Product-local implementation does not require an ADR or ARB review.
 
 ### Compliance Checks
 **Automated (CI/CD):**
@@ -473,28 +480,25 @@ These rules **CANNOT be violated** without Chief Architect approval.
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-11-05 | Product Owner | Established Product-first, Product-local and final Owner architectural authority; retained protected controls and risk-scoped review. |
 | 1.0 | 2026-08-02 | Chief Architect | Initial constitution |
 
 ---
 
 ## XII. Sign-Off
 
-This Architecture Constitution is effective immediately upon approval.
-
-- [ ] **Chief Architect:** _________________ Date: _______
-- [ ] **VP Engineering:** _________________ Date: _______
-- [ ] **CTO:** _________________ Date: _______
+The initial constitution records Chief Architect authority in version 1.0. The Product Owner's direction of 2026-11-05 authorizes the version 1.1 amendment. Chief Architect, ARB, VP Engineering and CTO input is advisory unless a specific protected control or explicit authority condition requires otherwise. This record does not assert a separate signature or approval for a protected change.
 
 ---
 
 **Document Classification:** CONFIDENTIAL - INTERNAL USE ONLY
 
-**Location:** `docs/architecture/ARCHITECTURE_CONSTITUTION.md`
+**Location:** `docs/01-architecture/ARCHITECTURE_CONSTITUTION.md`
 
 **Related Documents:**
-- [ADR-001: Identity Platform](./adr/ADR-001-identity-platform.md)
-- [ADR-004: Event-Driven Architecture](./adr/ADR-004-event-driven-architecture.md)
-- [ADR-010: Domain Model](./adr/ADR-010-domain-model.md)
+- [ADR-001: Identity Platform](../05-adr/ADR-001-identity-platform.md)
+- [ADR-004: Event-Driven Architecture](../05-adr/ADR-004-event-driven-architecture.md)
+- [ADR-010: Domain Model](../05-adr/ADR-010-domain-model.md)
 
 ---
 

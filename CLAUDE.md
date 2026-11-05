@@ -5,6 +5,8 @@ Before changing software, architecture, or engineering controls anywhere in the 
 
 Use its **[Fast, Correct, Evidence-Based Execution](docs/governance/BELLA_AI_CODING_CONSTITUTION.md#fast-correct-evidence-based-execution)**, **Workflow Routing**, **Scoped Autonomy and Approval**, **Verification Results and Applicability**, and **Enforcement Evidence** sections. Follow its authority/applicability map and retain applicable specialized rules. The complete common rules live in that document; this entrypoint does not create a separate workflow or grant additional authority.
 
+Default to [Product-First AI Coding Policy](docs/governance/BELLA_AI_CODING_CONSTITUTION.md#bella-product-first-ai-coding-policy): PRODUCT-FIRST → PLATFORM-REUSE → OS-ON-EVIDENCE and REUSE → EXTEND → LOCAL → ABSTRACT. Keep protected contracts, freeze, security, and change authority intact.
+
 Follow **[Autonomous Execution](docs/governance/OPERATIONAL_RULES.md)** through the existing **[Bella BMAD Orchestration](docs/governance/BELLA_BMAD_ORCHESTRATION.md)** for all Bella AI Platform work and current or future Products. Reuse these sources rather than copying their rules here or into Products.
 
 Factory is optional for coding requests received in project Codex chat. Follow the Constitution's Workflow Routing to use the normal direct workflow unless the user or a task-specific rule selects Factory. When Factory is selected, follow **Factory Intake from Project Codex Chat**; do not claim Factory evidence for direct work or bypass a held Factory run.
@@ -17,13 +19,13 @@ For `BELLA MVP UI-TO-DATABASE COMPLETION` or an equivalent request to complete a
 
 For multi-agent work, the default is single-agent execution unless Multi-Agent Mode is explicitly requested or authorized by the task context. Follow the **Multi-Agent Coding Protocol** in `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`: one Lead, clear ownership, isolated worktrees/branches, public contracts across boundaries, QA before merge, and evidence before status.
 
-Before creating or modifying any code, you MUST read and obey:
+Before modifying Healthcare or Education code or implementing a Product vertical, read and obey:
 - **Healthcare OS Constitution:** `docs/architecture/HEALTHCARE_VERTICAL_CODING_CONSTITUTION.md`
 - **Education OS Constitution:** `docs/architecture/EDUCATION_VERTICAL_CODING_CONSTITUTION.md`
 
 ## NON-NEGOTIABLE LAWS:
 1. **KERNEL CANDIDATE FREEZE:** Boundedcontext kernels are FROZEN. Do NOT create core engines without approval.
-2. **PRODUCT VERTICAL LAYER ONLY:** Product code belongs in `src/products/`.
+2. **PRODUCT VERTICAL BOUNDARY:** Apply the relevant vertical constitution and existing approved Product modules; do not move Product logic into a frozen Kernel.
 3. **CONTRACT ACCESS ONLY:** `Product → Contract → Kernel`. Do NOT query `hc_*` or internal vertical tables directly from Product layer.
 4. **ADDITIVE MIGRATIONS:** `CREATE` product tables/indexes only. Never alter/drop Kernel columns.
 5. **ZERO ENTITY DUPLICATION:** Do not recreate `Patient`, `Doctor`, `Course`, or `Student` tables.

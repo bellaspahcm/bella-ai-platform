@@ -6,6 +6,8 @@ Before changing software, architecture, or engineering controls anywhere in the 
 
 Use its **[Fast, Correct, Evidence-Based Execution](docs/governance/BELLA_AI_CODING_CONSTITUTION.md#fast-correct-evidence-based-execution)**, **Workflow Routing**, **Scoped Autonomy and Approval** (including **Autonomous Execution Within Scope**), **Verification Results and Applicability**, and **Enforcement Evidence** sections. Follow its authority/applicability map and retain applicable specialized rules. The complete common rules live in that document; this entrypoint does not create a separate workflow or grant additional authority.
 
+Default to [Product-First AI Coding Policy](docs/governance/BELLA_AI_CODING_CONSTITUTION.md#bella-product-first-ai-coding-policy): PRODUCT-FIRST → PLATFORM-REUSE → OS-ON-EVIDENCE and REUSE → EXTEND → LOCAL → ABSTRACT. Keep protected contracts, freeze, security, and change authority intact.
+
 Follow **[Autonomous Execution](docs/governance/OPERATIONAL_RULES.md)** across the entire Bella AI Platform and every current or future Product, using **[Bella BMAD Orchestration](docs/governance/BELLA_BMAD_ORCHESTRATION.md)** to select roles, delegate, integrate, and close the requested outcome. These operating instructions apply the Constitution without expanding authority.
 
 Factory is optional for coding requests received in project Codex chat. Follow the Constitution's Workflow Routing to use the normal direct workflow unless the user or a task-specific rule selects Factory. When Factory is selected, follow **Factory Intake from Project Codex Chat**; do not claim Factory evidence for direct work or bypass a held Factory run.
@@ -62,9 +64,9 @@ Before writing or modifying code, apply the constitution's entry gate and propor
 For any new OS, new Product, Product vertical, or Product UI redesign, `ARCHITECTURE_GATE_RESULT.md` must conclude `PASS`, `BLOCKED`, or `DEFER` before product/runtime code is written.
 
 ### 🔴 ARCHITECTURAL GAP PROTOCOL
-If the requested feature appears to require a new Kernel capability or modification to H1–H12:
+If the requested feature actually requires a protected Kernel capability or modification to H1–H12 and no safe Product-local solution is permitted under the applicable ownership and contracts:
 - **STATUS:** `BLOCKED`
-- **ACTION:** Output `ARCHITECTURAL GAP DETECTED`. Do NOT write code. Report the gap for Human Architect Review.
+- **ACTION:** Output `ARCHITECTURAL GAP DETECTED`. Hold dependent code and report the gap for Human Architect Review; continue independent authorized work.
 
 ---
 

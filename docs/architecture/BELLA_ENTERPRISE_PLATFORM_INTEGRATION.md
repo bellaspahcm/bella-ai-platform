@@ -12,6 +12,8 @@
 
 This document defines how **Bella Hospital Product Pack** integrates with the **Bella Host Enterprise Platform** 7-Volume Architecture Suite. It bridges the Platform-of-Platforms architecture (defined in `BELLA_HOSPITAL_ENTERPRISE_ARCHITECTURE.md`) with the enterprise-grade TOGAF 10 governance framework.
 
+**Authority clarification, 2026-11-05:** The phase-specific assessments, ARB establishment tasks and proposed gates below are historical planning records, not a general prerequisite for ordinary Product-local coding. Apply the [Product-Local Implementation Authority](../01-architecture/ARCHITECTURE_CONSTITUTION.md#product-local-implementation-authority). Protected contracts, Healthcare safety, frozen boundaries and their applicable change and verification requirements remain in force.
+
 ---
 
 ## Architecture Alignment Matrix
@@ -145,12 +147,12 @@ if (!await capabilityPlatform.hasCapability('hospital_inpatient', { tenantId }))
 **Status:** ⚠️ PARTIAL (Architecture docs exist, but no formal ARB process)
 
 - **Current:** Architecture documented in Markdown files
-- **Required:** Formal ADR process with ARB approval
+- **Applicable authority:** Follow the [Product-Local Implementation Authority](../01-architecture/ARCHITECTURE_CONSTITUTION.md#product-local-implementation-authority). Ordinary in-scope Product-local implementation does not require an ADR or ARB approval merely because it is local; protected boundaries and changes retain their applicable authorization, review and freeze requirements.
 
 ```
 ✅ HAVE: docs/architecture/*.md
 ❌ MISSING: ADR registry, ARB review process
-🟡 TODO: Implement ADR template, ARB workflow
+🟡 Historical gap: ADR registry and ARB workflow were not established at this assessment.
 ```
 
 ### Law 9: Zero Regression Guarantee
