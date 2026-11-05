@@ -9,6 +9,7 @@
 # Retain applicable specialized rules via its authority map.
 # The complete common rules live there; this entrypoint grants no additional authority.
 
+# Default to the Product-First AI Coding Policy in the Constitution: PRODUCT-FIRST → PLATFORM-REUSE → OS-ON-EVIDENCE; REUSE → EXTEND → LOCAL → ABSTRACT. Preserve protected contracts, security, freeze, and change authority.
 # Follow docs/governance/OPERATIONAL_RULES.md across Bella AI Platform and all current/future Products.
 # Use docs/governance/BELLA_BMAD_ORCHESTRATION.md to route roles, delegate, integrate and verify outcomes.
 
