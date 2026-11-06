@@ -456,6 +456,17 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
       permission_id: 'construction:site:write',
       scope_type: 'TENANT',
     };
+    const targetAuditFilter = {
+      tenant_id: tenantA,
+      target_user_id: userA.id,
+      permission_id: 'construction:site:write',
+      scope_type: 'TENANT',
+    };
+    const auditBeforeFailedGrant = await readRows(
+      adminA,
+      'platform_direct_user_action_grant_audit',
+      targetAuditFilter
+    );
 
     const grantAuditFault = await installAuditFault('GRANT', userA.id);
     try {
@@ -466,11 +477,11 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
       });
       expect(failedGrant).toEqual({ status: 'UNAVAILABLE', reason: 'PERSISTENCE_FAILED' });
       expect(await readRows(adminA, 'platform_direct_user_action_grants', tenantGrantFilter)).toHaveLength(0);
-      expect(await readRows(adminA, 'platform_direct_user_action_grant_audit', {
-        tenant_id: tenantA,
-        permission_id: 'construction:site:write',
-        scope_type: 'TENANT',
-      })).toHaveLength(0);
+      expect(await readRows(
+        adminA,
+        'platform_direct_user_action_grant_audit',
+        targetAuditFilter
+      )).toEqual(auditBeforeFailedGrant);
     } finally {
       await dropAuditFault(grantAuditFault);
     }
