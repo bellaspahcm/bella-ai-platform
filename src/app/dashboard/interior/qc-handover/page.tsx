@@ -1,9 +1,37 @@
 'use client';
 
-import { useState } from 'react';
-import { FileText, Award } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import {
+  CheckCircle2,
+  ArrowLeft,
+  AlertCircle,
+  AlertTriangle,
+  Clock,
+  Plus,
+  ArrowRight,
+  ShieldCheck,
+  FileCheck,
+  FileText,
+  Building,
+  RefreshCw,
+  X,
+  Lock,
+  UserCheck,
+  Award,
+  ChevronRight,
+  Filter,
+  Wrench,
+  ClipboardCheck,
+} from 'lucide-react';
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+interface ProjectSummary {
+  id: string;
+  name: string;
+  code: string;
+  status: string;
+  clientName: string;
+}
 
 type PunchCategory =
   | 'finishing'
@@ -14,487 +42,730 @@ type PunchCategory =
 
 type PunchSeverity = 'critical' | 'major' | 'minor';
 
-type PunchStatus = 'open' | 'in_progress' | 'resolved' | 'verified';
+type PunchStatus = 'open' | 'in_progress' | 'rectified' | 'verified';
 
-type HandoverStatus = 'blocked' | 'ready' | 'completed';
-
-type FilterMode = 'all' | 'open' | 'resolved';
-
-interface PunchItem {
+interface PunchItemDisplay {
   id: string;
-  issueNumber: string;
-  project: string;
-  room: string;
+  roomZoneId: string | null;
   description: string;
   category: PunchCategory;
   severity: PunchSeverity;
-  reportedBy: string;
-  assignedTo: string;
   status: PunchStatus;
-  resolvedDate?: string;
+  reportedByUserId: string;
+  assignedToUserId: string | null;
+  photoUrl: string | null;
+  createdAt: string;
 }
 
-interface HandoverDossier {
-  id: string;
-  projectName: string;
-  client: string;
-  contractValue: string;
-  rooms: number;
-  openPunchItems: number;
-  criticalOpenItems: number;
-  handoverStatus: HandoverStatus;
-}
+export default function InteriorQCHandoverPage() {
+  const [projects, setProjects] = useState<ProjectSummary[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [punchItems, setPunchItems] = useState<PunchItemDisplay[]>([]);
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-// ── Mock Data ─────────────────────────────────────────────────────────────────
+  // New Punch Item Modal
+  const [showNewPunchModal, setShowNewPunchModal] = useState<boolean>(false);
+  const [punchRoom, setPunchRoom] = useState('Phòng Khách Luxury');
+  const [punchDesc, setPunchDesc] = useState('');
+  const [punchCategory, setPunchCategory] = useState<PunchCategory>('furniture_fit');
+  const [punchSeverity, setPunchSeverity] = useState<PunchSeverity>('major');
+  const [punchAssignee, setPunchAssignee] = useState('Đội mộc hoàn thiện 1');
 
-const punchItems: PunchItem[] = [
-  {
-    id: 'PI001',
-    issueNumber: '#001',
-    project: 'The Grand Meridian',
-    room: 'Suite 101',
-    description: 'Wardrobe door alignment off — gap visible at top left hinge.',
-    category: 'furniture_fit',
-    severity: 'major',
-    reportedBy: 'Ahmed Al-Rashidi',
-    assignedTo: 'Faisal Al-Otaibi',
-    status: 'in_progress',
-  },
-  {
-    id: 'PI002',
-    issueNumber: '#002',
-    project: 'The Grand Meridian',
-    room: 'Suite 201',
-    description: 'Paint bleed across skirting board in northeast corner.',
-    category: 'painting',
-    severity: 'minor',
-    reportedBy: 'QC Inspector - Layla',
-    assignedTo: 'Paint Crew B',
-    status: 'resolved',
-    resolvedDate: '2025-11-04',
-  },
-  {
-    id: 'PI003',
-    issueNumber: '#003',
-    project: 'Sapphire Residences',
-    room: 'Unit 2A – Master',
-    description: 'Ceiling rose not centred — offset 4 cm south from design plan.',
-    category: 'finishing',
-    severity: 'major',
-    reportedBy: 'Noura Hassan',
-    assignedTo: 'Ramzi Khalil',
-    status: 'open',
-  },
-  {
-    id: 'PI004',
-    issueNumber: '#004',
-    project: 'Sapphire Residences',
-    room: 'Unit 3B – Master',
-    description: 'Structural crack appearing above door frame — requires engineer review.',
-    category: 'structural',
-    severity: 'critical',
-    reportedBy: 'QC Inspector - Layla',
-    assignedTo: 'Structural Team',
-    status: 'open',
-  },
-  {
-    id: 'PI005',
-    issueNumber: '#005',
-    project: 'Azure Bay Villas',
-    room: 'Villa A – Living',
-    description: 'Socket height inconsistent with design spec — 32 cm instead of 40 cm from FFL.',
-    category: 'electrical_coordination',
-    severity: 'major',
-    reportedBy: 'Khalid Mansour',
-    assignedTo: 'MEP Sub-contractor',
-    status: 'open',
-  },
-  {
-    id: 'PI006',
-    issueNumber: '#006',
-    project: 'The Grand Meridian',
-    room: 'Penthouse 301',
-    description: 'Marble feature wall panel 3B has hairline crack — replace before handover.',
-    category: 'finishing',
-    severity: 'critical',
-    reportedBy: 'QC Inspector - Layla',
-    assignedTo: 'Stone Supplier Rep',
-    status: 'open',
-  },
-  {
-    id: 'PI007',
-    issueNumber: '#007',
-    project: 'Azure Bay Villas',
-    room: 'Villa C – Exterior',
-    description: 'Cladding panel edge sealant gap at northwest corner — weatherproofing risk.',
-    category: 'finishing',
-    severity: 'major',
-    reportedBy: 'Khalid Mansour',
-    assignedTo: 'Facade Crew',
-    status: 'resolved',
-    resolvedDate: '2025-11-03',
-  },
-  {
-    id: 'PI008',
-    issueNumber: '#008',
-    project: 'Sapphire Residences',
-    room: 'Unit 2A – Living',
-    description: 'Media unit veneer peeling at bottom left panel — material defect.',
-    category: 'furniture_fit',
-    severity: 'major',
-    reportedBy: 'Dana Yousef',
-    assignedTo: 'Joinery Supplier',
-    status: 'verified',
-    resolvedDate: '2025-11-05',
-  },
-];
+  // Rectify Modal
+  const [rectifyingItem, setRectifyingItem] = useState<PunchItemDisplay | null>(null);
+  const [rectifierName, setRectifierName] = useState('Thợ chính Nguyễn Văn Hùng');
+  const [rectifyNote, setRectifyNote] = useState('Đã căn chỉnh lại bản lề, khe hở 2mm đều khít');
 
-const handoverDossiers: HandoverDossier[] = [
-  {
-    id: 'HD001',
-    projectName: 'The Grand Meridian',
-    client: 'Al Meridian Hospitality LLC',
-    contractValue: 'SAR 4,250,000',
-    rooms: 5,
-    openPunchItems: 3,
-    criticalOpenItems: 2,
-    handoverStatus: 'blocked',
-  },
-  {
-    id: 'HD002',
-    projectName: 'Sapphire Residences',
-    client: 'Sapphire Living Co.',
-    contractValue: 'SAR 2,100,000',
-    rooms: 3,
-    openPunchItems: 2,
-    criticalOpenItems: 1,
-    handoverStatus: 'blocked',
-  },
-  {
-    id: 'HD003',
-    projectName: 'Azure Bay Villas',
-    client: 'Azure Properties',
-    contractValue: 'SAR 1,800,000',
-    rooms: 3,
-    openPunchItems: 1,
-    criticalOpenItems: 0,
-    handoverStatus: 'ready',
-  },
-];
+  // Handover Modal
+  const [showHandoverModal, setShowHandoverModal] = useState<boolean>(false);
+  const [handoverClientRep, setHandoverClientRep] = useState('Sheikh Al-Maktoum Office');
+  const [handoverNotes, setHandoverNotes] = useState('Biên bản nghiệm thu hoàn thành đạt chất lượng cao cấp.');
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+  // Load Projects
+  const loadProjects = useCallback(async () => {
+    try {
+      const res = await fetch('/api/interior/projects');
+      const json = await res.json();
+      if (json.success && json.data?.projects) {
+        setProjects(json.data.projects);
+        if (json.data.projects.length > 0 && !selectedProjectId) {
+          setSelectedProjectId(json.data.projects[0].id);
+        }
+      }
+    } catch {
+      // fallback
+    }
+  }, [selectedProjectId]);
 
-function categoryLabel(cat: PunchCategory): string {
-  const map: Record<PunchCategory, string> = {
-    finishing: 'Finishing',
-    structural: 'Structural',
-    furniture_fit: 'Furniture Fit',
-    electrical_coordination: 'Electrical',
-    painting: 'Painting',
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
+
+  // Load Punch List
+  const loadPunchList = useCallback(async (projId: string) => {
+    if (!projId) return;
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/interior/delivery/punch-list?projectId=${encodeURIComponent(projId)}`);
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        setPunchItems(json.data);
+      } else {
+        // Fallback default sample items
+        setPunchItems([
+          {
+            id: 'pli-001',
+            roomZoneId: 'Phòng Khách Luxury',
+            description: 'Cánh tủ rượu bị lệch khe hở 3mm — bản lề chưa siết ốc định vị',
+            category: 'furniture_fit',
+            severity: 'major',
+            status: 'rectified',
+            reportedByUserId: 'KTS. Lê Hoàng Sơn',
+            assignedToUserId: 'Thợ chính Nguyễn Văn Hùng',
+            photoUrl: null,
+            createdAt: '2026-11-05T10:00:00Z',
+          },
+          {
+            id: 'pli-002',
+            roomZoneId: 'Bếp Đảo Master',
+            description: 'Đường keo dán mặt đá Vicostone với bồn rửa chưa gạt sạch bavia',
+            category: 'finishing',
+            severity: 'minor',
+            status: 'verified',
+            reportedByUserId: 'Giám sát QC',
+            assignedToUserId: 'Đội đá Thạch Anh',
+            photoUrl: null,
+            createdAt: '2026-11-04T14:30:00Z',
+          },
+          {
+            id: 'pli-003',
+            roomZoneId: 'Phòng Ngủ Master',
+            description: 'Vết xước nhẹ 15mm trên tay vịn gỗ óc chó do vận chuyển',
+            category: 'painting',
+            severity: 'minor',
+            status: 'open',
+            reportedByUserId: 'KTS. Lê Hoàng Sơn',
+            assignedToUserId: 'Thợ sơn PU',
+            photoUrl: null,
+            createdAt: '2026-11-06T09:00:00Z',
+          },
+        ]);
+      }
+    } catch {
+      setFeedback({ type: 'error', message: 'Không thể tải danh mục lỗi Punch List.' });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedProjectId) {
+      loadPunchList(selectedProjectId);
+    }
+  }, [selectedProjectId, loadPunchList]);
+
+  // Handle Create Punch Item
+  const handleCreatePunch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!punchDesc) {
+      setFeedback({ type: 'error', message: 'Vui lòng nhập mô tả lỗi tồn đọng.' });
+      return;
+    }
+    try {
+      const res = await fetch('/api/interior/delivery/punch-list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: selectedProjectId,
+          roomZoneId: punchRoom,
+          description: punchDesc,
+          category: punchCategory,
+          severity: punchSeverity,
+          reportedByUserId: 'user-architect-lead',
+          assignedToUserId: punchAssignee,
+        }),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setShowNewPunchModal(false);
+        setPunchDesc('');
+        setFeedback({ type: 'success', message: 'Đã lập biên nhận lỗi vào Punch List!' });
+        await loadPunchList(selectedProjectId);
+      } else {
+        setFeedback({ type: 'error', message: json.error || 'Tạo punch item thất bại.' });
+      }
+    } catch {
+      setFeedback({ type: 'error', message: 'Lỗi kết nối khi gửi punch item.' });
+    }
   };
-  return map[cat];
-}
 
-function severityBadge(severity: PunchSeverity) {
-  const map: Record<PunchSeverity, string> = {
-    critical: 'bg-red-100 text-red-700 border border-red-300',
-    major: 'bg-amber-100 text-amber-700 border border-amber-300',
-    minor: 'bg-slate-100 text-slate-600 border border-slate-200',
+  // Handle Mark Rectified
+  const handleMarkRectified = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rectifyingItem) return;
+    try {
+      const res = await fetch(`/api/interior/delivery/punch-list/${encodeURIComponent(rectifyingItem.id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'rectified',
+          rectifiedBy: rectifierName,
+          rectificationNote: rectifyNote,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setRectifyingItem(null);
+        setFeedback({
+          type: 'success',
+          message: 'Lỗi đã được khắc phục (Rectified). Đang chờ Giám sát QC kiểm tra lại để xác thực (Verified)!',
+        });
+        // Update local state
+        setPunchItems((prev) =>
+          prev.map((item) => (item.id === rectifyingItem.id ? { ...item, status: 'rectified' } : item))
+        );
+      } else {
+        setFeedback({ type: 'error', message: json.error || 'Cập nhật khắc phục thất bại.' });
+      }
+    } catch {
+      setFeedback({ type: 'error', message: 'Lỗi kết nối khi cập nhật.' });
+    }
   };
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold uppercase ${map[severity]}`}>
-      {severity}
-    </span>
+
+  // Handle Verify Punch Item (Inspector Sign-off)
+  const handleVerifyPunch = async (itemId: string) => {
+    try {
+      const res = await fetch(`/api/interior/delivery/punch-list/${encodeURIComponent(itemId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'verified',
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setFeedback({
+          type: 'success',
+          message: 'Đã nghiệm thu đạt (Verified)! Chữ ký kiểm định đã được gán tự động từ tài khoản thanh tra.',
+        });
+        setPunchItems((prev) =>
+          prev.map((item) => (item.id === itemId ? { ...item, status: 'verified' } : item))
+        );
+      } else {
+        setFeedback({ type: 'error', message: json.error || 'Xác thực lỗi thất bại.' });
+      }
+    } catch {
+      setFeedback({ type: 'error', message: 'Lỗi kết nối khi xác thực.' });
+    }
+  };
+
+  // Critical open items check
+  const criticalUnverified = punchItems.filter(
+    (i) => i.severity === 'critical' && i.status !== 'verified'
   );
-}
+  const isHandoverBlocked = criticalUnverified.length > 0;
 
-function punchStatusBadge(status: PunchStatus) {
-  const map: Record<PunchStatus, string> = {
-    open: 'bg-red-50 text-red-600 border border-red-200',
-    in_progress: 'bg-amber-50 text-amber-600 border border-amber-200',
-    resolved: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-    verified: 'bg-green-100 text-green-800 border border-green-300',
+  // Handle Complete Handover
+  const handleCompleteHandover = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isHandoverBlocked) {
+      setFeedback({
+        type: 'error',
+        message: `Bàn giao bị chặn: Còn ${criticalUnverified.length} lỗi nghiêm trọng (Critical) chưa được nghiệm thu Verified!`,
+      });
+      return;
+    }
+    try {
+      const res = await fetch('/api/interior/delivery/handover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: selectedProjectId,
+          handedOverByUserId: 'user-architect-lead',
+          clientRepresentative: handoverClientRep,
+          notes: handoverNotes,
+        }),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setShowHandoverModal(false);
+        setFeedback({
+          type: 'success',
+          message: `Nghiệm thu bàn giao hoàn tất! Hồ sơ ${json.data.dossierId} đã lập, bảo hành 12 tháng đã được kích hoạt!`,
+        });
+      } else {
+        setFeedback({ type: 'error', message: json.error || 'Nghiệm thu bàn giao thất bại.' });
+      }
+    } catch {
+      setFeedback({ type: 'error', message: 'Lỗi kết nối khi bàn giao.' });
+    }
   };
-  const labels: Record<PunchStatus, string> = {
-    open: 'Open',
-    in_progress: 'In Progress',
-    resolved: 'Resolved',
-    verified: '✓ Verified',
-  };
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${map[status]}`}>
-      {labels[status]}
-    </span>
-  );
-}
 
-function handoverStatusBadge(status: HandoverStatus) {
-  const map: Record<HandoverStatus, string> = {
-    blocked: 'bg-red-100 text-red-700 border border-red-300 font-bold',
-    ready: 'bg-emerald-100 text-emerald-700 border border-emerald-300',
-    completed: 'bg-green-100 text-green-800 border border-green-300',
-  };
-  const labels: Record<HandoverStatus, string> = {
-    blocked: '🔴 BLOCKED',
-    ready: '✅ Ready',
-    completed: '🏆 Completed',
-  };
-  return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded text-xs ${map[status]}`}>
-      {labels[status]}
-    </span>
-  );
-}
-
-// ── Summary Bar ───────────────────────────────────────────────────────────────
-
-function PunchSummaryBar({ items }: { items: PunchItem[] }) {
-  const totalOpen = items.filter((i) => i.status === 'open' || i.status === 'in_progress').length;
-  const criticalOpen = items.filter((i) => i.severity === 'critical' && (i.status === 'open' || i.status === 'in_progress')).length;
-  const resolvedThisWeek = items.filter(
-    (i) => (i.status === 'resolved' || i.status === 'verified') && i.resolvedDate && i.resolvedDate >= '2025-11-03'
-  ).length;
+  const filteredItems = filterStatus === 'all'
+    ? punchItems
+    : punchItems.filter((i) => i.status === filterStatus);
 
   return (
-    <div className="grid grid-cols-3 gap-4">
-      {[
-        { label: 'Total Open', value: totalOpen, color: 'border-l-amber-400' },
-        { label: 'Critical Open', value: criticalOpen, color: 'border-l-red-500' },
-        { label: 'Resolved This Week', value: resolvedThisWeek, color: 'border-l-emerald-500' },
-      ].map(({ label, value, color }) => (
-        <div key={label} className={`bg-white rounded-lg border border-slate-200 shadow-sm p-4 border-l-4 ${color}`}>
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">{label}</p>
-          <p className="text-2xl font-bold text-slate-800 mt-1">{value}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Punch List Tab ────────────────────────────────────────────────────────────
-
-function PunchListTab({ items }: { items: PunchItem[] }) {
-  const [filter, setFilter] = useState<FilterMode>('all');
-  const [criticalOnly, setCriticalOnly] = useState(false);
-
-  const filtered = items.filter((item) => {
-    if (criticalOnly && item.severity !== 'critical') return false;
-    if (filter === 'open') return item.status === 'open' || item.status === 'in_progress';
-    if (filter === 'resolved') return item.status === 'resolved' || item.status === 'verified';
-    return true;
-  });
-
-  const filters: { key: FilterMode; label: string }[] = [
-    { key: 'all', label: 'All' },
-    { key: 'open', label: 'Open' },
-    { key: 'resolved', label: 'Resolved' },
-  ];
-
-  return (
-    <div className="space-y-5">
-      <PunchSummaryBar items={items} />
-
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
-          {filters.map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setFilter(key)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                filter === key ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        <button
-          onClick={() => setCriticalOnly(!criticalOnly)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
-            criticalOnly
-              ? 'bg-red-600 text-white border-red-600'
-              : 'bg-white text-red-600 border-red-300 hover:bg-red-50'
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 lg:p-8 space-y-6 font-sans">
+      {/* Toast Feedback */}
+      {feedback && (
+        <div
+          className={`flex items-center justify-between p-4 rounded-xl text-xs font-medium border ${
+            feedback.type === 'success'
+              ? 'bg-emerald-950/80 text-emerald-300 border-emerald-800'
+              : 'bg-rose-950/80 text-rose-300 border-rose-800'
           }`}
         >
-          🚨 Critical Only
-        </button>
-      </div>
-
-      {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
-        <table className="min-w-full divide-y divide-slate-100 text-sm">
-          <thead className="bg-slate-50">
-            <tr>
-              {['Issue #', 'Project', 'Room', 'Description', 'Category', 'Severity', 'Reported By', 'Assigned To', 'Status', 'Actions'].map(
-                (h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap"
-                  >
-                    {h}
-                  </th>
-                )
-              )}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 bg-white">
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={10} className="px-6 py-10 text-center text-sm text-slate-400">
-                  No punch items match the current filter.
-                </td>
-              </tr>
+          <div className="flex items-center gap-2">
+            {feedback.type === 'success' ? (
+              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+            ) : (
+              <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
             )}
-            {filtered.map((item) => (
-              <tr
-                key={item.id}
-                className={`hover:bg-slate-50 transition-colors ${
-                  item.severity === 'critical' && (item.status === 'open' || item.status === 'in_progress')
-                    ? 'bg-red-50/40'
-                    : ''
-                }`}
+            <span>{feedback.message}</span>
+          </div>
+          <button onClick={() => setFeedback(null)} className="hover:text-white">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Navigation & Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/interior"
+            className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-white">Kiểm Soát Chất Lượng QC, Punch List & Bàn Giao</h1>
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                QC & Handover
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
+              <span>Dự án:</span>
+              <select
+                value={selectedProjectId}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                className="bg-slate-900 border border-slate-700 text-amber-300 rounded px-2 py-0.5 font-medium focus:outline-none focus:border-amber-500"
               >
-                <td className="px-4 py-3 font-mono text-xs text-slate-500">{item.issueNumber}</td>
-                <td className="px-4 py-3 font-medium text-slate-800 whitespace-nowrap">{item.project}</td>
-                <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{item.room}</td>
-                <td className="px-4 py-3 text-slate-600 max-w-xs text-xs leading-relaxed">{item.description}</td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <span className="inline-block bg-emerald-50 text-emerald-700 text-xs px-2 py-0.5 rounded border border-emerald-200">
-                    {categoryLabel(item.category)}
-                  </span>
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap">{severityBadge(item.severity)}</td>
-                <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">{item.reportedBy}</td>
-                <td className="px-4 py-3 text-slate-600 text-xs whitespace-nowrap">{item.assignedTo}</td>
-                <td className="px-4 py-3 whitespace-nowrap">{punchStatusBadge(item.status)}</td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <button className="text-xs text-emerald-700 font-medium underline underline-offset-2 hover:text-emerald-900">
-                    Edit
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.code})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
 
-// ── Handover Dossiers Tab ─────────────────────────────────────────────────────
-
-function HandoverDossiersTab({ dossiers }: { dossiers: HandoverDossier[] }) {
-  return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
-      <table className="min-w-full divide-y divide-slate-100 text-sm">
-        <thead className="bg-slate-50">
-          <tr>
-            {['Project Name', 'Client', 'Contract Value', 'Rooms', 'Open Punch Items', 'Handover Status', 'Action'].map(
-              (h) => (
-                <th
-                  key={h}
-                  className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap"
-                >
-                  {h}
-                </th>
-              )
-            )}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 bg-white">
-          {dossiers.map((d) => (
-            <tr
-              key={d.id}
-              className={`hover:bg-slate-50 transition-colors ${d.handoverStatus === 'blocked' ? 'bg-red-50/30' : ''}`}
-            >
-              <td className="px-5 py-4 font-semibold text-slate-800">{d.projectName}</td>
-              <td className="px-5 py-4 text-slate-600">{d.client}</td>
-              <td className="px-5 py-4 font-mono text-slate-700 font-medium">{d.contractValue}</td>
-              <td className="px-5 py-4 text-center text-slate-700">{d.rooms}</td>
-              <td className="px-5 py-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-slate-800 font-semibold">{d.openPunchItems}</span>
-                  {d.criticalOpenItems > 0 && (
-                    <span className="text-xs bg-red-100 text-red-700 border border-red-300 px-1.5 py-0.5 rounded font-semibold">
-                      {d.criticalOpenItems} critical
-                    </span>
-                  )}
-                </div>
-              </td>
-              <td className="px-5 py-4">{handoverStatusBadge(d.handoverStatus)}</td>
-              <td className="px-5 py-4">
-                {d.handoverStatus === 'completed' ? (
-                  <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200 transition-colors">
-                    <Award className="w-3.5 h-3.5" />
-                    View Certificate
-                  </button>
-                ) : (
-                  <button
-                    disabled={d.handoverStatus === 'blocked'}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-                      d.handoverStatus === 'blocked'
-                        ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
-                        : 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700'
-                    }`}
-                  >
-                    <FileText className="w-3.5 h-3.5" />
-                    Generate Dossier
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-// ── Page ──────────────────────────────────────────────────────────────────────
-
-type TabKey = 'punch' | 'handover';
-
-export default function QCHandoverPage() {
-  const [activeTab, setActiveTab] = useState<TabKey>('punch');
-
-  const tabs: { key: TabKey; label: string }[] = [
-    { key: 'punch', label: 'Punch List' },
-    { key: 'handover', label: 'Handover Dossiers' },
-  ];
-
-  return (
-    <div className="min-h-screen bg-slate-50 p-6 space-y-8">
-      {/* Header */}
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">QC &amp; Handover</h1>
-        <p className="text-sm text-slate-500">
-          Manage quality control punch lists and prepare client handover dossiers and completion certificates.
-        </p>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => loadPunchList(selectedProjectId)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700"
+          >
+            <RefreshCw className="h-3.5 w-3.5 text-slate-400" />
+            Làm mới
+          </button>
+          <button
+            onClick={() => setShowNewPunchModal(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg bg-amber-600 hover:bg-amber-500 text-white shadow-sm transition-all"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Lập Biên Bản Punch List
+          </button>
+          <button
+            onClick={() => setShowHandoverModal(true)}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg shadow-sm transition-all ${
+              isHandoverBlocked
+                ? 'bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-700'
+                : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+            }`}
+          >
+            <Award className="h-3.5 w-3.5" />
+            Nghiệm Thu Bàn Giao
+          </button>
+        </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-slate-200">
-        <nav className="flex gap-0" aria-label="Tabs">
-          {tabs.map(({ key, label }) => (
+      {/* Handover Gate Status Banner */}
+      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          {isHandoverBlocked ? (
+            <div className="h-10 w-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+              <Lock className="h-5 w-5" />
+            </div>
+          ) : (
+            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+          )}
+          <div className="space-y-0.5 text-xs">
+            <div className="font-bold text-white flex items-center gap-2">
+              <span>Cổng Kiểm Định Nghiệm Thu (Handover Gate)</span>
+              {isHandoverBlocked ? (
+                <span className="px-2 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                  BLOCKED
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  READY FOR HANDOVER
+                </span>
+              )}
+            </div>
+            <p className="text-slate-400">
+              {isHandoverBlocked
+                ? `Còn ${criticalUnverified.length} lỗi Critical chưa đạt chữ ký kiểm tra verified. Nghiệm thu bị khóa theo đúng Invariant!`
+                : 'Tất cả hạng mục Critical đã đạt Verified. Đã đủ điều kiện ký biên bản bàn giao và kích hoạt bảo hành!'}
+            </p>
+          </div>
+        </div>
+
+        <Link
+          href="/dashboard/interior/warranty"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 shrink-0"
+        >
+          Chứng Thư Bảo Hành
+          <ChevronRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+
+      {/* Punch List Items Filter Strip */}
+      <div className="flex items-center justify-between gap-4 flex-wrap text-xs">
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-slate-400" />
+          <span className="text-slate-400 font-medium">Lọc theo trạng thái:</span>
+          {(['all', 'open', 'in_progress', 'rectified', 'verified'] as const).map((st) => (
             <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === key
-                  ? 'border-emerald-500 text-emerald-700'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              key={st}
+              onClick={() => setFilterStatus(st)}
+              className={`px-3 py-1 rounded-lg border transition-all ${
+                filterStatus === st
+                  ? 'bg-amber-500/10 text-amber-300 border-amber-500/30 font-semibold'
+                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
               }`}
             >
-              {label}
+              {st === 'all'
+                ? `Tất cả (${punchItems.length})`
+                : st === 'open'
+                ? `Mới mở (${punchItems.filter((i) => i.status === 'open').length})`
+                : st === 'in_progress'
+                ? `Đang sửa (${punchItems.filter((i) => i.status === 'in_progress').length})`
+                : st === 'rectified'
+                ? `Đã sửa xong (${punchItems.filter((i) => i.status === 'rectified').length})`
+                : `Đã xác thực (${punchItems.filter((i) => i.status === 'verified').length})`}
             </button>
           ))}
-        </nav>
+        </div>
       </div>
 
-      {/* Tab Content */}
-      {activeTab === 'punch' && <PunchListTab items={punchItems} />}
-      {activeTab === 'handover' && <HandoverDossiersTab dossiers={handoverDossiers} />}
+      {/* Punch List Items Cards */}
+      <div className="bg-slate-900/90 border border-slate-800/90 rounded-2xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+            <ClipboardCheck className="h-4 w-4 text-amber-400" />
+            Danh Sách Chi Tiết Tồn Đọng Punch List ({filteredItems.length} hạng mục)
+          </h3>
+          <span className="text-xs text-slate-400 font-mono">Quy trình: Open → In Progress → Rectified → Verified</span>
+        </div>
+
+        <div className="divide-y divide-slate-800/70">
+          {filteredItems.map((item) => (
+            <div
+              key={item.id}
+              className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-800/30 transition-colors"
+            >
+              <div className="space-y-1.5 max-w-xl">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-amber-300 font-bold text-xs">{item.id}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-slate-800 text-slate-300">
+                    {item.roomZoneId || 'Hiện trường'}
+                  </span>
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
+                      item.severity === 'critical'
+                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                        : item.severity === 'major'
+                        ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                        : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                    }`}
+                  >
+                    {item.severity.toUpperCase()}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    Phân loại: <span className="text-slate-300">{item.category}</span>
+                  </span>
+                </div>
+
+                <div className="text-xs font-semibold text-white">{item.description}</div>
+
+                <div className="text-[11px] text-slate-400 flex items-center gap-4">
+                  <span>Phụ trách: <span className="text-slate-300">{item.assignedToUserId || 'Chưa gán'}</span></span>
+                  <span>Người báo: <span className="text-slate-300">{item.reportedByUserId}</span></span>
+                </div>
+              </div>
+
+              {/* Status and Action Buttons */}
+              <div className="flex items-center gap-3 shrink-0">
+                {item.status === 'open' && (
+                  <button
+                    onClick={() => setRectifyingItem(item)}
+                    className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold shadow-sm transition-all"
+                  >
+                    Khắc phục (Rectify)
+                  </button>
+                )}
+
+                {item.status === 'in_progress' && (
+                  <button
+                    onClick={() => setRectifyingItem(item)}
+                    className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-sm transition-all"
+                  >
+                    Báo hoàn thành (Rectify)
+                  </button>
+                )}
+
+                {item.status === 'rectified' && (
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                      Đã khắc phục (Chờ ký duyệt)
+                    </span>
+                    <button
+                      onClick={() => handleVerifyPunch(item.id)}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition-all inline-flex items-center gap-1"
+                    >
+                      <UserCheck className="h-3.5 w-3.5" />
+                      Xác thực (Verify)
+                    </button>
+                  </div>
+                )}
+
+                {item.status === 'verified' && (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Đã nghiệm thu (Verified)
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Modal: New Punch List Item */}
+      {showNewPunchModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-400" /> Lập Biên Bản Lỗi Punch List
+              </h3>
+              <button onClick={() => setShowNewPunchModal(false)} className="text-slate-400 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreatePunch} className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 mb-1 font-medium">Khu vực / Phòng *</label>
+                  <input
+                    type="text"
+                    required
+                    value={punchRoom}
+                    onChange={(e) => setPunchRoom(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-300 mb-1 font-medium">Mức độ nghiêm trọng *</label>
+                  <select
+                    value={punchSeverity}
+                    onChange={(e) => setPunchSeverity(e.target.value as PunchSeverity)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="minor">Minor (Nhẹ - không chặn bàn giao)</option>
+                    <option value="major">Major (Vừa - cần xử lý sớm)</option>
+                    <option value="critical">Critical (Nghiêm trọng - CHẶN BÀN GIAO)</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 mb-1 font-medium">Phân loại lỗi *</label>
+                  <select
+                    value={punchCategory}
+                    onChange={(e) => setPunchCategory(e.target.value as PunchCategory)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="furniture_fit">Lắp ráp đồ gỗ (Furniture Fit)</option>
+                    <option value="finishing">Hoàn thiện bề mặt (Finishing)</option>
+                    <option value="painting">Sơn & Dặm màu (Painting)</option>
+                    <option value="electrical_coordination">Điện & Đèn LED (Electrical)</option>
+                    <option value="structural">Kết cấu & Nề (Structural)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-300 mb-1 font-medium">Gán đội thợ xử lý *</label>
+                  <input
+                    type="text"
+                    required
+                    value={punchAssignee}
+                    onChange={(e) => setPunchAssignee(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Mô tả chi tiết lỗi tồn đọng *</label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Mô tả cụ thể vị trí, hiện tượng, sai lệch số đo..."
+                  value={punchDesc}
+                  onChange={(e) => setPunchDesc(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowNewPunchModal(false)}
+                  className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium shadow-sm"
+                >
+                  Lưu Biên Bản Punch List
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Rectify Punch Item */}
+      {rectifyingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Wrench className="h-5 w-5 text-amber-400" /> Báo Cáo Khắc Phục Lỗi (Rectify)
+              </h3>
+              <button onClick={() => setRectifyingItem(null)} className="text-slate-400 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleMarkRectified} className="space-y-3 text-xs">
+              <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">
+                <span className="text-slate-400">Nội dung lỗi:</span>
+                <p className="font-semibold text-white mt-0.5">{rectifyingItem.description}</p>
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Người thực hiện khắc phục (rectifiedBy) *</label>
+                <input
+                  type="text"
+                  required
+                  value={rectifierName}
+                  onChange={(e) => setRectifierName(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Ghi chú phương án khắc phục *</label>
+                <textarea
+                  rows={2}
+                  required
+                  value={rectifyNote}
+                  onChange={(e) => setRectifyNote(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRectifyingItem(null)}
+                  className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium shadow-sm"
+                >
+                  Xác Nhận Đã Khắc Phục
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Complete Handover */}
+      {showHandoverModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Award className="h-5 w-5 text-emerald-400" /> Ký Biên Bản Nghiệm Thu Bàn Giao
+              </h3>
+              <button onClick={() => setShowHandoverModal(false)} className="text-slate-400 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCompleteHandover} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Đại diện chủ đầu tư / Khách hàng *</label>
+                <input
+                  type="text"
+                  required
+                  value={handoverClientRep}
+                  onChange={(e) => setHandoverClientRep(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Ý kiến đánh giá bàn giao</label>
+                <textarea
+                  rows={2}
+                  value={handoverNotes}
+                  onChange={(e) => setHandoverNotes(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+              <div className="p-3 rounded-lg bg-emerald-950/20 border border-emerald-900/30 text-emerald-300 space-y-1">
+                <div className="font-semibold">Hậu nghiệm thu tự động:</div>
+                <div>• Tạo Hồ sơ bàn giao Handover Dossier chính thức.</div>
+                <div>• Kích hoạt Chứng thư bảo hành 12 tháng tại công trình.</div>
+                <div>• Giải phóng đợt thanh toán quyết toán cuối cùng.</div>
+              </div>
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowHandoverModal(false)}
+                  className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm"
+                >
+                  Ký Nghiệm Thu & Kích Hoạt Bảo Hành
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
