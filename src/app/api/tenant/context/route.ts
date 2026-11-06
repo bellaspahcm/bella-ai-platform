@@ -7,7 +7,6 @@ import { getSupabasePublicUrl, requireSupabasePublicEnv } from '@/lib/supabase-p
 import type { TenantContext } from '@/core/types/tenant';
 import type { Database } from '@/types/database.types';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
-import { getTenantSettings } from '@/services/tenant-actions';
 import {
   CURRENT_ACTOR_PROFILE_RPC,
   CURRENT_ACTOR_TENANT_PRESENTATION_RPC,
@@ -365,11 +364,17 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Keep the established full settings mapping for other products. Preschool
-    // must use the signed-in Platform projection above and never fall back to a
-    // direct tenants-table read.
-    const tenantSettings = await getTenantSettings();
-    if (!tenantSettings) {
+    // Keep the established settings mapping for other products, but perform
+    // this read with the already-authenticated Route Handler client. Calling
+    // getTenantSettings here creates another request-scoped client through the
+    // React-cached server helper, which is not compatible with this handler.
+    // RLS continues to constrain the tenant row to the authenticated actor.
+    const { data: tenantSettings, error: tenantSettingsError } = await queryClient
+      .from('tenants')
+      .select('*')
+      .eq('id', actor.tenant_id)
+      .single();
+    if (tenantSettingsError || !tenantSettings) {
       return NextResponse.json(
         { error: 'Failed to fetch tenant configuration' },
         { status: 500 },

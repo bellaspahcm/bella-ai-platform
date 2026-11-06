@@ -9,6 +9,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 import { SupabasePlatformActionAuthorization } from '@/platform/authorization';
 import type { Database } from '@/types/database.types';
+import { createConstructionE2eDatabaseClient } from './support/e2e-postgres-client';
 
 const expectedProjectRef = 'bmnbqbcdbuklhopfbopv';
 const e2eEnvironment = loadE2eEnvironment();
@@ -44,6 +45,9 @@ const databaseUrl = process.env.E2E_SUPABASE_DB_URL
   || process.env.SUPABASE_DB_URL
   || process.env.SUPABASE_DATABASE_URL
   || process.env.DATABASE_URL
+  || '';
+const databaseCa = process.env.E2E_SUPABASE_DB_SSL_CA
+  || e2eEnvironment.E2E_SUPABASE_DB_SSL_CA
   || '';
 const canRunE2e = isAllowedProjectUrl(supabaseUrl)
   && databaseUrl.toLowerCase().includes(expectedProjectRef)
@@ -94,7 +98,7 @@ describeWithE2e('Construction Site Diary and Issue real-auth E2E', () => {
       },
     }));
     siteOperationsRoute = require('@/app/api/construction/site-operations/route') as SiteOperationsRoute;
-    databaseAdmin = new Client({ connectionString: databaseUrl, ssl: sslConfig() });
+    databaseAdmin = createConstructionE2eDatabaseClient(databaseUrl, databaseCa);
     await databaseAdmin.connect();
     const runtime = await databaseAdmin.query<RuntimeRow>(
       "SELECT " +
@@ -500,12 +504,6 @@ function isAllowedProjectUrl(value: string): boolean {
   } catch {
     return false;
   }
-}
-
-function sslConfig(): { rejectUnauthorized: boolean } | undefined {
-  return databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1')
-    ? undefined
-    : { rejectUnauthorized: true };
 }
 
 function loadE2eEnvironment(): Record<string, string> {

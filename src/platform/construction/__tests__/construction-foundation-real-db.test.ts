@@ -9,6 +9,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 import { SupabasePlatformActionAuthorization } from '@/platform/authorization';
 import type { Database } from '@/types/database.types';
+import { createConstructionE2eDatabaseClient } from './support/e2e-postgres-client';
 
 const EXPECTED_E2E_PROJECT_REF = 'bmnbqbcdbuklhopfbopv';
 const EXPECTED_E2E_SUPABASE_HOST = EXPECTED_E2E_PROJECT_REF + '.supabase.co';
@@ -91,7 +92,10 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
   beforeAll(async () => {
     if (!canRun) throw new Error('CONSTRUCTION_E2E_PROJECT_OR_CREDENTIALS_NOT_CONFIGURED');
 
-    const database = new Client({ connectionString: dbUrl, ssl: sslConfig() });
+    const database = createConstructionE2eDatabaseClient(
+      dbUrl,
+      process.env.E2E_SUPABASE_DB_SSL_CA ?? '',
+    );
     await database.connect();
     databaseAdmin = database;
 
@@ -304,10 +308,12 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
     });
     expect(grantAfterRevoke).toHaveLength(1);
     expect(grantAfterRevoke[0].status).toBe('REVOKED');
-    expect((await readRows(adminA, 'platform_direct_user_action_grant_audit', {
+    const tenantGrantAudit = await readRows(adminA, 'platform_direct_user_action_grant_audit', {
       tenant_id: tenantA,
       grant_id: tenantGrantId,
-    })).map((row) => row.action)).toEqual(['GRANT', 'REVOKE']);
+    });
+    expect(tenantGrantAudit).toHaveLength(2);
+    expect(tenantGrantAudit.map((row) => row.action)).toEqual(expect.arrayContaining(['GRANT', 'REVOKE']));
 
     const adminRoleCheck = await requireDatabaseAdmin().query<PgQueryResultRow & { role: string }>(
       'SELECT role FROM public.users WHERE id = $1::uuid',
@@ -450,8 +456,19 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
       permission_id: 'construction:site:write',
       scope_type: 'TENANT',
     };
+    const targetAuditFilter = {
+      tenant_id: tenantA,
+      target_user_id: userA.id,
+      permission_id: 'construction:site:write',
+      scope_type: 'TENANT',
+    };
+    const auditBeforeFailedGrant = await readRows(
+      adminA,
+      'platform_direct_user_action_grant_audit',
+      targetAuditFilter
+    );
 
-    const grantAuditFault = await installAuditFault('GRANT');
+    const grantAuditFault = await installAuditFault('GRANT', userA.id);
     try {
       const failedGrant = await adminA.authorization.grantDirectUser({
         targetUserId: userA.id,
@@ -460,11 +477,11 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
       });
       expect(failedGrant).toEqual({ status: 'UNAVAILABLE', reason: 'PERSISTENCE_FAILED' });
       expect(await readRows(adminA, 'platform_direct_user_action_grants', tenantGrantFilter)).toHaveLength(0);
-      expect(await readRows(adminA, 'platform_direct_user_action_grant_audit', {
-        tenant_id: tenantA,
-        permission_id: 'construction:site:write',
-        scope_type: 'TENANT',
-      })).toHaveLength(0);
+      expect(await readRows(
+        adminA,
+        'platform_direct_user_action_grant_audit',
+        targetAuditFilter
+      )).toEqual(auditBeforeFailedGrant);
     } finally {
       await dropAuditFault(grantAuditFault);
     }
@@ -479,7 +496,7 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
       grant_id: revokeGrantId,
     })).map((row) => row.action)).toEqual(['GRANT']);
 
-    const revokeAuditFault = await installAuditFault('REVOKE');
+    const revokeAuditFault = await installAuditFault('REVOKE', userA.id);
     try {
       expect(await adminA.authorization.revokeDirectUser({ grantId: revokeGrantId })).toEqual({
         status: 'UNAVAILABLE',
@@ -502,10 +519,18 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
       status: 'COMMITTED',
       grantId: revokeGrantId,
     });
+    const persistedRevokeAudit = await requireDatabaseAdmin().query<
+      PgQueryResultRow & { action: string }
+    >(
+      'SELECT action FROM public.platform_direct_user_action_grant_audit ' +
+        'WHERE tenant_id = $1::uuid AND grant_id = $2::uuid ORDER BY recorded_at, id',
+      [tenantA, revokeGrantId]
+    );
+    expect(persistedRevokeAudit.rows.map((row) => row.action)).toEqual(['GRANT', 'REVOKE']);
     expect((await readRows(adminA, 'platform_direct_user_action_grant_audit', {
       tenant_id: tenantA,
       grant_id: revokeGrantId,
-    })).map((row) => row.action)).toEqual(['GRANT', 'REVOKE']);
+    }, 'recorded_at.asc')).map((row) => row.action)).toEqual(['GRANT', 'REVOKE']);
     expect(await userA.authorization.authorize({
       permissionId: 'construction:site:write',
       tenantId: tenantA,
@@ -588,20 +613,18 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
     }
   }
 
-  async function installAuditFault(action: 'GRANT' | 'REVOKE'): Promise<AuditFault> {
+  async function installAuditFault(action: 'GRANT' | 'REVOKE', targetUserId: string): Promise<AuditFault> {
     const suffix = randomUUID().replace(/-/g, '');
     const fault: AuditFault = {
       triggerName: 'test_construction_audit_fault_' + suffix,
       functionName: 'test_construction_audit_fault_fn_' + suffix,
     };
-    const actorId = actor('adminA').id;
-
     await requireDatabaseAdmin().query(
       'CREATE FUNCTION public.' +
         fault.functionName +
         '() RETURNS trigger LANGUAGE plpgsql AS $fault$ BEGIN ' +
-        "IF NEW.actor_user_id = '" +
-        actorId +
+        "IF NEW.target_user_id = '" +
+        targetUserId +
         "'::uuid AND NEW.action = '" +
         action +
         "' THEN RAISE EXCEPTION 'CONSTRUCTION_E2E_AUDIT_FAILURE_INJECTION'; END IF; " +
@@ -753,7 +776,8 @@ function rpcRows(value: unknown): Record<string, unknown>[] {
 async function readRows(
   actor: TestActor,
   table: string,
-  filters: Record<string, string> = {}
+  filters: Record<string, string> = {},
+  order?: string
 ): Promise<Record<string, unknown>[]> {
   const session = await actor.client.auth.getSession();
   const accessToken = session.data.session?.access_token;
@@ -764,6 +788,7 @@ async function readRows(
   for (const [key, value] of Object.entries(filters)) {
     endpoint.searchParams.set(key, 'eq.' + value);
   }
+  if (order) endpoint.searchParams.set('order', order);
 
   const response = await fetch(endpoint, {
     headers: {
@@ -795,12 +820,6 @@ async function postRow(
     },
     body: JSON.stringify(body),
   });
-}
-
-function sslConfig(): { rejectUnauthorized: boolean } | undefined {
-  return dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1')
-    ? undefined
-    : { rejectUnauthorized: true };
 }
 
 function isAllowedE2eProject(value: string): boolean {

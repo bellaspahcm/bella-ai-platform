@@ -6,6 +6,11 @@ const migrationPath = path.resolve(
   '../../../../supabase/migrations/20261104135713_platform_action_authorization_direct_grants.sql'
 );
 const migration = readFileSync(migrationPath, 'utf8');
+const atomicityMigrationPath = path.resolve(
+  __dirname,
+  '../../../../supabase/migrations/20261106035523_harden_construction_grant_audit_atomicity.sql'
+);
+const atomicityMigration = readFileSync(atomicityMigrationPath, 'utf8');
 
 describe('Platform Action Authorization migration contract', () => {
   it('adds a direct grant store and append-only audit with tenant RLS', () => {
@@ -31,6 +36,12 @@ describe('Platform Action Authorization migration contract', () => {
     expect(migration).toContain('AFTER INSERT OR UPDATE ON public.platform_direct_user_action_grants');
     expect(migration).toContain('INSERT INTO public.platform_direct_user_action_grant_audit');
     expect(migration).toContain("WHEN OTHERS THEN\n      RETURN QUERY SELECT 'UNAVAILABLE'::text, 'PERSISTENCE_FAILED'");
+  });
+
+  it('lets unexpected grant and revoke persistence errors abort the RPC transaction', () => {
+    expect(atomicityMigration).toContain('WHEN OTHERS THEN\n      RAISE;');
+    expect(atomicityMigration).toContain('UPDATE public.platform_direct_user_action_grants grant_row');
+    expect(atomicityMigration).not.toContain("'UNAVAILABLE'::text, 'PERSISTENCE_FAILED'");
   });
 
   it('restricts grants to the five existing Construction permissions and trusted scopes', () => {
