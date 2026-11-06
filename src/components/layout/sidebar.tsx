@@ -192,8 +192,8 @@ function isPathActive(pathname: string, searchParams: URLSearchParams, href: str
   const normalizedHref = hrefPathRaw.replace(/\/+$/, '') || '/';
   const hrefSearchParams = new URLSearchParams(hrefQuery);
 
-  if (normalizedHref === '/dashboard') {
-    return normalizedPath === '/dashboard';
+  if (normalizedHref === '/dashboard' || normalizedHref === '/dashboard/interior') {
+    return normalizedPath === normalizedHref;
   }
 
   if (hrefSearchParams.size > 0) {
@@ -447,6 +447,30 @@ const bellaEducationMenuItems: SidebarMenuItem[] = [
   { icon: Settings, label: 'Cài đặt', href: '/dashboard/settings' },
 ];
 
+// ─── Bella Interior OS Module Menu (Dedicated) ───
+const bellaInteriorMenuItems: SidebarMenuItem[] = [
+  { icon: LayoutDashboard, label: 'Tổng quan', href: '/dashboard/interior' },
+  { type: 'header', label: 'QUẢN LÝ DỰ ÁN' },
+  { icon: FolderKanban, label: 'Danh sách dự án', href: '/dashboard/interior/projects' },
+  { icon: Users, label: 'Khách hàng', href: '/dashboard/interior/customers' },
+  { icon: Calendar, label: 'Lịch công việc', href: '/dashboard/interior/schedule' },
+  { type: 'header', label: 'THIẾT KẾ & THƯƠNG MẠI' },
+  { icon: Layers, label: 'Design Studio', href: '/dashboard/interior/design' },
+  { icon: ClipboardList, label: 'BOQ & Dự toán', href: '/dashboard/interior/boq' },
+  { icon: FileText, label: 'Báo giá & Hợp đồng', href: '/dashboard/interior/contracts' },
+  { icon: CircleDollarSign, label: 'Thanh toán', href: '/dashboard/interior/finance' },
+  { type: 'header', label: 'SẢN XUẤT & THI CÔNG' },
+  { icon: Wrench, label: 'Sản xuất xưởng', href: '/dashboard/interior/production' },
+  { icon: Building2, label: 'Thi công lắp đặt', href: '/dashboard/interior/installation' },
+  { icon: ShieldCheck, label: 'QC & Nghiệm thu', href: '/dashboard/interior/qc-handover' },
+  { icon: Award, label: 'Bảo hành', href: '/dashboard/interior/warranty' },
+  { type: 'header', label: 'QUẢN TRỊ' },
+  { icon: BarChart3, label: 'Báo cáo', href: '/dashboard/interior/finance' },
+  { icon: Settings, label: 'Cài đặt', href: '/dashboard/interior/settings' },
+  { icon: UserCheck, label: 'Tài khoản người dùng', href: '/dashboard/interior/users' },
+  { icon: ShieldAlert, label: 'Vai trò và quyền hạn', href: '/dashboard/interior/roles' },
+];
+
 const customerMenuItems: SidebarMenuItem[] = [
   { icon: Flower2,       label: 'Tiến trình liệu trình', href: '/dashboard/customer' },
   { icon: Calendar,      label: 'Lịch sử buổi làm',      href: '/dashboard/customer/history' },
@@ -619,9 +643,14 @@ export function Sidebar() {
     }
   };
 
+  const isInteriorRoute = pathname?.startsWith('/dashboard/interior') || product?.productKey === 'bella_interior';
+  const isBellaInteriorShell = isInteriorRoute || tenantBrand.moduleKey === 'bella_interior';
+
   // ── Menu resolution: bella_auto, real_estate, bella_healthcare use hardcoded menus ──
   // Other verticals use verticalRegistry for simpler menu structure.
-  const baseMenuItems: SidebarMenuItem[] = tenantBrand.moduleKey === 'pending'
+  const baseMenuItems: SidebarMenuItem[] = isBellaInteriorShell
+    ? bellaInteriorMenuItems
+    : tenantBrand.moduleKey === 'pending'
     ? []
     : user?.role?.toLowerCase() === 'customer'
     ? customerMenuItems
@@ -771,12 +800,13 @@ export function Sidebar() {
     : user?.role?.toLowerCase() === 'hr' ? 'Nhân sự'
     : user?.role?.toLowerCase() === 'customer' ? 'Khách hàng'
     : 'Quản trị viên';
-  const isBeautySpaShell = tenantBrand.isBeautySpa;
-  const isIndustrialCleaningShell = tenantBrand.moduleKey === 'industrial_cleaning';
-  const isRealEstateShell = tenantBrand.moduleKey === 'real_estate';
-  const isBellaAutoShell = tenantBrand.moduleKey === 'bella_auto';
-  const isBellaHealthcareShell = tenantBrand.moduleKey === 'bella_healthcare';
-  const isBellaEducationShell = tenantBrand.moduleKey === 'bella_education';
+  const isBeautySpaShell = tenantBrand.isBeautySpa && !isBellaInteriorShell;
+  const isIndustrialCleaningShell = tenantBrand.moduleKey === 'industrial_cleaning' && !isBellaInteriorShell;
+  const isRealEstateShell = tenantBrand.moduleKey === 'real_estate' && !isBellaInteriorShell;
+  const isBellaAutoShell = tenantBrand.moduleKey === 'bella_auto' && !isBellaInteriorShell;
+  const isBellaHealthcareShell = tenantBrand.moduleKey === 'bella_healthcare' && !isBellaInteriorShell;
+  const isBellaEducationShell = tenantBrand.moduleKey === 'bella_education' && !isBellaInteriorShell;
+  const isBeautyErpFamily = isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell || isBellaInteriorShell;
 
   if (isUserLoading || !identityKey || !tenantSettings || currentUser?.tenant_id !== tenantSettings.id || !isTenantBrandResolved || resolvedIdentityKey !== identityKey) {
     return <aside aria-label="Đang tải cấu hình chi nhánh" className="hidden w-[243px] shrink-0 border-r border-slate-200 bg-slate-50 lg:block dark:border-slate-800 dark:bg-slate-950" />;
@@ -787,32 +817,38 @@ export function Sidebar() {
       {/* ── Mobile Top Header Bar (lg:hidden) ── */}
       <div className={cn(
         "lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-[#091A2D]/95 border-b border-slate-200 dark:border-[#243F52] backdrop-blur-md z-30 px-6 flex items-center justify-between shadow-[0_2px_15px_rgba(0,0,0,0.02)] transition-colors duration-300",
-        (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-mobile-header"
+        isBeautyErpFamily && "beauty-erp-mobile-header"
       )}>
         <div className="flex w-20 items-center justify-start">
           <button
             onClick={() => setIsOpen(true)}
             className={cn(
               "p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800 active:scale-95 transition-all shadow-sm",
-              (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-icon-button"
+              isBeautyErpFamily && "beauty-erp-icon-button"
             )}
           >
             <Menu className="w-5.5 h-5.5" />
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <TenantBrandLogo
-            displayName={tenantBrand.displayName}
-            logoUrl={tenantBrand.logoUrl}
-            monogram={tenantBrand.monogram}
-            className="w-7 h-7 text-[10px]"
-            markClassName={cn("rounded-xl", (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-logo-mark")}
-          />
+          {isBellaInteriorShell ? (
+            <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-amber-600 to-amber-900 flex items-center justify-center text-white font-black text-xs shadow-xs beauty-erp-logo-mark">
+              B
+            </div>
+          ) : (
+            <TenantBrandLogo
+              displayName={tenantBrand.displayName}
+              logoUrl={tenantBrand.logoUrl}
+              monogram={tenantBrand.monogram}
+              className="w-7 h-7 text-[10px]"
+              markClassName={cn("rounded-xl", isBeautyErpFamily && "beauty-erp-logo-mark")}
+            />
+          )}
           <span className={cn(
             "max-w-[9rem] truncate font-sans font-extrabold text-lg text-slate-900 dark:text-white leading-none mt-0.5",
-            (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-brand-script"
+            isBeautyErpFamily && "beauty-erp-brand-script"
           )}>
-            {tenantBrand.displayName.toLowerCase().endsWith('headquarter')
+            {isBellaInteriorShell ? 'Bella Interior' : tenantBrand.displayName.toLowerCase().endsWith('headquarter')
               ? tenantBrand.displayName.slice(0, -11).trim()
               : tenantBrand.displayName}
           </span>
@@ -827,7 +863,7 @@ export function Sidebar() {
             title="Làm mới dữ liệu"
             className={cn(
               "flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-100 text-slate-700 shadow-sm transition-all hover:bg-slate-200 active:scale-95 disabled:opacity-70 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800",
-              (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-icon-button"
+              isBeautyErpFamily && "beauty-erp-icon-button"
             )}
           >
             <RefreshCw className={cn('h-4 w-4', isMobileRefreshing && 'animate-spin')} />
@@ -861,11 +897,7 @@ export function Sidebar() {
       */}
       <aside className={cn(
         "bg-slate-50/70 dark:bg-[#111318] border-r border-slate-200/60 dark:border-slate-800/60 p-2.5 flex flex-col h-screen lg:h-screen h-[100dvh] fixed inset-y-0 left-0 z-50 transform lg:translate-x-0 lg:relative lg:inset-auto lg:z-auto transition-transform duration-300 ease-in-out overflow-hidden shrink-0 w-[243px]",
-        isBeautySpaShell && "beauty-erp-sidebar",
-        isIndustrialCleaningShell && "beauty-erp-sidebar",
-        isRealEstateShell && "beauty-erp-sidebar",
-        isBellaAutoShell && "beauty-erp-sidebar",
-        isBellaHealthcareShell && "beauty-erp-sidebar",
+        isBeautyErpFamily && "beauty-erp-sidebar",
         isBellaEducationShell && "preschool-sidebar",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
@@ -896,7 +928,24 @@ export function Sidebar() {
           "px-8 pt-6 pb-4 shrink-0 relative z-10 flex items-center justify-between lg:block",
           isBellaEducationShell && "px-6 pt-4 pb-2"
         )}>
-          {isBellaEducationShell ? (
+          {isBellaInteriorShell ? (
+            <Link href="/dashboard/interior" onClick={handleNavigation} className="flex flex-col items-center group">
+              <div className="relative mb-2">
+                <div className="absolute inset-0 bg-amber-500/20 dark:bg-amber-400/15 blur-2xl rounded-full scale-75 group-hover:scale-110 transition-transform duration-500" />
+                <div className="w-16 h-16 rounded-[1.75rem] bg-gradient-to-br from-amber-600 via-amber-700 to-amber-900 border border-amber-500/40 flex items-center justify-center text-white shadow-md text-2xl font-black relative z-10 group-hover:rotate-3 transition-transform duration-500 beauty-erp-logo-mark beauty-erp-logo-mark-large">
+                  B
+                </div>
+              </div>
+              <div className="text-center w-full px-2">
+                <h2 className="text-base font-extrabold tracking-tight uppercase font-sans text-slate-900 dark:text-white beauty-erp-brand-script leading-tight">
+                  Bella Interior
+                </h2>
+                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 block mt-0.5">
+                  Project Management Suite
+                </span>
+              </div>
+            </Link>
+          ) : isBellaEducationShell ? (
             <Link href="/dashboard/education" onClick={handleNavigation} className="flex flex-col items-center group">
               <div className="w-10 h-10 rounded-2xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-xl shadow-xs mb-1.5 group-hover:scale-105 transition-transform duration-300">
                 ☀️
@@ -919,7 +968,7 @@ export function Sidebar() {
                   logoUrl={tenantBrand.logoUrl}
                   monogram={tenantBrand.monogram}
                   className="w-16 h-16 relative z-10 transform group-hover:rotate-[5deg] transition-transform duration-500 text-xl"
-                  markClassName={cn("rounded-[1.75rem]", (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-logo-mark beauty-erp-logo-mark-large")}
+                  markClassName={cn("rounded-[1.75rem]", isBeautyErpFamily && "beauty-erp-logo-mark beauty-erp-logo-mark-large")}
                 />
               </div>
               <div className="text-center w-full px-2">
@@ -953,7 +1002,7 @@ export function Sidebar() {
             className={cn(
               "lg:hidden p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all",
               isBellaEducationShell && "preschool-sidebar-close",
-              (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-icon-button"
+              isBeautyErpFamily && "beauty-erp-icon-button"
             )}
           >
             <X className="w-5 h-5" />
@@ -966,10 +1015,10 @@ export function Sidebar() {
         <nav className={cn(
           "flex-1 min-h-0 px-3 space-y-1 overflow-y-auto relative z-10 pb-2 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:transparent [&::-webkit-scrollbar-thumb]:rounded-full",
           isBellaEducationShell && "px-2.5 space-y-0.5 pb-1 [&::-webkit-scrollbar-thumb]:bg-emerald-800/40",
-          isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell
+          isBeautyErpFamily
             ? "" 
             : "[&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700",
-          (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-nav-scroll"
+          isBeautyErpFamily && "beauty-erp-nav-scroll"
         )}>
           {finalMenuItems.map((item, idx) => {
             if (isMenuHeader(item)) {
@@ -981,7 +1030,7 @@ export function Sidebar() {
                     isBellaEducationShell
                       ? "text-[var(--education-sidebar-fg)] opacity-70"
                       : "text-primary/60 dark:text-[#E5B861]/60",
-                    (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-nav-header"
+                    isBeautyErpFamily && "beauty-erp-nav-header"
                   )}
                 >
                   {item.label}
@@ -1057,19 +1106,19 @@ export function Sidebar() {
                       ? activeEduClass
                       : isBellaEducationShell
                       ? inactiveEduClass
-                      : (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-nav-item",
-                    (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && isActive && "beauty-erp-nav-item-active",
+                      : isBeautyErpFamily && "beauty-erp-nav-item",
+                    isBeautyErpFamily && isActive && "beauty-erp-nav-item-active",
                     !isBellaEducationShell && (
                       // Real estate: CSS owns all visual state — emit NO color/bg classes
                       isRealEstateShell
                         ? ""
                         : isActive
-                        ? (isBellaAutoShell || isBellaHealthcareShell)
+                        ? (isBellaAutoShell || isBellaHealthcareShell || isBellaInteriorShell)
                           ? "bg-white text-[#042f2e] border-amber-400/60 shadow-[0_2px_10px_rgba(0,0,0,0.18)] ring-1 ring-amber-400/40 backdrop-blur-md font-bold"
                           : (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell)
                           ? "border-transparent shadow-[0_4px_18px_rgba(0,0,0,0.22)] ring-1 ring-amber-400/40"
                           : "bg-white text-primary border-primary/20 shadow-[0_2px_10px_rgba(219,39,119,0.12)] ring-1 ring-primary/20 dark:bg-[#112E43]/70 dark:text-[#F3F5F7] dark:border-[#243F52] dark:ring-[#E5B861]/20 dark:shadow-none"
-                        : (isBellaAutoShell || isBellaHealthcareShell)
+                        : (isBellaAutoShell || isBellaHealthcareShell || isBellaInteriorShell)
                         ? "text-slate-100 bg-transparent border-transparent hover:bg-white/12 hover:text-white hover:shadow-[0_2px_10px_rgba(245,158,11,0.18)] hover:border-amber-400/35"
                         : "text-[#8A6D7C] bg-transparent border-transparent hover:bg-white/70 hover:text-primary hover:shadow-[0_2px_10px_rgba(219,39,119,0.03)] hover:border-[#FFE4E6]/50 dark:text-[#D8E3EA] dark:hover:bg-[#112E43]/50 dark:hover:text-[#F3F5F7] dark:hover:border-[#243F52]/50"
                     )
@@ -1082,8 +1131,8 @@ export function Sidebar() {
                       // Real estate: CSS owns icon color — emit NO color classes, only scale
                       : isRealEstateShell
                       ? (isActive ? "scale-105" : "")
-                      : (isBeautySpaShell || isIndustrialCleaningShell || isBellaAutoShell || isBellaHealthcareShell)
-                      ? (isActive ? "text-[#042f2e] scale-105" : (isBellaAutoShell || isBellaHealthcareShell) ? "text-slate-200 opacity-90 group-hover:text-amber-300 group-hover:scale-110" : "text-inherit opacity-85 group-hover:text-white group-hover:opacity-100")
+                      : (isBeautySpaShell || isIndustrialCleaningShell || isBellaAutoShell || isBellaHealthcareShell || isBellaInteriorShell)
+                      ? (isActive ? "text-[#042f2e] scale-105" : (isBellaAutoShell || isBellaHealthcareShell || isBellaInteriorShell) ? "text-slate-200 opacity-90 group-hover:text-amber-300 group-hover:scale-110" : "text-inherit opacity-85 group-hover:text-white group-hover:opacity-100")
                       : (isActive ? "text-primary dark:text-[#E5B861] scale-105" : "text-[#A07888] dark:text-[#D8E3EA]/80 group-hover:text-primary dark:group-hover:text-[#E5B861]")
                   )} />
                   <span className={cn(
@@ -1093,8 +1142,8 @@ export function Sidebar() {
                       // Real estate: CSS owns span color — emit NO color classes, only weight hint
                       : isRealEstateShell
                       ? (isActive ? "font-extrabold" : "font-semibold")
-                      : (isBeautySpaShell || isIndustrialCleaningShell || isBellaAutoShell || isBellaHealthcareShell)
-                      ? (isActive ? "font-extrabold text-[#042f2e]" : (isBellaAutoShell || isBellaHealthcareShell) ? "font-semibold text-slate-100 group-hover:text-white" : "font-semibold text-inherit group-hover:text-white")
+                      : (isBeautySpaShell || isIndustrialCleaningShell || isBellaAutoShell || isBellaHealthcareShell || isBellaInteriorShell)
+                      ? (isActive ? "font-extrabold text-[#042f2e]" : (isBellaAutoShell || isBellaHealthcareShell || isBellaInteriorShell) ? "font-semibold text-slate-100 group-hover:text-white" : "font-semibold text-inherit group-hover:text-white")
                       : (isActive ? "font-extrabold text-primary dark:text-[#F3F5F7]" : "font-semibold")
                   )}>{item.label}</span>
 
@@ -1118,7 +1167,7 @@ export function Sidebar() {
                       layoutId="active-indicator"
                       className={cn(
                         "absolute right-3.5 w-1.5 h-1.5 rounded-full",
-                        (isBellaAutoShell || isBellaHealthcareShell)
+                        (isBellaAutoShell || isBellaHealthcareShell || isBellaInteriorShell)
                           ? "bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.9)]"
                           : isRealEstateShell
                           ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]"
@@ -1145,14 +1194,14 @@ export function Sidebar() {
             isBellaEducationShell
               ? "preschool-profile-card"
               : "bg-white dark:bg-[#181a20] border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700",
-            (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-profile-card"
+            (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell || isBellaInteriorShell) && "beauty-erp-profile-card"
           )}>
             <div className="p-2.5 flex items-center gap-2.5">
               <div className="relative shrink-0">
                 <div className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center font-extrabold text-xs shadow-2xs transition-transform duration-300 group-hover:scale-105",
                   isBellaEducationShell ? "preschool-profile-avatar" : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300",
-                  (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-avatar"
+                  (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell || isBellaInteriorShell) && "beauty-erp-avatar"
                 )}>
                   {user?.full_name?.charAt(0)?.toUpperCase() || 'A'}
                 </div>
@@ -1171,7 +1220,7 @@ export function Sidebar() {
             <div className={cn(
               "h-px w-full",
               isBellaEducationShell ? "preschool-profile-divider" : "bg-slate-200 dark:bg-slate-800",
-              (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-profile-divider"
+              (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell || isBellaInteriorShell) && "beauty-erp-profile-divider"
             )} />
             
             <div className="flex items-center justify-between p-1.5 gap-1 min-w-0">
@@ -1196,7 +1245,7 @@ export function Sidebar() {
                  className={cn(
                    "p-1.5 rounded-lg transition-all shrink-0",
                    isBellaEducationShell ? "preschool-profile-action" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100",
-                   (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-icon-button"
+                   (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell || isBellaInteriorShell) && "beauty-erp-icon-button"
                  )}
                >
                  <LogOut className="w-3.5 h-3.5" />

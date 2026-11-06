@@ -159,17 +159,6 @@ export function DashboardAuthorizedShell({ children }: { children: React.ReactNo
     );
   }
 
-  const isInterior = pathname?.startsWith('/dashboard/interior');
-  if (isInterior) {
-    return (
-      <div className="dashboard-shell flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans">
-        <main className="dashboard-main flex-1 flex flex-col min-w-0 max-w-full overflow-hidden">
-          {children}
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="dashboard-shell flex h-screen overflow-hidden bg-background">
       <Sidebar />
