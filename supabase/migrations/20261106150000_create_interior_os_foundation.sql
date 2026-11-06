@@ -309,6 +309,20 @@ CREATE INDEX IF NOT EXISTS idx_interior_room_installs_tenant_plan
 -- 4. DELIVERY & AFTERCARE (Diary, Punch List, Handover, Warranty)
 -- ----------------------------------------------------------------------------
 
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'interior_site_diaries' AND column_name = 'diary_date'
+    ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'interior_site_diaries' AND column_name = 'date'
+    ) THEN
+        -- zero-downtime: allow rename-table-or-column - align pre-existing column name with domain schema
+        ALTER TABLE public.interior_site_diaries RENAME COLUMN diary_date TO date;
+    END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS public.interior_site_diaries (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
