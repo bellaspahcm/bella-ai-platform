@@ -230,6 +230,9 @@ const REAL_ESTATE_CUSTOMER_PRESENTATION: CustomerPresentation = {
 };
 
 export function getTenantModulePresentation(moduleKey: TenantModuleKey): CustomerPresentation {
+  if (moduleKey === 'manufacturing') {
+    return NEUTRAL_CUSTOMER_PRESENTATION;
+  }
   if (moduleKey === 'real_estate') {
     return REAL_ESTATE_CUSTOMER_PRESENTATION;
   }
@@ -265,6 +268,9 @@ export function getTenantPresentationFromModules(enabledModules: unknown): Custo
 }
 
 export function getTenantSpecialtyOptions(moduleKey: TenantModuleKey): SpecialtyOption[] {
+  if (moduleKey === 'manufacturing') {
+    return [];
+  }
   if (moduleKey === 'industrial_cleaning') {
     return INDUSTRIAL_CLEANING_SPECIALTIES;
   }

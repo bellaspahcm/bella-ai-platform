@@ -12,7 +12,16 @@ export type ConstructionPermission =
   | 'construction:project:write'
   | 'construction:site:write'
   | 'construction:work_package:write'
-  | 'construction:boq:write';
+  | 'construction:boq:write'
+  | 'construction.site_diary.view'
+  | 'construction.site_diary.create'
+  | 'construction.site_diary.update'
+  | 'construction.issue.view'
+  | 'construction.issue.create'
+  | 'construction.issue.update'
+  | 'construction.issue.resolve'
+  | 'construction.issue.close'
+  | 'construction.issue.reopen';
 
 export interface ConstructionActor {
   tenantId: TenantId;

@@ -135,6 +135,7 @@ describe('platform rule engines', () => {
     expect(normalizeEnabledModules(null)).toEqual({
       babycare: true,
       beauty_spa: false,
+      manufacturing: false,
       industrial_cleaning: false,
       student_training: false,
       real_estate: false,
@@ -150,6 +151,7 @@ describe('platform rule engines', () => {
     })).toEqual({
       babycare: false,
       beauty_spa: true,
+      manufacturing: false,
       industrial_cleaning: false,
       student_training: true,
       real_estate: false,
@@ -162,6 +164,7 @@ describe('platform rule engines', () => {
     })).toEqual({
       babycare: false,
       beauty_spa: true,
+      manufacturing: false,
       industrial_cleaning: false,
       student_training: false,
       real_estate: false,
@@ -174,6 +177,7 @@ describe('platform rule engines', () => {
     })).toEqual({
       babycare: true,
       beauty_spa: false,
+      manufacturing: false,
       industrial_cleaning: false,
       student_training: false,
       real_estate: false,
@@ -188,6 +192,7 @@ describe('platform rule engines', () => {
     })).toEqual({
       babycare: true,
       beauty_spa: false,
+      manufacturing: false,
       industrial_cleaning: false,
       student_training: true,
       real_estate: false,
@@ -201,6 +206,7 @@ describe('platform rule engines', () => {
     })).toEqual({
       babycare: false,
       beauty_spa: true,
+      manufacturing: false,
       industrial_cleaning: false,
       student_training: false,
       real_estate: false,
@@ -214,6 +220,7 @@ describe('platform rule engines', () => {
     })).toEqual({
       babycare: true,
       beauty_spa: false,
+      manufacturing: false,
       industrial_cleaning: false,
       student_training: false,
       real_estate: false,

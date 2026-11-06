@@ -164,6 +164,33 @@ async function hasRecordedMigration(client, version) {
   return result.rowCount > 0;
 }
 
+function normalizeMigrationSql(sql) {
+  return String(sql)
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .filter((line) => !/^\s*--\s*zero-downtime:/i.test(line))
+    .join('\n')
+    .trim();
+}
+
+async function findEquivalentRecordedMigration(client, migration) {
+  const columns = await getMigrationHistoryColumns(client);
+  if (!columns.has('name') || !columns.has('statements')) return null;
+
+  const result = await client.query(
+    `SELECT version, statements
+     FROM supabase_migrations.schema_migrations
+     WHERE name = $1 AND version <> $2`,
+    [migration.name, migration.version],
+  );
+
+  return result.rows.find((row) => (
+    Array.isArray(row.statements)
+    && row.statements.length === 1
+    && normalizeMigrationSql(row.statements[0]) === normalizeMigrationSql(migration.sql)
+  ))?.version ?? null;
+}
+
 async function recordMigration(client, migration) {
   const columns = await getMigrationHistoryColumns(client);
   const insertColumns = ['version'];
@@ -651,6 +678,15 @@ async function ensureRequiredE2eBaseline(client, migrations) {
 async function applyMigration(client, migration) {
   if (await hasRecordedMigration(client, migration.version)) {
     console.log(`Skipping already-recorded E2E migration ${migration.version} (${migration.name}).`);
+    return;
+  }
+
+  const equivalentVersion = await findEquivalentRecordedMigration(client, migration);
+  if (equivalentVersion) {
+    console.log(
+      `Skipping E2E migration ${migration.version} (${migration.name}); `
+      + `identical SQL is already recorded as ${equivalentVersion}.`,
+    );
     return;
   }
 

@@ -389,7 +389,7 @@ describe('tenant settings actions', () => {
     });
     const oldTenant = tenantRow();
     const updatedTenant = tenantRow({
-      enabled_modules: { babycare: false, beauty_spa: true, student_training: false, industrial_cleaning: false, real_estate: false, bella_auto: false, bella_healthcare: false, bella_education: false },
+      enabled_modules: { babycare: false, beauty_spa: true, manufacturing: false, student_training: false, industrial_cleaning: false, real_estate: false, bella_auto: false, bella_healthcare: false, bella_education: false },
     });
     scriptedResults = [
       { data: oldTenant, error: null },
@@ -405,7 +405,7 @@ describe('tenant settings actions', () => {
       table: 'tenants',
       operation: 'update',
       payload: expect.objectContaining({
-        enabled_modules: { babycare: false, beauty_spa: true, student_training: false, industrial_cleaning: false, real_estate: false, bella_auto: false, bella_healthcare: false, bella_education: false },
+        enabled_modules: { babycare: false, beauty_spa: true, manufacturing: false, student_training: false, industrial_cleaning: false, real_estate: false, bella_auto: false, bella_healthcare: false, bella_education: false },
       }),
     }));
   });

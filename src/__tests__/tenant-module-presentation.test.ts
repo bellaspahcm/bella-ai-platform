@@ -5,8 +5,18 @@ import {
   getTenantModulePresentation,
   getTenantSpecialtyOptions,
 } from '@/lib/business-rules/tenant-module-presentation';
+import { getDefaultTenantModuleKey, normalizeEnabledModulesForSave } from '@/lib/business-rules/tenant-modules';
 
 describe('tenant module presentation rules', () => {
+  it('preserves Manufacturing as the sole tenant module without falling back to BabyCare', () => {
+    const modules = normalizeEnabledModulesForSave({ manufacturing: true });
+
+    expect(modules).toMatchObject({ manufacturing: true, babycare: false });
+    expect(getDefaultTenantModuleKey(modules)).toBe('manufacturing');
+    expect(getTenantModulePresentation('manufacturing').primaryNameLabel).toBe('Họ tên khách hàng');
+    expect(getTenantSpecialtyOptions('manufacturing')).toEqual([]);
+  });
+
   it('uses Beauty Spa customer wording without changing stored customer columns', () => {
     const labels = getTenantModulePresentation('beauty_spa');
 

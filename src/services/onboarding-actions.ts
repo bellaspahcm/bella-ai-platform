@@ -34,6 +34,7 @@ type RegisterTenantProductKey =
   | 'bella_spa'
   | 'bella_haircut'
   | 'bella_nail'
+  | 'bella_manufacturing'
   | 'bella_preschool'
   | 'bella_english_center'
   | 'bella_hospitality';
@@ -45,6 +46,7 @@ const PRODUCT_MODULE_MAP: Record<RegisterTenantProductKey, RegisterTenantBusines
   bella_spa: 'beauty_spa',
   bella_haircut: 'beauty_spa',
   bella_nail: 'beauty_spa',
+  bella_manufacturing: 'manufacturing',
   bella_preschool: 'bella_education',
   bella_english_center: 'bella_education',
   bella_hospitality: 'hospitality',
@@ -120,6 +122,7 @@ export interface RegisterTenantInput {
 function normalizeBusinessModule(value: unknown): RegisterTenantBusinessModule {
   if (value === 'hospitality') return 'hospitality';
   if (value === 'bella_education') return 'bella_education';
+  if (value === 'manufacturing') return 'manufacturing';
   return value === 'beauty_spa' ? 'beauty_spa' : 'babycare';
 }
 
@@ -144,6 +147,7 @@ function getEnabledModulesForBusinessModule(moduleKey: RegisterTenantBusinessMod
   return {
     babycare: moduleKey === 'babycare',
     beauty_spa: moduleKey === 'beauty_spa',
+    manufacturing: moduleKey === 'manufacturing',
     student_training: false,
     industrial_cleaning: false,
     real_estate: false,
@@ -192,6 +196,9 @@ export async function registerNewTenant(input: RegisterTenantInput) {
     if (!input.spaName || !input.adminName || !input.adminEmail) {
       return { success: false, error: 'Vui lòng điền đầy đủ các thông tin bắt buộc.' };
     }
+    if (!input.adminPassword || input.adminPassword.length < 6) {
+      return { success: false, error: 'Mật khẩu tạm thời phải có ít nhất 6 ký tự.' };
+    }
     const productKey = normalizeProductKey(input.productKey, input.businessModule);
     const businessModule = PRODUCT_MODULE_MAP[productKey];
     const productAuthError = await assertProductSetupAllowed(productKey);
@@ -218,7 +225,7 @@ export async function registerNewTenant(input: RegisterTenantInput) {
       };
     }
 
-    const password = input.adminPassword || 'Password123!';
+    const password = input.adminPassword;
     const { createClient: createSupabaseClient } = await import('@supabase/supabase-js');
     const supabaseAdmin = createSupabaseClient<Database>(adminUrl, serviceRoleKey, {
       auth: {

@@ -147,6 +147,27 @@ describe('Tenant Onboarding System (Product Selection)', () => {
     delete process.env.SUPABASE_URL;
   });
 
+  it.each([undefined, '', '12345'])('rejects a missing or short initial admin password before provisioning', async (adminPassword) => {
+    const result = await registerNewTenant({
+      spaName: 'Manufacturing Setup',
+      contactPhone: '0900000000',
+      address: 'Test address',
+      email: 'tenant@bella.test',
+      adminName: 'Test Admin',
+      adminEmail: 'admin@bella.test',
+      adminPassword,
+      productKey: 'bella_manufacturing',
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('Mật khẩu tạm thời phải có ít nhất 6 ký tự');
+    expect(mockCreateSupabaseJsClient).not.toHaveBeenCalled();
+    expect(mockCreateUser).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
+    expect(mockFrom).not.toHaveBeenCalled();
+    expect(mockCheckHqAuth).not.toHaveBeenCalled();
+  });
+
   it.each([
     { missing: 'admin key', publicUrl: 'http://127.0.0.1:1', serverUrl: '', serviceKey: '' },
     { missing: 'admin URL', publicUrl: '', serverUrl: '', serviceKey: 'mock-service-role-key' },
@@ -163,6 +184,7 @@ describe('Tenant Onboarding System (Product Selection)', () => {
       email: 'tenant@bella.test',
       adminName: 'Test Admin',
       adminEmail: 'admin@bella.test',
+      adminPassword: 'Password123!',
       productKey: 'bella_babycare',
     });
 
@@ -320,7 +342,7 @@ describe('Tenant Onboarding System (Product Selection)', () => {
     expect(mockSafeRevalidatePath).toHaveBeenCalledWith('/dashboard');
   });
 
-  it('should map Haircut, Nail, and Preschool product keys to their required modules', async () => {
+  it('should map product keys to their required tenant modules', async () => {
     const cases = [
       {
         productKey: 'bella_haircut' as const,
@@ -331,6 +353,11 @@ describe('Tenant Onboarding System (Product Selection)', () => {
         productKey: 'bella_nail' as const,
         businessModule: 'beauty_spa' as const,
         enabled: { beauty_spa: true, babycare: false, bella_education: false },
+      },
+      {
+        productKey: 'bella_manufacturing' as const,
+        businessModule: 'manufacturing' as const,
+        enabled: { manufacturing: true, beauty_spa: false, babycare: false, bella_education: false },
       },
       {
         productKey: 'bella_preschool' as const,
