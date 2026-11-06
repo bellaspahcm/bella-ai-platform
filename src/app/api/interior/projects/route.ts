@@ -1,5 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
+import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
+
+export const dynamic = 'force-dynamic';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -56,12 +59,6 @@ const mockProjects: InteriorProjectSummary[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getTenantContext(request: NextRequest): { tenantId: string; userId: string } {
-  const tenantId = request.headers.get('x-tenant-id') ?? 'demo-tenant';
-  const userId = request.headers.get('x-user-id') ?? 'demo-user';
-  return { tenantId, userId };
-}
-
 function validateProjectStatus(status: string): status is ProjectStatus {
   return [
     'inquiry',
@@ -77,15 +74,12 @@ function validateProjectStatus(status: string): status is ProjectStatus {
 
 // ─── GET /api/interior/projects ───────────────────────────────────────────────
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const { tenantId } = getTenantContext(request);
+export async function GET(request: Request): Promise<NextResponse> {
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
 
-  if (!tenantId) {
-    return NextResponse.json(
-      { success: false, error: 'Missing tenant context' },
-      { status: 401 }
-    );
-  }
+  void tenantId; // tenantId used for scope; mock store is global for now
 
   return NextResponse.json({
     success: true,
@@ -98,15 +92,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
 // ─── POST /api/interior/projects ─────────────────────────────────────────────
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  const { tenantId } = getTenantContext(request);
+export async function POST(request: Request): Promise<NextResponse> {
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
 
-  if (!tenantId) {
-    return NextResponse.json(
-      { success: false, error: 'Missing tenant context' },
-      { status: 401 }
-    );
-  }
+  void tenantId; // tenantId used for scope; mock store is global for now
 
   let body: unknown;
   try {
@@ -162,3 +153,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     { status: 201 }
   );
 }
+
+// Re-export validateProjectStatus for potential use by sub-routes
+export { validateProjectStatus };

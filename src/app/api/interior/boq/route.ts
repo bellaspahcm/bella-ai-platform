@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { mockRevisions } from '../design/revisions/route';
+import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
+
+export const dynamic = 'force-dynamic';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -68,12 +71,6 @@ const mockBOQs: BOQ[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getTenantContext(request: NextRequest): { tenantId: string; userId: string } {
-  const tenantId = request.headers.get('x-tenant-id') ?? 'demo-tenant';
-  const userId = request.headers.get('x-user-id') ?? 'demo-user';
-  return { tenantId, userId };
-}
-
 function validateBOQItemInput(item: unknown): item is BOQCreateItemInput {
   if (typeof item !== 'object' || item === null) return false;
   const i = item as Record<string, unknown>;
@@ -91,15 +88,10 @@ function validateBOQItemInput(item: unknown): item is BOQCreateItemInput {
 
 // ─── GET /api/interior/boq ────────────────────────────────────────────────────
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const { tenantId } = getTenantContext(request);
-
-  if (!tenantId) {
-    return NextResponse.json(
-      { success: false, error: 'Missing tenant context' },
-      { status: 401 }
-    );
-  }
+export async function GET(request: Request): Promise<NextResponse> {
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
 
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get('projectId');
@@ -107,6 +99,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const filtered = projectId
     ? mockBOQs.filter((b) => b.projectId === projectId)
     : mockBOQs;
+
+  void tenantId; // tenantId available for future DB-scoped filtering
 
   return NextResponse.json({
     success: true,
@@ -116,15 +110,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
 // ─── POST /api/interior/boq ───────────────────────────────────────────────────
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  const { tenantId } = getTenantContext(request);
+export async function POST(request: Request): Promise<NextResponse> {
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
 
-  if (!tenantId) {
-    return NextResponse.json(
-      { success: false, error: 'Missing tenant context' },
-      { status: 401 }
-    );
-  }
+  void tenantId; // tenantId available for future DB-scoped creation
 
   let body: unknown;
   try {

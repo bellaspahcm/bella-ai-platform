@@ -1,5 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
+import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
+
+export const dynamic = 'force-dynamic';
 
 interface PaymentMilestoneInput {
   name: string;
@@ -57,9 +60,13 @@ const contractStore: StoredContract[] = [
   },
 ];
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const tenantId  = request.headers.get('x-tenant-id') ?? 'demo-tenant';
-  const projectId = request.nextUrl.searchParams.get('projectId');
+export async function GET(request: Request): Promise<NextResponse> {
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
+
+  const { searchParams } = new URL(request.url);
+  const projectId = searchParams.get('projectId');
 
   const results = contractStore.filter((c) => {
     const tenantMatch  = c.tenantId === tenantId;
@@ -70,8 +77,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   return NextResponse.json({ success: true, data: { contracts: results, total: results.length } });
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  const tenantId = request.headers.get('x-tenant-id') ?? 'demo-tenant';
+export async function POST(request: Request): Promise<NextResponse> {
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
 
   let body: ContractCreateBody;
   try {
@@ -121,4 +130,3 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   return NextResponse.json({ success: true, data: contract }, { status: 201 });
 }
-

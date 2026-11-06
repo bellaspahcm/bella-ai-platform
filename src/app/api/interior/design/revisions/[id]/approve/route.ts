@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 import { mockRevisions } from '../../route';
+
+export const dynamic = 'force-dynamic';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface ApproveRevisionBody {
-  approvedByUserId: string;
   approvalNotes?: string;
 }
 
@@ -17,28 +19,17 @@ class ApprovedDesignLockViolationError extends Error {
   }
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getTenantContext(request: NextRequest): { tenantId: string; userId: string } {
-  const tenantId = request.headers.get('x-tenant-id') ?? 'demo-tenant';
-  const userId = request.headers.get('x-user-id') ?? 'demo-user';
-  return { tenantId, userId };
-}
-
 // ─── POST /api/interior/design/revisions/[id]/approve ────────────────────────
 
 export async function POST(
-  request: NextRequest,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
-  const { tenantId } = getTenantContext(request);
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId, actor } = ctx;
 
-  if (!tenantId) {
-    return NextResponse.json(
-      { success: false, error: 'Missing tenant context' },
-      { status: 401 }
-    );
-  }
+  void tenantId; // tenantId used for scope; mock store is global for now
 
   const { id } = await params;
 
@@ -77,20 +68,11 @@ export async function POST(
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { success: false, error: 'Invalid JSON body' },
-      { status: 400 }
-    );
+    // Body is optional for approve endpoint — notes are optional
+    body = {};
   }
 
   const parsed = body as Partial<ApproveRevisionBody>;
-
-  if (!parsed.approvedByUserId || typeof parsed.approvedByUserId !== 'string') {
-    return NextResponse.json(
-      { success: false, error: 'Field "approvedByUserId" is required and must be a string' },
-      { status: 422 }
-    );
-  }
 
   if (
     parsed.approvalNotes !== undefined &&
@@ -104,9 +86,9 @@ export async function POST(
 
   const approvedAt = new Date().toISOString();
 
-  // Mutate shared mock store
+  // approvedByUserId comes from the authenticated actor — NOT from the client
   revision.status = 'approved';
-  revision.approvedByUserId = parsed.approvedByUserId;
+  revision.approvedByUserId = actor.id;
   revision.approvedAt = approvedAt;
   revision.updatedAt = approvedAt;
 

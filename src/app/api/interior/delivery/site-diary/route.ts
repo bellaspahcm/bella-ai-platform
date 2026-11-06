@@ -1,5 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
+import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
+
+export const dynamic = 'force-dynamic';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -79,8 +82,11 @@ function isValidIsoDate(value: string): boolean {
 
 // ─── GET /api/interior/delivery/site-diary ────────────────────────────────────
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const tenantId = request.headers.get('x-tenant-id') ?? 'demo-tenant';
+export async function GET(request: Request): Promise<NextResponse> {
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
+
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get('projectId');
 
@@ -100,8 +106,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
 // ─── POST /api/interior/delivery/site-diary ───────────────────────────────────
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  const tenantId = request.headers.get('x-tenant-id') ?? 'demo-tenant';
+export async function POST(request: Request): Promise<NextResponse> {
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
 
   let body: unknown;
   try {

@@ -1,5 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
+import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
+
+export const dynamic = 'force-dynamic';
 
 interface HandoverCreateBody {
   projectId: string;
@@ -32,9 +35,13 @@ const MOCK_PUNCH_LIST: Array<{ projectId: string; severity: string; status: stri
 
 const handoverStore: StoredHandover[] = [];
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const tenantId  = request.headers.get('x-tenant-id') ?? 'demo-tenant';
-  const projectId = request.nextUrl.searchParams.get('projectId');
+export async function GET(request: Request): Promise<NextResponse> {
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
+
+  const { searchParams } = new URL(request.url);
+  const projectId = searchParams.get('projectId');
 
   const results = handoverStore.filter((h) => {
     const tenantMatch  = h.tenantId === tenantId;
@@ -45,8 +52,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   return NextResponse.json({ success: true, data: { handovers: results, total: results.length } });
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  const tenantId = request.headers.get('x-tenant-id') ?? 'demo-tenant';
+export async function POST(request: Request): Promise<NextResponse> {
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
 
   let body: HandoverCreateBody;
   try {
@@ -103,4 +112,3 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     { status: 201 },
   );
 }
-

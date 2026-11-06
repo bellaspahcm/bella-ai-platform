@@ -1,5 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
+import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
+
+export const dynamic = 'force-dynamic';
 
 interface WarrantyTicketBody {
   warrantyId: string;
@@ -65,10 +68,14 @@ function computeStatus(cert: WarrantyCertificate): 'active' | 'expiring_soon' | 
   return 'active';
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const tenantId  = request.headers.get('x-tenant-id') ?? 'demo-tenant';
-  const projectId = request.nextUrl.searchParams.get('projectId');
-  const type      = request.nextUrl.searchParams.get('type') ?? 'certificates';
+export async function GET(request: Request): Promise<NextResponse> {
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
+
+  const { searchParams } = new URL(request.url);
+  const projectId = searchParams.get('projectId');
+  const type      = searchParams.get('type') ?? 'certificates';
 
   if (type === 'tickets') {
     const tickets = ticketStore.filter((t) => {
@@ -87,8 +94,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   return NextResponse.json({ success: true, data: { certificates: certs, total: certs.length } });
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  const tenantId = request.headers.get('x-tenant-id') ?? 'demo-tenant';
+export async function POST(request: Request): Promise<NextResponse> {
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
 
   let body: WarrantyTicketBody;
   try {
@@ -118,4 +127,3 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   return NextResponse.json({ success: true, data: ticket }, { status: 201 });
 }
-

@@ -91,3 +91,4 @@ export interface InteriorProductionRequestPort {
     dispatchedAt?: string;
   }>;
 }
+

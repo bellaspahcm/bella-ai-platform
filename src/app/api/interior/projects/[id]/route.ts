@@ -1,4 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
+
+export const dynamic = 'force-dynamic';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -86,28 +89,17 @@ function isValidStatus(value: string): value is ProjectStatus {
   return (VALID_STATUSES as string[]).includes(value);
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getTenantContext(request: NextRequest): { tenantId: string; userId: string } {
-  const tenantId = request.headers.get('x-tenant-id') ?? 'demo-tenant';
-  const userId = request.headers.get('x-user-id') ?? 'demo-user';
-  return { tenantId, userId };
-}
-
 // ─── GET /api/interior/projects/[id] ─────────────────────────────────────────
 
 export async function GET(
-  request: NextRequest,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
-  const { tenantId } = getTenantContext(request);
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
 
-  if (!tenantId) {
-    return NextResponse.json(
-      { success: false, error: 'Missing tenant context' },
-      { status: 401 }
-    );
-  }
+  void tenantId; // tenantId used for scope; mock store is global for now
 
   const { id } = await params;
 
@@ -133,17 +125,14 @@ export async function GET(
 // ─── PATCH /api/interior/projects/[id] ───────────────────────────────────────
 
 export async function PATCH(
-  request: NextRequest,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
-  const { tenantId } = getTenantContext(request);
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
 
-  if (!tenantId) {
-    return NextResponse.json(
-      { success: false, error: 'Missing tenant context' },
-      { status: 401 }
-    );
-  }
+  void tenantId; // tenantId used for scope; mock store is global for now
 
   const { id } = await params;
 

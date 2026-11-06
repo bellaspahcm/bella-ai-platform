@@ -1,5 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import type { PunchListStatus } from '@/products/bella-interior/domain/delivery-aftercare/types';
+import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
+
+export const dynamic = 'force-dynamic';
 
 /**
  * Punch List Item Status Update
@@ -9,14 +12,12 @@ import type { PunchListStatus } from '@/products/bella-interior/domain/delivery-
  *
  * Business rules:
  * - 'rectified' (not 'resolved'): defect has been fixed, awaiting verification
- * - 'verified': requires verifiedBy field — confirms physical check completed
+ * - 'verified': verifiedBy is set from actor.id (server-side) — NOT from client body (security invariant)
  * - Only 'critical' severity items block handover when not 'verified'
  */
 
 interface PunchListPatchBody {
   status: PunchListStatus;
-  /** Required when transitioning to 'verified' */
-  verifiedBy?: string;
   /** Required when transitioning to 'rectified' */
   rectifiedBy?: string;
   rectificationNote?: string;
@@ -26,11 +27,14 @@ interface PunchListPatchBody {
 const VALID_STATUSES: PunchListStatus[] = ['open', 'in_progress', 'rectified', 'verified'];
 
 export async function PATCH(
-  request: NextRequest,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
-  const tenantId = request.headers.get('x-tenant-id') ?? 'demo-tenant';
-  const { id }   = await params;
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId, actor } = ctx;
+
+  const { id } = await params;
 
   if (!id) {
     return NextResponse.json({ success: false, error: 'Punch list item ID is required' }, { status: 400 });
@@ -53,14 +57,6 @@ export async function PATCH(
     );
   }
 
-  // Business rule: 'verified' requires verifiedBy
-  if (body.status === 'verified' && !body.verifiedBy) {
-    return NextResponse.json(
-      { success: false, error: 'verifiedBy is required when setting status to verified (physical inspection confirmation)' },
-      { status: 422 },
-    );
-  }
-
   // Business rule: 'rectified' requires rectifiedBy
   if (body.status === 'rectified' && !body.rectifiedBy) {
     return NextResponse.json(
@@ -70,6 +66,9 @@ export async function PATCH(
   }
 
   const now = new Date().toISOString();
+
+  // Security invariant: verifiedBy is always set from the authenticated actor, never from the client body
+  const verifiedBy = body.status === 'verified' ? actor.id : null;
 
   return NextResponse.json({
     success: true,
@@ -81,7 +80,7 @@ export async function PATCH(
       rectifiedAt: body.status === 'rectified' || body.status === 'verified' ? now : null,
       rectificationNote: body.rectificationNote ?? null,
       rectificationPhotoUrl: body.rectificationPhotoUrl ?? null,
-      verifiedBy: body.verifiedBy ?? null,
+      verifiedBy,
       verifiedAt: body.status === 'verified' ? now : null,
       updatedAt: now,
     },
@@ -89,11 +88,14 @@ export async function PATCH(
 }
 
 export async function GET(
-  request: NextRequest,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
-  const tenantId = request.headers.get('x-tenant-id') ?? 'demo-tenant';
-  const { id }   = await params;
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { tenantId } = ctx;
+
+  const { id } = await params;
 
   if (!id) {
     return NextResponse.json({ success: false, error: 'Punch list item ID is required' }, { status: 400 });
