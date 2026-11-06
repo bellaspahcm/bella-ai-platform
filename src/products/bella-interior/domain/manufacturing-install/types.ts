@@ -1,8 +1,27 @@
 /**
  * Bounded Context 3: Manufacturing & Installation
  *
- * Manages custom millwork & cabinetry workshop production orders, woodworking stages,
- * workshop QC, dispatching, and job-site installation across room zones.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * ARCHITECTURAL BOUNDARY (confirmed by audit 2026-11-06):
+ *
+ * Interior OS DOES NOT own a Production Engine.
+ * Platform Manufacturing OS (src/platform/manufacturing/) owns:
+ *   ✅ ProductionOrder         (the actual manufacturing work order)
+ *   ✅ BOMRevision             (bill of materials)
+ *   ✅ RoutingRevision         (workshop routing & work centers)
+ *   ✅ WorkCenter              (CNC, edge banding, assembly stations)
+ *   ✅ QualityDisposition      (workshop QC pass/fail/scrap)
+ *
+ * Interior OS owns (defined here):
+ *   ✅ InteriorProductionRequest  (request TO Manufacturing OS, linked to approved design)
+ *   ✅ SiteInstallationPlan       (on-site room-by-room installation, NOT in Manufacturing OS)
+ *   ✅ SiteRoomInstallation       (per-room installation tracking)
+ *
+ * Types below named 'ProductionOrder' and 'WorkshopOperationStage' are
+ * Interior-side tracking of Manufacturing OS status — they shadow, not replace,
+ * Platform Manufacturing types. These will be refactored to call
+ * InteriorProductionRequestPort in Batch 2 implementation.
+ * ─────────────────────────────────────────────────────────────────────────────
  *
  * @module src/products/bella-interior/domain/manufacturing-install
  */

@@ -22,10 +22,12 @@ interface StoredHandover {
 }
 
 // Mock punch list to check for critical open items
+// DOMAIN CONTRACT: status 'rectified' and 'verified' (not 'resolved')
+// Handover is blocked only when severity === 'critical' AND status !== 'verified'
 const MOCK_PUNCH_LIST: Array<{ projectId: string; severity: string; status: string }> = [
-  { projectId: 'PRJ-DEMO-001', severity: 'major',  status: 'resolved' },
-  { projectId: 'PRJ-DEMO-001', severity: 'minor',  status: 'resolved' },
-  { projectId: 'PRJ-DEMO-002', severity: 'critical', status: 'open'   },
+  { projectId: 'PRJ-DEMO-001', severity: 'major',    status: 'rectified' },
+  { projectId: 'PRJ-DEMO-001', severity: 'minor',    status: 'verified'  },
+  { projectId: 'PRJ-DEMO-002', severity: 'critical',  status: 'open'      },
 ];
 
 const handoverStore: StoredHandover[] = [];
@@ -60,9 +62,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // Gate: check for open critical punch items
+  // Gate: block handover only when critical items are not 'verified'
+  // Business rule: 'rectified' alone is not sufficient — must be 'verified' by a second person
   const openCritical = MOCK_PUNCH_LIST.filter(
-    (p) => p.projectId === body.projectId && p.severity === 'critical' && p.status !== 'resolved',
+    (p) => p.projectId === body.projectId && p.severity === 'critical' && p.status !== 'verified',
   );
 
   if (openCritical.length > 0) {
@@ -100,3 +103,4 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     { status: 201 },
   );
 }
+
