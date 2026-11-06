@@ -511,9 +511,9 @@ function sslConfig(): { rejectUnauthorized: boolean } | undefined {
 function loadE2eEnvironment(): Record<string, string> {
   const candidates = [
     path.join(tmpdir(), 'bella-spa-e2e.env'),
-    path.resolve(process.cwd(), '.env.e2e'),
-  ].filter((entry): entry is string => Boolean(entry));
-  for (const file of [...new Set(candidates.map((entry) => path.resolve(entry)))]) {
+    path.join(process.cwd(), '.env.e2e'),
+  ];
+  for (const file of candidates) {
     if (!existsSync(file)) continue;
     return parseEnv(readFileSync(file));
   }

@@ -818,10 +818,10 @@ function isAllowedE2eDbUrl(value: string): boolean {
 function loadConstructionE2eEnv(): void {
   const candidates = [
     path.join(tmpdir(), 'bella-spa-e2e.env'),
-    path.resolve(process.cwd(), '.env.e2e'),
-  ].filter((filePath): filePath is string => Boolean(filePath));
+    path.join(process.cwd(), '.env.e2e'),
+  ];
 
-  for (const filePath of [...new Set(candidates.map((candidate) => path.resolve(candidate)))]) {
+  for (const filePath of candidates) {
     if (!existsSync(filePath)) continue;
     const parsed = parseEnv(readFileSync(filePath));
     for (const [key, value] of Object.entries(parsed)) {
