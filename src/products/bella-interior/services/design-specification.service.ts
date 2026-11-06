@@ -157,7 +157,9 @@ export class DesignSpecificationService {
     }
 
     if (revision.status === 'approved') {
-      return revision; // Already approved (idempotent)
+      throw new Error(
+        `Approved Design Lock Violation: Revision "${input.revisionId}" is already approved and locked for production. Re-approval is not permitted.`
+      );
     }
 
     if (revision.status !== 'client_review' && revision.status !== 'in_review') {
