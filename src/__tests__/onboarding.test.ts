@@ -129,7 +129,7 @@ describe('Tenant Onboarding System (Product Selection)', () => {
 
     // Mock successful RPC calls
     mockRpc.mockImplementation((name: string) => {
-      if (name === 'onboard_tenant') {
+      if (name === 'onboard_tenant' || name === 'onboard_manufacturing_tenant') {
         return Promise.resolve({ data: 'mock-tenant-id-123', error: null });
       }
       return Promise.resolve({ data: null, error: null });
@@ -411,10 +411,21 @@ describe('Tenant Onboarding System (Product Selection)', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(tenantQueryMock.updateSpy).toHaveBeenCalledWith(expect.objectContaining({
-        product_key: item.productKey,
-        enabled_modules: expect.objectContaining(item.enabled),
-      }));
+      if (item.productKey === 'bella_manufacturing') {
+        expect(mockRpc).toHaveBeenCalledWith('onboard_manufacturing_tenant', expect.objectContaining({
+          p_tenant_name: 'bella_manufacturing Tenant',
+          p_admin_id: 'mock-auth-user-id',
+          p_admin_email: 'bella_manufacturing.admin@tenant.vn',
+        }));
+        expect(mockRpc).not.toHaveBeenCalledWith('onboard_tenant', expect.anything());
+        expect(tenantQueryMock.updateSpy).not.toHaveBeenCalled();
+        expect(orgUnitQueryMock.insertSpy).not.toHaveBeenCalled();
+      } else {
+        expect(tenantQueryMock.updateSpy).toHaveBeenCalledWith(expect.objectContaining({
+          product_key: item.productKey,
+          enabled_modules: expect.objectContaining(item.enabled),
+        }));
+      }
       expect(mockRecordAuditLog).toHaveBeenCalledWith(expect.objectContaining({
         new_data: expect.objectContaining({
           product_key: item.productKey,

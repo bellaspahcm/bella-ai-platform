@@ -154,6 +154,46 @@ A new version of Supabase CLI is available.`;
     expect(state.remoteOnly).toEqual(['20260606104500']);
   });
 
+  it('keeps the verified Construction migration version alias strict by default', () => {
+    const state = analyzeMigrationState(
+      ['20261104135713', '20261106042111'],
+      ['20261104223802', '20261106042111']
+    );
+
+    expect(state.isSynced).toBe(false);
+    expect(state.remoteOnly).toEqual(['20261104223802']);
+    expect(state.recognizedRemoteAliases).toEqual([]);
+  });
+
+  it('recognizes the verified Construction E2E migration version alias in isolated E2E mode', () => {
+    const state = analyzeMigrationState(
+      ['20261104135713', '20261106042111'],
+      ['20261104223802', '20261106042111'],
+      null,
+      true,
+    );
+
+    expect(state.isSynced).toBe(true);
+    expect(state.pendingLocal).toEqual([]);
+    expect(state.remoteOnly).toEqual([]);
+    expect(state.recognizedRemoteAliases).toEqual([
+      { remote: '20261104223802', local: '20261104135713' },
+    ]);
+  });
+
+  it('does not ignore an alias when its local migration is absent', () => {
+    const state = analyzeMigrationState(
+      ['20261106042111'],
+      ['20261104223802', '20261106042111'],
+      null,
+      true,
+    );
+
+    expect(state.isSynced).toBe(false);
+    expect(state.remoteOnly).toEqual(['20261104223802']);
+    expect(state.recognizedRemoteAliases).toEqual([]);
+  });
+
   it('passes when local and remote migrations match exactly', () => {
     const state = analyzeMigrationState(
       ['20260606100000', '20260606113000'],

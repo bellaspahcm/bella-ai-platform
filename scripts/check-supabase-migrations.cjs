@@ -4,6 +4,14 @@ const { join } = require('node:path');
 
 const MIGRATION_FILE_PATTERN = /^(\d{8}|\d{14})_.+\.sql$/;
 
+// The isolated Construction E2E database recorded this exact migration under
+// its earlier version before the repository timestamp was normalized. The
+// stored SQL was read back and matches the local migration after the same
+// newline/comment normalization used by the E2E migration applier.
+const MIGRATION_VERSION_ALIASES = new Map([
+  ['20261104223802', '20261104135713'],
+]);
+
 function normalizeMigrationVersion(version) {
   const value = String(version || '').trim();
   if (/^\d{8}$/.test(value)) {
@@ -78,18 +86,38 @@ function parseSupabaseMigrationList(output) {
   return rows;
 }
 
-function analyzeMigrationState(localVersions, remoteVersions, baselineLocalVersions = null) {
+function analyzeMigrationState(
+  localVersions,
+  remoteVersions,
+  baselineLocalVersions = null,
+  allowVerifiedE2eVersionAliases = false,
+) {
   const localSet = new Set(localVersions);
-  const remoteSet = new Set(remoteVersions);
   const baselineLocalSet = baselineLocalVersions ? new Set(baselineLocalVersions) : null;
-  const pendingLocal = localVersions.filter((version) => !remoteSet.has(version));
+  const satisfiedLocalVersions = new Set(remoteVersions);
+  const recognizedRemoteAliases = [];
+
+  for (const remoteVersion of remoteVersions) {
+    const localAlias = allowVerifiedE2eVersionAliases
+      ? MIGRATION_VERSION_ALIASES.get(remoteVersion)
+      : null;
+    if (localAlias && localSet.has(localAlias)) {
+      satisfiedLocalVersions.add(localAlias);
+      recognizedRemoteAliases.push({ remote: remoteVersion, local: localAlias });
+    }
+  }
+
+  const pendingLocal = localVersions.filter((version) => !satisfiedLocalVersions.has(version));
   const grandfatheredPendingLocal = baselineLocalSet
     ? pendingLocal.filter((version) => baselineLocalSet.has(version))
     : [];
   const newPendingLocal = baselineLocalSet
     ? pendingLocal.filter((version) => !baselineLocalSet.has(version))
     : pendingLocal;
-  const remoteOnly = remoteVersions.filter((version) => !localSet.has(version));
+  const recognizedRemoteAliasVersions = new Set(recognizedRemoteAliases.map((alias) => alias.remote));
+  const remoteOnly = remoteVersions.filter((version) => (
+    !localSet.has(version) && !recognizedRemoteAliasVersions.has(version)
+  ));
 
   return {
     latestLocal: localVersions.at(-1) || null,
@@ -98,6 +126,7 @@ function analyzeMigrationState(localVersions, remoteVersions, baselineLocalVersi
     grandfatheredPendingLocal,
     newPendingLocal,
     remoteOnly,
+    recognizedRemoteAliases,
     isSynced: newPendingLocal.length === 0 && remoteOnly.length === 0,
   };
 }
@@ -187,7 +216,12 @@ function main() {
   }
 
   const remoteVersions = rows.map((row) => row.remote).filter(Boolean).sort();
-  const state = analyzeMigrationState(localVersions, remoteVersions, baselineLocalVersions);
+  const state = analyzeMigrationState(
+    localVersions,
+    remoteVersions,
+    baselineLocalVersions,
+    allowRemoteAheadOnly,
+  );
   const remoteAheadOnly = allowRemoteAheadOnly
     ? state.remoteOnly.filter((version) => state.latestLocal && version > state.latestLocal)
     : [];
@@ -209,6 +243,13 @@ function main() {
     console.warn(
       `Grandfathered pending local migrations already present at baseline: ${state.grandfatheredPendingLocal.length}`,
     );
+  }
+
+  if (state.recognizedRemoteAliases.length > 0) {
+    console.log('Recognized verified migration version aliases:');
+    for (const alias of state.recognizedRemoteAliases) {
+      console.log(`- Remote ${alias.remote} satisfies local ${alias.local}`);
+    }
   }
 
   if (state.newPendingLocal.length > 0) {

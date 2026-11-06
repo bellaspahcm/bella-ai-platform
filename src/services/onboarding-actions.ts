@@ -187,8 +187,9 @@ async function assertProductSetupAllowed(productKey: RegisterTenantProductKey) {
 }
 
 /**
- * Registers a new tenant and configures their initial environment.
- * Leverages the database SECURITY DEFINER function onboard_tenant.
+ * Registers a new tenant and configures its initial environment.
+ * Manufacturing uses its dedicated no-demo onboarding RPC; legacy Products
+ * retain the existing onboard_tenant path.
  */
 export async function registerNewTenant(input: RegisterTenantInput) {
   try {
@@ -253,29 +254,43 @@ export async function registerNewTenant(input: RegisterTenantInput) {
     }
 
     // 3. Call DB Onboarding Function
+    type OnboardingRpcArgs = {
+      p_contact_phone: string;
+      p_address: string;
+      p_email: string;
+      p_admin_id: string;
+      p_admin_email: string;
+      p_admin_name: string;
+    };
     type OnboardTenantRpc = (
       fn: 'onboard_tenant',
-      args: {
-        p_spa_name: string;
-        p_contact_phone: string;
-        p_address: string;
-        p_email: string;
-        p_admin_id: string;
-        p_admin_email: string;
-        p_admin_name: string;
-      }
+      args: OnboardingRpcArgs & { p_spa_name: string },
+    ) => Promise<{ data: string | null; error: { message: string } | null }>;
+    type OnboardManufacturingTenantRpc = (
+      fn: 'onboard_manufacturing_tenant',
+      args: OnboardingRpcArgs & { p_tenant_name: string },
     ) => Promise<{ data: string | null; error: { message: string } | null }>;
 
-    const onboardingRpcClient = supabaseAdmin as unknown as { rpc: OnboardTenantRpc };
-    const { data: tenantId, error: rpcError } = await onboardingRpcClient.rpc('onboard_tenant', {
-      p_spa_name: input.spaName,
+    const onboardingRpcClient = supabaseAdmin as unknown as {
+      rpc: OnboardTenantRpc & OnboardManufacturingTenantRpc;
+    };
+    const onboardingArgs: OnboardingRpcArgs = {
       p_contact_phone: input.contactPhone || '',
       p_address: input.address || '',
       p_email: input.email || '',
       p_admin_id: authUser.id,
       p_admin_email: input.adminEmail,
-      p_admin_name: input.adminName
-    });
+      p_admin_name: input.adminName,
+    };
+    const { data: tenantId, error: rpcError } = productKey === 'bella_manufacturing'
+      ? await onboardingRpcClient.rpc('onboard_manufacturing_tenant', {
+          ...onboardingArgs,
+          p_tenant_name: input.spaName,
+        })
+      : await onboardingRpcClient.rpc('onboard_tenant', {
+          ...onboardingArgs,
+          p_spa_name: input.spaName,
+        });
  
     if (rpcError) {
       console.error('[registerNewTenant] Database onboarding RPC failed:', rpcError.message);
@@ -286,10 +301,12 @@ export async function registerNewTenant(input: RegisterTenantInput) {
 
     // 3.1. Update HQ-managed tenant setup fields after the base onboarding RPC.
     const tenantSetupClient = supabaseAdmin;
-    const postOnboardingUpdate: TenantUpdate = {
-      product_key: productKey,
-      enabled_modules: toEnabledModulesJsonForBusinessModule(businessModule),
-    };
+    const postOnboardingUpdate: TenantUpdate = productKey === 'bella_manufacturing'
+      ? {}
+      : {
+          product_key: productKey,
+          enabled_modules: toEnabledModulesJsonForBusinessModule(businessModule),
+        };
     if (hospitalityProfileResult?.success) {
       postOnboardingUpdate.metadata = toHospitalityMetadataJson(hospitalityProfileResult.profile);
     }
@@ -330,7 +347,7 @@ export async function registerNewTenant(input: RegisterTenantInput) {
       }
     }
 
-    if (productKey !== 'bella_babycare') {
+    if (productKey !== 'bella_babycare' && productKey !== 'bella_manufacturing') {
       const branchBootstrapError = await bootstrapDefaultBranchForTenant(
         tenantSetupClient,
         tenantId as string,
