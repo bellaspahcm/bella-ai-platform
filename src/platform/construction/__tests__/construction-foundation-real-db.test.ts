@@ -800,7 +800,7 @@ async function postRow(
 function sslConfig(): { rejectUnauthorized: boolean } | undefined {
   return dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1')
     ? undefined
-    : { rejectUnauthorized: false };
+    : { rejectUnauthorized: true };
 }
 
 function isAllowedE2eProject(value: string): boolean {
@@ -817,11 +817,8 @@ function isAllowedE2eDbUrl(value: string): boolean {
 
 function loadConstructionE2eEnv(): void {
   const candidates = [
-    process.env.E2E_ENV_FILE,
     path.join(tmpdir(), 'bella-spa-e2e.env'),
     path.resolve(process.cwd(), '.env.e2e'),
-    path.resolve('D:/Antigravity/Projects/BELLA SPA ERP/.env.e2e'),
-    path.resolve(process.cwd(), '../BELLA SPA ERP/.env.e2e'),
   ].filter((filePath): filePath is string => Boolean(filePath));
 
   for (const filePath of [...new Set(candidates.map((candidate) => path.resolve(candidate)))]) {
