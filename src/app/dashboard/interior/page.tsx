@@ -52,7 +52,7 @@ interface MockProject {
 
 const INITIAL_PROJECTS: MockProject[] = [
   {
-    id: 'p-1',
+    id: 'proj-001',
     code: 'INT-CIPUTRA-01',
     name: 'Villa Ciputra Giai Đoạn 2',
     customerName: 'Nguyễn Văn A',
@@ -71,7 +71,7 @@ const INITIAL_PROJECTS: MockProject[] = [
     roomsCount: 6,
   },
   {
-    id: 'p-2',
+    id: 'proj-002',
     code: 'INT-DUBAI-001',
     name: 'Dubai Luxury Villa Fitout',
     customerName: 'Sheikh Mansoor',
@@ -90,7 +90,7 @@ const INITIAL_PROJECTS: MockProject[] = [
     roomsCount: 8,
   },
   {
-    id: 'p-3',
+    id: 'proj-003',
     code: 'INT-METROPOLIS-02',
     name: 'Penthouse Metropolis Liễu Giai',
     customerName: 'Trịnh Thăng Bình',
@@ -109,7 +109,7 @@ const INITIAL_PROJECTS: MockProject[] = [
     roomsCount: 5,
   },
   {
-    id: 'p-4',
+    id: 'proj-004',
     code: 'INT-ECOPARK-03',
     name: 'Duplex Aqua Bay Ecopark',
     customerName: 'Phạm Hồng Nhung',
@@ -196,7 +196,9 @@ export default function InteriorDashboardPage() {
             status: string;
             contractValue: number;
           }, idx: number) => {
-            const fallback = INITIAL_PROJECTS[idx % INITIAL_PROJECTS.length];
+            const fallback =
+              INITIAL_PROJECTS.find((df) => df.id === p.id || df.code === p.code) ||
+              INITIAL_PROJECTS[idx % INITIAL_PROJECTS.length];
             return {
               ...fallback,
               id: p.id || fallback.id,

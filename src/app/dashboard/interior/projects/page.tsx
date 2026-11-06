@@ -24,7 +24,7 @@ interface ProjectItem {
 
 const DEFAULT_PROJECTS: ProjectItem[] = [
   {
-    id: 'p-1',
+    id: 'proj-001',
     code: 'INT-CIPUTRA-01',
     name: 'Villa Ciputra Giai Đoạn 2',
     customerName: 'Nguyễn Văn A',
@@ -41,7 +41,7 @@ const DEFAULT_PROJECTS: ProjectItem[] = [
     imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80',
   },
   {
-    id: 'p-2',
+    id: 'proj-002',
     code: 'INT-DUBAI-001',
     name: 'Dubai Luxury Villa Fitout',
     customerName: 'Sheikh Mansoor',
@@ -58,7 +58,7 @@ const DEFAULT_PROJECTS: ProjectItem[] = [
     imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=300&q=80',
   },
   {
-    id: 'p-3',
+    id: 'proj-003',
     code: 'INT-METROPOLIS-02',
     name: 'Penthouse Metropolis Liễu Giai',
     customerName: 'Trịnh Thăng Bình',
@@ -75,7 +75,7 @@ const DEFAULT_PROJECTS: ProjectItem[] = [
     imageUrl: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=300&q=80',
   },
   {
-    id: 'p-4',
+    id: 'proj-004',
     code: 'INT-ECOPARK-03',
     name: 'Duplex Aqua Bay Ecopark',
     customerName: 'Phạm Hồng Nhung',
@@ -113,7 +113,9 @@ export default function ProjectsPage() {
             status: string;
             contractValue: number;
           }, idx: number) => {
-            const fallback = DEFAULT_PROJECTS[idx % DEFAULT_PROJECTS.length];
+            const fallback =
+              DEFAULT_PROJECTS.find((df) => df.id === p.id || df.code === p.code) ||
+              DEFAULT_PROJECTS[idx % DEFAULT_PROJECTS.length];
             return {
               ...fallback,
               id: p.id || fallback.id,
