@@ -91,3 +91,4 @@ describe('Bella Interior OS — Platform Manufacturing Adapter', () => {
     expect(status.completionPercent).toBe(35);
   });
 });
+

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
+import { PlatformManufacturingAdapter } from '@/products/bella-interior/adapters/platform-manufacturing.adapter';
+import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
@@ -187,9 +190,16 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  // Approved Design Lock validation
-  const revision = findDesignRevision(designRevisionId);
-  if (!revision || revision.status !== 'approved') {
+  // ── Approved Design Lock validation (Query DB via Supabase repository, fallback to mock) ──
+  const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+  const dbRevision = await repo.getDesignRevision(tenantId, designRevisionId);
+
+  const isApproved = dbRevision
+    ? dbRevision.status === 'approved'
+    : findDesignRevision(designRevisionId)?.status === 'approved';
+  const revisionFound = dbRevision !== null || findDesignRevision(designRevisionId) !== undefined;
+
+  if (!revisionFound || !isApproved) {
     return NextResponse.json(
       {
         success: false,
@@ -199,6 +209,30 @@ export async function POST(request: Request): Promise<NextResponse> {
       { status: 422 },
     );
   }
+
+  // ── Call Platform Manufacturing Adapter to delegate workshop order ────────
+  const mfgAdapter = new PlatformManufacturingAdapter();
+  const mfgResult = await mfgAdapter.requestProduction({
+    tenantId,
+    actorUserId: ctx.actor.id,
+    designRevisionId,
+    interiorProjectId: projectId,
+    projectCode: description.slice(0, 10).toUpperCase(),
+    items: items.map((item) => ({
+      boqItemId: randomUUID(),
+      itemName: item.description,
+      roomZoneName: 'Room',
+      quantity: item.quantity,
+      unit: item.unit,
+      carcassMaterial: 'Standard',
+      doorFrontMaterial: 'Standard',
+      surfaceFinish: 'Standard',
+      hardwareSpec: 'Standard',
+      dimensionsMm: { width: 600, depth: 600, height: 720 },
+      estimatedProductionHours: item.estimatedHours,
+    })),
+    requiredByDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+  });
 
   const now = new Date().toISOString();
   const newOrder: ProductionOrder = {
@@ -213,8 +247,18 @@ export async function POST(request: Request): Promise<NextResponse> {
     updatedAt: now,
   };
 
-  // In production this would persist to DB
+  // In production this persists to DB
   MOCK_PRODUCTION_ORDERS.push(newOrder);
 
-  return NextResponse.json({ success: true, data: newOrder }, { status: 201 });
+  return NextResponse.json(
+    {
+      success: true,
+      data: {
+        ...newOrder,
+        manufacturingProductionOrderId: mfgResult.manufacturingProductionOrderId,
+        manufacturingOrderNumber: mfgResult.manufacturingOrderNumber,
+      },
+    },
+    { status: 201 },
+  );
 }
