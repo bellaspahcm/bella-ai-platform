@@ -9,6 +9,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 import { SupabasePlatformActionAuthorization } from '@/platform/authorization';
 import type { Database } from '@/types/database.types';
+import { createConstructionE2eDatabaseClient } from './support/e2e-postgres-client';
 
 const EXPECTED_E2E_PROJECT_REF = 'bmnbqbcdbuklhopfbopv';
 const EXPECTED_E2E_SUPABASE_HOST = EXPECTED_E2E_PROJECT_REF + '.supabase.co';
@@ -91,7 +92,10 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
   beforeAll(async () => {
     if (!canRun) throw new Error('CONSTRUCTION_E2E_PROJECT_OR_CREDENTIALS_NOT_CONFIGURED');
 
-    const database = new Client({ connectionString: dbUrl, ssl: sslConfig() });
+    const database = createConstructionE2eDatabaseClient(
+      dbUrl,
+      process.env.E2E_SUPABASE_DB_SSL_CA ?? '',
+    );
     await database.connect();
     databaseAdmin = database;
 
@@ -795,12 +799,6 @@ async function postRow(
     },
     body: JSON.stringify(body),
   });
-}
-
-function sslConfig(): { rejectUnauthorized: boolean } | undefined {
-  return dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1')
-    ? undefined
-    : { rejectUnauthorized: true };
 }
 
 function isAllowedE2eProject(value: string): boolean {

@@ -15,6 +15,7 @@ const REAL_DB_TEST_BY_PATH = [
   /^src\/platform\/manufacturing\/__tests__\/manufacturing-(slice1|full-chain)-real-db\.test\.ts$/,
   /^src\/platform\/agriculture\/__tests__\/agriculture-foundation-real-db\.test\.ts$/,
   /^src\/platform\/construction\/__tests__\/construction-foundation-real-db\.test\.ts$/,
+  /^src\/platform\/construction\/__tests__\/construction-site-operations-real-db\.test\.ts$/,
   /^src\/products\/beauty-spa-v2\/__tests__\/beauty-spa-v2-real-db\.test\.ts$/,
   /^src\/products\/bella-education\/__tests__\/preschool-chain-real-db\.test\.ts$/,
   /^src\/products\/bella-hospitality\/__tests__\/(tenant-profile|housekeeping|maintenance)-real-db\.test\.ts$/,
@@ -112,6 +113,7 @@ const SCOPED_REAL_DB_SUITES = [
     ],
     tests: [
       'src/platform/construction/__tests__/construction-foundation-real-db.test.ts',
+      'src/platform/construction/__tests__/construction-site-operations-real-db.test.ts',
     ],
   },
   {
