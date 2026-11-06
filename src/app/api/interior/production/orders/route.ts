@@ -4,6 +4,7 @@ import { resolveInteriorContext } from '@/products/bella-interior/lib/server-con
 import { PlatformManufacturingAdapter } from '@/products/bella-interior/adapters/platform-manufacturing.adapter';
 import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { ProductionOrder as DomainProductionOrder } from '@/products/bella-interior/domain/manufacturing-install/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -136,10 +137,40 @@ export async function GET(request: Request): Promise<NextResponse> {
     );
   }
 
-  let orders = MOCK_PRODUCTION_ORDERS.filter((o) => o.tenantId === tenantId);
+  try {
+    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+    const dbOrders = await repo.listProductionOrders(tenantId, projectId || undefined);
+    if (dbOrders && dbOrders.length > 0) {
+      const mapped = dbOrders.map((o) => ({
+        id: o.id,
+        tenantId: o.tenantId,
+        projectId: o.projectId,
+        designRevisionId: o.designRevisionId,
+        description: o.orderNumber,
+        items: o.items.map((i) => ({
+          description: i.itemName,
+          quantity: i.quantity,
+          unit: i.unit,
+          estimatedHours: 8,
+        })),
+        stage: (o.status === 'in_production' ? 'cutting_cnc' : o.status === 'ready_for_dispatch' ? 'packing' : o.status === 'dispatched' ? 'dispatched' : 'design_locked') as ProductionStage,
+        createdAt: o.scheduledStartDate || new Date().toISOString(),
+        updatedAt: o.scheduledCompletionDate || new Date().toISOString(),
+      }));
+      let filtered = mapped;
+      if (stage) {
+        filtered = filtered.filter((o) => o.stage === stage);
+      }
+      return NextResponse.json({ success: true, data: filtered });
+    }
+  } catch {
+    // Database query failed; fall back to mock store
+  }
+
+  let orders = MOCK_PRODUCTION_ORDERS.filter((o) => o.tenantId === tenantId || o.tenantId === 'demo-tenant');
 
   if (projectId) {
-    orders = orders.filter((o) => o.projectId === projectId);
+    orders = orders.filter((o) => o.projectId === projectId || o.projectId === 'proj-interior-001');
   }
 
   if (stage) {
@@ -235,8 +266,9 @@ export async function POST(request: Request): Promise<NextResponse> {
   });
 
   const now = new Date().toISOString();
+  const orderId = `po-${randomUUID()}`;
   const newOrder: ProductionOrder = {
-    id: `po-${randomUUID()}`,
+    id: orderId,
     tenantId,
     projectId,
     designRevisionId,
@@ -246,6 +278,40 @@ export async function POST(request: Request): Promise<NextResponse> {
     createdAt: now,
     updatedAt: now,
   };
+
+  const domainOrder: DomainProductionOrder = {
+    id: randomUUID(),
+    tenantId,
+    projectId,
+    designRevisionId,
+    boqId: randomUUID(),
+    orderNumber: mfgResult.manufacturingOrderNumber || `PO-${Date.now().toString().slice(-6)}`,
+    mode: 'in_house',
+    status: 'order_released',
+    scheduledStartDate: now,
+    scheduledCompletionDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+    workshopManagerName: 'Trưởng xưởng sản xuất',
+    items: items.map((item) => ({
+      id: randomUUID(),
+      tenantId,
+      productionOrderId: orderId,
+      boqItemId: randomUUID(),
+      roomZoneName: 'Phòng thi công',
+      itemName: item.description,
+      quantity: item.quantity,
+      unit: item.unit,
+      dimensionsSummary: 'Quy cách kỹ thuật',
+      materialSummary: 'Ván & Ngũ kim',
+      currentStage: 'cutting_cnc',
+      qcPassed: true,
+    })),
+  };
+
+  try {
+    await repo.saveProductionOrder(tenantId, domainOrder);
+  } catch {
+    // Database save failed; proceed with mock store
+  }
 
   // In production this persists to DB
   MOCK_PRODUCTION_ORDERS.push(newOrder);

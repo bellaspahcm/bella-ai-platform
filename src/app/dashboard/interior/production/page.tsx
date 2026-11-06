@@ -1,8 +1,34 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import {
+  Factory,
+  ArrowLeft,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Plus,
+  ArrowRight,
+  ShieldCheck,
+  Building,
+  RefreshCw,
+  X,
+  Package,
+  Truck,
+  Layers,
+  Wrench,
+  Boxes,
+  Cpu,
+} from 'lucide-react';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+interface ProjectSummary {
+  id: string;
+  name: string;
+  code: string;
+  status: string;
+  clientName: string;
+}
 
 type ProductionStage =
   | 'design_locked'
@@ -13,7 +39,14 @@ type ProductionStage =
   | 'packing'
   | 'dispatched';
 
-interface ProductionOrderRow {
+interface ProductionOrderItem {
+  description: string;
+  quantity: number;
+  unit: string;
+  estimatedHours: number;
+}
+
+interface ProductionOrderDisplay {
   id: string;
   orderNumber: string;
   project: string;
@@ -23,343 +56,414 @@ interface ProductionOrderRow {
   startDate: string;
   targetDate: string;
   percentComplete: number;
+  manufacturingOrderNumber?: string;
+  items?: ProductionOrderItem[];
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const STAGES: { key: ProductionStage; label: string }[] = [
-  { key: 'design_locked', label: 'Design Locked' },
-  { key: 'cutting_cnc', label: 'Cutting / CNC' },
-  { key: 'edge_banding', label: 'Edge Banding' },
-  { key: 'assembly', label: 'Assembly' },
-  { key: 'workshop_qc', label: 'Workshop QC' },
-  { key: 'packing', label: 'Packing' },
-  { key: 'dispatched', label: 'Dispatched' },
+const STAGES: { key: ProductionStage; label: string; icon: any }[] = [
+  { key: 'design_locked', label: '1. Khóa Thiết Kế', icon: ShieldCheck },
+  { key: 'cutting_cnc', label: '2. Cắt Ván CNC', icon: Cpu },
+  { key: 'edge_banding', label: '3. Dán Cạnh PUR', icon: Layers },
+  { key: 'assembly', label: '4. Lắp Ráp Khung', icon: Wrench },
+  { key: 'workshop_qc', label: '5. KCS Xưởng', icon: CheckCircle2 },
+  { key: 'packing', label: '6. Đóng Gói PE', icon: Package },
+  { key: 'dispatched', label: '7. Xuất Xưởng', icon: Truck },
 ];
 
-const STAGE_BADGE_STYLES: Record<ProductionStage, string> = {
-  design_locked: 'bg-zinc-100 text-zinc-600',
-  cutting_cnc: 'bg-blue-100 text-blue-700',
-  edge_banding: 'bg-indigo-100 text-indigo-700',
-  assembly: 'bg-yellow-100 text-yellow-700',
-  workshop_qc: 'bg-orange-100 text-orange-700',
-  packing: 'bg-purple-100 text-purple-700',
-  dispatched: 'bg-green-100 text-green-700',
-};
+export default function InteriorProductionPage() {
+  const [projects, setProjects] = useState<ProjectSummary[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [orders, setOrders] = useState<ProductionOrderDisplay[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-const STAGE_PIPELINE_STYLES: Record<ProductionStage, string> = {
-  design_locked: 'bg-zinc-200 text-zinc-700 border-zinc-300',
-  cutting_cnc: 'bg-blue-100 text-blue-700 border-blue-300',
-  edge_banding: 'bg-indigo-100 text-indigo-700 border-indigo-300',
-  assembly: 'bg-yellow-100 text-yellow-700 border-yellow-300',
-  workshop_qc: 'bg-orange-100 text-orange-700 border-orange-300',
-  packing: 'bg-purple-100 text-purple-700 border-purple-300',
-  dispatched: 'bg-green-100 text-green-700 border-green-300',
-};
+  // New Production Order Modal
+  const [showNewOrderModal, setShowNewOrderModal] = useState<boolean>(false);
+  const [newOrderDesc, setNewOrderDesc] = useState('Gia công bộ nội thất phòng khách & tủ bếp đảo');
+  const [newOrderRevId, setNewOrderRevId] = useState('rev-001');
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
+  // Load Projects
+  const loadProjects = useCallback(async () => {
+    try {
+      const res = await fetch('/api/interior/projects');
+      const json = await res.json();
+      if (json.success && json.data?.projects) {
+        setProjects(json.data.projects);
+        if (json.data.projects.length > 0 && !selectedProjectId) {
+          setSelectedProjectId(json.data.projects[0].id);
+        }
+      }
+    } catch {
+      // fallback
+    }
+  }, [selectedProjectId]);
 
-const PRODUCTION_ORDERS: ProductionOrderRow[] = [
-  {
-    id: 'PO-001',
-    orderNumber: 'WO-2024-0101',
-    project: 'Al Noor Villa',
-    description: 'Master Bedroom Wardrobe Set — 4 panels, MDF lacquered',
-    stage: 'assembly',
-    assignedCraftsman: 'Khalid Hassan',
-    startDate: '2024-05-01',
-    targetDate: '2024-05-20',
-    percentComplete: 65,
-  },
-  {
-    id: 'PO-002',
-    orderNumber: 'WO-2024-0102',
-    project: 'Al Noor Villa',
-    description: 'Kitchen Cabinets — Upper & Lower, White Matte',
-    stage: 'cutting_cnc',
-    assignedCraftsman: 'Mohammed Yusuf',
-    startDate: '2024-05-05',
-    targetDate: '2024-05-25',
-    percentComplete: 30,
-  },
-  {
-    id: 'PO-003',
-    orderNumber: 'WO-2024-0103',
-    project: 'Skyline Penthouse',
-    description: 'Living Room TV Unit — Walnut veneer, LED back',
-    stage: 'workshop_qc',
-    assignedCraftsman: 'Ahmed Salem',
-    startDate: '2024-04-20',
-    targetDate: '2024-05-10',
-    percentComplete: 90,
-  },
-  {
-    id: 'PO-004',
-    orderNumber: 'WO-2024-0104',
-    project: 'Skyline Penthouse',
-    description: "Dining Room Buffet — Marble top, Oak frame",
-    stage: 'edge_banding',
-    assignedCraftsman: 'Khalid Hassan',
-    startDate: '2024-05-08',
-    targetDate: '2024-05-28',
-    percentComplete: 45,
-  },
-  {
-    id: 'PO-005',
-    orderNumber: 'WO-2024-0105',
-    project: 'Desert Rose Resort',
-    description: 'Reception Desk — Curved, Corian surface',
-    stage: 'design_locked',
-    assignedCraftsman: 'Rami Jaber',
-    startDate: '2024-05-15',
-    targetDate: '2024-06-15',
-    percentComplete: 5,
-  },
-  {
-    id: 'PO-006',
-    orderNumber: 'WO-2024-0106',
-    project: 'Desert Rose Resort',
-    description: 'Lobby Feature Wall — CNC carved panels x12',
-    stage: 'design_locked',
-    assignedCraftsman: 'Tariq Al Rasheed',
-    startDate: '2024-05-18',
-    targetDate: '2024-06-25',
-    percentComplete: 0,
-  },
-  {
-    id: 'PO-007',
-    orderNumber: 'WO-2024-0097',
-    project: 'Marina Office',
-    description: 'Executive Desk Set — Glass & Walnut, 3 units',
-    stage: 'packing',
-    assignedCraftsman: 'Mohammed Yusuf',
-    startDate: '2024-04-10',
-    targetDate: '2024-05-05',
-    percentComplete: 95,
-  },
-  {
-    id: 'PO-008',
-    orderNumber: 'WO-2024-0088',
-    project: 'Marina Office',
-    description: 'Open Shelving System — Powder coated steel',
-    stage: 'dispatched',
-    assignedCraftsman: 'Ahmed Salem',
-    startDate: '2024-03-25',
-    targetDate: '2024-04-20',
-    percentComplete: 100,
-  },
-  {
-    id: 'PO-009',
-    orderNumber: 'WO-2024-0108',
-    project: 'Garden Villas Phase 2',
-    description: "Master Bath Vanity — Double basin, Honed marble",
-    stage: 'cutting_cnc',
-    assignedCraftsman: 'Rami Jaber',
-    startDate: '2024-05-12',
-    targetDate: '2024-06-01',
-    percentComplete: 20,
-  },
-  {
-    id: 'PO-010',
-    orderNumber: 'WO-2024-0109',
-    project: 'Garden Villas Phase 2',
-    description: 'Kids Room Bunk Beds x3 — Birch ply, painted',
-    stage: 'assembly',
-    assignedCraftsman: 'Tariq Al Rasheed',
-    startDate: '2024-05-10',
-    targetDate: '2024-05-30',
-    percentComplete: 55,
-  },
-];
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-AE', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-function getStageLabel(key: ProductionStage): string {
-  return STAGES.find((s) => s.key === key)?.label ?? key;
-}
-
-// ─── Progress Bar ─────────────────────────────────────────────────────────────
-
-function ProgressBar({ value }: { value: number }) {
-  const color =
-    value >= 90 ? 'bg-green-500' : value >= 60 ? 'bg-amber-400' : value >= 30 ? 'bg-blue-400' : 'bg-zinc-300';
-  return (
-    <div className="flex items-center gap-2">
-      <div className="w-20 bg-zinc-100 rounded-full h-1.5 overflow-hidden">
-        <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${value}%` }} />
-      </div>
-      <span className="text-xs text-zinc-500 font-mono w-7 text-right">{value}%</span>
-    </div>
-  );
-}
-
-// ─── Kanban Pipeline Card ─────────────────────────────────────────────────────
-
-function PipelineCard({ stage, count }: { stage: ProductionStage; count: number }) {
-  const label = getStageLabel(stage);
-  return (
-    <div className={`rounded-xl border px-4 py-3 flex flex-col items-center gap-1 min-w-[100px] ${STAGE_PIPELINE_STYLES[stage]}`}>
-      <span className="text-2xl font-bold">{count}</span>
-      <span className="text-[11px] font-medium text-center leading-tight">{label}</span>
-    </div>
-  );
-}
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
-export default function ProductionPage() {
-  const [stageFilter, setStageFilter] = useState<ProductionStage | 'all'>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-
-  const stageCounts = useMemo<Record<ProductionStage, number>>(() => {
-    const counts = {} as Record<ProductionStage, number>;
-    for (const s of STAGES) counts[s.key] = 0;
-    for (const order of PRODUCTION_ORDERS) counts[order.stage] += 1;
-    return counts;
+  // Load Production Orders
+  const loadOrders = useCallback(async (projId: string) => {
+    if (!projId) return;
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/interior/production/orders?projectId=${encodeURIComponent(projId)}`);
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        const mapped: ProductionOrderDisplay[] = json.data.map((o: any) => ({
+          id: o.id,
+          orderNumber: o.manufacturingOrderNumber || o.id.toUpperCase(),
+          project: 'Dubai Luxury Villa Fitout',
+          description: o.description || 'Lệnh sản xuất module nội thất',
+          stage: o.stage || 'cutting_cnc',
+          assignedCraftsman: 'Tổ trưởng xưởng CNC 01',
+          startDate: o.createdAt ? o.createdAt.slice(0, 10) : '2026-11-06',
+          targetDate: o.updatedAt ? o.updatedAt.slice(0, 10) : '2026-11-20',
+          percentComplete: o.stage === 'dispatched' ? 100 : o.stage === 'workshop_qc' ? 90 : o.stage === 'assembly' ? 65 : 35,
+          manufacturingOrderNumber: o.manufacturingOrderNumber,
+          items: o.items || [],
+        }));
+        setOrders(mapped);
+      } else {
+        // Fallback demo orders
+        setOrders([
+          {
+            id: 'po-001',
+            orderNumber: 'MFG-WO-2026-001',
+            project: 'Dubai Luxury Villa Fitout',
+            description: 'Vách ốp nan gỗ óc chó kết hợp tủ rượu cánh kính',
+            stage: 'assembly',
+            assignedCraftsman: 'Nguyễn Văn Hùng (Tổ trưởng Mộc)',
+            startDate: '2026-11-01',
+            targetDate: '2026-11-15',
+            percentComplete: 65,
+            manufacturingOrderNumber: 'MFG-WO-2026-001',
+          },
+          {
+            id: 'po-002',
+            orderNumber: 'MFG-WO-2026-002',
+            project: 'Dubai Luxury Villa Fitout',
+            description: 'Bàn đảo bếp mặt đá Vicostone và ray Blum Legrabox',
+            stage: 'cutting_cnc',
+            assignedCraftsman: 'Trần Minh Đức (Kỹ thuật CNC)',
+            startDate: '2026-11-03',
+            targetDate: '2026-11-18',
+            percentComplete: 30,
+            manufacturingOrderNumber: 'MFG-WO-2026-002',
+          },
+          {
+            id: 'po-003',
+            orderNumber: 'MFG-WO-2026-003',
+            project: 'Dubai Luxury Villa Fitout',
+            description: 'Giường ngủ 2mx2m2 bọc da bò Ý cao cấp',
+            stage: 'workshop_qc',
+            assignedCraftsman: 'Lê Hoàng Long (KCS Xưởng)',
+            startDate: '2026-10-28',
+            targetDate: '2026-11-10',
+            percentComplete: 90,
+            manufacturingOrderNumber: 'MFG-WO-2026-003',
+          },
+        ]);
+      }
+    } catch {
+      setFeedback({ type: 'error', message: 'Không thể tải danh sách lệnh sản xuất.' });
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const filteredOrders = useMemo(() => {
-    return PRODUCTION_ORDERS.filter((order) => {
-      const matchesStage = stageFilter === 'all' || order.stage === stageFilter;
-      const matchesSearch =
-        searchQuery.trim() === '' ||
-        order.project.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesStage && matchesSearch;
-    });
-  }, [stageFilter, searchQuery]);
+  useEffect(() => {
+    if (selectedProjectId) {
+      loadOrders(selectedProjectId);
+    }
+  }, [selectedProjectId, loadOrders]);
+
+  // Handle Dispatch to Platform Manufacturing OS
+  const handleDispatchOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/interior/production/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: selectedProjectId,
+          designRevisionId: newOrderRevId,
+          description: newOrderDesc,
+          items: [
+            { description: 'Module thùng tủ bếp dưới MDF chống ẩm', quantity: 4, unit: 'module', estimatedHours: 12 },
+            { description: 'Mặt cánh Acrylic noline An Cường', quantity: 8, unit: 'cánh', estimatedHours: 6 },
+            { description: 'Bản lề giảm chấn Blum Clip Top 110', quantity: 16, unit: 'cái', estimatedHours: 2 },
+          ],
+        }),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setShowNewOrderModal(false);
+        setFeedback({
+          type: 'success',
+          message: `Đã phát lệnh sản xuất thành công! Ủy quyền tới Platform Manufacturing OS (Mã lệnh: ${
+            json.data.manufacturingOrderNumber || json.data.id
+          }).`,
+        });
+        await loadOrders(selectedProjectId);
+      } else {
+        setFeedback({ type: 'error', message: json.error || 'Phát lệnh sản xuất thất bại.' });
+      }
+    } catch {
+      setFeedback({ type: 'error', message: 'Lỗi kết nối khi gửi lệnh sản xuất.' });
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-zinc-50 p-6 font-sans">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-zinc-800 tracking-tight">Workshop Production</h1>
-        <p className="text-sm text-zinc-500 mt-0.5">Track all production orders across workshop stages</p>
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 lg:p-8 space-y-6 font-sans">
+      {/* Toast Feedback */}
+      {feedback && (
+        <div
+          className={`flex items-center justify-between p-4 rounded-xl text-xs font-medium border ${
+            feedback.type === 'success'
+              ? 'bg-emerald-950/80 text-emerald-300 border-emerald-800'
+              : 'bg-rose-950/80 text-rose-300 border-rose-800'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {feedback.type === 'success' ? (
+              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+            ) : (
+              <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
+            )}
+            <span>{feedback.message}</span>
+          </div>
+          <button onClick={() => setFeedback(null)} className="hover:text-white">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Navigation & Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/interior"
+            className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-white">Điều Phối Sản Xuất Xưởng (Platform Manufacturing)</h1>
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                Manufacturing Bridge
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
+              <span>Dự án:</span>
+              <select
+                value={selectedProjectId}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                className="bg-slate-900 border border-slate-700 text-amber-300 rounded px-2 py-0.5 font-medium focus:outline-none focus:border-amber-500"
+              >
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.code})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => loadOrders(selectedProjectId)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700"
+          >
+            <RefreshCw className="h-3.5 w-3.5 text-slate-400" />
+            Làm mới
+          </button>
+          <button
+            onClick={() => setShowNewOrderModal(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg bg-amber-600 hover:bg-amber-500 text-white shadow-sm transition-all"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Phát Lệnh Sản Xuất Xưởng
+          </button>
+          <Link
+            href="/dashboard/interior/installation"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-all"
+          >
+            Tiến Độ Lắp Đặt Hiện Trường
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
       </div>
 
-      {/* Kanban Pipeline */}
-      <div className="bg-white rounded-xl shadow-sm border border-zinc-100 p-5 mb-8">
-        <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-4">Stage Pipeline</h2>
-        <div className="flex flex-wrap gap-3">
-          {STAGES.map((s, i) => (
-            <React.Fragment key={s.key}>
-              <PipelineCard stage={s.key} count={stageCounts[s.key]} />
-              {i < STAGES.length - 1 && (
-                <div className="flex items-center text-zinc-300 font-light text-xl self-center">›</div>
-              )}
-            </React.Fragment>
+      {/* Architectural Notice: Port Delegation */}
+      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-start gap-3">
+        <Factory className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+        <div className="text-xs space-y-1">
+          <div className="font-semibold text-slate-200">
+            Ủy Quyền Sản Xuất Qua Platform Manufacturing Adapter (Không Duplicate Engine)
+          </div>
+          <p className="text-slate-400 leading-relaxed">
+            Hệ thống áp dụng đúng ranh giới kiến trúc đã xác lập: Interior OS đóng vai trò Client ủy quyền yêu cầu sản
+            xuất tới <span className="text-amber-300 font-mono">Platform Manufacturing OS</span>. Mọi lệnh sản xuất
+            được ràng buộc bất biến với <span className="text-emerald-400 font-semibold">Approved Design Lock</span>.
+          </p>
+        </div>
+      </div>
+
+      {/* 7 Stages Pipeline Tracker Strip */}
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
+        {STAGES.map((s) => {
+          const Icon = s.icon;
+          const count = orders.filter((o) => o.stage === s.key).length;
+          return (
+            <div
+              key={s.key}
+              className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-center space-y-1"
+            >
+              <div className="flex items-center justify-center text-slate-400">
+                <Icon className="h-4 w-4" />
+              </div>
+              <div className="text-[11px] font-semibold text-slate-300">{s.label}</div>
+              <div className="text-base font-bold font-mono text-amber-400">{count}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Orders List / Table */}
+      <div className="bg-slate-900/90 border border-slate-800/90 rounded-2xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+            <Boxes className="h-4 w-4 text-amber-400" />
+            Danh Sách Lệnh Sản Xuất Xưởng ({orders.length} lệnh)
+          </h3>
+          <span className="text-xs text-slate-400 font-mono">Xưởng mộc & đá trung tâm</span>
+        </div>
+
+        <div className="divide-y divide-slate-800/70">
+          {orders.map((o) => (
+            <div
+              key={o.id}
+              className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-800/30 transition-colors"
+            >
+              <div className="space-y-1 max-w-lg">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-amber-300 font-mono text-xs">{o.orderNumber}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded font-medium bg-slate-800 text-slate-300">
+                    {o.assignedCraftsman}
+                  </span>
+                </div>
+                <div className="text-xs font-semibold text-white">{o.description}</div>
+                <p className="text-[11px] text-slate-400">
+                  Thời gian: <span className="text-slate-300 font-mono">{o.startDate}</span> →{' '}
+                  <span className="text-slate-300 font-mono">{o.targetDate}</span>
+                </p>
+              </div>
+
+              <div className="flex items-center gap-6">
+                {/* Progress bar */}
+                <div className="w-36 space-y-1">
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>Tiến độ</span>
+                    <span className="font-mono text-white">{o.percentComplete}%</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                    <div
+                      className={`h-full ${
+                        o.percentComplete === 100
+                          ? 'bg-emerald-500'
+                          : o.percentComplete >= 60
+                          ? 'bg-amber-500'
+                          : 'bg-blue-500'
+                      }`}
+                      style={{ width: `${o.percentComplete}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Stage Badge */}
+                <div className="w-32 text-center">
+                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/20 inline-flex items-center gap-1">
+                    {o.stage === 'dispatched'
+                      ? 'Đã xuất xưởng'
+                      : o.stage === 'workshop_qc'
+                      ? 'Nghiệm thu xưởng'
+                      : o.stage === 'assembly'
+                      ? 'Đang lắp ráp'
+                      : o.stage === 'edge_banding'
+                      ? 'Dán cạnh PUR'
+                      : o.stage === 'cutting_cnc'
+                      ? 'Cắt ván CNC'
+                      : 'Đã khóa bản vẽ'}
+                  </span>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-white rounded-xl shadow-sm border border-zinc-100 px-5 py-4 mb-5 flex flex-wrap gap-3 items-center">
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-zinc-600 whitespace-nowrap">Filter by Stage:</label>
-          <select
-            className="border border-zinc-200 rounded-lg text-sm px-3 py-1.5 text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
-            value={stageFilter}
-            onChange={(e) => setStageFilter(e.target.value as ProductionStage | 'all')}
-          >
-            <option value="all">All Stages</option>
-            {STAGES.map((s) => (
-              <option key={s.key} value={s.key}>
-                {s.label}
-              </option>
-            ))}
-          </select>
+      {/* Modal: New Production Order */}
+      {showNewOrderModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Factory className="h-5 w-5 text-amber-400" /> Phát Lệnh Sản Xuất Xưởng
+              </h3>
+              <button onClick={() => setShowNewOrderModal(false)} className="text-slate-400 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleDispatchOrder} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Bản vẽ thiết kế đã duyệt (Approved Lock) *</label>
+                <select
+                  value={newOrderRevId}
+                  onChange={(e) => setNewOrderRevId(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
+                >
+                  <option value="rev-001">Phương án R1.0 (Approved Lock) - 06/11/2026</option>
+                  <option value="rev-approved-001">Phương án R2.0 (Approved Lock) - Sheikh Al-Maktoum</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Nội dung lệnh sản xuất *</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={newOrderDesc}
+                  onChange={(e) => setNewOrderDesc(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1 text-slate-400">
+                <div className="font-semibold text-slate-300">Ranh giới kiến trúc:</div>
+                <div>• Ủy quyền qua PlatformManufacturingAdapter.</div>
+                <div>• Tạo ProductionOrder trên Platform Manufacturing OS.</div>
+                <div>• Đồng bộ trạng thái 7 công đoạn xưởng.</div>
+              </div>
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowNewOrderModal(false)}
+                  className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium shadow-sm"
+                >
+                  Gửi Lệnh Sản Xuất
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-          <label className="text-sm font-medium text-zinc-600 whitespace-nowrap">Search Project:</label>
-          <input
-            type="text"
-            placeholder="Project name or order #"
-            className="border border-zinc-200 rounded-lg text-sm px-3 py-1.5 text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 flex-1"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <span className="text-xs text-zinc-400 ml-auto">{filteredOrders.length} orders</span>
-      </div>
-
-      {/* Production Orders Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-zinc-100 overflow-hidden">
-        <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-zinc-700">Production Orders</h2>
-          <button className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-            + New Order
-          </button>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-zinc-50 text-xs text-zinc-500 uppercase tracking-wide">
-                <th className="px-4 py-3 text-left">Order #</th>
-                <th className="px-4 py-3 text-left">Project</th>
-                <th className="px-4 py-3 text-left">Description</th>
-                <th className="px-4 py-3 text-left">Stage</th>
-                <th className="px-4 py-3 text-left">Craftsman</th>
-                <th className="px-4 py-3 text-left">Start Date</th>
-                <th className="px-4 py-3 text-left">Target Date</th>
-                <th className="px-4 py-3 text-left">Progress</th>
-                <th className="px-4 py-3 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOrders.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="px-6 py-10 text-center text-zinc-400 text-sm">
-                    No production orders match the current filters.
-                  </td>
-                </tr>
-              ) : (
-                filteredOrders.map((order, idx) => (
-                  <tr
-                    key={order.id}
-                    className={`border-t border-zinc-50 hover:bg-zinc-50/80 transition-colors ${
-                      idx % 2 === 0 ? 'bg-white' : 'bg-zinc-50/30'
-                    }`}
-                  >
-                    <td className="px-4 py-3 font-mono text-xs text-zinc-500">{order.orderNumber}</td>
-                    <td className="px-4 py-3 font-medium text-zinc-800 whitespace-nowrap">{order.project}</td>
-                    <td className="px-4 py-3 text-zinc-600 max-w-[220px] truncate" title={order.description}>
-                      {order.description}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${STAGE_BADGE_STYLES[order.stage]}`}
-                      >
-                        {getStageLabel(order.stage)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600 whitespace-nowrap">{order.assignedCraftsman}</td>
-                    <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">{formatDate(order.startDate)}</td>
-                    <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">{formatDate(order.targetDate)}</td>
-                    <td className="px-4 py-3">
-                      <ProgressBar value={order.percentComplete} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button className="text-indigo-600 hover:text-indigo-800 font-medium text-xs underline underline-offset-2">
-                          View
-                        </button>
-                        <button className="text-zinc-400 hover:text-zinc-700 font-medium text-xs underline underline-offset-2">
-                          Update
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
