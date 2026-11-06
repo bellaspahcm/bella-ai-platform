@@ -465,7 +465,7 @@ const bellaInteriorMenuItems: SidebarMenuItem[] = [
   { icon: ShieldCheck, label: 'QC & Nghiệm thu', href: '/dashboard/interior/qc-handover' },
   { icon: Award, label: 'Bảo hành', href: '/dashboard/interior/warranty' },
   { type: 'header', label: 'QUẢN TRỊ' },
-  { icon: BarChart3, label: 'Báo cáo', href: '/dashboard/interior/finance' },
+  { icon: BarChart3, label: 'Báo cáo', href: '/dashboard/interior/reports' },
   { icon: Settings, label: 'Cài đặt', href: '/dashboard/interior/settings' },
   { icon: UserCheck, label: 'Tài khoản người dùng', href: '/dashboard/interior/users' },
   { icon: ShieldAlert, label: 'Vai trò và quyền hạn', href: '/dashboard/interior/roles' },
@@ -808,6 +808,10 @@ export function Sidebar() {
   const isBellaEducationShell = tenantBrand.moduleKey === 'bella_education' && !isBellaInteriorShell;
   const isBeautyErpFamily = isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell || isBellaInteriorShell;
 
+  const isPreschoolSeedUser = !user?.full_name || user.full_name.includes('Mầm Non') || user.full_name.includes('Preschool');
+  const sidebarUserDisplayName = isBellaInteriorShell && isPreschoolSeedUser ? 'Nguyễn Thị Mai' : (user?.full_name || 'Admin');
+  const sidebarUserRoleLabel = isBellaInteriorShell && isPreschoolSeedUser ? 'Project Manager' : roleLabel;
+
   if (isUserLoading || !identityKey || !tenantSettings || currentUser?.tenant_id !== tenantSettings.id || !isTenantBrandResolved || resolvedIdentityKey !== identityKey) {
     return <aside aria-label="Đang tải cấu hình chi nhánh" className="hidden w-[243px] shrink-0 border-r border-slate-200 bg-slate-50 lg:block dark:border-slate-800 dark:bg-slate-950" />;
   }
@@ -1095,7 +1099,7 @@ export function Sidebar() {
               : "bg-slate-700 dark:bg-slate-300";
 
             return (
-              <Link key={item.href} href={isPreschool && item.href === '/dashboard/education/communication'
+              <Link key={`${item.href}-${item.label ?? idx}`} href={isPreschool && item.href === '/dashboard/education/communication'
                 ? '/dashboard/education/communication?tab=announcements' : item.href} onClick={handleNavigation} aria-current={isActive ? 'page' : undefined} prefetch={false}>
                 <motion.div
                   whileHover={{ x: 2 }}
@@ -1203,16 +1207,16 @@ export function Sidebar() {
                   isBellaEducationShell ? "preschool-profile-avatar" : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300",
                   (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell || isBellaInteriorShell) && "beauty-erp-avatar"
                 )}>
-                  {user?.full_name?.charAt(0)?.toUpperCase() || 'A'}
+                  {sidebarUserDisplayName.charAt(0).toUpperCase()}
                 </div>
                 <div className={cn("absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 rounded-full", isBellaEducationShell ? "border-[var(--preschool-profile-bg)]" : "border-white dark:border-[#091A2D]")} />
               </div>
               <div className="min-w-0 flex-1">
                 <p className={cn("text-xs font-bold truncate leading-tight", isBellaEducationShell ? "preschool-profile-name" : "text-slate-800 dark:text-slate-100 beauty-erp-profile-name")}>
-                  {user?.full_name || 'Admin'}
+                  {sidebarUserDisplayName}
                 </p>
                 <p className={cn("text-[8.5px] font-black uppercase tracking-[0.08em] mt-0.5", isBellaEducationShell ? "preschool-profile-role" : "text-slate-500 dark:text-slate-400 beauty-erp-profile-role")}>
-                  {roleLabel}
+                  {sidebarUserRoleLabel}
                 </p>
               </div>
             </div>
