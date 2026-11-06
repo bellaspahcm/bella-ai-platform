@@ -1,8 +1,8 @@
 import type { Json } from '@/types/database.types';
 import { productResolver } from '@/platform/registry/product-resolver';
 
-export const TENANT_MODULE_KEYS = ['babycare', 'beauty_spa', 'manufacturing', 'student_training', 'industrial_cleaning', 'real_estate', 'bella_auto', 'bella_healthcare', 'bella_education'] as const;
-export const TENANT_PRIMARY_BUSINESS_MODULE_KEYS = ['babycare', 'beauty_spa', 'manufacturing', 'industrial_cleaning', 'real_estate', 'bella_auto', 'bella_healthcare', 'bella_education'] as const;
+export const TENANT_MODULE_KEYS = ['babycare', 'beauty_spa', 'manufacturing', 'student_training', 'industrial_cleaning', 'real_estate', 'bella_auto', 'bella_healthcare', 'bella_education', 'bella_interior'] as const;
+export const TENANT_PRIMARY_BUSINESS_MODULE_KEYS = ['babycare', 'beauty_spa', 'manufacturing', 'industrial_cleaning', 'real_estate', 'bella_auto', 'bella_healthcare', 'bella_education', 'bella_interior'] as const;
 
 export type TenantModuleKey = (typeof TENANT_MODULE_KEYS)[number];
 export type TenantPrimaryBusinessModuleKey = (typeof TENANT_PRIMARY_BUSINESS_MODULE_KEYS)[number];
@@ -61,6 +61,7 @@ export const DEFAULT_ENABLED_MODULES: TenantEnabledModules = {
   bella_auto: false,
   bella_healthcare: false,
   bella_education: false,
+  bella_interior: false,
 };
 
 export const DEFAULT_TENANT_BRAND_THEME: TenantBrandTheme = {
@@ -159,6 +160,20 @@ export const DEFAULT_EDUCATION_TENANT_BRAND_THEME: TenantBrandTheme = {
   buttonStyle: 'rounded',
   menuStyle: 'comfortable',
   fontHeading: 'sans', // Education: modern, readable sans-serif
+};
+
+export const DEFAULT_INTERIOR_TENANT_BRAND_THEME: TenantBrandTheme = {
+  brandName: '',
+  logoUrl: '',
+  primaryColor: '#8B5E3C', // Warm Walnut Bronze
+  accentColor: '#D4AF37', // Brushed Gold
+  portalDisplayName: '',
+  invoiceDisplayName: '',
+  stylePreset: 'graphite_luxe',
+  radiusStyle: 'balanced',
+  buttonStyle: 'rounded',
+  menuStyle: 'comfortable',
+  fontHeading: 'sans',
 };
 
 const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
@@ -403,6 +418,7 @@ export function normalizeEnabledModules(value: unknown): TenantEnabledModules {
       bella_auto: value.includes('bella_auto'),
       bella_healthcare: value.includes('bella_healthcare'),
       bella_education: value.includes('bella_education'),
+      bella_interior: value.includes('bella_interior'),
     };
   }
 
@@ -423,12 +439,13 @@ export function normalizeEnabledModules(value: unknown): TenantEnabledModules {
     bella_auto: typeof source.bella_auto === 'boolean' ? source.bella_auto : false,
     bella_healthcare: typeof source.bella_healthcare === 'boolean' ? source.bella_healthcare : false,
     bella_education: typeof source.bella_education === 'boolean' ? source.bella_education : false,
+    bella_interior: typeof source.bella_interior === 'boolean' ? source.bella_interior : false,
   };
 }
 
 export function normalizeEnabledModulesForSave(value: unknown): TenantEnabledModules {
   const modules = normalizeEnabledModules(value);
-  if (modules.babycare || modules.beauty_spa || modules.manufacturing || modules.industrial_cleaning || modules.real_estate || modules.bella_auto || modules.bella_healthcare || modules.bella_education) return modules;
+  if (modules.babycare || modules.beauty_spa || modules.manufacturing || modules.industrial_cleaning || modules.real_estate || modules.bella_auto || modules.bella_healthcare || modules.bella_education || modules.bella_interior) return modules;
   return {
     ...modules,
     babycare: true,
@@ -437,6 +454,7 @@ export function normalizeEnabledModulesForSave(value: unknown): TenantEnabledMod
 
 export function getDefaultTenantModuleKey(value: unknown, tenantName?: string | null): TenantPrimaryBusinessModuleKey {
   const modules = normalizeEnabledModulesForSave(value);
+  if (modules.bella_interior) return 'bella_interior';
   if (modules.bella_healthcare) return 'bella_healthcare';
   if (modules.bella_education) return 'bella_education';
   if (modules.bella_auto) return 'bella_auto';
@@ -447,6 +465,9 @@ export function getDefaultTenantModuleKey(value: unknown, tenantName?: string | 
 
   if (tenantName) {
     const lower = tenantName.toLowerCase();
+    if (lower.includes('interior') || lower.includes('nội thất') || lower.includes('decor') || lower.includes('fitout') || lower.includes('kiến trúc')) {
+      return 'bella_interior';
+    }
     if (lower.includes('clinic') || lower.includes('dental') || lower.includes('y tế') || lower.includes('nha khoa') || lower.includes('healthcare')) {
       return 'bella_healthcare';
     }
@@ -471,6 +492,7 @@ export function getDefaultTenantModuleKey(value: unknown, tenantName?: string | 
 }
 
 export function getDefaultTenantBrandThemeForModule(moduleKey: TenantModuleKey): TenantBrandTheme {
+  if (moduleKey === 'bella_interior') return DEFAULT_INTERIOR_TENANT_BRAND_THEME;
   if (moduleKey === 'bella_healthcare') return DEFAULT_HEALTHCARE_TENANT_BRAND_THEME;
   if (moduleKey === 'bella_education') return DEFAULT_EDUCATION_TENANT_BRAND_THEME;
   if (moduleKey === 'bella_auto') return DEFAULT_BELLA_AUTO_TENANT_BRAND_THEME;

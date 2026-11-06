@@ -154,6 +154,7 @@ function getEnabledModulesForBusinessModule(moduleKey: RegisterTenantBusinessMod
     bella_auto: false,
     bella_healthcare: false,
     bella_education: moduleKey === 'bella_education',
+    bella_interior: moduleKey === 'bella_interior',
   };
 }
 

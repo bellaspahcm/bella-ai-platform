@@ -2,6 +2,7 @@ import { realEstateManifest } from '../../modules/real_estate/manifest';
 import { bellaAutoManifest } from '../../modules/bella-auto/manifest';
 import { healthcareManifest } from '../../modules/bella-healthcare/manifest';
 import { bellaEducationManifest } from '../../products/bella-education/manifest';
+import { bellaInteriorManifest } from '../../products/bella-interior/manifest';
 
 export interface ProviderContext {
   readonly tenantId: string;
@@ -96,6 +97,7 @@ class VerticalRegistry {
     this.register(bellaAutoManifest);
     this.register(healthcareManifest);
     this.register(bellaEducationManifest);
+    this.register(bellaInteriorManifest);
   }
 
   register(manifest: VerticalManifest): void {

@@ -580,6 +580,26 @@ const bellaManufacturingProduct: ProductDefinition = {
   navigationProfile: 'manufacturing'
 };
 
+/**
+ * Bella Interior OS Product Definition.
+ *
+ * @remarks
+ * Dedicated Interior Enterprise OS for design, custom manufacturing (cabinetry/millwork),
+ * site installation, and fit-out operations.
+ *
+ * Architecture Principle:
+ * Platform Reuse – Domain Ownership – Product Independence.
+ */
+const bellaInteriorProduct: ProductDefinition = {
+  productKey: 'bella_interior',
+  displayName: 'Bella Interior OS',
+  subtitle: 'Interior Design & Fit-out Management',
+  requiredModules: ['bella_interior'],
+  serviceProfile: 'interior',
+  defaultRoute: '/dashboard/interior',
+  navigationProfile: 'interior',
+};
+
 // Register products
 productRegistry.register(bellaHaircutProduct);
 productRegistry.register(bellaBabycareProduct);
@@ -590,3 +610,4 @@ productRegistry.register(bellaEnglishCenterProduct);
 productRegistry.register(bellaHospitalProduct);
 productRegistry.register(bellaHospitalityProduct);
 productRegistry.register(bellaManufacturingProduct);
+productRegistry.register(bellaInteriorProduct);

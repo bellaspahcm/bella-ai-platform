@@ -1,0 +1,161 @@
+/**
+ * Bounded Context 2: Commercial & Costing
+ *
+ * Manages furniture BOQ/BOM itemization, tripartite costing (Internal COGS vs Client Price
+ * vs Contract Baseline), quotations, discounts, contract milestones and cash flow.
+ *
+ * @module src/products/bella-interior/domain/commercial-costing
+ */
+
+export type FurnitureItemCategory =
+  | 'cabinetry'       // Tủ bếp, tủ áo, tủ lavabo, tủ giầy
+  | 'loose_furniture' // Bàn ăn, ghế sofa, bàn trà, giường ngủ
+  | 'wall_paneling'   // Vách ốp lam sóng, vách nan gỗ, vách bọc nỉ
+  | 'stone_work'      // Mặt đá bếp, bàn đảo, đá lavabo
+  | 'metal_glass'     // Cánh kính khung nhôm, vách kính phòng tắm
+  | 'lighting_fitout' // Đèn ray nam châm, LED cảm ứng
+  | 'curtain_soft';   // Rèm vải 2 lớp, thảm trang trí
+
+export interface BOQDimensions {
+  readonly width: number;  // mm
+  readonly depth: number;  // mm
+  readonly height: number; // mm
+  readonly unit: 'mm';
+}
+
+export interface BOQItemSpecifications {
+  readonly carcassMaterial: string;    // Thùng tủ (e.g. MDF chống ẩm lõi xanh Thái Lan phủ Melamine)
+  readonly doorFrontMaterial: string;   // Cánh tủ (e.g. Cánh Acrylic bóng gương noline An Cường)
+  readonly surfaceFinish: string;      // Bề mặt hoàn thiện
+  readonly hardwareSpec: string;       // Phụ kiện ray/bản lề (e.g. Bản lề Blum Clip Top giảm chấn)
+  readonly stoneOrGlassSpec?: string;  // Đá/Kính (nếu có)
+}
+
+export interface BOQItem {
+  readonly id: string;
+  readonly tenantId: string;
+  readonly boqId: string;
+  readonly roomZoneId: string;
+  readonly roomZoneName: string;
+  readonly itemCode: string;
+  readonly itemName: string;
+  readonly category: FurnitureItemCategory;
+  readonly dimensions: BOQDimensions;
+  readonly specifications: BOQItemSpecifications;
+  readonly unit: 'bộ' | 'cái' | 'md' | 'm2' | 'gói';
+  readonly quantity: number;
+  
+  // Tripartite Costing Primitives
+  readonly internalUnitCost: number;  // Giá vốn nội bộ (Vật tư + Gia công + Nhân công)
+  readonly internalTotalCost: number; // internalUnitCost * quantity
+  readonly clientUnitPrice: number;   // Đơn giá chào khách hàng
+  readonly clientTotalPrice: number;  // clientUnitPrice * quantity
+  readonly grossMarginAmount: number; // clientTotalPrice - internalTotalCost
+  readonly grossMarginPercent: number;// (grossMarginAmount / clientTotalPrice) * 100
+}
+
+export type BOQStatus =
+  | 'draft'
+  | 'under_review'
+  | 'approved'
+  | 'locked_for_contract';
+
+export interface InteriorBOQ {
+  readonly id: string;
+  readonly tenantId: string;
+  readonly projectId: string;
+  readonly designRevisionId: string;
+  readonly boqNumber: string;
+  readonly versionNumber: number;
+  readonly status: BOQStatus;
+  readonly totalInternalCost: number;   // Tổng giá vốn (COGS)
+  readonly totalClientPrice: number;    // Tổng giá bán dự toán
+  readonly totalGrossMargin: number;    // Lợi nhuận gộp dự kiến
+  readonly grossMarginPercent: number;  // % Tỷ suất lợi nhuận gộp dự kiến
+  readonly items: BOQItem[];
+  readonly preparedBy: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export type QuotationStatus =
+  | 'draft'
+  | 'sent_to_client'
+  | 'negotiating'
+  | 'accepted'
+  | 'rejected';
+
+export interface InteriorQuotation {
+  readonly id: string;
+  readonly tenantId: string;
+  readonly projectId: string;
+  readonly boqId: string;
+  readonly quotationNumber: string;
+  readonly versionNumber: number;
+  readonly status: QuotationStatus;
+  readonly subtotal: number;
+  readonly discountAmount: number;
+  readonly vatPercent: number; // e.g. 8 or 10
+  readonly vatAmount: number;
+  readonly grandTotal: number;
+  readonly paymentTerms: string;
+  readonly validityDays: number;
+  readonly createdAt: string;
+}
+
+export type PaymentMilestoneStatus =
+  | 'pending'
+  | 'invoiced'
+  | 'paid'
+  | 'overdue';
+
+export interface PaymentMilestone {
+  readonly id: string;
+  readonly tenantId: string;
+  readonly contractId: string;
+  readonly milestoneOrder: number; // 1, 2, 3, 4, 5
+  readonly name: string;           // 'Đợt 1: Ký hợp đồng & Tạm ứng'
+  readonly percentage: number;     // 30 (%)
+  readonly amount: number;         // 30% * contractValue
+  readonly triggerCondition: string; // 'Ngay sau khi ký hợp đồng'
+  readonly status: PaymentMilestoneStatus;
+  readonly dueDate?: string;
+  readonly paidAt?: string;
+}
+
+export type InteriorContractStatus =
+  | 'draft'
+  | 'in_review'
+  | 'signed'
+  | 'active'
+  | 'completed'
+  | 'terminated';
+
+export interface ContractAddendum {
+  readonly id: string;
+  readonly tenantId: string;
+  readonly contractId: string;
+  readonly addendumNumber: string;
+  readonly title: string;
+  readonly valueDelta: number; // Giá trị phát sinh (+ hoặc -)
+  readonly reason: string;
+  readonly approvedAt: string;
+}
+
+export interface InteriorContract {
+  readonly id: string;
+  readonly tenantId: string;
+  readonly projectId: string;
+  readonly quotationId: string;
+  readonly contractNumber: string;
+  readonly title: string;
+  readonly status: InteriorContractStatus;
+  readonly baselineContractValue: number; // Giá trị hợp đồng gốc được chốt
+  readonly currentContractValue: number;  // Đã cộng/trừ các phụ lục phát sinh
+  readonly signedDate: string;
+  readonly clientRepresentative: string;
+  readonly contractorRepresentative: string;
+  readonly milestones: PaymentMilestone[];
+  readonly addenda: ContractAddendum[];
+}
+
