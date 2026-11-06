@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
+import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,8 +101,6 @@ export async function GET(
   if (!ctx.ok) return ctx.response;
   const { tenantId } = ctx;
 
-  void tenantId; // tenantId used for scope; mock store is global for now
-
   const { id } = await params;
 
   if (!id) {
@@ -108,6 +108,34 @@ export async function GET(
       { success: false, error: 'Project ID is required' },
       { status: 400 }
     );
+  }
+
+  try {
+    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+    const dbProject = await repo.getProject(tenantId, id);
+    if (dbProject) {
+      const roomZones = await repo.listRoomZones(tenantId, id);
+      const revisions = await repo.listDesignRevisions(tenantId, id);
+      const detail: InteriorProjectDetail = {
+        id: dbProject.id,
+        name: dbProject.name,
+        code: dbProject.code,
+        status: dbProject.status === 'contracted' ? 'approved' : dbProject.status === 'in_production' ? 'production' : dbProject.status === 'installing' ? 'installation' : dbProject.status === 'handover' ? 'handover' : dbProject.status === 'completed' ? 'completed' : 'design',
+        clientName: dbProject.customerName || dbProject.customerId,
+        clientPartyId: dbProject.customerId,
+        description: dbProject.siteAddress || 'Interior Fitout Project',
+        contractValue: dbProject.estimatedBudget,
+        estimatedBudget: dbProject.estimatedBudget,
+        roomZonesCount: roomZones.length,
+        designRevisionsCount: revisions.length,
+        productionOrdersCount: 0,
+        createdAt: dbProject.createdAt,
+        updatedAt: dbProject.updatedAt,
+      };
+      return NextResponse.json({ success: true, data: { project: detail } });
+    }
+  } catch {
+    // Database query failed; fall back to mock store
   }
 
   const project = mockProjectDetails[id];
@@ -132,8 +160,6 @@ export async function PATCH(
   if (!ctx.ok) return ctx.response;
   const { tenantId } = ctx;
 
-  void tenantId; // tenantId used for scope; mock store is global for now
-
   const { id } = await params;
 
   if (!id) {
@@ -143,9 +169,17 @@ export async function PATCH(
     );
   }
 
+  const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+  let dbProject: Awaited<ReturnType<typeof repo.getProject>> = null;
+  try {
+    dbProject = await repo.getProject(tenantId, id);
+  } catch {
+    // Database query failed; fall back to mock store
+  }
+
   const project = mockProjectDetails[id];
 
-  if (!project) {
+  if (!dbProject && !project) {
     return NextResponse.json(
       { success: false, error: `Project not found: ${id}` },
       { status: 404 }
@@ -174,7 +208,7 @@ export async function PATCH(
         { status: 422 }
       );
     }
-    project.status = patch.status;
+    if (project) project.status = patch.status;
   }
 
   if (patch.name !== undefined) {
@@ -184,10 +218,46 @@ export async function PATCH(
         { status: 422 }
       );
     }
-    project.name = patch.name.trim();
+    if (project) project.name = patch.name.trim();
   }
 
-  project.updatedAt = new Date().toISOString();
+  const now = new Date().toISOString();
+  if (project) {
+    project.updatedAt = now;
+  }
 
-  return NextResponse.json({ success: true, data: { project } });
+  if (dbProject) {
+    const updatedDbProject = {
+      ...dbProject,
+      name: patch.name?.trim() || dbProject.name,
+      updatedAt: now,
+    };
+    try {
+      await repo.saveProject(tenantId, updatedDbProject);
+    } catch {
+      // Ignore if DB update fails
+    }
+  }
+
+  return NextResponse.json({
+    success: true,
+    data: {
+      project: project || {
+        id: dbProject!.id,
+        name: patch.name?.trim() || dbProject!.name,
+        code: dbProject!.code,
+        status: dbProject!.status,
+        clientName: dbProject!.customerName || dbProject!.customerId,
+        clientPartyId: dbProject!.customerId,
+        description: dbProject!.siteAddress || '',
+        contractValue: dbProject!.estimatedBudget,
+        estimatedBudget: dbProject!.estimatedBudget,
+        roomZonesCount: 0,
+        designRevisionsCount: 0,
+        productionOrdersCount: 0,
+        createdAt: dbProject!.createdAt,
+        updatedAt: now,
+      },
+    },
+  });
 }

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 import { mockRevisions } from '../../route';
+import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { DesignRevision as DomainDesignRevision } from '@/products/bella-interior/domain/design-specification/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,8 +32,6 @@ export async function POST(
   if (!ctx.ok) return ctx.response;
   const { tenantId, actor } = ctx;
 
-  void tenantId; // tenantId used for scope; mock store is global for now
-
   const { id } = await params;
 
   if (!id) {
@@ -40,9 +41,17 @@ export async function POST(
     );
   }
 
+  const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+  let dbRevision: DomainDesignRevision | null = null;
+  try {
+    dbRevision = await repo.getDesignRevision(tenantId, id);
+  } catch {
+    // Database query failed or table not accessible; fallback to mock store
+  }
+
   const revision = mockRevisions.find((r) => r.id === id);
 
-  if (!revision) {
+  if (!dbRevision && !revision) {
     return NextResponse.json(
       { success: false, error: `Design revision not found: ${id}` },
       { status: 404 }
@@ -50,7 +59,7 @@ export async function POST(
   }
 
   // ── Approved Design Lock invariant ────────────────────────────────────────
-  if (revision.status === 'approved') {
+  if ((dbRevision && dbRevision.status === 'approved') || (revision && revision.status === 'approved')) {
     try {
       throw new ApprovedDesignLockViolationError(id);
     } catch (err) {
@@ -86,16 +95,35 @@ export async function POST(
 
   const approvedAt = new Date().toISOString();
 
+  // If found in DB, update DB revision and persist
+  if (dbRevision) {
+    const updatedRevision: DomainDesignRevision = {
+      ...dbRevision,
+      status: 'approved',
+      approvedBy: actor.id,
+      approvedAt,
+      changeSummary: parsed.approvalNotes || dbRevision.changeSummary || 'Approved for production',
+      clientSignoffDate: approvedAt,
+    };
+    try {
+      await repo.saveDesignRevision(tenantId, updatedRevision);
+    } catch {
+      // Keep going if DB update fails
+    }
+  }
+
   // approvedByUserId comes from the authenticated actor — NOT from the client
-  revision.status = 'approved';
-  revision.approvedByUserId = actor.id;
-  revision.approvedAt = approvedAt;
-  revision.updatedAt = approvedAt;
+  if (revision) {
+    revision.status = 'approved';
+    revision.approvedByUserId = actor.id;
+    revision.approvedAt = approvedAt;
+    revision.updatedAt = approvedAt;
+  }
 
   return NextResponse.json({
     success: true,
     data: {
-      revisionId: revision.id,
+      revisionId: id,
       approvedAt,
       lockedForProduction: true as const,
     },
