@@ -87,6 +87,7 @@ import {
   isSidebarItemAllowed,
   type RolePermissions,
 } from '@/lib/business-rules/permissions';
+import { isTenantModuleEnabled } from '@/lib/business-rules/tenant-modules';
 
 type MenuHeader = {
   type: 'header';
@@ -513,6 +514,8 @@ export function Sidebar() {
   const { product, isLoading: isUserLoading, user: currentUser, tenantSettings: fullTenantSettings, tenantPresentation } = useUser();
   const tenantSettings = tenantPresentation ?? fullTenantSettings;
   const activeTenantId = tenantSettings?.id;
+  const isManufacturingTenant = product?.productKey === 'bella_manufacturing'
+    && isTenantModuleEnabled(tenantSettings?.enabled_modules, 'manufacturing');
   const isHaircut = product?.productKey === 'bella_haircut';
   const isPreschool = product?.productKey === 'bella_preschool';
   const [user, setUser] = useState<CurrentUser | null>(null);
@@ -560,7 +563,7 @@ export function Sidebar() {
 
   useEffect(() => {
     let active = true;
-    if (isUserLoading || !currentUser?.id || !activeTenantId || currentUser.tenant_id !== activeTenantId) {
+    if (isUserLoading || !isManufacturingTenant || !currentUser?.id || !activeTenantId || currentUser.tenant_id !== activeTenantId) {
       setHasConstructionScheduleReadAccess(false);
       setHasConstructionSiteOperationsAccess(false);
       return () => { active = false; };
@@ -585,7 +588,7 @@ export function Sidebar() {
       });
 
     return () => { active = false; };
-  }, [activeTenantId, currentUser?.id, currentUser?.tenant_id, isUserLoading]);
+  }, [activeTenantId, currentUser?.id, currentUser?.tenant_id, isManufacturingTenant, isUserLoading]);
 
   const handleNavigation = () => {
     setIsOpen(false);
