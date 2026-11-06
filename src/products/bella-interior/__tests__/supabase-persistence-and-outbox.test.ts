@@ -228,3 +228,4 @@ describe('Bella Interior OS — Supabase Persistence & Durable Outbox', () => {
     });
   });
 });
+

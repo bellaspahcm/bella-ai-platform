@@ -96,3 +96,4 @@ BEGIN
             UNIQUE (tenant_id, design_revision_id, project_id);
     END IF;
 END $$;
+

@@ -31,6 +31,7 @@ export * from './ports/interior-production-request.port';
 export * from './adapters/platform-authorization.adapter';
 export * from './adapters/platform-finance-outbox.adapter';
 export * from './adapters/supabase-finance-outbox.adapter';
+export * from './adapters/platform-manufacturing.adapter';
 
 // Repositories
 export * from './repositories/interior-repository.interface';

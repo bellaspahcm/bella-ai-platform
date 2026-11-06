@@ -93,3 +93,4 @@ export class SupabaseInteriorFinanceOutboxAdapter implements InteriorOutboxPort 
     return [...this.publishedEvents];
   }
 }
+
