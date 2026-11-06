@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
+import { InteriorPortfolioAnalyticsService } from '@/products/bella-interior/services/interior-portfolio-analytics.service';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { InteriorProject } from '@/products/bella-interior/domain/design-specification/types';
 
@@ -101,34 +102,25 @@ export async function GET(request: Request): Promise<NextResponse> {
   const { tenantId } = ctx;
 
   try {
-    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-    const dbProjects = await repo.listProjects(tenantId);
-    if (dbProjects && dbProjects.length > 0) {
-      const summaries: InteriorProjectSummary[] = dbProjects.map((p) => ({
-        id: p.id,
-        name: p.name,
-        code: p.code,
-        status: p.status === 'contracted' ? 'approved' : p.status === 'in_production' ? 'production' : p.status === 'installing' ? 'installation' : p.status === 'handover' ? 'handover' : p.status === 'completed' ? 'completed' : 'design',
-        clientName: p.customerName || p.customerId,
-        contractValue: p.estimatedBudget,
-        createdAt: p.createdAt,
-      }));
-      return NextResponse.json({
-        success: true,
-        data: { projects: summaries, total: summaries.length },
-      });
-    }
-  } catch {
-    // Fall back to mock store if DB call fails
+    const analytics = new InteriorPortfolioAnalyticsService();
+    const overview = await analytics.computePortfolioOverview(tenantId);
+    return NextResponse.json({
+      success: true,
+      data: {
+        projects: overview.projects,
+        kpis: overview.kpis,
+        progressOverview: overview.progressOverview,
+        financialSummary: overview.financialSummary,
+        actionAlerts: overview.actionAlerts,
+        total: overview.projects.length,
+      },
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: 'Internal server error calculating portfolio overview' },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({
-    success: true,
-    data: {
-      projects: mockProjects,
-      total: mockProjects.length,
-    },
-  });
 }
 
 // ─── POST /api/interior/projects ─────────────────────────────────────────────

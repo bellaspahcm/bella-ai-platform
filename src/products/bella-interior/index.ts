@@ -44,6 +44,10 @@ export * from './lib/server-context';
 // Master Service Facade
 export * from './services/interior-os.service';
 
+// Portfolio Overview & Executive Analytics
+export * from './domain/portfolio-overview.types';
+export * from './services/interior-portfolio-analytics.service';
+
 // Manifest
 export * from './manifest';
 
