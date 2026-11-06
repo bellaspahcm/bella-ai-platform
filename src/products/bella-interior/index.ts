@@ -27,12 +27,18 @@ export * from './domain/events';
 // Ports & Adapters
 export * from './ports/interior-authorization.port';
 export * from './ports/interior-outbox.port';
+export * from './ports/interior-production-request.port';
 export * from './adapters/platform-authorization.adapter';
 export * from './adapters/platform-finance-outbox.adapter';
+export * from './adapters/supabase-finance-outbox.adapter';
 
 // Repositories
 export * from './repositories/interior-repository.interface';
 export * from './repositories/in-memory.repository';
+export * from './repositories/supabase.repository';
+
+// Server Auth Context
+export * from './lib/server-context';
 
 // Master Service Facade
 export * from './services/interior-os.service';
