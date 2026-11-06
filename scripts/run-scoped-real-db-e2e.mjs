@@ -110,6 +110,7 @@ const SCOPED_REAL_DB_SUITES = [
     patterns: [
       /^src\/platform\/construction\//,
       /^supabase\/migrations\/20261013010000_create_construction_foundation_mvp\.sql$/,
+      /^supabase\/migrations\/20261106035523_harden_construction_grant_audit_atomicity\.sql$/,
     ],
     tests: [
       'src/platform/construction/__tests__/construction-foundation-real-db.test.ts',
@@ -316,6 +317,7 @@ const SCOPED_REAL_DB_SUITES = [
       /^src\/platform\/registry\/product-registry\.ts$/,
       /^src\/platform\/registry\/__tests__\/manufacturing-product-identity\.test\.ts$/,
       /^e2e\/tests\/41-manufacturing-operational-readiness\.spec\.ts$/,
+      /^supabase\/migrations\/20261106042111_onboard_manufacturing_tenant_without_demo_data\.sql$/,
     ],
     tests: [
       'src/platform/manufacturing/__tests__/manufacturing-slice1-real-db.test.ts',

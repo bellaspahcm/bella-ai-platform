@@ -530,7 +530,7 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
     expect((await readRows(adminA, 'platform_direct_user_action_grant_audit', {
       tenant_id: tenantA,
       grant_id: revokeGrantId,
-    })).map((row) => row.action)).toEqual(['GRANT', 'REVOKE']);
+    }, 'recorded_at.asc')).map((row) => row.action)).toEqual(['GRANT', 'REVOKE']);
     expect(await userA.authorization.authorize({
       permissionId: 'construction:site:write',
       tenantId: tenantA,
@@ -776,7 +776,8 @@ function rpcRows(value: unknown): Record<string, unknown>[] {
 async function readRows(
   actor: TestActor,
   table: string,
-  filters: Record<string, string> = {}
+  filters: Record<string, string> = {},
+  order?: string
 ): Promise<Record<string, unknown>[]> {
   const session = await actor.client.auth.getSession();
   const accessToken = session.data.session?.access_token;
@@ -787,6 +788,7 @@ async function readRows(
   for (const [key, value] of Object.entries(filters)) {
     endpoint.searchParams.set(key, 'eq.' + value);
   }
+  if (order) endpoint.searchParams.set('order', order);
 
   const response = await fetch(endpoint, {
     headers: {
