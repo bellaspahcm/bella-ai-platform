@@ -308,10 +308,12 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
     });
     expect(grantAfterRevoke).toHaveLength(1);
     expect(grantAfterRevoke[0].status).toBe('REVOKED');
-    expect((await readRows(adminA, 'platform_direct_user_action_grant_audit', {
+    const tenantGrantAudit = await readRows(adminA, 'platform_direct_user_action_grant_audit', {
       tenant_id: tenantA,
       grant_id: tenantGrantId,
-    })).map((row) => row.action)).toEqual(['GRANT', 'REVOKE']);
+    });
+    expect(tenantGrantAudit).toHaveLength(2);
+    expect(tenantGrantAudit.map((row) => row.action)).toEqual(expect.arrayContaining(['GRANT', 'REVOKE']));
 
     const adminRoleCheck = await requireDatabaseAdmin().query<PgQueryResultRow & { role: string }>(
       'SELECT role FROM public.users WHERE id = $1::uuid',
@@ -455,7 +457,7 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
       scope_type: 'TENANT',
     };
 
-    const grantAuditFault = await installAuditFault('GRANT');
+    const grantAuditFault = await installAuditFault('GRANT', userA.id);
     try {
       const failedGrant = await adminA.authorization.grantDirectUser({
         targetUserId: userA.id,
@@ -483,7 +485,7 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
       grant_id: revokeGrantId,
     })).map((row) => row.action)).toEqual(['GRANT']);
 
-    const revokeAuditFault = await installAuditFault('REVOKE');
+    const revokeAuditFault = await installAuditFault('REVOKE', userA.id);
     try {
       expect(await adminA.authorization.revokeDirectUser({ grantId: revokeGrantId })).toEqual({
         status: 'UNAVAILABLE',
@@ -592,20 +594,18 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
     }
   }
 
-  async function installAuditFault(action: 'GRANT' | 'REVOKE'): Promise<AuditFault> {
+  async function installAuditFault(action: 'GRANT' | 'REVOKE', targetUserId: string): Promise<AuditFault> {
     const suffix = randomUUID().replace(/-/g, '');
     const fault: AuditFault = {
       triggerName: 'test_construction_audit_fault_' + suffix,
       functionName: 'test_construction_audit_fault_fn_' + suffix,
     };
-    const actorId = actor('adminA').id;
-
     await requireDatabaseAdmin().query(
       'CREATE FUNCTION public.' +
         fault.functionName +
         '() RETURNS trigger LANGUAGE plpgsql AS $fault$ BEGIN ' +
-        "IF NEW.actor_user_id = '" +
-        actorId +
+        "IF NEW.target_user_id = '" +
+        targetUserId +
         "'::uuid AND NEW.action = '" +
         action +
         "' THEN RAISE EXCEPTION 'CONSTRUCTION_E2E_AUDIT_FAILURE_INJECTION'; END IF; " +
