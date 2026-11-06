@@ -14,6 +14,12 @@ export class ConstructionAuthorizationError extends ConstructionError {
   }
 }
 
+export class ConstructionAuthorizationUnavailableError extends ConstructionError {
+  constructor(reason: string) {
+    super(`Construction authorization is unavailable: ${reason}`, 'CONSTRUCTION_AUTHORIZATION_UNAVAILABLE');
+  }
+}
+
 export class ConstructionValidationError extends ConstructionError {
   constructor(message: string) {
     super(message, 'CONSTRUCTION_VALIDATION_FAILED');

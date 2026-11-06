@@ -65,6 +65,7 @@ import {
   Utensils,
   BookOpenCheck,
   Award,
+  HardHat,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -511,10 +512,13 @@ export function Sidebar() {
   const isDashboardHome = pathname?.replace(/\/+$/, '') === '/dashboard';
   const { product, isLoading: isUserLoading, user: currentUser, tenantSettings: fullTenantSettings, tenantPresentation } = useUser();
   const tenantSettings = tenantPresentation ?? fullTenantSettings;
+  const activeTenantId = tenantSettings?.id;
   const isHaircut = product?.productKey === 'bella_haircut';
   const isPreschool = product?.productKey === 'bella_preschool';
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [rolePermissions, setRolePermissions] = useState<RolePermissions | null>(null);
+  const [hasConstructionScheduleReadAccess, setHasConstructionScheduleReadAccess] = useState(false);
+  const [hasConstructionSiteOperationsAccess, setHasConstructionSiteOperationsAccess] = useState(false);
   const [tenantBrand, setTenantBrand] = useState<TenantBrandDisplay>(NEUTRAL_SIDEBAR_BRAND);
   const [isTenantBrandResolved, setIsTenantBrandResolved] = useState<boolean>(false);
   const [resolvedIdentityKey, setResolvedIdentityKey] = useState<string | null>(null);
@@ -553,6 +557,35 @@ export function Sidebar() {
     window.addEventListener('brand-theme-change', handleBrandChange);
     return () => window.removeEventListener('brand-theme-change', handleBrandChange);
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    if (isUserLoading || !currentUser?.id || !activeTenantId || currentUser.tenant_id !== activeTenantId) {
+      setHasConstructionScheduleReadAccess(false);
+      setHasConstructionSiteOperationsAccess(false);
+      return () => { active = false; };
+    }
+
+    void fetch('/api/construction/schedule', { cache: 'no-store' })
+      .then((response) => {
+        if (active) setHasConstructionScheduleReadAccess(response.ok);
+      })
+      .catch(() => {
+        if (active) setHasConstructionScheduleReadAccess(false);
+      });
+    void fetch('/api/construction/site-operations', { cache: 'no-store' })
+      .then(async (response) => {
+        const result: unknown = await response.json().catch(() => null);
+        const hasSites = typeof result === 'object' && result !== null && !Array.isArray(result)
+          && 'sites' in result && Array.isArray(result.sites) && result.sites.length > 0;
+        if (active) setHasConstructionSiteOperationsAccess(response.ok && hasSites);
+      })
+      .catch(() => {
+        if (active) setHasConstructionSiteOperationsAccess(false);
+      });
+
+    return () => { active = false; };
+  }, [activeTenantId, currentUser?.id, currentUser?.tenant_id, isUserLoading]);
 
   const handleNavigation = () => {
     setIsOpen(false);
@@ -643,6 +676,22 @@ export function Sidebar() {
     // Babycare (default): "Đơn đặt lịch"
     return { ...item, label: 'Đơn đặt lịch' };
   });
+
+  if (hasConstructionScheduleReadAccess || hasConstructionSiteOperationsAccess) {
+    moduleAwareMenuItems.push(
+      { type: 'header', label: 'CONSTRUCTION OS' },
+    );
+    if (hasConstructionScheduleReadAccess) {
+      moduleAwareMenuItems.push(
+        { icon: HardHat, label: 'Lịch thi công & tiến độ', href: '/dashboard/construction/schedule' },
+      );
+    }
+    if (hasConstructionSiteOperationsAccess) {
+      moduleAwareMenuItems.push(
+        { icon: HardHat, label: 'Nhật ký & Vấn đề công trình', href: '/dashboard/construction/site-operations' },
+      );
+    }
+  }
 
   const filteredMenuItems = moduleAwareMenuItems.filter((item) => {
     if (isMenuHeader(item)) return true;

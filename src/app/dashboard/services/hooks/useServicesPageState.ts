@@ -57,6 +57,7 @@ const getErrorMessage = (error: unknown, fallback: string) => (
 const EMPTY_ENABLED_MODULES: TenantEnabledModules = {
   babycare: false,
   beauty_spa: false,
+  manufacturing: false,
   student_training: false,
   industrial_cleaning: false,
   real_estate: false,

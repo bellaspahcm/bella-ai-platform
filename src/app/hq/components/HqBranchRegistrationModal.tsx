@@ -18,6 +18,7 @@ type TenantProductKey =
   | 'bella_spa'
   | 'bella_haircut'
   | 'bella_nail'
+  | 'bella_manufacturing'
   | 'bella_preschool'
   | 'bella_english_center'
   | 'bella_hospitality';
@@ -31,7 +32,7 @@ export type HqBranchRegistrationInput = {
   adminEmail: string;
   adminPassword: string;
   productKey: TenantProductKey;
-  businessModule: 'babycare' | 'beauty_spa' | 'bella_education' | 'hospitality';
+  businessModule: 'babycare' | 'beauty_spa' | 'manufacturing' | 'bella_education' | 'hospitality';
   hospitality?: {
     profileId: HospitalityProfileId;
     configuration: HospitalityTenantConfiguration;
@@ -100,6 +101,13 @@ const productOptions: Array<{
     label: 'Hospitality',
     description: 'Khách sạn, homestay, lưu trú ngắn hạn',
     icon: Hotel,
+  },
+  {
+    productKey: 'bella_manufacturing',
+    businessModule: 'manufacturing',
+    label: 'Bella Manufacturing',
+    description: 'Quản lý sản xuất và thi công nội thất',
+    icon: Building2,
   },
 ];
 

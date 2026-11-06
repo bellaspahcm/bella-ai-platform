@@ -1,8 +1,8 @@
 import type { Json } from '@/types/database.types';
 import { productResolver } from '@/platform/registry/product-resolver';
 
-export const TENANT_MODULE_KEYS = ['babycare', 'beauty_spa', 'student_training', 'industrial_cleaning', 'real_estate', 'bella_auto', 'bella_healthcare', 'bella_education'] as const;
-export const TENANT_PRIMARY_BUSINESS_MODULE_KEYS = ['babycare', 'beauty_spa', 'industrial_cleaning', 'real_estate', 'bella_auto', 'bella_healthcare', 'bella_education'] as const;
+export const TENANT_MODULE_KEYS = ['babycare', 'beauty_spa', 'manufacturing', 'student_training', 'industrial_cleaning', 'real_estate', 'bella_auto', 'bella_healthcare', 'bella_education'] as const;
+export const TENANT_PRIMARY_BUSINESS_MODULE_KEYS = ['babycare', 'beauty_spa', 'manufacturing', 'industrial_cleaning', 'real_estate', 'bella_auto', 'bella_healthcare', 'bella_education'] as const;
 
 export type TenantModuleKey = (typeof TENANT_MODULE_KEYS)[number];
 export type TenantPrimaryBusinessModuleKey = (typeof TENANT_PRIMARY_BUSINESS_MODULE_KEYS)[number];
@@ -54,6 +54,7 @@ export type ResolvedTenantBrandIdentity = TenantBrandTheme & {
 export const DEFAULT_ENABLED_MODULES: TenantEnabledModules = {
   babycare: true,
   beauty_spa: false,
+  manufacturing: false,
   student_training: false,
   industrial_cleaning: false,
   real_estate: false,
@@ -395,6 +396,7 @@ export function normalizeEnabledModules(value: unknown): TenantEnabledModules {
     return {
       babycare: value.includes('babycare'),
       beauty_spa: value.includes('beauty_spa'),
+      manufacturing: value.includes('manufacturing'),
       student_training: value.includes('student_training'),
       industrial_cleaning: value.includes('industrial_cleaning'),
       real_estate: value.includes('real_estate'),
@@ -414,6 +416,7 @@ export function normalizeEnabledModules(value: unknown): TenantEnabledModules {
   return {
     babycare: typeof source.babycare === 'boolean' ? source.babycare : false,
     beauty_spa: typeof source.beauty_spa === 'boolean' ? source.beauty_spa : false,
+    manufacturing: typeof source.manufacturing === 'boolean' ? source.manufacturing : false,
     student_training: typeof source.student_training === 'boolean' ? source.student_training : false,
     industrial_cleaning: typeof source.industrial_cleaning === 'boolean' ? source.industrial_cleaning : false,
     real_estate: typeof source.real_estate === 'boolean' ? source.real_estate : false,
@@ -425,7 +428,7 @@ export function normalizeEnabledModules(value: unknown): TenantEnabledModules {
 
 export function normalizeEnabledModulesForSave(value: unknown): TenantEnabledModules {
   const modules = normalizeEnabledModules(value);
-  if (modules.babycare || modules.beauty_spa || modules.industrial_cleaning || modules.real_estate || modules.bella_auto || modules.bella_healthcare || modules.bella_education) return modules;
+  if (modules.babycare || modules.beauty_spa || modules.manufacturing || modules.industrial_cleaning || modules.real_estate || modules.bella_auto || modules.bella_healthcare || modules.bella_education) return modules;
   return {
     ...modules,
     babycare: true,
@@ -437,6 +440,7 @@ export function getDefaultTenantModuleKey(value: unknown, tenantName?: string | 
   if (modules.bella_healthcare) return 'bella_healthcare';
   if (modules.bella_education) return 'bella_education';
   if (modules.bella_auto) return 'bella_auto';
+  if (modules.manufacturing) return 'manufacturing';
   if (modules.real_estate) return 'real_estate';
   if (modules.industrial_cleaning) return 'industrial_cleaning';
   if (modules.beauty_spa) return 'beauty_spa';
