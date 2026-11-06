@@ -168,7 +168,7 @@ function normalizeMigrationSql(sql) {
   return String(sql)
     .replace(/\r\n?/g, '\n')
     .split('\n')
-    .filter((line) => !/^\s*--/.test(line))
+    .filter((line) => !/^\s*--\s*zero-downtime:/i.test(line))
     .join('\n')
     .trim();
 }
@@ -770,6 +770,5 @@ module.exports = {
   canonicalMigrationIsNeeded,
   ensureRequiredE2eBaseline,
   listChangedMigrationFiles,
-  normalizeMigrationSql,
   parseMigration,
 };
