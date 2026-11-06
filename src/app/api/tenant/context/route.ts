@@ -335,24 +335,43 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Read only the authenticated actor's approved tenant projection. Do not
-    // query the tenant table or use a service-role fallback for this context.
-    const { data: tenantRows, error: tenantError } = await actorClient.rpc(CURRENT_ACTOR_TENANT_PRESENTATION_RPC);
-    if (tenantError) {
+    // Read the Product discriminator through the already-authenticated client,
+    // scoped to the tenant derived from the validated actor. Legacy products
+    // use the established RLS-protected settings read below; they must not be
+    // blocked by the Preschool presentation RPC.
+    const { data: tenantIdentity, error: tenantIdentityError } = await queryClient
+      .from('tenants')
+      .select('id,status,product_key')
+      .eq('id', actor.tenant_id)
+      .single();
+    if (tenantIdentityError || !tenantIdentity) {
       return NextResponse.json(
-        { error: 'Failed to fetch tenant presentation' },
-        { status: tenantError.code === '42501' ? 403 : 500 },
+        { error: 'Failed to fetch tenant configuration' },
+        { status: tenantIdentityError?.code === '42501' ? 403 : 500 },
       );
     }
-    const tenant = reconcileCurrentActorTenantPresentation(actor.tenant_id, tenantRows);
-    if (!tenant) {
+    if (tenantIdentity.id !== actor.tenant_id || tenantIdentity.status !== 'active') {
       return NextResponse.json(
-        { error: 'Forbidden: Active tenant presentation required.' },
+        { error: 'Forbidden: Tenant configuration does not match current actor.' },
         { status: 403 },
       );
     }
 
-    if (tenant.product_key === 'bella_preschool') {
+    if (tenantIdentity.product_key === 'bella_preschool') {
+      const { data: tenantRows, error: tenantError } = await actorClient.rpc(CURRENT_ACTOR_TENANT_PRESENTATION_RPC);
+      if (tenantError) {
+        return NextResponse.json(
+          { error: 'Failed to fetch tenant presentation' },
+          { status: tenantError.code === '42501' ? 403 : 500 },
+        );
+      }
+      const tenant = reconcileCurrentActorTenantPresentation(actor.tenant_id, tenantRows);
+      if (!tenant) {
+        return NextResponse.json(
+          { error: 'Forbidden: Active tenant presentation required.' },
+          { status: 403 },
+        );
+      }
       return NextResponse.json(transformTenantPresentationToContext(tenant), {
         status: 200,
         headers: {
