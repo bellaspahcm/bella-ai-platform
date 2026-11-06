@@ -519,6 +519,14 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
       status: 'COMMITTED',
       grantId: revokeGrantId,
     });
+    const persistedRevokeAudit = await requireDatabaseAdmin().query<
+      PgQueryResultRow & { action: string }
+    >(
+      'SELECT action FROM public.platform_direct_user_action_grant_audit ' +
+        'WHERE tenant_id = $1::uuid AND grant_id = $2::uuid ORDER BY recorded_at, id',
+      [tenantA, revokeGrantId]
+    );
+    expect(persistedRevokeAudit.rows.map((row) => row.action)).toEqual(['GRANT', 'REVOKE']);
     expect((await readRows(adminA, 'platform_direct_user_action_grant_audit', {
       tenant_id: tenantA,
       grant_id: revokeGrantId,
@@ -781,13 +789,10 @@ async function readRows(
   }
 
   const response = await fetch(endpoint, {
-    cache: 'no-store',
     headers: {
       apikey: anonKey,
       Authorization: 'Bearer ' + accessToken,
       Accept: 'application/json',
-      'Cache-Control': 'no-cache, no-store',
-      Pragma: 'no-cache',
     },
   });
   if (!response.ok) throw new Error('CONSTRUCTION_E2E_READ_FAILED:' + table + ':' + response.status);
