@@ -781,10 +781,13 @@ async function readRows(
   }
 
   const response = await fetch(endpoint, {
+    cache: 'no-store',
     headers: {
       apikey: anonKey,
       Authorization: 'Bearer ' + accessToken,
       Accept: 'application/json',
+      'Cache-Control': 'no-cache, no-store',
+      Pragma: 'no-cache',
     },
   });
   if (!response.ok) throw new Error('CONSTRUCTION_E2E_READ_FAILED:' + table + ':' + response.status);
