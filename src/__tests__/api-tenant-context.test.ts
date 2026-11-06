@@ -1,8 +1,10 @@
 /** Tenant-context consumer uses installed self-profile and current-tenant contracts. */
 const mockGetUser = jest.fn();
 const mockRpc = jest.fn();
-const mockTenantSettings = jest.fn();
-const mockFrom = jest.fn(() => { throw new Error('Unexpected direct table read'); });
+const mockSingle = jest.fn();
+const mockEq = jest.fn();
+const mockSelect = jest.fn();
+const mockFrom = jest.fn();
 
 jest.mock('next/headers', () => ({ 
   cookies: jest.fn(async () => ({ 
@@ -11,7 +13,6 @@ jest.mock('next/headers', () => ({
     set: jest.fn() 
   })) 
 }));
-jest.mock('@/services/tenant-actions', () => ({ getTenantSettings: () => mockTenantSettings() }));
 jest.mock('@supabase/ssr', () => ({
   createServerClient: jest.fn(() => ({ auth: { getUser: mockGetUser }, rpc: mockRpc, from: mockFrom })),
   combineChunks: jest.fn(async (key: string, retrieve: (name: string) => string | null | undefined | Promise<string | null | undefined>) => {
@@ -55,7 +56,10 @@ describe('GET /api/tenant/context', () => {
     mockRpc.mockReset().mockImplementation((name: string) => Promise.resolve({
       data: name === CURRENT_ACTOR_PROFILE_RPC ? [profile] : [tenant], error: null,
     }));
-    mockTenantSettings.mockReset().mockResolvedValue(legacyTenant);
+    mockSingle.mockReset().mockResolvedValue({ data: legacyTenant, error: null });
+    mockEq.mockReset().mockReturnThis();
+    mockSelect.mockReset().mockReturnThis();
+    mockFrom.mockReset().mockReturnValue({ select: mockSelect, eq: mockEq, single: mockSingle });
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project-ref.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = 'publishable-key';
     delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -66,7 +70,7 @@ describe('GET /api/tenant/context', () => {
     const response = await GET(request());
     expect(response.status).toBe(401);
     expect(mockRpc).not.toHaveBeenCalled();
-    expect(mockTenantSettings).not.toHaveBeenCalled();
+    expect(mockFrom).not.toHaveBeenCalled();
     const body = await response.json();
     expect(body).toHaveProperty('error');
     expect(body.error).toContain('Unauthorized');
@@ -80,6 +84,7 @@ describe('GET /api/tenant/context', () => {
       expect((await GET(new NextRequest('http://localhost/api/tenant/context', {
         headers: { 'x-mock-user-email': 'admin@medical.vn' },
       }))).status).toBe(401);
+      expect(mockFrom).not.toHaveBeenCalled();
     } finally { process.env = previous; }
   });
 
@@ -102,6 +107,7 @@ describe('GET /api/tenant/context', () => {
       expect(mockRpc).toHaveBeenNthCalledWith(1, CURRENT_ACTOR_PROFILE_RPC);
       expect(mockRpc).toHaveBeenNthCalledWith(2, CURRENT_ACTOR_TENANT_PRESENTATION_RPC);
       expect(await response.json()).toMatchObject({ tenantId: tenant.tenant_id, tenantName: tenant.name });
+      expect(mockFrom).not.toHaveBeenCalled();
       const { createClient } = jest.requireMock('@supabase/supabase-js') as { createClient: jest.Mock };
       expect(createClient).toHaveBeenCalledWith('https://project-ref.supabase.co', 'publishable-key',
         expect.objectContaining({ global: { headers: { Authorization: `Bearer ${accessToken}` } } }));
@@ -117,6 +123,7 @@ describe('GET /api/tenant/context', () => {
       headers: { Cookie: `sb-project-ref-auth-token=${cookie}` },
     }))).status).toBe(401);
     expect(mockRpc).not.toHaveBeenCalled();
+    expect(mockFrom).not.toHaveBeenCalled();
   });
 
   it('validates a Bearer token with Auth when no SSR cookie session is available', async () => {
@@ -163,7 +170,6 @@ describe('GET /api/tenant/context', () => {
     expect(mockRpc).toHaveBeenNthCalledWith(1, CURRENT_ACTOR_PROFILE_RPC);
     expect(mockRpc).toHaveBeenNthCalledWith(2, CURRENT_ACTOR_TENANT_PRESENTATION_RPC);
     expect(mockFrom).not.toHaveBeenCalled();
-    expect(mockTenantSettings).not.toHaveBeenCalled();
     const data = await response.json();
     expect(data).toMatchObject({ tenantId: tenant.tenant_id, tenantName: tenant.name, enabledModules: ['bella_education'],
       subscriptionPlan: 'basic', featureFlags: {}, settings: { currency: 'VND', timezone: 'Asia/Ho_Chi_Minh',
@@ -186,13 +192,16 @@ describe('GET /api/tenant/context', () => {
       featureFlags: {}, settings: { currency: 'VND', timezone: 'Asia/Ho_Chi_Minh', locale: 'vi-VN', companyName: tenant.name } });
   });
 
-  it('preserves the established full settings response for non-Preschool products', async () => {
+  it('preserves the established full settings response through the authenticated tenant read for other products', async () => {
+    mockSingle.mockResolvedValue({ data: legacyTenant, error: null });
     mockRpc.mockImplementation((name: string) => Promise.resolve({
       data: name === CURRENT_ACTOR_PROFILE_RPC ? [profile] : [{ ...tenant, product_key: 'bella_spa' }], error: null,
     }));
     const response = await GET(request());
     expect(response.status).toBe(200);
-    expect(mockTenantSettings).toHaveBeenCalledTimes(1);
+    expect(mockFrom).toHaveBeenCalledWith('tenants');
+    expect(mockSelect).toHaveBeenCalledWith('*');
+    expect(mockEq).toHaveBeenCalledWith('id', profile.tenant_id);
     expect(await response.json()).toMatchObject({
       tenantId: legacyTenant.id,
       subscriptionPlan: 'professional',
@@ -200,6 +209,17 @@ describe('GET /api/tenant/context', () => {
       settings: { salaryConfig: legacyTenant.salary_config,
         qrPayment: { bankCode: 'VCB', accountNumber: '1234567890', accountName: 'Legacy Tenant' } },
     });
+  });
+
+  it.each([['error', { data: null, error: { message: 'tenant read failed' } }],
+    ['missing row', { data: null, error: null }]])('fails closed when the authenticated tenant read has %s', async (_reason, result) => {
+    mockSingle.mockResolvedValue(result);
+    mockRpc.mockImplementation((name: string) => Promise.resolve({
+      data: name === CURRENT_ACTOR_PROFILE_RPC ? [profile] : [{ ...tenant, product_key: 'bella_spa' }], error: null,
+    }));
+    const response = await GET(request());
+    expect(response.status).toBe(500);
+    expect(await response.json()).not.toHaveProperty('tenantName');
   });
 
   it('transports canonical Product identity and only safe branding fields from the trusted tenant', async () => {
