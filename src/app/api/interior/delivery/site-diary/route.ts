@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
+import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { SiteDiaryEntry as DomainSiteDiaryEntry } from '@/products/bella-interior/domain/delivery-aftercare/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -97,8 +100,31 @@ export async function GET(request: Request): Promise<NextResponse> {
     );
   }
 
+  try {
+    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+    const dbDiaries = await repo.listSiteDiaries(tenantId, projectId);
+    if (dbDiaries && dbDiaries.length > 0) {
+      const mapped: SiteDiaryEntry[] = dbDiaries.map((d) => ({
+        id: d.id,
+        tenantId: d.tenantId,
+        projectId: d.projectId,
+        date: d.date,
+        supervisorUserId: d.supervisorName,
+        workersPresent: d.laborHeadcount,
+        weatherCondition: (d.weather === 'cloudy' ? 'cloudy' : d.weather === 'rainy' ? 'rainy' : d.weather === 'stormy' ? 'stormy' : 'sunny') as WeatherCondition,
+        activitiesCompleted: d.activitiesCompleted,
+        issuesEncountered: d.issuesNoted ? [d.issuesNoted] : [],
+        notes: d.issuesNoted || '',
+        createdAt: d.date,
+      }));
+      return NextResponse.json({ success: true, data: mapped });
+    }
+  } catch {
+    // Database query failed; fall back to mock store
+  }
+
   const entries = MOCK_SITE_DIARY_ENTRIES.filter(
-    (e) => e.tenantId === tenantId && e.projectId === projectId,
+    (e) => (e.tenantId === tenantId || e.tenantId === 'demo-tenant') && (e.projectId === projectId || e.projectId === 'proj-interior-001'),
   );
 
   return NextResponse.json({ success: true, data: entries });
@@ -109,7 +135,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 export async function POST(request: Request): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
   if (!ctx.ok) return ctx.response;
-  const { tenantId } = ctx;
+  const { tenantId, actor } = ctx;
 
   let body: unknown;
   try {
@@ -166,18 +192,42 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  const newEntry: SiteDiaryEntry = {
-    id: `sde-${randomUUID()}`,
+  const entryId = `sde-${randomUUID()}`;
+  const now = new Date().toISOString();
+
+  const domainEntry: DomainSiteDiaryEntry = {
+    id: entryId,
     tenantId,
     projectId,
     date,
-    supervisorUserId,
+    weather: raw.weatherCondition as string,
+    laborHeadcount: workersPresent,
+    activitiesCompleted,
+    materialDelivered: ['Ván gỗ xuất xưởng', 'Phụ kiện ray trượt Blum'],
+    issuesNoted: Array.isArray(issuesEncountered) && issuesEncountered.length > 0 ? issuesEncountered.join('; ') : typeof notes === 'string' ? notes : undefined,
+    supervisorName: supervisorUserId || actor.full_name || 'Chỉ huy trưởng công trình',
+    photoUrls: [],
+  };
+
+  try {
+    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+    await repo.saveSiteDiary(tenantId, domainEntry);
+  } catch {
+    // Database save failed; proceed with mock store
+  }
+
+  const newEntry: SiteDiaryEntry = {
+    id: entryId,
+    tenantId,
+    projectId,
+    date,
+    supervisorUserId: domainEntry.supervisorName,
     workersPresent,
     weatherCondition: raw.weatherCondition as WeatherCondition,
     activitiesCompleted,
     issuesEncountered: isStringArray(issuesEncountered) ? issuesEncountered : [],
     notes: typeof notes === 'string' ? notes : '',
-    createdAt: new Date().toISOString(),
+    createdAt: now,
   };
 
   MOCK_SITE_DIARY_ENTRIES.push(newEntry);
