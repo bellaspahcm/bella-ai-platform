@@ -79,8 +79,10 @@ export function DashboardAuthLoadingShell() {
 }
 
 import { useState, useEffect, useLayoutEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 export function DashboardAuthorizedShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const { isLoading, user, tenantSettings: fullTenantSettings, tenantPresentation, product } = useUser();
   const tenantSettings = tenantPresentation ?? fullTenantSettings;
   const presentation = tenantSettings ? resolveDashboardPresentation(tenantSettings, product) : null;
@@ -154,6 +156,17 @@ export function DashboardAuthorizedShell({ children }: { children: React.ReactNo
       <main className="flex-1 flex flex-col min-w-0 max-w-full overflow-x-auto bg-transparent">
         {children}
       </main>
+    );
+  }
+
+  const isInterior = pathname?.startsWith('/dashboard/interior');
+  if (isInterior) {
+    return (
+      <div className="dashboard-shell flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans">
+        <main className="dashboard-main flex-1 flex flex-col min-w-0 max-w-full overflow-hidden">
+          {children}
+        </main>
+      </div>
     );
   }
 
