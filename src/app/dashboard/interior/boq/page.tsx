@@ -392,9 +392,9 @@ export default function InteriorBOQPage() {
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-white">Dự Toán Thương Mại BOQ & Định Mức Sản Xuất BOM</h1>
+              <h1 className="text-xl font-bold text-white">Dự Toán Thương Mại BOQ &amp; Định Mức Sản Xuất BOM</h1>
               <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                Commercial & Costing
+                Commercial &amp; Costing
               </span>
             </div>
             <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
@@ -433,7 +433,7 @@ export default function InteriorBOQPage() {
             href="/dashboard/interior/contracts"
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition-all"
           >
-            Tạo Báo Giá & Hợp Đồng
+            Tạo Báo Giá &amp; Hợp Đồng
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -481,7 +481,7 @@ export default function InteriorBOQPage() {
             <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
               <span className="text-xs font-semibold uppercase text-slate-400">2. Tổng Giá Bán Khách Hàng</span>
               <div className="text-xl font-bold font-mono text-amber-400 mt-1">{formatCurrency(totalClientPrice)}</div>
-              <p className="text-xs text-slate-400 mt-1">Đơn giá niêm yết theo cấu kiện & định mức</p>
+              <p className="text-xs text-slate-400 mt-1">Đơn giá niêm yết theo cấu kiện &amp; định mức</p>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-900 border border-emerald-900/40 bg-emerald-950/20">
@@ -498,7 +498,7 @@ export default function InteriorBOQPage() {
             <div className="p-4 border-b border-slate-800 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                 <ClipboardList className="h-4 w-4 text-amber-400" />
-                Danh Mục Cấu Kiện & Tripartite Costing
+                Danh Mục Cấu Kiện &amp; Tripartite Costing
               </h3>
               <span className="text-xs text-slate-400 font-mono">{items.length} hạng mục</span>
             </div>
@@ -507,8 +507,8 @@ export default function InteriorBOQPage() {
               <table className="w-full text-left text-xs text-slate-300">
                 <thead className="bg-slate-950/80 text-[11px] uppercase text-slate-400 border-b border-slate-800 font-semibold tracking-wider">
                   <tr>
-                    <th className="py-3 px-4">Khu vực & Hạng mục</th>
-                    <th className="py-3 px-4">Quy cách & Kích thước</th>
+                    <th className="py-3 px-4">Khu vực &amp; Hạng mục</th>
+                    <th className="py-3 px-4">Quy cách &amp; Kích thước</th>
                     <th className="py-3 px-4">ĐVT</th>
                     <th className="py-3 px-4 text-center">SL</th>
                     <th className="py-3 px-4 text-right">Đơn giá vốn</th>
@@ -592,7 +592,7 @@ export default function InteriorBOQPage() {
               <table className="w-full text-left text-xs text-slate-300">
                 <thead className="bg-slate-950/80 text-[11px] uppercase text-slate-400 border-b border-slate-800 font-semibold tracking-wider">
                   <tr>
-                    <th className="py-3 px-4">Nhóm & Tên Vật Tư</th>
+                    <th className="py-3 px-4">Nhóm &amp; Tên Vật Tư</th>
                     <th className="py-3 px-4">Mã Vật Tư / Quy Cách</th>
                     <th className="py-3 px-4">ĐVT</th>
                     <th className="py-3 px-4 text-center">Định mức thuần</th>

@@ -339,7 +339,7 @@ export default function InteriorProductionPage() {
             <Boxes className="h-4 w-4 text-amber-400" />
             Danh Sách Lệnh Sản Xuất Xưởng ({orders.length} lệnh)
           </h3>
-          <span className="text-xs text-slate-400 font-mono">Xưởng mộc & đá trung tâm</span>
+          <span className="text-xs text-slate-400 font-mono">Xưởng mộc &amp; đá trung tâm</span>
         </div>
 
         <div className="divide-y divide-slate-800/70">

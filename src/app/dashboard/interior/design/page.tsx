@@ -344,9 +344,9 @@ export default function InteriorDesignStudioPage() {
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-white">Studio Quản Lý Thiết Kế & Bản Vẽ</h1>
+              <h1 className="text-xl font-bold text-white">Studio Quản Lý Thiết Kế &amp; Bản Vẽ</h1>
               <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                Design & Specification
+                Design &amp; Specification
               </span>
             </div>
             <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
@@ -438,7 +438,7 @@ export default function InteriorDesignStudioPage() {
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition-all"
               >
                 <Lock className="h-3.5 w-3.5" />
-                Phê duyệt & Khóa (Lock)
+                Phê duyệt &amp; Khóa (Lock)
               </button>
             </div>
           )}
@@ -463,7 +463,7 @@ export default function InteriorDesignStudioPage() {
               Phòng khách Luxury • 65m²
             </span>
             <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 shrink-0">
-              Bếp & Phòng ăn Master • 45m²
+              Bếp &amp; Phòng ăn Master • 45m²
             </span>
             <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 shrink-0">
               Phòng ngủ Master Suite • 52m²
@@ -480,7 +480,7 @@ export default function InteriorDesignStudioPage() {
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                 <Layers className="h-4 w-4 text-amber-400" />
-                Phối Cảnh 3D & Bản Vẽ Kỹ Thuật ({activeRev?.revisionNumber || 'R1.0'})
+                Phối Cảnh 3D &amp; Bản Vẽ Kỹ Thuật ({activeRev?.revisionNumber || 'R1.0'})
               </h3>
               <span className="text-xs text-slate-400">
                 {revisionDetail?.title || 'Phối cảnh tổng thể Luxury Villa Fitout'}
@@ -560,7 +560,7 @@ export default function InteriorDesignStudioPage() {
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                 <Palette className="h-4 w-4 text-amber-400" />
-                Quy Cách Vật Liệu & Phụ Kiện
+                Quy Cách Vật Liệu &amp; Phụ Kiện
               </h3>
               <span className="text-xs text-amber-400">
                 {revisionDetail?.materialSpecs?.length || 4} vật tư định danh
@@ -712,7 +712,7 @@ export default function InteriorDesignStudioPage() {
                   type="submit"
                   className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium shadow-sm"
                 >
-                  Lưu & Tạo dự án
+                  Lưu &amp; Tạo dự án
                 </button>
               </div>
             </form>
@@ -781,7 +781,7 @@ export default function InteriorDesignStudioPage() {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-emerald-400" /> Phê Duyệt & Khóa Bản Vẽ
+                <ShieldCheck className="h-5 w-5 text-emerald-400" /> Phê Duyệt &amp; Khóa Bản Vẽ
               </h3>
               <button onClick={() => setShowApproveModal(false)} className="text-slate-400 hover:text-white">
                 <X className="h-5 w-5" />
@@ -820,7 +820,7 @@ export default function InteriorDesignStudioPage() {
                   disabled={approving}
                   className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm transition-all disabled:opacity-50"
                 >
-                  {approving ? 'Đang khóa...' : 'Xác nhận Khóa & Phê duyệt'}
+                  {approving ? 'Đang khóa...' : 'Xác nhận Khóa &amp; Phê duyệt'}
                 </button>
               </div>
             </div>

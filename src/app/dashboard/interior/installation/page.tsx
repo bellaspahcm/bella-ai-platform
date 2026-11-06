@@ -262,7 +262,7 @@ export default function InteriorInstallationPage() {
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-white">Hiện Trường Lắp Đặt & Nhật Ký Thi Công</h1>
+              <h1 className="text-xl font-bold text-white">Hiện Trường Lắp Đặt &amp; Nhật Ký Thi Công</h1>
               <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
                 Site Operations
               </span>
@@ -303,7 +303,7 @@ export default function InteriorInstallationPage() {
             href="/dashboard/interior/qc-handover"
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition-all"
           >
-            Nghiệm Thu QC & Punch List
+            Nghiệm Thu QC &amp; Punch List
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -320,7 +320,7 @@ export default function InteriorInstallationPage() {
           }`}
         >
           <Hammer className="h-4 w-4" />
-          <span>Kế Hoạch & Tiến Độ Từng Phòng</span>
+          <span>Kế Hoạch &amp; Tiến Độ Từng Phòng</span>
           <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300">{rooms.length}</span>
         </button>
 
@@ -434,7 +434,7 @@ export default function InteriorInstallationPage() {
                   {d.issuesEncountered && d.issuesEncountered.length > 0 && (
                     <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-900/30 text-xs space-y-1">
                       <div className="font-semibold text-amber-400 flex items-center gap-1.5">
-                        <AlertTriangle className="h-3.5 w-3.5" /> Tồn đọng & Vướng mắc hiện trường:
+                        <AlertTriangle className="h-3.5 w-3.5" /> Tồn đọng &amp; Vướng mắc hiện trường:
                       </div>
                       <ul className="list-disc pl-5 space-y-0.5 text-amber-300/80">
                         {d.issuesEncountered.map((iss, idx) => (
@@ -537,7 +537,7 @@ export default function InteriorInstallationPage() {
                 />
               </div>
               <div>
-                <label className="block text-slate-300 mb-1 font-medium">Giải pháp xử lý & Ghi chú</label>
+                <label className="block text-slate-300 mb-1 font-medium">Giải pháp xử lý &amp; Ghi chú</label>
                 <input
                   type="text"
                   placeholder="Phương án xử lý đã thống nhất..."

@@ -141,7 +141,7 @@ export default function InteriorDashboardPage() {
                 </span>
               </h1>
               <p className="text-sm text-slate-400">
-                Hệ điều hành quản trị toàn diện: Thiết kế • Bóc tách BOQ • Sản xuất xưởng • Thi công & Bàn giao
+                Hệ điều hành quản trị toàn diện: Thiết kế • Bóc tách BOQ • Sản xuất xưởng • Thi công &amp; Bàn giao
               </p>
             </div>
           </div>
@@ -242,7 +242,7 @@ export default function InteriorDashboardPage() {
               </div>
               <div>
                 <div className="font-semibold text-sm text-slate-200 group-hover:text-amber-400 transition-colors">
-                  1. Design & Specification
+                  1. Design &amp; Specification
                 </div>
                 <div className="text-xs text-slate-400 mt-0.5">3D Render, Bản vẽ 2D, Bảng vật liệu, Version Lock</div>
               </div>
@@ -259,7 +259,7 @@ export default function InteriorDashboardPage() {
               </div>
               <div>
                 <div className="font-semibold text-sm text-slate-200 group-hover:text-blue-400 transition-colors">
-                  2. Commercial & Costing
+                  2. Commercial &amp; Costing
                 </div>
                 <div className="text-xs text-slate-400 mt-0.5">BOQ cấu kiện, Giá vốn COGS, Hợp đồng 5 mốc</div>
               </div>
@@ -276,7 +276,7 @@ export default function InteriorDashboardPage() {
               </div>
               <div>
                 <div className="font-semibold text-sm text-slate-200 group-hover:text-amber-400 transition-colors">
-                  3. Manufacturing & Install
+                  3. Manufacturing &amp; Install
                 </div>
                 <div className="text-xs text-slate-400 mt-0.5">Cắt CNC, Dán cạnh, Lắp ráp, Đóng gói, Lắp đặt phòng</div>
               </div>
@@ -293,9 +293,9 @@ export default function InteriorDashboardPage() {
               </div>
               <div>
                 <div className="font-semibold text-sm text-slate-200 group-hover:text-emerald-400 transition-colors">
-                  4. Delivery & Aftercare
+                  4. Delivery &amp; Aftercare
                 </div>
-                <div className="text-xs text-slate-400 mt-0.5">Site Diary, Punch List lỗi, Bàn giao & Bảo hành gỗ/phụ kiện</div>
+                <div className="text-xs text-slate-400 mt-0.5">Site Diary, Punch List lỗi, Bàn giao &amp; Bảo hành gỗ/phụ kiện</div>
               </div>
             </div>
           </Link>
@@ -306,7 +306,7 @@ export default function InteriorDashboardPage() {
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="text-base font-semibold text-white">Danh Sách Công Trình & Dự Án Nội Thất</h3>
+            <h3 className="text-base font-semibold text-white">Danh Sách Công Trình &amp; Dự Án Nội Thất</h3>
             <p className="text-xs text-slate-400">Theo dõi tiến độ từ giai đoạn chốt phương án đến nghiệm thu bảo hành</p>
           </div>
 
@@ -336,7 +336,7 @@ export default function InteriorDashboardPage() {
             <table className="w-full text-left text-sm text-slate-300">
               <thead className="bg-slate-950/80 text-xs uppercase text-slate-400 border-b border-slate-800 font-semibold tracking-wider">
                 <tr>
-                  <th className="py-3.5 px-4">Mã & Tên Công Trình</th>
+                  <th className="py-3.5 px-4">Mã &amp; Tên Công Trình</th>
                   <th className="py-3.5 px-4">Khách Hàng / Loại</th>
                   <th className="py-3.5 px-4">Trạng Thái Vận Hành</th>
                   <th className="py-3.5 px-4">Approved Version</th>
@@ -375,7 +375,7 @@ export default function InteriorDashboardPage() {
                       <span className="text-emerald-400 font-semibold font-mono">
                         {p.grossMarginPercent}%
                       </span>
-                      <div className="text-[11px] text-slate-400">P&L dự toán</div>
+                      <div className="text-[11px] text-slate-400">P&amp;L dự toán</div>
                     </td>
                     <td className="py-4 px-4 text-right">
                       <Link

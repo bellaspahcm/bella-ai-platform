@@ -226,7 +226,7 @@ export default function InteriorContractsPage() {
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-white">Quản Lý Báo Giá, Hợp Đồng & Tiến Độ Thu Tiền</h1>
+              <h1 className="text-xl font-bold text-white">Quản Lý Báo Giá, Hợp Đồng &amp; Tiến Độ Thu Tiền</h1>
               <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 Commercial Contracts
               </span>
@@ -278,7 +278,7 @@ export default function InteriorContractsPage() {
           {/* Contract Overview Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
-              <span className="text-xs font-semibold uppercase text-slate-400">Số Hợp Đồng & Khách Hàng</span>
+              <span className="text-xs font-semibold uppercase text-slate-400">Số Hợp Đồng &amp; Khách Hàng</span>
               <div className="text-base font-bold font-mono text-amber-300 mt-1">{activeContract.id}</div>
               <p className="text-xs text-slate-300 mt-0.5 font-medium">{activeContract.client}</p>
             </div>
@@ -412,7 +412,7 @@ export default function InteriorContractsPage() {
                 <div>• Đợt 2 (20%): Duyệt thiết kế khóa sản xuất</div>
                 <div>• Đợt 3 (30%): Khởi công xuất xưởng</div>
                 <div>• Đợt 4 (15%): Hoàn thành lắp đặt hiện trường</div>
-                <div>• Đợt 5 (5%): Bàn giao quyết toán & bảo hành</div>
+                <div>• Đợt 5 (5%): Bàn giao quyết toán &amp; bảo hành</div>
               </div>
               <div className="pt-2 flex items-center justify-end gap-2">
                 <button
@@ -426,7 +426,7 @@ export default function InteriorContractsPage() {
                   type="submit"
                   className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium shadow-sm"
                 >
-                  Ký Hợp Đồng & Kích Hoạt
+                  Ký Hợp Đồng &amp; Kích Hoạt
                 </button>
               </div>
             </form>

@@ -343,9 +343,9 @@ export default function InteriorQCHandoverPage() {
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-white">Kiểm Soát Chất Lượng QC, Punch List & Bàn Giao</h1>
+              <h1 className="text-xl font-bold text-white">Kiểm Soát Chất Lượng QC, Punch List &amp; Bàn Giao</h1>
               <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                QC & Handover
+                QC &amp; Handover
               </span>
             </div>
             <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
@@ -605,9 +605,9 @@ export default function InteriorQCHandoverPage() {
                   >
                     <option value="furniture_fit">Lắp ráp đồ gỗ (Furniture Fit)</option>
                     <option value="finishing">Hoàn thiện bề mặt (Finishing)</option>
-                    <option value="painting">Sơn & Dặm màu (Painting)</option>
-                    <option value="electrical_coordination">Điện & Đèn LED (Electrical)</option>
-                    <option value="structural">Kết cấu & Nề (Structural)</option>
+                    <option value="painting">Sơn &amp; Dặm màu (Painting)</option>
+                    <option value="electrical_coordination">Điện &amp; Đèn LED (Electrical)</option>
+                    <option value="structural">Kết cấu &amp; Nề (Structural)</option>
                   </select>
                 </div>
                 <div>
@@ -759,7 +759,7 @@ export default function InteriorQCHandoverPage() {
                   type="submit"
                   className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm"
                 >
-                  Ký Nghiệm Thu & Kích Hoạt Bảo Hành
+                  Ký Nghiệm Thu &amp; Kích Hoạt Bảo Hành
                 </button>
               </div>
             </form>
