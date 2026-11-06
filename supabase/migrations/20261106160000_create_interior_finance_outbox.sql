@@ -41,13 +41,16 @@ CREATE TABLE IF NOT EXISTS public.interior_finance_outbox (
 );
 
 -- Indexes for worker / dashboard
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_outbox_worker_pending
     ON public.interior_finance_outbox (next_retry_at, created_at)
     WHERE status IN ('PENDING', 'FAILED');
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_outbox_tenant_status
     ON public.interior_finance_outbox (tenant_id, status, created_at DESC);
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_outbox_reference
     ON public.interior_finance_outbox (tenant_id, reference_type, reference_id);
 

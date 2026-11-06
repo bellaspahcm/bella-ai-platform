@@ -369,7 +369,7 @@ export default function InteriorContractsPage() {
         </div>
       ) : (
         <div className="p-8 text-center bg-slate-900 border border-slate-800 rounded-2xl text-slate-400 text-xs">
-          Chưa có hợp đồng nào cho dự án này. Vui lòng bấm "Tạo Hợp Đồng Mới".
+          Chưa có hợp đồng nào cho dự án này. Vui lòng bấm &quot;Tạo Hợp Đồng Mới&quot;.
         </div>
       )}
 

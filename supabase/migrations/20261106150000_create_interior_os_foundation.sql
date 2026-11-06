@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS public.interior_projects (
     CONSTRAINT uq_interior_projects_tenant_code UNIQUE (tenant_id, code)
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_projects_tenant_status 
     ON public.interior_projects(tenant_id, status);
 
@@ -50,6 +51,7 @@ CREATE TABLE IF NOT EXISTS public.interior_project_room_zones (
     CONSTRAINT uq_interior_room_zones_tenant_code UNIQUE (tenant_id, project_id, code)
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_room_zones_tenant_project 
     ON public.interior_project_room_zones(tenant_id, project_id);
 
@@ -70,6 +72,7 @@ CREATE TABLE IF NOT EXISTS public.interior_design_revisions (
     CONSTRAINT uq_interior_revisions_tenant_project_version UNIQUE (tenant_id, project_id, version_number)
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_revisions_tenant_project 
     ON public.interior_design_revisions(tenant_id, project_id, status);
 
@@ -85,6 +88,7 @@ CREATE TABLE IF NOT EXISTS public.interior_design_assets (
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_design_assets_tenant_revision 
     ON public.interior_design_assets(tenant_id, revision_id);
 
@@ -102,6 +106,7 @@ CREATE TABLE IF NOT EXISTS public.interior_design_material_specs (
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_material_specs_tenant_revision 
     ON public.interior_design_material_specs(tenant_id, revision_id);
 
@@ -127,6 +132,7 @@ CREATE TABLE IF NOT EXISTS public.interior_boqs (
     CONSTRAINT uq_interior_boqs_tenant_number UNIQUE (tenant_id, boq_number)
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_boqs_tenant_project 
     ON public.interior_boqs(tenant_id, project_id);
 
@@ -151,6 +157,7 @@ CREATE TABLE IF NOT EXISTS public.interior_boq_items (
     gross_margin_percent NUMERIC(6, 2) NOT NULL DEFAULT 0
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_boq_items_tenant_boq 
     ON public.interior_boq_items(tenant_id, boq_id);
 
@@ -173,6 +180,7 @@ CREATE TABLE IF NOT EXISTS public.interior_quotations (
     CONSTRAINT uq_interior_quotations_tenant_number UNIQUE (tenant_id, quotation_number)
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_quotations_tenant_project 
     ON public.interior_quotations(tenant_id, project_id);
 
@@ -192,6 +200,7 @@ CREATE TABLE IF NOT EXISTS public.interior_contracts (
     CONSTRAINT uq_interior_contracts_tenant_number UNIQUE (tenant_id, contract_number)
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_contracts_tenant_project 
     ON public.interior_contracts(tenant_id, project_id);
 
@@ -210,6 +219,7 @@ CREATE TABLE IF NOT EXISTS public.interior_payment_milestones (
     CONSTRAINT uq_interior_milestones_order UNIQUE (tenant_id, contract_id, milestone_order)
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_milestones_tenant_contract 
     ON public.interior_payment_milestones(tenant_id, contract_id);
 
@@ -236,6 +246,7 @@ CREATE TABLE IF NOT EXISTS public.interior_production_orders (
     CONSTRAINT uq_interior_prod_orders_tenant_number UNIQUE (tenant_id, order_number)
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_prod_orders_tenant_project 
     ON public.interior_production_orders(tenant_id, project_id, status);
 
@@ -255,6 +266,7 @@ CREATE TABLE IF NOT EXISTS public.interior_production_order_items (
     qc_notes TEXT
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_prod_items_tenant_order 
     ON public.interior_production_order_items(tenant_id, production_order_id);
 
@@ -272,6 +284,7 @@ CREATE TABLE IF NOT EXISTS public.interior_site_installation_plans (
     CONSTRAINT uq_interior_plans_tenant_number UNIQUE (tenant_id, plan_number)
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_install_plans_tenant_project 
     ON public.interior_site_installation_plans(tenant_id, project_id);
 
@@ -288,6 +301,7 @@ CREATE TABLE IF NOT EXISTS public.interior_site_room_installations (
     completed_date TIMESTAMPTZ
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_room_installs_tenant_plan 
     ON public.interior_site_room_installations(tenant_id, plan_id);
 
@@ -310,6 +324,7 @@ CREATE TABLE IF NOT EXISTS public.interior_site_diaries (
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_site_diaries_tenant_project 
     ON public.interior_site_diaries(tenant_id, project_id, date);
 
@@ -332,6 +347,7 @@ CREATE TABLE IF NOT EXISTS public.interior_qc_punch_list_items (
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_punch_list_tenant_project_status 
     ON public.interior_qc_punch_list_items(tenant_id, project_id, status);
 
@@ -350,6 +366,7 @@ CREATE TABLE IF NOT EXISTS public.interior_handover_dossiers (
     dossier_document_url TEXT
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_handovers_tenant_project 
     ON public.interior_handover_dossiers(tenant_id, project_id);
 
@@ -370,6 +387,7 @@ CREATE TABLE IF NOT EXISTS public.interior_warranty_certificates (
     CONSTRAINT uq_interior_warranties_tenant_number UNIQUE (tenant_id, certificate_number)
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_warranties_tenant_project 
     ON public.interior_warranty_certificates(tenant_id, project_id);
 
@@ -393,6 +411,7 @@ CREATE TABLE IF NOT EXISTS public.interior_warranty_service_tickets (
     CONSTRAINT uq_interior_tickets_tenant_number UNIQUE (tenant_id, ticket_number)
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh vertical
 CREATE INDEX IF NOT EXISTS idx_interior_tickets_tenant_status 
     ON public.interior_warranty_service_tickets(tenant_id, status);
 
