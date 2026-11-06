@@ -27,7 +27,7 @@ const config: Config = {
   testPathIgnorePatterns: [
     '/node_modules/',
     '/.audit-local-cache/',
-    '/.worktrees/',
+    '<rootDir>/.worktrees/',
     '/.next/',
     '/e2e/',
     '/playwright-report/',

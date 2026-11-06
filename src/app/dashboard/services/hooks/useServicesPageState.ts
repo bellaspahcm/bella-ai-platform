@@ -64,6 +64,7 @@ const EMPTY_ENABLED_MODULES: TenantEnabledModules = {
   bella_auto: false,
   bella_healthcare: false,
   bella_education: false,
+  bella_interior: false,
 };
 
 type JsonObject = { [key: string]: Json | undefined };
