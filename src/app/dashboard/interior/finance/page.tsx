@@ -55,7 +55,9 @@ export default function InteriorProjectFinancePage() {
   const fetchData = useCallback(async () => {
     try {
       setRefreshing(true);
-      const res = await fetch(`/api/interior/finance?quarter=${encodeURIComponent(selectedQuarter)}`);
+      const res = await fetch(
+        `/api/interior/finance?quarter=${encodeURIComponent(selectedQuarter)}&period=${selectedPeriod}`
+      );
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data?.overview) {
@@ -68,11 +70,11 @@ export default function InteriorProjectFinancePage() {
     } catch {
       // Fallback to Canonical Domain Service (Zero UI calculation)
     }
-    const fallback = InteriorFinanceAnalyticsService.getFinanceOverview(selectedQuarter);
+    const fallback = InteriorFinanceAnalyticsService.getFinanceOverview(selectedQuarter, selectedPeriod);
     setData(fallback);
     setLoading(false);
     setRefreshing(false);
-  }, [selectedQuarter]);
+  }, [selectedQuarter, selectedPeriod]);
 
   useEffect(() => {
     fetchData();
