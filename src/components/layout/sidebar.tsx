@@ -466,9 +466,7 @@ const bellaInteriorMenuItems: SidebarMenuItem[] = [
   { icon: Award, label: 'Bảo hành', href: '/dashboard/interior/warranty' },
   { type: 'header', label: 'QUẢN TRỊ' },
   { icon: BarChart3, label: 'Báo cáo', href: '/dashboard/interior/reports' },
-  { icon: Settings, label: 'Cài đặt', href: '/dashboard/interior/settings' },
-  { icon: UserCheck, label: 'Tài khoản người dùng', href: '/dashboard/interior/users' },
-  { icon: ShieldAlert, label: 'Vai trò và quyền hạn', href: '/dashboard/interior/roles' },
+  { icon: Settings, label: 'Cài đặt', href: '/dashboard/settings' },
 ];
 
 const customerMenuItems: SidebarMenuItem[] = [

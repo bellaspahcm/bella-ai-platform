@@ -32,8 +32,35 @@ import {
 import React,{ useEffect,useState } from "react";
 import { toast } from "sonner";
 
-function getRoleBadge(role: string | null | undefined, isEdu: boolean, workerVocab: { singular: string; role: string }) {
+function getRoleBadge(
+  role: string | null | undefined,
+  isEdu: boolean,
+  isInterior: boolean,
+  workerVocab: { singular: string; role: string }
+) {
   const normalized = role?.toLowerCase() || "";
+  if (isInterior) {
+    if (normalized === "admin" || normalized === "super_admin" || normalized === "owner") {
+      return { label: "Quản trị viên / Giám đốc", color: "bg-rose-50 text-rose-600 border-rose-100" };
+    }
+    if (normalized === "project_manager" || normalized === "pm") {
+      return { label: "Project Manager (PM)", color: "bg-emerald-50 text-emerald-700 border-emerald-100" };
+    }
+    if (normalized === "architect" || normalized === "kts") {
+      return { label: "Kiến trúc sư (Architect)", color: "bg-blue-50 text-blue-700 border-blue-100" };
+    }
+    if (normalized === "workshop_supervisor" || normalized === "supervisor") {
+      return { label: "Quản đốc xưởng (Supervisor)", color: "bg-amber-50 text-amber-700 border-amber-100" };
+    }
+    if (normalized === "site_engineer" || normalized === "engineer") {
+      return { label: "Giám sát thi công (Site Eng)", color: "bg-purple-50 text-purple-700 border-purple-100" };
+    }
+    if (normalized === "accountant") {
+      return { label: "Kế toán dự án", color: "bg-teal-50 text-teal-700 border-teal-100" };
+    }
+    return { label: role || "Nhân sự dự án", color: "bg-slate-50 text-slate-700 border-slate-100" };
+  }
+
   if (isEdu) {
     if (normalized === "admin" || normalized === "super_admin" || normalized === "owner") {
       return { label: "Hiệu trưởng / Quản trị viên", color: "bg-rose-50 text-rose-600 border-rose-100" };
@@ -82,6 +109,7 @@ export default function StaffManagementTab() {
   const vocab = useModuleVocabulary();
   const { tenantModuleKey } = useTenantModuleKey();
   const isEducation = tenantModuleKey === "bella_education";
+  const isInterior = tenantModuleKey === "bella_interior";
   const [users, setUsers] = useState<StaffRecord[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -89,7 +117,7 @@ export default function StaffManagementTab() {
   const [newStaff, setNewStaff] = useState({
     full_name: "",
     email: "",
-    role: "ktv",
+    role: isInterior ? "project_manager" : "ktv",
   });
 
   const [createdStaffResult, setCreatedStaffResult] = useState<{
@@ -396,7 +424,7 @@ export default function StaffManagementTab() {
                     </td>
                     <td className="px-8 py-6">
                       {(() => {
-                        const badge = getRoleBadge(user.role, isEducation, vocab.worker);
+                        const badge = getRoleBadge(user.role, isEducation, isInterior, vocab.worker);
                         return (
                           <span
                             className={cn(
@@ -591,7 +619,16 @@ export default function StaffManagementTab() {
                     value={newStaff.role}
                     onChange={(val) => setNewStaff({ ...newStaff, role: val })}
                     options={
-                      isEducation
+                      isInterior
+                        ? [
+                            { value: "project_manager", label: "Project Manager (PM)" },
+                            { value: "architect", label: "Kiến trúc sư (Architect)" },
+                            { value: "workshop_supervisor", label: "Quản đốc xưởng (Supervisor)" },
+                            { value: "site_engineer", label: "Giám sát thi công (Site Engineer)" },
+                            { value: "accountant", label: "Kế toán dự án" },
+                            { value: "admin", label: "Quản trị viên / Giám đốc" },
+                          ]
+                        : isEducation
                         ? [
                             { value: "ktv", label: "Giáo viên mầm non" },
                             { value: "ktv_lead", label: "Tổ trưởng chuyên môn" },
@@ -713,7 +750,16 @@ export default function StaffManagementTab() {
                     value={editingStaff.role}
                     onChange={(val) => setEditingStaff({ ...editingStaff, role: val })}
                     options={
-                      isEducation
+                      isInterior
+                        ? [
+                            { value: "project_manager", label: "Project Manager (PM)" },
+                            { value: "architect", label: "Kiến trúc sư (Architect)" },
+                            { value: "workshop_supervisor", label: "Quản đốc xưởng (Supervisor)" },
+                            { value: "site_engineer", label: "Giám sát thi công (Site Engineer)" },
+                            { value: "accountant", label: "Kế toán dự án" },
+                            { value: "admin", label: "Quản trị viên / Giám đốc" },
+                          ]
+                        : isEducation
                         ? [
                             { value: "ktv", label: "Giáo viên mầm non" },
                             { value: "ktv_lead", label: "Tổ trưởng chuyên môn" },
@@ -735,7 +781,7 @@ export default function StaffManagementTab() {
                 </div>
 
                 {/* Position Tier - Only for KTV roles */}
-                {(editingStaff.role === 'ktv' || editingStaff.role === 'ktv_lead') && !isEducation && (
+                {(editingStaff.role === 'ktv' || editingStaff.role === 'ktv_lead') && !isEducation && !isInterior && (
                   <div className="space-y-4">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                       <Zap className="w-3.5 h-3.5" /> Cấp bậc (Position Tier)
