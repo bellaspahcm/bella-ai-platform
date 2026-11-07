@@ -273,7 +273,7 @@ export default function InteriorMaterialsPage() {
           </div>
           <div className="flex items-center gap-3">
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-              Bảng Chỉ Định Vật Liệu & Mẫu Thực Tế (Spec Lock)
+              Bảng Chỉ Định Vật Liệu &amp; Mẫu Thực Tế (Spec Lock)
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800">
               Đang thực hiện
@@ -333,7 +333,7 @@ export default function InteriorMaterialsPage() {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                Bảng Quy Cách & Chủng Loại Vật Liệu Đã Được Khóa (Spec Lock R1.0)
+                Bảng Quy Cách &amp; Chủng Loại Vật Liệu Đã Được Khóa (Spec Lock R1.0)
               </h3>
               <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
                 100% Ký Duyệt
@@ -347,7 +347,7 @@ export default function InteriorMaterialsPage() {
         <div className="flex items-center gap-3 shrink-0 text-xs">
           <div className="text-right">
             <span className="text-slate-400 block text-[11px]">Người duyệt mẫu</span>
-            <span className="font-bold text-slate-800 dark:text-slate-200">Trần Thị Mai & Hoàng Long</span>
+            <span className="font-bold text-slate-800 dark:text-slate-200">Trần Thị Mai &amp; Hoàng Long</span>
           </div>
         </div>
       </div>
