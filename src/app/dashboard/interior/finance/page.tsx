@@ -301,29 +301,30 @@ export default function InteriorProjectFinancePage() {
               </div>
             </div>
 
-            {/* 3-Month Bar Chart */}
-            <div className="relative h-56 flex items-end">
-              {/* Y-axis labels */}
-              <div className="absolute left-0 top-0 bottom-6 w-6 flex flex-col justify-between text-[11px] text-slate-400 font-mono">
+            {/* Bar Chart — fixed baseline: bars occupy top zone, x-axis labels in bottom 24px row */}
+            <div className="relative h-56">
+              {/* Y-axis labels — aligned to plot area height (h-56 minus 24px x-axis row = h-[calc(100%-24px)]) */}
+              <div className="absolute left-0 top-0 h-[calc(100%-24px)] w-6 flex flex-col justify-between text-[11px] text-slate-400 font-mono pointer-events-none">
                 {financialPerformance.yAxisLabels.map((lbl) => (
                   <span key={lbl}>{lbl}</span>
                 ))}
               </div>
 
-              {/* Chart Grid Lines */}
-              <div className="absolute left-8 right-0 top-0 bottom-6 flex flex-col justify-between pointer-events-none">
-                <div className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
-                <div className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
-                <div className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
-                <div className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
-                <div className="border-b border-slate-200 dark:border-slate-700 w-full" />
-              </div>
+              {/* Plot area: exact same height as y-axis labels so "0" grid line = bar bottom */}
+              <div className="absolute left-8 right-0 top-0 h-[calc(100%-24px)]">
+                {/* Grid lines filling plot area */}
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                  <div className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
+                  <div className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
+                  <div className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
+                  <div className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
+                  <div className="border-b border-slate-200 dark:border-slate-700 w-full" />
+                </div>
 
-              {/* Bars Cluster */}
-              <div className="ml-8 w-full h-full pb-6 flex items-end justify-around px-2 sm:px-8 relative">
-                {financialPerformance.bars.map((bar) => (
-                  <div key={bar.month} className="flex flex-col items-center gap-2">
-                    <div className="flex items-end gap-1 sm:gap-2 h-44">
+                {/* Bars — items-end aligns bar bottoms to bottom of this plot area = "0" baseline */}
+                <div className="relative h-full flex items-end justify-around px-2 sm:px-8">
+                  {financialPerformance.bars.map((bar) => (
+                    <div key={bar.month} className="flex items-end gap-1 sm:gap-2 h-full">
                       {/* Revenue Bar */}
                       <div
                         style={{ height: `${bar.revenueHeightPercent}%` }}
@@ -354,11 +355,16 @@ export default function InteriorProjectFinancePage() {
                         </div>
                       </div>
                     </div>
-                    {/* Month Label */}
-                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                      {bar.month}
-                    </span>
-                  </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* X-axis month labels — absolute bottom 24px row, aligned under each bar group */}
+              <div className="absolute left-8 right-0 bottom-0 h-6 flex items-center justify-around px-2 sm:px-8">
+                {financialPerformance.bars.map((bar) => (
+                  <span key={bar.month} className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                    {bar.month}
+                  </span>
                 ))}
               </div>
             </div>
@@ -571,24 +577,25 @@ export default function InteriorProjectFinancePage() {
             </div>
 
             {/* Line Chart Grid */}
-            <div className="relative h-48 flex items-end">
-              {/* Y-axis labels */}
-              <div className="absolute left-0 top-0 bottom-6 w-6 flex flex-col justify-between text-[11px] text-slate-400 font-mono">
+            <div className="relative h-48">
+              {/* Y-axis labels — aligned to plot area */}
+              <div className="absolute left-0 top-0 h-[calc(100%-24px)] w-6 flex flex-col justify-between text-[11px] text-slate-400 font-mono pointer-events-none">
                 {cashFlow.yAxisLabels.map((lbl) => (
                   <span key={lbl}>{lbl}</span>
                 ))}
               </div>
 
-              {/* Grid Lines */}
-              <div className="absolute left-8 right-0 top-0 bottom-6 flex flex-col justify-between pointer-events-none">
-                <div className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
-                <div className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
-                <div className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
-                <div className="border-b border-slate-200 dark:border-slate-700 w-full" />
-              </div>
+              {/* Plot area */}
+              <div className="absolute left-8 right-0 top-0 h-[calc(100%-24px)]">
+                {/* Grid Lines */}
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                  <div className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
+                  <div className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
+                  <div className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
+                  <div className="border-b border-slate-200 dark:border-slate-700 w-full" />
+                </div>
 
-              {/* SVG Line Chart */}
-              <div className="ml-8 w-full h-full pb-6 relative">
+                {/* SVG Line Chart — fills plot area exactly */}
                 <svg
                   className="w-full h-full overflow-visible"
                   viewBox="0 0 300 150"
@@ -626,13 +633,13 @@ export default function InteriorProjectFinancePage() {
                     );
                   })}
                 </svg>
+              </div>
 
-                {/* X-axis Month Labels */}
-                <div className="absolute -bottom-6 left-0 right-0 flex justify-between px-2 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                  {cashFlow.points.map((p) => (
-                    <span key={p.month}>{p.month}</span>
-                  ))}
-                </div>
+              {/* X-axis Month Labels — bottom 24px row */}
+              <div className="absolute left-8 right-0 bottom-0 h-6 flex justify-between items-center px-2 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                {cashFlow.points.map((p) => (
+                  <span key={p.month}>{p.month}</span>
+                ))}
               </div>
             </div>
           </div>
