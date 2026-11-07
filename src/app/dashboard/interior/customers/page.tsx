@@ -35,18 +35,230 @@ import type {
   CustomerItem,
   CustomerType,
   CustomerStatus,
-} from '@/products/bella-interior';
-import { InteriorCustomerAnalyticsService } from '@/products/bella-interior';
+} from '@/products/bella-interior/domain/customer-overview.types';
+
+// Canonical initial overview matching domain layer definition exactly
+const INITIAL_CUSTOMER_OVERVIEW: CustomerOverviewResponse = {
+  success: true,
+  tenantId: 'tenant-preloaded',
+  kpis: {
+    totalCustomers: {
+      value: 248,
+      label: 'Tổng khách hàng',
+      trend: '↑ 12%',
+      isPositiveTrend: true,
+    },
+    potentialCustomers: {
+      value: 72,
+      label: 'Khách hàng tiềm năng',
+      trend: '↑ 18%',
+      isPositiveTrend: true,
+    },
+    activeTransacting: {
+      value: 36,
+      label: 'Đang giao dịch',
+      trend: '↑ 10%',
+      isPositiveTrend: true,
+    },
+    vipCustomers: {
+      value: 24,
+      label: 'Khách hàng VIP',
+      trend: '↑ 8%',
+      isPositiveTrend: true,
+    },
+  },
+  salesFunnel: {
+    steps: [
+      { stepNumber: 1, label: 'Khách hàng tiềm năng', count: 100, color: '#3b82f6' },
+      { stepNumber: 2, label: 'Khảo sát & tư vấn', count: 68, color: '#10b981' },
+      { stepNumber: 3, label: 'Báo giá đề xuất', count: 48, color: '#f59e0b' },
+      { stepNumber: 4, label: 'Đàm phán', count: 32, color: '#8b5cf6' },
+      { stepNumber: 5, label: 'Ký hợp đồng', count: 24, color: '#6366f1' },
+    ],
+    conversionRatePercent: 24,
+    conversionRateTrend: '↑ 2% so với tháng trước',
+    isConversionPositive: true,
+    targetAchievementLabel: 'Vượt chỉ tiêu',
+    targetAchievementSub: 'Đạt 120% kế hoạch',
+  },
+  growthChart: {
+    timeRangeLabel: '12 tháng',
+    dataPoints: [
+      { month: 'T1', customerCount: 42, revenueBillion: 1.1 },
+      { month: 'T2', customerCount: 48, revenueBillion: 1.3 },
+      { month: 'T3', customerCount: 52, revenueBillion: 1.4 },
+      { month: 'T4', customerCount: 55, revenueBillion: 1.5 },
+      { month: 'T5', customerCount: 58, revenueBillion: 1.7 },
+      { month: 'T6', customerCount: 65, revenueBillion: 1.9 },
+      { month: 'T8', customerCount: 68, revenueBillion: 1.8 },
+      { month: 'T9', customerCount: 72, revenueBillion: 2.1 },
+      { month: 'T10', customerCount: 88, revenueBillion: 2.4 },
+      { month: 'T11', customerCount: 102, revenueBillion: 2.6 },
+      { month: 'T12', customerCount: 118, revenueBillion: 2.8 },
+    ],
+  },
+  customers: [
+    {
+      id: 'cust-001',
+      code: 'KH-000128',
+      name: 'Công ty CP An Phú',
+      avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=100&h=100&fit=crop&crop=faces',
+      type: 'enterprise',
+      typeLabel: 'Doanh nghiệp',
+      typeBadgeClass: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800',
+      source: 'referral',
+      sourceLabel: 'Giới thiệu',
+      sourceClass: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200/60',
+      managerName: 'Nguyễn Văn Minh',
+      managerAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces',
+      opportunityCount: 2,
+      projectCount: 3,
+      totalValue: 5_200_000_000,
+      totalValueFormatted: '5.20 tỷ',
+      debt: 1_200_000_000,
+      debtFormatted: '1.20 tỷ',
+      hasDebt: true,
+      lastInteractionDate: '29/10/2026',
+      status: 'transacting',
+      statusLabel: 'Đang giao dịch',
+      statusBadgeClass: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800',
+    },
+    {
+      id: 'cust-002',
+      code: 'KH-000129',
+      name: 'Trần Thị Mai',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=faces',
+      type: 'individual',
+      typeLabel: 'Cá nhân',
+      typeBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800',
+      source: 'marketing',
+      sourceLabel: 'Marketing',
+      sourceClass: 'text-purple-600 bg-purple-50 dark:bg-purple-950/30 border-purple-200/60',
+      managerName: 'Lê Thị Hương',
+      managerAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=faces',
+      opportunityCount: 1,
+      projectCount: 1,
+      totalValue: 1_500_000_000,
+      totalValueFormatted: '1.50 tỷ',
+      debt: 0,
+      debtFormatted: '0',
+      hasDebt: false,
+      lastInteractionDate: '28/10/2026',
+      status: 'lead',
+      statusLabel: 'Tiềm năng',
+      statusBadgeClass: 'text-blue-700 bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800',
+    },
+    {
+      id: 'cust-003',
+      code: 'KH-000130',
+      name: 'Tập đoàn Hòa Bình',
+      avatar: 'https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=100&h=100&fit=crop&crop=faces',
+      type: 'organization',
+      typeLabel: 'Tổ chức',
+      typeBadgeClass: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800',
+      source: 'partner',
+      sourceLabel: 'Đối tác',
+      sourceClass: 'text-cyan-600 bg-cyan-50 dark:bg-cyan-950/30 border-cyan-200/60',
+      managerName: 'Phạm Văn Tuấn',
+      managerAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces',
+      opportunityCount: 3,
+      projectCount: 5,
+      totalValue: 12_800_000_000,
+      totalValueFormatted: '12.80 tỷ',
+      debt: 2_500_000_000,
+      debtFormatted: '2.50 tỷ',
+      hasDebt: true,
+      lastInteractionDate: '25/10/2026',
+      status: 'negotiating',
+      statusLabel: 'Đang đàm phán',
+      statusBadgeClass: 'text-purple-700 bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800',
+    },
+    {
+      id: 'cust-004',
+      code: 'KH-000131',
+      name: 'Nguyễn Văn Sơn',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=faces',
+      type: 'individual',
+      typeLabel: 'Cá nhân',
+      typeBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800',
+      source: 'returning',
+      sourceLabel: 'Khách hàng cũ',
+      sourceClass: 'text-slate-600 bg-slate-100 dark:bg-slate-800 border-slate-200',
+      managerName: 'Nguyễn Thị Mai',
+      managerAvatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=faces',
+      opportunityCount: 1,
+      projectCount: 1,
+      totalValue: 850_000_000,
+      totalValueFormatted: '850 triệu',
+      debt: 0,
+      debtFormatted: '0',
+      hasDebt: false,
+      lastInteractionDate: '24/10/2026',
+      status: 're_engagement',
+      statusLabel: 'Chăm sóc lại',
+      statusBadgeClass: 'text-slate-700 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700',
+    },
+  ],
+  alerts: [
+    {
+      id: 'crm-alt-1',
+      title: 'KH Trần Thị Mai',
+      subtitle: 'Cần chốt báo giá trong 2 ngày',
+      date: '28/10',
+      severity: 'critical',
+    },
+    {
+      id: 'crm-alt-2',
+      title: 'Dự án của Cty An Phú',
+      subtitle: 'Tiến độ chậm 15%',
+      date: '29/10',
+      severity: 'warning',
+    },
+    {
+      id: 'crm-alt-3',
+      title: 'Khách hàng mới từ Website',
+      subtitle: 'Cần tư vấn thiết kế',
+      date: '29/10',
+      severity: 'info',
+    },
+    {
+      id: 'crm-alt-4',
+      title: 'Thanh toán từ Hòa Bình',
+      subtitle: 'Đã nhận 500 triệu',
+      date: '27/10',
+      severity: 'success',
+    },
+  ],
+  financialSummary: {
+    totalContractValue: 36_500_000_000,
+    totalContractValueFormatted: '36.5 tỷ',
+    collected: 28_200_000_000,
+    collectedFormatted: '28.2 tỷ',
+    receivableDebt: 8_300_000_000,
+    receivableDebtFormatted: '8.3 tỷ',
+    collectionRatePercent: 77,
+  },
+  sourceDistribution: [
+    { source: 'referral', label: 'Giới thiệu', percentage: 42, color: '#10b981' },
+    { source: 'marketing', label: 'Marketing', percentage: 33, color: '#8b5cf6' },
+    { source: 'website', label: 'Website', percentage: 25, color: '#f59e0b' },
+  ],
+  actionSuggestion: {
+    title: 'Gợi ý hành động',
+    description: 'Tập trung chăm sóc 3 khách hàng VIP có nhu cầu mở rộng dự án trong Q4.',
+    ctaLabel: 'Xem chi tiết →',
+    ctaLink: '/dashboard/interior/customers?filter=vip',
+  },
+};
 
 export default function CustomersPage() {
-  const [data, setData] = useState<CustomerOverviewResponse | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [data, setData] = useState<CustomerOverviewResponse>(INITIAL_CUSTOMER_OVERVIEW);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
-  // Fetch canonical analytics from server API
+  // Fetch canonical analytics from server API without bundling server dependencies
   useEffect(() => {
     let isMounted = true;
 
@@ -57,20 +269,10 @@ export default function CustomersPage() {
           const json: CustomerOverviewResponse = await res.json();
           if (isMounted) {
             setData(json);
-            setIsLoading(false);
-          }
-        } else {
-          // Fallback to canonical service
-          if (isMounted) {
-            setData(InteriorCustomerAnalyticsService.getCustomerOverview('tenant-fallback'));
-            setIsLoading(false);
           }
         }
       } catch {
-        if (isMounted) {
-          setData(InteriorCustomerAnalyticsService.getCustomerOverview('tenant-fallback'));
-          setIsLoading(false);
-        }
+        // Retain initial canonical state
       }
     }
 
@@ -81,15 +283,9 @@ export default function CustomersPage() {
     };
   }, []);
 
-  // Canonical fallback if loading
-  const activeData: CustomerOverviewResponse = useMemo(() => {
-    if (data) return data;
-    return InteriorCustomerAnalyticsService.getCustomerOverview('tenant-preloaded');
-  }, [data]);
-
   // Filter customers by search and category
   const filteredCustomers = useMemo(() => {
-    return activeData.customers.filter((c: CustomerItem) => {
+    return data.customers.filter((c: CustomerItem) => {
       const matchesSearch =
         c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         c.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -100,7 +296,7 @@ export default function CustomersPage() {
 
       return matchesSearch && matchesType && matchesStatus;
     });
-  }, [activeData.customers, searchQuery, typeFilter, statusFilter]);
+  }, [data.customers, searchQuery, typeFilter, statusFilter]);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 dark:bg-slate-950 dark:text-slate-100 p-4 sm:p-6 lg:p-8 space-y-6">
@@ -178,15 +374,15 @@ export default function CustomersPage() {
               <Users className="w-5 h-5" />
             </div>
             <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-              {activeData.kpis.totalCustomers.trend}
+              {data.kpis.totalCustomers.trend}
             </span>
           </div>
           <div className="mt-3">
             <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-              {activeData.kpis.totalCustomers.value}
+              {data.kpis.totalCustomers.value}
             </div>
             <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-              {activeData.kpis.totalCustomers.label}
+              {data.kpis.totalCustomers.label}
             </div>
           </div>
           {/* Mini Sparkline Wave (Blue) */}
@@ -220,15 +416,15 @@ export default function CustomersPage() {
               <Briefcase className="w-5 h-5" />
             </div>
             <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-              {activeData.kpis.potentialCustomers.trend}
+              {data.kpis.potentialCustomers.trend}
             </span>
           </div>
           <div className="mt-3">
             <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-              {activeData.kpis.potentialCustomers.value}
+              {data.kpis.potentialCustomers.value}
             </div>
             <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-              {activeData.kpis.potentialCustomers.label}
+              {data.kpis.potentialCustomers.label}
             </div>
           </div>
           {/* Mini Sparkline Wave (Green) */}
@@ -262,15 +458,15 @@ export default function CustomersPage() {
               <Handshake className="w-5 h-5" />
             </div>
             <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-              {activeData.kpis.activeTransacting.trend}
+              {data.kpis.activeTransacting.trend}
             </span>
           </div>
           <div className="mt-3">
             <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-              {activeData.kpis.activeTransacting.value}
+              {data.kpis.activeTransacting.value}
             </div>
             <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-              {activeData.kpis.activeTransacting.label}
+              {data.kpis.activeTransacting.label}
             </div>
           </div>
           {/* Mini Sparkline Wave (Purple) */}
@@ -304,15 +500,15 @@ export default function CustomersPage() {
               <Trophy className="w-5 h-5" />
             </div>
             <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-              {activeData.kpis.vipCustomers.trend}
+              {data.kpis.vipCustomers.trend}
             </span>
           </div>
           <div className="mt-3">
             <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-              {activeData.kpis.vipCustomers.value}
+              {data.kpis.vipCustomers.value}
             </div>
             <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-              {activeData.kpis.vipCustomers.label}
+              {data.kpis.vipCustomers.label}
             </div>
           </div>
           {/* Mini Sparkline Wave (Amber) */}
@@ -361,7 +557,7 @@ export default function CustomersPage() {
           <div className="py-4 grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
             {/* Funnel Shapes (Col 8) */}
             <div className="sm:col-span-8 flex flex-col items-center gap-1.5 w-full">
-              {activeData.salesFunnel.steps.map((step) => {
+              {data.salesFunnel.steps.map((step) => {
                 // Width progression for funnel trapezoids
                 const widths = ['w-full', 'w-[84%]', 'w-[68%]', 'w-[52%]', 'w-[38%]'];
                 const bgColors = [
@@ -390,13 +586,13 @@ export default function CustomersPage() {
             {/* Funnel Metrics & Award (Col 4) */}
             <div className="sm:col-span-4 flex flex-col items-center sm:items-start text-center sm:text-left justify-center pl-0 sm:pl-2">
               <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                {activeData.salesFunnel.conversionRatePercent}%
+                {data.salesFunnel.conversionRatePercent}%
               </div>
               <div className="text-xs font-bold text-slate-700 dark:text-slate-300 mt-0.5">
                 Tỷ lệ chuyển đổi
               </div>
               <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-1">
-                {activeData.salesFunnel.conversionRateTrend}
+                {data.salesFunnel.conversionRateTrend}
               </div>
 
               {/* Award Pill */}
@@ -404,10 +600,10 @@ export default function CustomersPage() {
                 <Trophy className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
                 <div className="text-[11px] leading-tight">
                   <span className="font-bold block">
-                    {activeData.salesFunnel.targetAchievementLabel}
+                    {data.salesFunnel.targetAchievementLabel}
                   </span>
                   <span className="text-[10px] text-emerald-600/90 dark:text-emerald-400/90">
-                    {activeData.salesFunnel.targetAchievementSub}
+                    {data.salesFunnel.targetAchievementSub}
                   </span>
                 </div>
               </div>
@@ -439,7 +635,7 @@ export default function CustomersPage() {
                 type="button"
                 className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
               >
-                {activeData.growthChart.timeRangeLabel}
+                {data.growthChart.timeRangeLabel}
                 <ChevronDown className="w-3 h-3 text-slate-400" />
               </button>
             </div>
@@ -467,8 +663,8 @@ export default function CustomersPage() {
               <text x="500" y="144" fontSize="9" textAnchor="start" fill="#94a3b8">0</text>
 
               {/* Bars & Line Points */}
-              {activeData.growthChart.dataPoints.map((pt, idx) => {
-                const totalPoints = activeData.growthChart.dataPoints.length;
+              {data.growthChart.dataPoints.map((pt, idx) => {
+                const totalPoints = data.growthChart.dataPoints.length;
                 const slotWidth = (490 - 50) / totalPoints;
                 const x = 50 + idx * slotWidth + slotWidth / 2;
                 // Bar height mapping: 0 -> 140, 150 -> 20 (range 120)
@@ -497,8 +693,8 @@ export default function CustomersPage() {
 
               {/* Revenue Trend Line */}
               {(() => {
-                const points = activeData.growthChart.dataPoints.map((pt, idx) => {
-                  const totalPoints = activeData.growthChart.dataPoints.length;
+                const points = data.growthChart.dataPoints.map((pt, idx) => {
+                  const totalPoints = data.growthChart.dataPoints.length;
                   const slotWidth = (490 - 50) / totalPoints;
                   const x = 50 + idx * slotWidth + slotWidth / 2;
                   // Revenue 0 -> 140, 3 -> 20 (range 120)
@@ -804,7 +1000,7 @@ export default function CustomersPage() {
           </div>
 
           <div className="mt-3 divide-y divide-slate-100 dark:divide-slate-800">
-            {activeData.alerts.map((alert) => (
+            {data.alerts.map((alert) => (
               <div key={alert.id} className="py-2.5 first:pt-1 last:pb-1 flex items-start gap-2.5">
                 <div className="mt-0.5 shrink-0">
                   {alert.severity === 'critical' && (
@@ -855,7 +1051,7 @@ export default function CustomersPage() {
             <div className="space-y-3">
               <div>
                 <div className="text-lg font-extrabold text-slate-900 dark:text-white">
-                  {activeData.financialSummary.totalContractValueFormatted}
+                  {data.financialSummary.totalContractValueFormatted}
                 </div>
                 <div className="text-[10px] font-semibold text-slate-400">
                   Tổng giá trị hợp đồng
@@ -864,7 +1060,7 @@ export default function CustomersPage() {
 
               <div>
                 <div className="text-lg font-extrabold text-slate-900 dark:text-white">
-                  {activeData.financialSummary.collectedFormatted}
+                  {data.financialSummary.collectedFormatted}
                 </div>
                 <div className="text-[10px] font-semibold text-slate-400">
                   Đã thu
@@ -873,7 +1069,7 @@ export default function CustomersPage() {
 
               <div>
                 <div className="text-lg font-extrabold text-amber-600 dark:text-amber-400">
-                  {activeData.financialSummary.receivableDebtFormatted}
+                  {data.financialSummary.receivableDebtFormatted}
                 </div>
                 <div className="text-[10px] font-semibold text-slate-400">
                   Công nợ phải thu
@@ -896,7 +1092,7 @@ export default function CustomersPage() {
                   {/* Progress Circle (77%) */}
                   <path
                     className="text-emerald-500"
-                    strokeDasharray={`${activeData.financialSummary.collectionRatePercent}, 100`}
+                    strokeDasharray={`${data.financialSummary.collectionRatePercent}, 100`}
                     strokeWidth="3.5"
                     strokeLinecap="round"
                     stroke="currentColor"
@@ -906,7 +1102,7 @@ export default function CustomersPage() {
                 </svg>
                 <div className="absolute flex flex-col items-center">
                   <span className="text-base font-extrabold text-slate-900 dark:text-white">
-                    {activeData.financialSummary.collectionRatePercent}%
+                    {data.financialSummary.collectionRatePercent}%
                   </span>
                 </div>
               </div>
@@ -968,7 +1164,7 @@ export default function CustomersPage() {
 
             {/* Legend */}
             <div className="space-y-2">
-              {activeData.sourceDistribution.map((src) => (
+              {data.sourceDistribution.map((src) => (
                 <div key={src.source} className="flex items-center justify-between gap-4 text-xs">
                   <div className="flex items-center gap-1.5">
                     <span
@@ -994,20 +1190,20 @@ export default function CustomersPage() {
             <div className="flex items-center gap-2 pb-2">
               <Lightbulb className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-                {activeData.actionSuggestion.title}
+                {data.actionSuggestion.title}
               </h2>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-              {activeData.actionSuggestion.description}
+              {data.actionSuggestion.description}
             </p>
           </div>
 
           <div className="mt-4 flex items-center justify-between">
             <Link
-              href={activeData.actionSuggestion.ctaLink}
+              href={data.actionSuggestion.ctaLink}
               className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-2xs transition-colors"
             >
-              {activeData.actionSuggestion.ctaLabel}
+              {data.actionSuggestion.ctaLabel}
             </Link>
             {/* Decorative Mini Trend Vector */}
             <div className="w-12 h-8">
