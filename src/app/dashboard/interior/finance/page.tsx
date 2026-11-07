@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Calendar,
@@ -34,7 +34,7 @@ export default function InteriorProjectFinancePage() {
   const [selectedPeriod, setSelectedPeriod] = useState<'3_months' | '6_months' | '1_year'>('3_months');
   const [selectedCashFlowRange] = useState('6 tháng');
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setRefreshing(true);
       const res = await fetch(`/api/interior/finance?quarter=${encodeURIComponent(selectedQuarter)}`);
@@ -54,11 +54,11 @@ export default function InteriorProjectFinancePage() {
     setData(fallback);
     setLoading(false);
     setRefreshing(false);
-  };
+  }, [selectedQuarter]);
 
   useEffect(() => {
     fetchData();
-  }, [selectedQuarter]);
+  }, [fetchData]);
 
   if (loading || !data) {
     return (
