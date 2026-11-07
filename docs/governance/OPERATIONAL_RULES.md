@@ -20,3 +20,32 @@
 Apply this execution principle through the existing [Bella BMAD Orchestration](BELLA_BMAD_ORCHESTRATION.md#outcome-based-execution), which defines role selection, delegation, recovery, integration, and task-scope closure. That orchestration document is the shared execution path for this principle. When Factory is selected, retain its optional admission and stage limits under the [Constitution](BELLA_AI_CODING_CONSTITUTION.md#factory-intake-from-project-codex-chat). Operational readiness audits retain their [read-only SOP](OPERATIONAL_READINESS_SOP.md); implementation authority does not turn an audit into an unrecorded repair phase.
 
 Keep this instruction shared. Product checklists and lessons should contain only evidence-backed Product differences, not copies of this rule. Use existing task evidence to assess necessary user interventions, avoidable stops, and completion from start to finish; documentation alone does not prove improvement or native Factory adoption, and no new CI, guard, or telemetry system is required.
+
+## BELLA GIT INTEGRATION RULE
+
+Applies across the entire Bella AI Platform ecosystem. Code that is completed and pushed to Git MUST NOT remain unintegrated outside `main`.
+
+### Completed Branch Must Integrate Immediately
+
+1. **During development (`Khi phát triển`):**
+   - Create branch from latest `origin/main`.
+   - Synchronize with `main` when necessary throughout development.
+
+2. **Upon completion (`Khi hoàn thành`):**
+   - Push code to Git.
+   - Create PR immediately.
+   - Rebase / synchronize with latest `main` (`PRE_MERGE_SYNC`).
+   - Run affected verification checks (`MERGE_READY`).
+   - Merge into `main` immediately once conditions are satisfied.
+
+3. **After merge (`Sau khi merge`):**
+   - Verify commit presence and health on `main` (`POST_MERGE_VERIFY`).
+   - Close PR and delete the completed feature branch from remote and local worktrees.
+
+4. **Prohibitions (`Không được`):**
+   - Do NOT let a completed feature branch sit unmerged outside `main`.
+   - Do NOT batch or accumulate multiple completed features into giant release PRs.
+   - Do NOT force-merge or bypass unresolved conflicts.
+   - Do NOT treat PR creation as system integration.
+   - Do NOT assume a successful merge into `main` means Production deployment has occurred.
+

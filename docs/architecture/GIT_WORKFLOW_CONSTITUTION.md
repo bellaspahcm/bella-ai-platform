@@ -66,6 +66,16 @@ All changes via PR with:
 - Architecture guard
 - Automated tests
 
+### P7: Main Branch Synchronization & Integration Policy
+**Code completed on Git MUST NOT remain unintegrated outside `main`.**
+
+1. **Main is Single Source of Truth:** `main` is authoritative; feature branches are disposable workspaces.
+2. **Immediate Integration:** Completed work must be PR'd and merged immediately without waiting to bundle.
+3. **Pre-Merge Sync:** Branches must be rebased/updated from `main` with all conflicts resolved (`PRE_MERGE_SYNC`).
+4. **Merge Ready:** Required scoped tests and checks must pass (`MERGE_READY`). Timeout/infrastructure issues are recorded as `NOT_PROVEN` (never false `PASS`).
+5. **Post-Merge Verification:** Main commit confirmed, health checked (`POST_MERGE_VERIFY`), branch deleted.
+6. **Separation of Concerns:** Merging into `main` integrates development baseline; Production deployment follows independent approved deployment governance.
+
 ## Enforcement Layers
 
 ### Layer 1: AI Steering (Pre-emptive)
