@@ -55,7 +55,7 @@ function decideMigrationAction(localVersions, remoteVersions) {
   if (remoteOnly.length > 0) {
     throw new Error(`Production migration ledger has versions missing from Git: ${remoteOnly.join(', ')}`);
   }
-  if (pending.length === 0 && remoteSet.has(EXPECTED_VERSION)) return 'already-applied';
+  if (remoteSet.has(EXPECTED_VERSION)) return 'already-applied';
   if (pending.length === 1 && pending[0] === EXPECTED_VERSION) return 'apply';
 
   throw new Error(
