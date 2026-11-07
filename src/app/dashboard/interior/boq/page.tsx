@@ -1,764 +1,1229 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 
-import React, { useState, useEffect, useCallback } from 'react';
+/**
+ * Bella Interior OS — BOQ & BOM Commercial & Manufacturing Costing Page
+ *
+ * Implements the executive BOQ & BOM dashboard matching reference design:
+ * - Top breadcrumb with project context (Villa Sunrise Renovation INT-2024-001)
+ * - 4 Financial KPI cards (COGS 1.25B, Client Price 1.68B, Profit 430M, Gross Margin 25.6%)
+ * - Tripartite Costing Itemized BOQ table with grouped two-tier headers
+ * - Area subtotals for Living room, Master bedroom, Kitchen & Dining
+ * - Switcher between BOQ (Commercial) and BOM (Production Bill of Materials)
+ * - Bottom version audit link (R1.0 - Approved, Trần Thị Mai, 06/11/2026)
+ * - Zero UI calculation: All data, formatting, formulas, and percentages are precomputed server-side.
+ *
+ * @module src/app/dashboard/interior/boq/page
+ */
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  ClipboardList,
-  ArrowLeft,
-  CheckCircle2,
+  Home,
+  Search,
+  Bell,
+  ChevronDown,
+  SlidersHorizontal,
+  History,
   FileSpreadsheet,
+  Settings,
   Download,
-  Plus,
-  Coins,
-  ArrowRight,
+  Printer,
+  Filter,
   Layers,
-  Cpu,
-  Boxes,
-  ShieldCheck,
-  AlertCircle,
-  RefreshCw,
+  Tag,
+  TrendingUp,
+  Percent,
+  Folder,
+  Calendar,
+  User,
+  Eye,
+  CheckCircle2,
   X,
-  Factory,
+  FileText,
+  MapPin,
+  Maximize2,
 } from 'lucide-react';
 
-interface ProjectSummary {
-  id: string;
-  name: string;
-  code: string;
-  status: string;
-  clientName: string;
-}
+import type {
+  BOQOverviewResponse,
+  BOQLineItem,
+} from '@/products/bella-interior/domain/boq-overview.types';
 
-interface BOQItemDisplay {
-  id: string;
-  itemCode: string;
-  roomName: string;
-  itemName: string;
-  dimensions: string;
-  specifications: string;
-  unit: string;
-  quantity: number;
-  internalUnitCost: number;
-  internalTotalCost: number;
-  clientUnitPrice: number;
-  clientTotalPrice: number;
-  grossMarginPercent: number;
-}
-
-interface BOMMaterialItem {
-  id: string;
-  category: 'wood' | 'stone' | 'hardware' | 'finish_aux';
-  categoryLabel: string;
-  materialCode: string;
-  materialName: string;
-  spec: string;
-  unit: string;
-  requiredQuantity: number;
-  wasteFactorPercent: number; // Tỷ lệ hao hụt dự kiến (%)
-  totalAllocated: number;
-  stockStatus: 'in_stock' | 'allocated' | 'order_needed';
-}
-
-const DEFAULT_BOM_MATERIALS: BOMMaterialItem[] = [
-  {
-    id: 'bom-01',
-    category: 'wood',
-    categoryLabel: 'Gỗ & Ván Công Nghiệp',
-    materialCode: 'MFC-MS-440-EV',
-    materialName: 'Ván MDF chống ẩm phủ Melamine An Cường',
-    spec: 'Khổ 1220 x 2440 x 17 mm lõi xanh',
-    unit: 'tấm',
-    requiredQuantity: 28,
-    wasteFactorPercent: 8,
-    totalAllocated: 30,
-    stockStatus: 'in_stock',
+// Baseline initial state for instant zero-flicker render
+const INITIAL_BOQ_OVERVIEW: BOQOverviewResponse = {
+  tenantId: 'tenant-bella-interior-default',
+  project: {
+    id: 'proj-villa-sunrise',
+    code: 'INT-2024-001',
+    name: 'Villa Sunrise Renovation',
+    breadcrumbLabel: 'Dự án > Villa Sunrise Renovation (INT-2024-001)',
+    clientName: 'SunCasa Group',
+    areaSquareMeters: 320,
+    areaFormatted: '320 m²',
+    location: 'Quận 7, TP.HCM',
+    status: 'in_progress',
+    statusLabel: 'Đang thực hiện',
+    statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   },
-  {
-    id: 'bom-02',
-    category: 'wood',
-    categoryLabel: 'Gỗ & Ván Công Nghiệp',
-    materialCode: 'PLY-VEN-WALNUT',
-    materialName: 'Plywood phủ Veneer Óc Chó Bắc Mỹ',
-    spec: 'Khổ 1220 x 2440 x 18 mm tuyển vân bông',
-    unit: 'tấm',
-    requiredQuantity: 15,
-    wasteFactorPercent: 10,
-    totalAllocated: 17,
-    stockStatus: 'allocated',
+  kpis: {
+    totalCogs: {
+      rawValue: 1_250_000_000,
+      formattedValue: '1,250,000,000 đ',
+      label: 'Tổng giá vốn nội bộ (COGS)',
+      tooltip: 'Bao gồm chi phí nguyên vật liệu, phụ kiện, nhân công sản xuất & hoàn thiện',
+      trendLabel: '▲ +2.5% so với dự toán',
+      trendClass: 'text-emerald-600 dark:text-emerald-400',
+      iconName: 'Layers',
+      iconBgClass: 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400',
+    },
+    totalClientPrice: {
+      rawValue: 1_680_000_000,
+      formattedValue: '1,680,000,000 đ',
+      label: 'Tổng giá bán khách hàng',
+      tooltip: 'Tổng giá trị hợp đồng dự toán thương mại đề xuất với khách hàng',
+      trendLabel: '▲ +1.8% so với dự toán',
+      trendClass: 'text-emerald-600 dark:text-emerald-400',
+      iconName: 'Tag',
+      iconBgClass: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400',
+    },
+    grossProfit: {
+      rawValue: 430_000_000,
+      formattedValue: '430,000,000 đ',
+      label: 'Lợi nhuận gộp dự kiến',
+      tooltip: 'Lợi nhuận gộp = Tổng giá bán khách hàng - Tổng giá vốn nội bộ',
+      trendLabel: '▲ 25.6%',
+      trendClass: 'text-emerald-600 dark:text-emerald-400',
+      iconName: 'TrendingUp',
+      iconBgClass: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400',
+    },
+    grossMargin: {
+      rawPercentage: 25.6,
+      formattedPercentage: '25.6%',
+      label: 'Gross Margin',
+      sparklineTrend: [18, 20, 22, 21, 23, 24, 25.6],
+    },
   },
-  {
-    id: 'bom-03',
-    category: 'stone',
-    categoryLabel: 'Đá & Bề Mặt',
-    materialCode: 'VICO-BQ8628',
-    materialName: 'Đá Thạch Anh Nhân Tạo Vicostone Nero Marquina',
-    spec: 'Tấm Jumbo 3300 x 1650 x 20 mm vát mòi 45 độ',
-    unit: 'm²',
-    requiredQuantity: 12.5,
-    wasteFactorPercent: 12,
-    totalAllocated: 14.0,
-    stockStatus: 'in_stock',
+  activeView: 'boq',
+  zoneGroups: [
+    {
+      zoneId: 'zone-living',
+      zoneName: 'Phòng khách',
+      subtotalCogs: 320_000_000,
+      subtotalCogsFormatted: '320,000,000',
+      subtotalPrice: 460_000_000,
+      subtotalPriceFormatted: '460,000,000',
+      subtotalProfit: 140_000_000,
+      subtotalProfitFormatted: '140,000,000',
+      subtotalMarginPercent: 30.4,
+      subtotalMarginPercentFormatted: '30.4%',
+      items: [
+        {
+          itemNumber: 1,
+          id: 'item-sofa',
+          itemName: 'Sofa cao cấp',
+          specifications: 'Da thật, 3 chỗ ngồi',
+          unit: 'Bộ',
+          quantity: 1.0,
+          quantityFormatted: '1.00',
+          internalUnitCost: 80_000_000,
+          internalUnitCostFormatted: '80,000,000',
+          internalTotalCost: 80_000_000,
+          internalTotalCostFormatted: '80,000,000',
+          clientUnitPrice: 110_000_000,
+          clientUnitPriceFormatted: '110,000,000',
+          clientTotalPrice: 110_000_000,
+          clientTotalPriceFormatted: '110,000,000',
+          grossMarginAmount: 30_000_000,
+          grossMarginFormatted: '30,000,000',
+          grossMarginPercent: 27.3,
+          grossMarginPercentFormatted: '27.3%',
+        },
+        {
+          itemNumber: 2,
+          id: 'item-table',
+          itemName: 'Bàn trà',
+          specifications: 'Gỗ óc chó, mặt đá',
+          unit: 'Cái',
+          quantity: 1.0,
+          quantityFormatted: '1.00',
+          internalUnitCost: 25_000_000,
+          internalUnitCostFormatted: '25,000,000',
+          internalTotalCost: 25_000_000,
+          internalTotalCostFormatted: '25,000,000',
+          clientUnitPrice: 35_000_000,
+          clientUnitPriceFormatted: '35,000,000',
+          clientTotalPrice: 35_000_000,
+          clientTotalPriceFormatted: '35,000,000',
+          grossMarginAmount: 10_000_000,
+          grossMarginFormatted: '10,000,000',
+          grossMarginPercent: 28.6,
+          grossMarginPercentFormatted: '28.6%',
+        },
+        {
+          itemNumber: 3,
+          id: 'item-tv-shelf',
+          itemName: 'Kệ tivi',
+          specifications: 'Gỗ MDF chống ẩm',
+          unit: 'Mét dài',
+          quantity: 3.0,
+          quantityFormatted: '3.00',
+          internalUnitCost: 15_000_000,
+          internalUnitCostFormatted: '15,000,000',
+          internalTotalCost: 45_000_000,
+          internalTotalCostFormatted: '45,000,000',
+          clientUnitPrice: 22_000_000,
+          clientUnitPriceFormatted: '22,000,000',
+          clientTotalPrice: 66_000_000,
+          clientTotalPriceFormatted: '66,000,000',
+          grossMarginAmount: 21_000_000,
+          grossMarginFormatted: '21,000,000',
+          grossMarginPercent: 31.8,
+          grossMarginPercentFormatted: '31.8%',
+        },
+      ],
+    },
+    {
+      zoneId: 'zone-bedroom',
+      zoneName: 'Phòng ngủ Master',
+      subtotalCogs: 280_000_000,
+      subtotalCogsFormatted: '280,000,000',
+      subtotalPrice: 390_000_000,
+      subtotalPriceFormatted: '390,000,000',
+      subtotalProfit: 110_000_000,
+      subtotalProfitFormatted: '110,000,000',
+      subtotalMarginPercent: 28.2,
+      subtotalMarginPercentFormatted: '28.2%',
+      items: [
+        {
+          itemNumber: 4,
+          id: 'item-bed',
+          itemName: 'Giường ngủ',
+          specifications: 'Gỗ tự nhiên, bọc nệm',
+          unit: 'Cái',
+          quantity: 1.0,
+          quantityFormatted: '1.00',
+          internalUnitCost: 90_000_000,
+          internalUnitCostFormatted: '90,000,000',
+          internalTotalCost: 90_000_000,
+          internalTotalCostFormatted: '90,000,000',
+          clientUnitPrice: 125_000_000,
+          clientUnitPriceFormatted: '125,000,000',
+          clientTotalPrice: 125_000_000,
+          clientTotalPriceFormatted: '125,000,000',
+          grossMarginAmount: 35_000_000,
+          grossMarginFormatted: '35,000,000',
+          grossMarginPercent: 28.0,
+          grossMarginPercentFormatted: '28.0%',
+        },
+        {
+          itemNumber: 5,
+          id: 'item-wardrobe',
+          itemName: 'Tủ quần áo',
+          specifications: 'Gỗ MDF lõi xanh',
+          unit: 'Mét dài',
+          quantity: 3.0,
+          quantityFormatted: '3.00',
+          internalUnitCost: 45_000_000,
+          internalUnitCostFormatted: '45,000,000',
+          internalTotalCost: 135_000_000,
+          internalTotalCostFormatted: '135,000,000',
+          clientUnitPrice: 58_000_000,
+          clientUnitPriceFormatted: '58,000,000',
+          clientTotalPrice: 174_000_000,
+          clientTotalPriceFormatted: '174,000,000',
+          grossMarginAmount: 39_000_000,
+          grossMarginFormatted: '39,000,000',
+          grossMarginPercent: 29.0,
+          grossMarginPercentFormatted: '29.0%',
+        },
+      ],
+    },
+    {
+      zoneId: 'zone-kitchen',
+      zoneName: 'Bếp + Ăn',
+      subtotalCogs: 650_000_000,
+      subtotalCogsFormatted: '650,000,000',
+      subtotalPrice: 830_000_000,
+      subtotalPriceFormatted: '830,000,000',
+      subtotalProfit: 180_000_000,
+      subtotalProfitFormatted: '180,000,000',
+      subtotalMarginPercent: 21.7,
+      subtotalMarginPercentFormatted: '21.7%',
+      items: [
+        {
+          itemNumber: 6,
+          id: 'item-kitchen-cabinet',
+          itemName: 'Tủ bếp trên',
+          specifications: 'Gỗ MDF, phủ Acrylic',
+          unit: 'Mét dài',
+          quantity: 4.0,
+          quantityFormatted: '4.00',
+          internalUnitCost: 50_000_000,
+          internalUnitCostFormatted: '50,000,000',
+          internalTotalCost: 200_000_000,
+          internalTotalCostFormatted: '200,000,000',
+          clientUnitPrice: 70_000_000,
+          clientUnitPriceFormatted: '70,000,000',
+          clientTotalPrice: 280_000_000,
+          clientTotalPriceFormatted: '280,000,000',
+          grossMarginAmount: 80_000_000,
+          grossMarginFormatted: '80,000,000',
+          grossMarginPercent: 28.6,
+          grossMarginPercentFormatted: '28.6%',
+        },
+        {
+          itemNumber: 7,
+          id: 'item-dining-table',
+          itemName: 'Bàn ăn',
+          specifications: 'Gỗ óc chó, 6 ghế',
+          unit: 'Bộ',
+          quantity: 1.0,
+          quantityFormatted: '1.00',
+          internalUnitCost: 120_000_000,
+          internalUnitCostFormatted: '120,000,000',
+          internalTotalCost: 120_000_000,
+          internalTotalCostFormatted: '120,000,000',
+          clientUnitPrice: 165_000_000,
+          clientUnitPriceFormatted: '165,000,000',
+          clientTotalPrice: 165_000_000,
+          clientTotalPriceFormatted: '165,000,000',
+          grossMarginAmount: 45_000_000,
+          grossMarginFormatted: '45,000,000',
+          grossMarginPercent: 27.3,
+          grossMarginPercentFormatted: '27.3%',
+        },
+      ],
+    },
+  ],
+  bomMaterials: [
+    {
+      id: 'bom-01',
+      category: 'wood',
+      categoryLabel: 'Gỗ & Ván Công Nghiệp',
+      materialCode: 'MFC-MS-440-EV',
+      materialName: 'Ván MDF chống ẩm phủ Melamine An Cường',
+      spec: 'Khổ 1220 x 2440 x 17 mm lõi xanh',
+      unit: 'Tấm',
+      requiredQuantity: 28,
+      wasteFactorPercent: 8,
+      totalAllocated: 30,
+      stockStatus: 'in_stock',
+      stockStatusLabel: 'Có sẵn trong kho',
+      stockStatusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    },
+    {
+      id: 'bom-02',
+      category: 'wood',
+      categoryLabel: 'Gỗ & Ván Công Nghiệp',
+      materialCode: 'PLY-VEN-WALNUT',
+      materialName: 'Plywood phủ Veneer Óc Chó Bắc Mỹ',
+      spec: 'Khổ 1220 x 2440 x 18 mm tuyển vân bông',
+      unit: 'Tấm',
+      requiredQuantity: 15,
+      wasteFactorPercent: 10,
+      totalAllocated: 17,
+      stockStatus: 'allocated',
+      stockStatusLabel: 'Đã giữ chỗ',
+      stockStatusBadgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+    },
+    {
+      id: 'bom-03',
+      category: 'stone',
+      categoryLabel: 'Đá & Bề Mặt',
+      materialCode: 'VICO-BQ8628',
+      materialName: 'Đá Thạch Anh Nhân Tạo Vicostone Nero Marquina',
+      spec: 'Tấm Jumbo 3300 x 1650 x 20 mm vát mòi 45 độ',
+      unit: 'm²',
+      requiredQuantity: 12.5,
+      wasteFactorPercent: 12,
+      totalAllocated: 14.0,
+      stockStatus: 'in_stock',
+      stockStatusLabel: 'Có sẵn trong kho',
+      stockStatusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    },
+    {
+      id: 'bom-04',
+      category: 'hardware',
+      categoryLabel: 'Phụ Kiện Cơ Khí',
+      materialCode: 'BLUM-71B3550',
+      materialName: 'Bản lề giảm chấn Blum Clip Top 110 BLUMOTION',
+      spec: 'Thép mạ niken, đóng êm tích hợp',
+      unit: 'Cặp',
+      requiredQuantity: 48,
+      wasteFactorPercent: 2,
+      totalAllocated: 50,
+      stockStatus: 'in_stock',
+      stockStatusLabel: 'Có sẵn trong kho',
+      stockStatusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    },
+  ],
+  audit: {
+    versionLabel: 'R1.0 - Approved',
+    approvalDateFormatted: '06/11/2026',
+    approvedBy: 'Trần Thị Mai',
   },
-  {
-    id: 'bom-04',
-    category: 'hardware',
-    categoryLabel: 'Phụ Kiện Ngũ Kim',
-    materialCode: 'BLUM-CLIP-110',
-    materialName: 'Bản lề Blum Clip Top BLUMOTION 110°',
-    spec: 'Thép mạ niken tích hợp giảm chấn đóng êm',
-    unit: 'cái',
-    requiredQuantity: 48,
-    wasteFactorPercent: 2,
-    totalAllocated: 50,
-    stockStatus: 'in_stock',
-  },
-  {
-    id: 'bom-05',
-    category: 'hardware',
-    categoryLabel: 'Phụ Kiện Ngũ Kim',
-    materialCode: 'BLUM-LEGRA-500',
-    materialName: 'Ray hộp Blum LEGRABOX Tip-on Blumotion',
-    spec: 'Chiều dài 500mm tải trọng 40kg mờ inox',
-    unit: 'bộ',
-    requiredQuantity: 12,
-    wasteFactorPercent: 0,
-    totalAllocated: 12,
-    stockStatus: 'allocated',
-  },
-  {
-    id: 'bom-06',
-    category: 'finish_aux',
-    categoryLabel: 'Sơn & Vật Tư Phụ',
-    materialCode: 'INCHEM-PU-50',
-    materialName: 'Hệ sơn PU Inchem Mỹ mờ 50%',
-    spec: 'Sơn lót + Sơn bóng mờ + Chất cứng đóng rắn',
-    unit: 'kg',
-    requiredQuantity: 35,
-    wasteFactorPercent: 15,
-    totalAllocated: 40,
-    stockStatus: 'in_stock',
-  },
-  {
-    id: 'bom-07',
-    category: 'finish_aux',
-    categoryLabel: 'Sơn & Vật Tư Phụ',
-    materialCode: 'PVC-EDGE-440',
-    materialName: 'Chỉ nẹp PVC đồng màu Melamine MS 440',
-    spec: 'Quy cách 21 x 1 mm dán cạnh PUR chịu nước',
-    unit: 'mét',
-    requiredQuantity: 320,
-    wasteFactorPercent: 10,
-    totalAllocated: 350,
-    stockStatus: 'order_needed',
-  },
-];
+};
 
 export default function InteriorBOQPage() {
-  const [activeTab, setActiveTab] = useState<'boq' | 'bom'>('boq');
-  const [projects, setProjects] = useState<ProjectSummary[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
-  const [items, setItems] = useState<BOQItemDisplay[]>([]);
-  const [bomItems, setBOMItems] = useState<BOMMaterialItem[]>(DEFAULT_BOM_MATERIALS);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [data, setData] = useState<BOQOverviewResponse>(INITIAL_BOQ_OVERVIEW);
+  const [currentTab, setCurrentTab] = useState<'boq' | 'bom'>('boq');
+  const [selectedItems, setSelectedItems] = useState<Record<string, boolean>>({});
+  const [selectedDrawerItem, setSelectedDrawerItem] = useState<BOQLineItem | null>(null);
 
-  // New Item Modal
-  const [showNewItemModal, setShowNewItemModal] = useState<boolean>(false);
-  const [newItemRoom, setNewItemRoom] = useState('Phòng Khách Luxury');
-  const [newItemName, setNewItemName] = useState('');
-  const [newItemDim, setNewItemDim] = useState('2400x600x850 mm');
-  const [newItemSpec, setNewItemSpec] = useState('MDF chống ẩm An Cường + Sơn PU');
-  const [newItemUnit, setNewItemUnit] = useState('bộ');
-  const [newItemQty, setNewItemQty] = useState('1');
-  const [newItemCost, setNewItemCost] = useState('25000000');
-  const [newItemPrice, setNewItemPrice] = useState('42000000');
-
-  // Load Projects
-  const loadProjects = useCallback(async () => {
-    try {
-      const res = await fetch('/api/interior/projects');
-      const json = await res.json();
-      if (json.success && json.data?.projects) {
-        setProjects(json.data.projects);
-        if (json.data.projects.length > 0 && !selectedProjectId) {
-          setSelectedProjectId(json.data.projects[0].id);
-        }
-      }
-    } catch {
-      // fallback
-    }
-  }, [selectedProjectId]);
+  // Modals
+  const [showCompareModal, setShowCompareModal] = useState<boolean>(false);
+  const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
+  const [showQuoteModal, setShowQuoteModal] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    loadProjects();
-  }, [loadProjects]);
+    let isMounted = true;
 
-  // Load BOQ items for project
-  const loadBOQ = useCallback(async (projId: string) => {
-    if (!projId) return;
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/interior/boq?projectId=${encodeURIComponent(projId)}`);
-      const json = await res.json();
-      if (json.success && json.data?.boqs && json.data.boqs.length > 0) {
-        const boq = json.data.boqs[0];
-        const mappedItems: BOQItemDisplay[] = boq.items.map((i: any) => ({
-          id: i.id,
-          itemCode: i.itemCode || 'BOQ-ITEM',
-          roomName: i.roomName || 'Không gian chính',
-          itemName: i.itemName || i.description,
-          dimensions: i.dimensions || '2000x600x800 mm',
-          specifications: i.specifications || 'Tiêu chuẩn xưởng nội thất',
-          unit: i.unit || 'bộ',
-          quantity: i.quantity || 1,
-          internalUnitCost: i.internalUnitCost || i.unitCostInternal || 0,
-          internalTotalCost: i.internalTotalCost || i.totalCostInternal || (i.quantity * (i.internalUnitCost || i.unitCostInternal || 0)),
-          clientUnitPrice: i.clientUnitPrice || i.unitPriceClient || 0,
-          clientTotalPrice: i.clientTotalPrice || i.totalPriceClient || (i.quantity * (i.clientUnitPrice || i.unitPriceClient || 0)),
-          grossMarginPercent: i.grossMarginPercent || 35,
-        }));
-        setItems(mappedItems);
-      } else {
-        // Fallback default sample items if no BOQ exists yet
-        setItems([
-          {
-            id: 'boq-1',
-            itemCode: 'LIV-PANEL-01',
-            roomName: 'Phòng Khách Luxury',
-            itemName: 'Hệ vách ốp nan gỗ óc chó kết hợp đá Marble',
-            dimensions: '6000x150x3200 mm',
-            specifications: 'Khung sắt + Plywood + Nan gỗ óc chó tự nhiên sơn bóng mờ 50%',
-            unit: 'bộ',
-            quantity: 1,
-            internalUnitCost: 120000000,
-            internalTotalCost: 120000000,
-            clientUnitPrice: 195000000,
-            clientTotalPrice: 195000000,
-            grossMarginPercent: 38.5,
-          },
-          {
-            id: 'boq-2',
-            itemCode: 'KIT-ISLAND-01',
-            roomName: 'Bếp Đảo Master',
-            itemName: 'Bàn đảo bếp mặt đá Vicostone và tủ rượu cánh kính',
-            dimensions: '3200x1100x880 mm',
-            specifications: 'MDF lõi xanh An Cường + Mặt đá Vicostone BQ8628 + Ray Blum Legrabox',
-            unit: 'bộ',
-            quantity: 1,
-            internalUnitCost: 95000000,
-            internalTotalCost: 95000000,
-            clientUnitPrice: 165000000,
-            clientTotalPrice: 165000000,
-            grossMarginPercent: 42.4,
-          },
-          {
-            id: 'boq-3',
-            itemCode: 'MAS-BED-01',
-            roomName: 'Phòng Ngủ Master',
-            itemName: 'Giường ngủ 2mx2m2 bọc da bò Ý cao cấp',
-            dimensions: '2000x2200x1100 mm',
-            specifications: 'Khung gỗ sồi tự nhiên + Da bò Mastrotto nhập khẩu Ý + Đệm mút D40',
-            unit: 'cái',
-            quantity: 1,
-            internalUnitCost: 35000000,
-            internalTotalCost: 35000000,
-            clientUnitPrice: 58000000,
-            clientTotalPrice: 58000000,
-            grossMarginPercent: 39.7,
-          },
-        ]);
+    async function fetchBOQData() {
+      try {
+        const res = await fetch('/api/interior/boq');
+        if (res.ok) {
+          const json: BOQOverviewResponse = await res.json();
+          if (isMounted) {
+            setData(json);
+          }
+        }
+      } catch {
+        // Retain initial state
       }
-    } catch {
-      setFeedback({ type: 'error', message: 'Không thể kết nối máy chủ để lấy dữ liệu BOQ.' });
-    } finally {
-      setLoading(false);
     }
+
+    fetchBOQData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  useEffect(() => {
-    if (selectedProjectId) {
-      loadBOQ(selectedProjectId);
-    }
-  }, [selectedProjectId, loadBOQ]);
-
-  // Tripartite Costing calculations
-  const totalInternalCost = items.reduce((acc, i) => acc + i.internalTotalCost, 0);
-  const totalClientPrice = items.reduce((acc, i) => acc + i.clientTotalPrice, 0);
-  const totalGrossMargin = totalClientPrice - totalInternalCost;
-  const overallMarginPercent = totalClientPrice > 0 ? ((totalGrossMargin / totalClientPrice) * 100).toFixed(1) : '0';
-
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(val);
+  const handleToggleCheck = (id: string) => {
+    setSelectedItems((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
   };
 
-  // Add Item to BOQ
-  const handleAddItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newItemName) {
-      setFeedback({ type: 'error', message: 'Vui lòng nhập tên cấu kiện.' });
-      return;
-    }
-
-    const qty = parseFloat(newItemQty) || 1;
-    const unitCost = parseFloat(newItemCost) || 0;
-    const unitPrice = parseFloat(newItemPrice) || 0;
-    const totalCost = qty * unitCost;
-    const totalPrice = qty * unitPrice;
-    const margin = totalPrice > 0 ? Math.round(((totalPrice - totalCost) / totalPrice) * 1000) / 10 : 0;
-
-    const newItem: BOQItemDisplay = {
-      id: `boq-${Date.now()}`,
-      itemCode: `ITEM-${items.length + 1}`,
-      roomName: newItemRoom,
-      itemName: newItemName,
-      dimensions: newItemDim,
-      specifications: newItemSpec,
-      unit: newItemUnit,
-      quantity: qty,
-      internalUnitCost: unitCost,
-      internalTotalCost: totalCost,
-      clientUnitPrice: unitPrice,
-      clientTotalPrice: totalPrice,
-      grossMarginPercent: margin,
-    };
-
-    // Update in local state
-    const updated = [...items, newItem];
-    setItems(updated);
-    setShowNewItemModal(false);
-    setNewItemName('');
-    setFeedback({ type: 'success', message: `Đã bổ sung cấu kiện "${newItem.itemName}" vào dự toán BOQ!` });
-
-    // Send to API if we have an active approved revision
-    try {
-      await fetch('/api/interior/boq', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId: selectedProjectId,
-          designRevisionId: 'rev-001',
-          items: updated.map((i) => ({
-            itemCode: i.itemCode,
-            roomName: i.roomName,
-            itemName: i.itemName,
-            description: i.itemName,
-            dimensions: i.dimensions,
-            specifications: i.specifications,
-            unit: i.unit,
-            quantity: i.quantity,
-            unitCostInternal: i.internalUnitCost,
-            unitPriceClient: i.clientUnitPrice,
-          })),
-        }),
-      });
-    } catch {
-      // ignore
-    }
+  const handleExportReport = () => {
+    setToastMessage('Đang kết xuất báo cáo dự toán thương mại BOQ (PDF/Excel)...');
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 lg:p-8 space-y-6 font-sans">
-      {/* Toast Feedback */}
-      {feedback && (
-        <div
-          className={`flex items-center justify-between p-4 rounded-xl text-xs font-medium border ${
-            feedback.type === 'success'
-              ? 'bg-emerald-950/80 text-emerald-300 border-emerald-800'
-              : 'bg-rose-950/80 text-rose-300 border-rose-800'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            {feedback.type === 'success' ? (
-              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-            ) : (
-              <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
-            )}
-            <span>{feedback.message}</span>
-          </div>
-          <button onClick={() => setFeedback(null)} className="hover:text-white">
-            <X className="h-4 w-4" />
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 dark:bg-slate-950 dark:text-slate-100 p-4 sm:p-6 lg:p-8 space-y-5">
+      {/* ─── Toast Feedback ─── */}
+      {toastMessage && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900 text-white shadow-xl border border-slate-700 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMessage}</span>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="ml-2 text-slate-400 hover:text-white"
+          >
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
-      {/* Navigation & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
-        <div className="flex items-center gap-3">
+      {/* ─── Top Header: Breadcrumbs & Search / User Bar ─── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
           <Link
             href="/dashboard/interior"
-            className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition-colors"
+            className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <Home className="w-3.5 h-3.5 text-slate-400" />
           </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-white">Dự Toán Thương Mại BOQ &amp; Định Mức Sản Xuất BOM</h1>
-              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                Commercial &amp; Costing
+          <span className="text-slate-400">›</span>
+          <Link
+            href="/dashboard/interior/projects"
+            className="hover:text-slate-900 dark:hover:text-white transition-colors"
+          >
+            Dự án
+          </Link>
+          <span className="text-slate-400">›</span>
+          <span className="font-semibold text-slate-800 dark:text-slate-200">
+            {data.project.name} ({data.project.code})
+          </span>
+        </div>
+
+        {/* Search, Notifications & User */}
+        <div className="flex items-center gap-3">
+          {/* Search Box */}
+          <div className="relative hidden md:block">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm... (Ctrl + K)"
+              readOnly
+              className="w-56 pl-8 pr-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none cursor-pointer shadow-2xs"
+            />
+          </div>
+
+          {/* Notifications with Red Badge */}
+          <button
+            type="button"
+            className="relative p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-2xs transition-colors"
+            aria-label="Thông báo"
+          >
+            <Bell className="w-4 h-4" />
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center">
+              3
+            </span>
+          </button>
+
+          {/* User Profile */}
+          <div className="flex items-center gap-2 pl-1 cursor-pointer">
+            <img
+              src={'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=faces'}
+              alt="Nguyễn Văn Quang"
+              className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+            />
+            <div className="hidden sm:flex items-center gap-1">
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                Nguyễn Văn Quang
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Project Title & Metadata & Action Buttons Row ─── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          {/* Title & Status Badge */}
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              {data.project.name}
+            </h1>
+            <button
+              type="button"
+              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${data.project.statusBadgeClass} transition-colors`}
+            >
+              <span>{data.project.statusLabel}</span>
+              <ChevronDown className="w-3 h-3 ml-0.5" />
+            </button>
+          </div>
+
+          {/* Metadata line */}
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+            <div className="flex items-center gap-1 font-medium">
+              <User className="w-3.5 h-3.5 text-slate-400" />
+              <span>Khách hàng:</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">
+                {data.project.clientName}
               </span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
-              <span>Dự án:</span>
-              <select
-                value={selectedProjectId}
-                onChange={(e) => setSelectedProjectId(e.target.value)}
-                className="bg-slate-900 border border-slate-700 text-amber-300 rounded px-2 py-0.5 font-medium focus:outline-none focus:border-amber-500"
-              >
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.code})
-                  </option>
-                ))}
-              </select>
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <div className="font-medium">
+              <span>Diện tích:</span>{' '}
+              <span className="font-bold text-slate-800 dark:text-slate-200">
+                {data.project.areaFormatted}
+              </span>
+            </div>
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <div className="flex items-center gap-1 font-medium">
+              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+              <span>Địa điểm:</span>{' '}
+              <span className="font-bold text-slate-800 dark:text-slate-200">
+                {data.project.location}
+              </span>
             </div>
           </div>
         </div>
 
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* So sánh phiên bản */}
+          <button
+            type="button"
+            onClick={() => setShowCompareModal(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-all"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
+            <span>So sánh phiên bản</span>
+          </button>
+
+          {/* Lịch sử */}
+          <button
+            type="button"
+            onClick={() => setShowHistoryModal(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-all"
+          >
+            <History className="w-3.5 h-3.5 text-slate-500" />
+            <span>Lịch sử</span>
+          </button>
+
+          {/* Lập Báo giá / Dự toán */}
+          <button
+            type="button"
+            onClick={() => setShowQuoteModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-semibold shadow-sm hover:shadow transition-all"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <span>Lập Báo giá / Dự toán</span>
+            <ChevronDown className="w-3.5 h-3.5 ml-0.5 opacity-80" />
+          </button>
+        </div>
+      </div>
+
+      {/* ─── Lifecycle Sub-navigation Tabs ─── */}
+      <div className="border-b border-slate-200/80 dark:border-slate-800 flex items-center gap-6 overflow-x-auto text-xs font-semibold">
+        <Link
+          href="/dashboard/interior/projects"
+          className="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white whitespace-nowrap transition-colors"
+        >
+          Tổng quan
+        </Link>
+        <Link
+          href="/dashboard/interior/design"
+          className="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white whitespace-nowrap transition-colors"
+        >
+          Thiết kế
+        </Link>
+        <button
+          type="button"
+          className="pb-3 border-b-2 border-[#0f4c3a] text-[#0f4c3a] dark:border-emerald-400 dark:text-emerald-400 font-bold whitespace-nowrap transition-colors"
+        >
+          BOQ &amp; BOM
+        </button>
+        <Link
+          href="/dashboard/interior/production"
+          className="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white whitespace-nowrap transition-colors"
+        >
+          Sản xuất
+        </Link>
+        <Link
+          href="/dashboard/interior/installation"
+          className="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white whitespace-nowrap transition-colors"
+        >
+          Thi công
+        </Link>
+        <Link
+          href="/dashboard/interior/reports"
+          className="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white whitespace-nowrap transition-colors"
+        >
+          Báo cáo
+        </Link>
+      </div>
+
+      {/* ─── 4 Financial KPI Cards ─── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* KPI 1: Tổng giá vốn nội bộ (COGS) */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs relative">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
+              <span>{data.kpis.totalCogs.label}</span>
+              <span title={data.kpis.totalCogs.tooltip} className="cursor-help text-slate-400">ⓘ</span>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center shrink-0">
+              <Layers className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            {data.kpis.totalCogs.formattedValue}
+          </div>
+          <div className="mt-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+            {data.kpis.totalCogs.trendLabel}
+          </div>
+        </div>
+
+        {/* KPI 2: Tổng giá bán khách hàng */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs relative">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
+              <span>{data.kpis.totalClientPrice.label}</span>
+              <span title={data.kpis.totalClientPrice.tooltip} className="cursor-help text-slate-400">ⓘ</span>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center shrink-0">
+              <Tag className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            {data.kpis.totalClientPrice.formattedValue}
+          </div>
+          <div className="mt-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+            {data.kpis.totalClientPrice.trendLabel}
+          </div>
+        </div>
+
+        {/* KPI 3: Lợi nhuận gộp dự kiến */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs relative">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
+              <span>{data.kpis.grossProfit.label}</span>
+              <span title={data.kpis.grossProfit.tooltip} className="cursor-help text-slate-400">ⓘ</span>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            {data.kpis.grossProfit.formattedValue}
+          </div>
+          <div className="mt-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+            {data.kpis.grossProfit.trendLabel}
+          </div>
+        </div>
+
+        {/* KPI 4: Gross Margin */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+              {data.kpis.grossMargin.label}
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 flex items-center justify-center shrink-0">
+              <Percent className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            {data.kpis.grossMargin.formattedPercentage}
+          </div>
+          {/* Smooth Rising Sparkline */}
+          <div className="mt-1 h-5 w-full">
+            <svg viewBox="0 0 100 20" className="w-full h-full" preserveAspectRatio="none">
+              <path
+                d="M0 16 Q 25 14, 50 10 T 100 4"
+                fill="none"
+                stroke="#10b981"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Mode Switcher (BOQ vs BOM) & Filter / Export Actions ─── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Switchers */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => loadBOQ(selectedProjectId)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700"
+            type="button"
+            onClick={() => setCurrentTab('boq')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              currentTab === 'boq'
+                ? 'bg-[#0f4c3a] text-white shadow-sm'
+                : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50'
+            }`}
           >
-            <RefreshCw className="h-3.5 w-3.5 text-slate-400" />
-            Làm mới
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <span>BOQ – Dự toán thương mại</span>
           </button>
+
           <button
-            onClick={() => setShowNewItemModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg bg-amber-600 hover:bg-amber-500 text-white shadow-sm transition-all"
+            type="button"
+            onClick={() => setCurrentTab('bom')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              currentTab === 'bom'
+                ? 'bg-[#0f4c3a] text-white shadow-sm'
+                : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50'
+            }`}
           >
-            <Plus className="h-3.5 w-3.5" />
-            Thêm cấu kiện BOQ
+            <Settings className="w-3.5 h-3.5" />
+            <span>BOM – Định mức sản xuất</span>
           </button>
-          <Link
-            href="/dashboard/interior/contracts"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition-all"
+        </div>
+
+        {/* Action Tools */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleExportReport}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 shadow-2xs"
           >
-            Tạo Báo Giá &amp; Hợp Đồng
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+            <Download className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Xuất Excel</span>
+            <ChevronDown className="w-3 h-3 text-slate-400" />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExportReport}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 shadow-2xs"
+          >
+            <Printer className="w-3.5 h-3.5 text-slate-500" />
+            <span>In báo cáo</span>
+          </button>
+
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 shadow-2xs"
+          >
+            <Filter className="w-3.5 h-3.5 text-slate-500" />
+            <span>Bộ lọc</span>
+            <ChevronDown className="w-3 h-3 text-slate-400" />
+          </button>
         </div>
       </div>
 
-      {/* Tabs: BOQ vs BOM (Architectural Boundary Separation) */}
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-2">
-        <button
-          onClick={() => setActiveTab('boq')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-            activeTab === 'boq'
-              ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-          }`}
-        >
-          <ClipboardList className="h-4 w-4" />
-          <span>Bóc Tách Dự Toán Thương Mại (BOQ)</span>
-          <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300">{items.length}</span>
-        </button>
+      {/* ─── Main Content Table Card ─── */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs overflow-hidden">
+        {currentTab === 'boq' ? (
+          /* Tripartite Costing Itemized BOQ Table */
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left text-xs min-w-[1000px]">
+              {/* Grouped Two-Tier Header */}
+              <thead>
+                {/* Row 1: Group Categories */}
+                <tr className="border-b border-slate-200/70 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-[11px] font-bold text-slate-600 dark:text-slate-400">
+                  <th className="py-2.5 px-3 w-10 text-center border-r border-slate-100 dark:border-slate-800">
+                    #
+                  </th>
+                  <th colSpan={2} className="py-2.5 px-3 border-r border-slate-100 dark:border-slate-800 text-center">
+                    Cấu kiện
+                  </th>
+                  <th colSpan={2} className="py-2.5 px-3 border-r border-slate-100 dark:border-slate-800 text-center">
+                    Khối lượng
+                  </th>
+                  <th colSpan={2} className="py-2.5 px-3 border-r border-slate-100 dark:border-slate-800 text-center">
+                    Giá vốn
+                  </th>
+                  <th colSpan={4} className="py-2.5 px-3 text-center">
+                    Thương mại
+                  </th>
+                </tr>
 
-        <button
-          onClick={() => setActiveTab('bom')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-            activeTab === 'bom'
-              ? 'bg-blue-500/10 text-blue-300 border border-blue-500/30 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-          }`}
-        >
-          <Boxes className="h-4 w-4" />
-          <span>Định Mức Vật Tư Kỹ Thuật Sản Xuất (BOM)</span>
-          <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300">{bomItems.length}</span>
-        </button>
-      </div>
+                {/* Row 2: Detailed Column Titles */}
+                <tr className="border-b border-slate-200/70 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                  <th className="py-2 px-3 text-center w-10">
+                    <input
+                      type="checkbox"
+                      aria-label="Chọn tất cả"
+                      className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                  </th>
+                  <th className="py-2 px-3">Khu vực / Hạng mục</th>
+                  <th className="py-2 px-3">Quy cách</th>
+                  <th className="py-2 px-2 text-center w-14">ĐVT</th>
+                  <th className="py-2 px-3 text-center w-16">Số lượng</th>
+                  <th className="py-2 px-3 text-right">Đơn giá vốn</th>
+                  <th className="py-2 px-3 text-right">Thành tiền vốn</th>
+                  <th className="py-2 px-3 text-right">Đơn giá bán</th>
+                  <th className="py-2 px-3 text-right">Thành tiền bán</th>
+                  <th className="py-2 px-3 text-right">Lợi nhuận</th>
+                  <th className="py-2 px-3 text-center w-18">Biên LN</th>
+                </tr>
+              </thead>
 
-      {activeTab === 'boq' ? (
-        <>
-          {/* Tripartite Costing Summary Banner */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
-              <span className="text-xs font-semibold uppercase text-slate-400">1. Tổng Giá Vốn Nội Bộ (COGS)</span>
-              <div className="text-xl font-bold font-mono text-slate-200 mt-1">{formatCurrency(totalInternalCost)}</div>
-              <p className="text-xs text-slate-400 mt-1">Ván gỗ + Đá thạch anh + Ngũ kim Blum + Công thợ xưởng</p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
-              <span className="text-xs font-semibold uppercase text-slate-400">2. Tổng Giá Bán Khách Hàng</span>
-              <div className="text-xl font-bold font-mono text-amber-400 mt-1">{formatCurrency(totalClientPrice)}</div>
-              <p className="text-xs text-slate-400 mt-1">Đơn giá niêm yết theo cấu kiện &amp; định mức</p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-slate-900 border border-emerald-900/40 bg-emerald-950/20">
-              <span className="text-xs font-semibold uppercase text-emerald-400">3. Lợi Nhuận Gộp Dự Kiến</span>
-              <div className="text-xl font-bold font-mono text-emerald-300 mt-1">
-                {formatCurrency(totalGrossMargin)} ({overallMarginPercent}%)
-              </div>
-              <p className="text-xs text-emerald-400/80 mt-1">Tỷ suất lợi nhuận gộp toàn bộ dự án</p>
-            </div>
-          </div>
-
-          {/* Itemized Table */}
-          <div className="bg-slate-900/90 border border-slate-800/90 rounded-2xl overflow-hidden shadow-sm">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <ClipboardList className="h-4 w-4 text-amber-400" />
-                Danh Mục Cấu Kiện &amp; Tripartite Costing
-              </h3>
-              <span className="text-xs text-slate-400 font-mono">{items.length} hạng mục</span>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-950/80 text-[11px] uppercase text-slate-400 border-b border-slate-800 font-semibold tracking-wider">
-                  <tr>
-                    <th className="py-3 px-4">Khu vực &amp; Hạng mục</th>
-                    <th className="py-3 px-4">Quy cách &amp; Kích thước</th>
-                    <th className="py-3 px-4">ĐVT</th>
-                    <th className="py-3 px-4 text-center">SL</th>
-                    <th className="py-3 px-4 text-right">Đơn giá vốn</th>
-                    <th className="py-3 px-4 text-right">Giá vốn tổng</th>
-                    <th className="py-3 px-4 text-right">Đơn giá khách</th>
-                    <th className="py-3 px-4 text-right">Thành tiền khách</th>
-                    <th className="py-3 px-4 text-right">Lợi nhuận</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/70">
-                  {items.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3.5 px-4">
-                        <div className="font-semibold text-slate-200">{item.itemName}</div>
-                        <div className="text-[11px] text-amber-500 font-mono mt-0.5">
-                          {item.roomName} • {item.itemCode}
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {data.zoneGroups.map((group) => (
+                  <React.Fragment key={group.zoneId}>
+                    {/* Zone Group Header Row with Subtotals */}
+                    <tr className="bg-emerald-50/40 dark:bg-emerald-950/20 font-bold text-xs text-slate-900 dark:text-white border-y border-emerald-100/60 dark:border-emerald-900/30">
+                      <td className="py-2.5 px-3 text-center">
+                        <input
+                          type="checkbox"
+                          aria-label={`Chọn khu vực ${group.zoneName}`}
+                          className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                        />
+                      </td>
+                      <td colSpan={5} className="py-2.5 px-3">
+                        <div className="flex items-center gap-2 text-emerald-900 dark:text-emerald-300">
+                          <Folder className="w-4 h-4 text-emerald-600" />
+                          <span>{group.zoneName}</span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 max-w-xs">
-                        <div className="font-mono text-slate-300">{item.dimensions}</div>
-                        <div className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{item.specifications}</div>
+                      <td className="py-2.5 px-3 text-right font-extrabold text-slate-800 dark:text-slate-200">
+                        {group.subtotalCogsFormatted}
                       </td>
-                      <td className="py-3.5 px-4 font-mono">{item.unit}</td>
-                      <td className="py-3.5 px-4 text-center font-mono">{item.quantity}</td>
-                      <td className="py-3.5 px-4 text-right font-mono text-slate-400">
-                        {formatCurrency(item.internalUnitCost)}
+                      <td className="py-2.5 px-3 text-right text-slate-400">—</td>
+                      <td className="py-2.5 px-3 text-right font-extrabold text-slate-900 dark:text-white">
+                        {group.subtotalPriceFormatted}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-mono text-slate-300">
-                        {formatCurrency(item.internalTotalCost)}
+                      <td className="py-2.5 px-3 text-right font-extrabold text-emerald-600 dark:text-emerald-400">
+                        {group.subtotalProfitFormatted}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-mono text-amber-400/90">
-                        {formatCurrency(item.clientUnitPrice)}
-                      </td>
-                      <td className="py-3.5 px-4 text-right font-mono font-semibold text-amber-300">
-                        {formatCurrency(item.clientTotalPrice)}
-                      </td>
-                      <td className="py-3.5 px-4 text-right font-mono text-emerald-400 font-medium">
-                        {item.grossMarginPercent}%
+                      <td className="py-2.5 px-3 text-center font-extrabold text-emerald-600 dark:text-emerald-400">
+                        {group.subtotalMarginPercentFormatted}
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
-      ) : (
-        /* BOM Production Tab */
-        <div className="space-y-4">
-          {/* Architectural Callout Banner */}
-          <div className="p-4 rounded-xl bg-blue-950/40 border border-blue-800/50 flex items-start gap-3">
-            <Factory className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
-            <div className="text-xs space-y-1">
-              <div className="font-bold text-blue-200">
-                Định Mức Vật Tư Sản Xuất (BOM) — Tách Biệt Khỏi Báo Giá Khách Hàng (BOQ)
-              </div>
-              <p className="text-blue-300/80 leading-relaxed">
-                BOM là căn cứ kỹ thuật để cấp phát nguyên vật liệu từ kho tới xưởng đóng module. Phân tách rõ ràng giữa
-                giá chào bán khách hàng (BOQ) và định mức tiêu hao thực tế (BOM bao gồm hệ số hao hụt waste factor).
-              </p>
-            </div>
-          </div>
 
-          {/* BOM Itemized Table */}
-          <div className="bg-slate-900/90 border border-slate-800/90 rounded-2xl overflow-hidden shadow-sm">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Boxes className="h-4 w-4 text-blue-400" />
-                Danh Mục Vật Tư Cần Cấp Phát Cho Xưởng Sản Xuất
-              </h3>
-              <Link
-                href="/dashboard/interior/production"
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs font-medium transition-colors"
-              >
-                Chuyển lệnh sang Manufacturing OS
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-950/80 text-[11px] uppercase text-slate-400 border-b border-slate-800 font-semibold tracking-wider">
-                  <tr>
-                    <th className="py-3 px-4">Nhóm &amp; Tên Vật Tư</th>
-                    <th className="py-3 px-4">Mã Vật Tư / Quy Cách</th>
-                    <th className="py-3 px-4">ĐVT</th>
-                    <th className="py-3 px-4 text-center">Định mức thuần</th>
-                    <th className="py-3 px-4 text-center">Hao hụt (%)</th>
-                    <th className="py-3 px-4 text-center font-bold text-amber-300">Tổng xuất kho</th>
-                    <th className="py-3 px-4 text-center">Trạng thái kho</th>
+                    {/* Zone Line Items */}
+                    {group.items.map((item) => (
+                      <tr
+                        key={item.id}
+                        onClick={() => setSelectedDrawerItem(item)}
+                        className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors cursor-pointer text-slate-700 dark:text-slate-300"
+                      >
+                        <td className="py-2.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(selectedItems[item.id])}
+                            onChange={() => handleToggleCheck(item.id)}
+                            aria-label={`Chọn ${item.itemName}`}
+                            className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                          />
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-400 font-mono text-[11px] w-4 text-center">
+                              {item.itemNumber}
+                            </span>
+                            <span className="font-bold text-slate-900 dark:text-white">
+                              {item.itemName}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-500 dark:text-slate-400 text-[11px]">
+                          {item.specifications}
+                        </td>
+                        <td className="py-2.5 px-2 text-center text-[11px] text-slate-500">
+                          {item.unit}
+                        </td>
+                        <td className="py-2.5 px-3 text-center font-mono font-medium">
+                          {item.quantityFormatted}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono text-slate-600 dark:text-slate-400">
+                          {item.internalUnitCostFormatted}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-800 dark:text-slate-200">
+                          {item.internalTotalCostFormatted}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono text-slate-600 dark:text-slate-400">
+                          {item.clientUnitPriceFormatted}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-900 dark:text-white">
+                          {item.clientTotalPriceFormatted}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                          {item.grossMarginFormatted}
+                        </td>
+                        <td className="py-2.5 px-3 text-center font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                          {item.grossMarginPercentFormatted}
+                        </td>
+                      </tr>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          /* Production BOM Materials Table */
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left text-xs min-w-[900px]">
+              <thead>
+                <tr className="border-b border-slate-200/70 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                  <th className="py-3 px-4">Mã vật tư</th>
+                  <th className="py-3 px-4">Tên vật tư &amp; Phân loại</th>
+                  <th className="py-3 px-4">Quy cách kỹ thuật</th>
+                  <th className="py-3 px-3 text-center">ĐVT</th>
+                  <th className="py-3 px-3 text-center">Định mức cần</th>
+                  <th className="py-3 px-3 text-center">Hao hụt (%)</th>
+                  <th className="py-3 px-3 text-center">Tổng xuất kho</th>
+                  <th className="py-3 px-4 text-center">Trạng thái kho</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                {data.bomMaterials.map((mat) => (
+                  <tr key={mat.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                    <td className="py-3 px-4 font-mono font-bold text-slate-900 dark:text-white text-[11px]">
+                      {mat.materialCode}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="font-bold text-slate-900 dark:text-white">{mat.materialName}</div>
+                      <div className="text-[10px] text-slate-400">{mat.categoryLabel}</div>
+                    </td>
+                    <td className="py-3 px-4 text-slate-500 text-[11px]">{mat.spec}</td>
+                    <td className="py-3 px-3 text-center text-slate-500">{mat.unit}</td>
+                    <td className="py-3 px-3 text-center font-mono font-bold">{mat.requiredQuantity}</td>
+                    <td className="py-3 px-3 text-center font-mono text-amber-600 font-bold">{mat.wasteFactorPercent}%</td>
+                    <td className="py-3 px-3 text-center font-mono font-extrabold text-blue-600">{mat.totalAllocated}</td>
+                    <td className="py-3 px-4 text-center">
+                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${mat.stockStatusBadgeClass}`}>
+                        {mat.stockStatusLabel}
+                      </span>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/70">
-                  {bomItems.map((bom) => (
-                    <tr key={bom.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3.5 px-4">
-                        <div className="font-semibold text-slate-200">{bom.materialName}</div>
-                        <div className="text-[11px] text-blue-400 font-mono mt-0.5">{bom.categoryLabel}</div>
-                      </td>
-                      <td className="py-3.5 px-4 max-w-xs">
-                        <div className="font-mono text-amber-400">{bom.materialCode}</div>
-                        <div className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{bom.spec}</div>
-                      </td>
-                      <td className="py-3.5 px-4 font-mono">{bom.unit}</td>
-                      <td className="py-3.5 px-4 text-center font-mono">{bom.requiredQuantity}</td>
-                      <td className="py-3.5 px-4 text-center font-mono text-slate-400">+{bom.wasteFactorPercent}%</td>
-                      <td className="py-3.5 px-4 text-center font-mono font-bold text-amber-300">
-                        {bom.totalAllocated} {bom.unit}
-                      </td>
-                      <td className="py-3.5 px-4 text-center">
-                        {bom.stockStatus === 'in_stock' ? (
-                          <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            Đủ trong kho
-                          </span>
-                        ) : bom.stockStatus === 'allocated' ? (
-                          <span className="px-2 py-0.5 rounded text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                            Đã gán lệnh
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                            Cần đặt mua
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* ─── Bottom Audit & Version Lock Bar ─── */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Left Info */}
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 shrink-0">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-[10px] font-medium text-slate-400">Phiên bản BOQ</div>
+              <div className="text-xs font-bold text-slate-900 dark:text-white mt-0.5">
+                <span className="inline-flex px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-extrabold">
+                  {data.audit.versionLabel}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden sm:block h-8 w-px bg-slate-200/80 dark:bg-slate-800" />
+
+          {/* Ngày duyệt */}
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+              <Calendar className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-[10px] font-medium text-slate-400">Ngày duyệt</div>
+              <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                {data.audit.approvalDateFormatted}
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden sm:block h-8 w-px bg-slate-200/80 dark:bg-slate-800" />
+
+          {/* Người duyệt */}
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+              <User className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-[10px] font-medium text-slate-400">Người duyệt</div>
+              <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                {data.audit.approvedBy}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Actions */}
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            type="button"
+            onClick={() => setSelectedDrawerItem(data.zoneGroups[0].items[0])}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 shadow-2xs transition-all"
+          >
+            <Eye className="w-3.5 h-3.5 text-slate-500" />
+            <span>Xem chi tiết</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExportReport}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-semibold shadow-sm hover:shadow transition-all"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Xuất báo cáo</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ─── Drawer: Item Tripartite Costing Drilldown ─── */}
+      {selectedDrawerItem && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md h-full p-6 shadow-2xl flex flex-col justify-between space-y-4 overflow-y-auto">
+            <div>
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                  <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">
+                    Tripartite Costing Details
+                  </span>
+                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white mt-0.5">
+                    {selectedDrawerItem.itemName}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDrawerItem(null)}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-3 text-xs">
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80">
+                  <div className="font-bold text-slate-900 dark:text-white mb-1">Quy cách kỹ thuật</div>
+                  <div className="text-slate-600 dark:text-slate-300">{selectedDrawerItem.specifications}</div>
+                  <div className="text-[11px] text-slate-400 mt-1">Đơn vị: {selectedDrawerItem.unit} · Khối lượng: {selectedDrawerItem.quantityFormatted}</div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/80">
+                    <div className="text-[10px] font-bold text-blue-700">Đơn giá vốn nội bộ</div>
+                    <div className="text-sm font-extrabold text-blue-900 dark:text-blue-200 mt-1">
+                      {selectedDrawerItem.internalUnitCostFormatted} đ
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-1">Thành tiền vốn: {selectedDrawerItem.internalTotalCostFormatted} đ</div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/80">
+                    <div className="text-[10px] font-bold text-emerald-700">Đơn giá bán khách hàng</div>
+                    <div className="text-sm font-extrabold text-emerald-900 dark:text-emerald-200 mt-1">
+                      {selectedDrawerItem.clientUnitPriceFormatted} đ
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-1">Thành tiền bán: {selectedDrawerItem.clientTotalPriceFormatted} đ</div>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 text-xs">
+                  <div className="flex items-center justify-between font-bold text-emerald-950 dark:text-emerald-200">
+                    <span>Lợi nhuận gộp cấu kiện:</span>
+                    <span className="text-sm font-extrabold text-emerald-600">{selectedDrawerItem.grossMarginFormatted} đ</span>
+                  </div>
+                  <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-400 mt-1 font-semibold">
+                    <span>Tỷ suất lợi nhuận (Gross Margin):</span>
+                    <span>{selectedDrawerItem.grossMarginPercentFormatted}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedDrawerItem(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+              >
+                Đóng
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal: Add BOQ Item */}
-      {showNewItemModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Plus className="h-5 w-5 text-amber-400" /> Bổ Sung Cấu Kiện Vào Dự Toán BOQ
-              </h3>
-              <button onClick={() => setShowNewItemModal(false)} className="text-slate-400 hover:text-white">
-                <X className="h-5 w-5" />
+      {/* ─── Modal 1: So sánh phiên bản BOQ ─── */}
+      {showCompareModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-xl w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4 text-emerald-600" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  So sánh phiên bản dự toán BOQ
+                </h3>
+              </div>
+              <button onClick={() => setShowCompareModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <form onSubmit={handleAddItem} className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Khu vực / Phòng *</label>
-                  <input
-                    type="text"
-                    required
-                    value={newItemRoom}
-                    onChange={(e) => setNewItemRoom(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Đơn vị tính *</label>
-                  <select
-                    value={newItemUnit}
-                    onChange={(e) => setNewItemUnit(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                  >
-                    <option value="bộ">bộ</option>
-                    <option value="cái">cái</option>
-                    <option value="md">md (mét dài)</option>
-                    <option value="m2">m² (mét vuông)</option>
-                    <option value="gói">gói</option>
-                  </select>
-                </div>
+
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div className="p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-200">
+                <div className="font-extrabold text-slate-900 mb-1">R1.0 (Approved)</div>
+                <div>• Giá vốn COGS: 1,250,000,000 đ</div>
+                <div>• Giá bán: 1,680,000,000 đ</div>
+                <div>• Lợi nhuận: 430,000,000 đ (25.6%)</div>
+                <div>• Ngày duyệt: 06/11/2026</div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="font-extrabold text-slate-900 mb-1">R0.9 (Dự thảo sơ bộ)</div>
+                <div>• Giá vốn COGS: 1,180,000,000 đ</div>
+                <div>• Giá bán: 1,550,000,000 đ</div>
+                <div>• Lợi nhuận: 370,000,000 đ (23.8%)</div>
+                <div>• Chưa bao gồm đá Vicostone đảo bếp</div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setShowCompareModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal 2: Lập Báo giá / Hợp đồng ─── */}
+      {showQuoteModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Lập Báo giá &amp; Hợp đồng thương mại
+                </h3>
+              </div>
+              <button onClick={() => setShowQuoteModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-emerald-50 text-xs text-emerald-900 space-y-2 border border-emerald-200">
+              <div className="font-bold flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                Dữ liệu BOQ R1.0 đã được xác nhận!
               </div>
               <div>
-                <label className="block text-slate-300 mb-1 font-medium">Tên cấu kiện nội thất *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ví dụ: Tủ quần áo kịch trần 4 cánh mở"
-                  value={newItemName}
-                  onChange={(e) => setNewItemName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                />
+                Hệ thống sẽ chuyển toàn bộ giá bán <strong>1,680,000,000 đ</strong> sang module <em>Báo giá &amp; Hợp đồng</em> kèm theo điều khoản thanh toán 4 đợt.
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Kích thước (DxRxC)</label>
-                  <input
-                    type="text"
-                    value={newItemDim}
-                    onChange={(e) => setNewItemDim(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Số lượng *</label>
-                  <input
-                    type="number"
-                    min="1"
-                    required
-                    value={newItemQty}
-                    onChange={(e) => setNewItemQty(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                  />
-                </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowQuoteModal(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                Hủy
+              </button>
+              <Link
+                href="/dashboard/interior/contracts"
+                className="px-4 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-semibold"
+              >
+                Chuyển sang Báo giá &amp; Hợp đồng →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal 3: Lịch sử BOQ ─── */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <History className="w-4 h-4 text-slate-700" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Lịch sử phê duyệt BOQ &amp; BOM
+                </h3>
               </div>
-              <div>
-                <label className="block text-slate-300 mb-1 font-medium">Quy cách kỹ thuật / Vật liệu</label>
-                <input
-                  type="text"
-                  value={newItemSpec}
-                  onChange={(e) => setNewItemSpec(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Đơn giá vốn nội bộ (COGS)</label>
-                  <input
-                    type="number"
-                    value={newItemCost}
-                    onChange={(e) => setNewItemCost(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                  />
+              <button onClick={() => setShowHistoryModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="flex items-center justify-between font-bold text-slate-900">
+                  <span>06/11/2026 15:45</span>
+                  <span className="text-emerald-600">BOQ Locked &amp; Approved</span>
                 </div>
-                <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Đơn giá bán khách hàng</label>
-                  <input
-                    type="number"
-                    value={newItemPrice}
-                    onChange={(e) => setNewItemPrice(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                  />
+                <div className="text-slate-600 mt-1">
+                  Trần Thị Mai phê duyệt dự toán R1.0 tổng giá bán 1.68 tỷ, lợi nhuận gộp 25.6%.
                 </div>
               </div>
-              <div className="pt-2 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowNewItemModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium shadow-sm"
-                >
-                  Thêm vào BOQ
-                </button>
-              </div>
-            </form>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setShowHistoryModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+              >
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
       )}

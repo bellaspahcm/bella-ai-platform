@@ -79,8 +79,10 @@ export function DashboardAuthLoadingShell() {
 }
 
 import { useState, useEffect, useLayoutEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 export function DashboardAuthorizedShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const { isLoading, user, tenantSettings: fullTenantSettings, tenantPresentation, product } = useUser();
   const tenantSettings = tenantPresentation ?? fullTenantSettings;
   const presentation = tenantSettings ? resolveDashboardPresentation(tenantSettings, product) : null;

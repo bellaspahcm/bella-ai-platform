@@ -1,845 +1,1172 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 
-import React, { useState, useEffect, useCallback } from 'react';
+/**
+ * Bella Interior OS — Design Studio & Specification Showcase Page
+ *
+ * Implements the executive Design Studio dashboard matching reference design:
+ * - Top breadcrumb & user status bar (Villa Sunrise Renovation INT-2024-001)
+ * - Approved Design Lock strip (R1.0, approval metadata, lock invariant)
+ * - 3D Perspectives Showcase with 4K renders and +3 gallery thumbnails
+ * - Material & Specification Cards (Veneer Óc Chó, Đá Thạch Anh, Bản Lề, Khung Nhôm Slim)
+ * - Material Compliance Audit Banner ("Tất cả vật liệu đều đạt tiêu chuẩn")
+ * - Technical CAD Blueprints (DWG, PDF) and Document archives
+ * - Zero UI logic: All business rules & calculations are computed server-side.
+ *
+ * @module src/app/dashboard/interior/design/page
+ */
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Layers,
-  ArrowLeft,
   CheckCircle2,
-  Clock,
-  Eye,
-  FileText,
-  ShieldCheck,
-  Plus,
-  Palette,
-  Maximize2,
-  ChevronRight,
-  AlertCircle,
-  FolderOpen,
   Lock,
   Unlock,
-  Building,
-  RefreshCw,
-  ExternalLink,
-  Sparkles,
+  Calendar,
+  User,
+  FileText,
+  Search,
+  Bell,
+  ChevronDown,
+  ArrowRight,
+  Maximize2,
+  Box,
+  SlidersHorizontal,
+  History,
+  FileSpreadsheet,
+  Ruler,
+  FolderOpen,
   X,
+  Eye,
+  Check,
 } from 'lucide-react';
 
-interface ProjectSummary {
-  id: string;
-  name: string;
-  code: string;
-  status: string;
-  clientName: string;
-  contractValue: number;
-}
+import type {
+  DesignStudioOverviewResponse,
+  DesignVisualItem,
+} from '@/products/bella-interior/domain/design-overview.types';
 
-interface RevisionSummary {
-  id: string;
-  projectId: string;
-  revisionName: string;
-  revisionNumber: string;
-  status: 'draft' | 'review' | 'approved' | 'rejected';
-  designedByUserId: string;
-  approvedByUserId: string | null;
-  approvedAt: string | null;
-  createdAt: string;
-}
-
-interface DesignAssetItem {
-  id: string;
-  type: string;
-  title: string;
-  fileUrl: string;
-  notes?: string;
-}
-
-interface MaterialSpecItem {
-  id: string;
-  itemCategory: string;
-  brand: string;
-  code: string;
-  name: string;
-  colorTone?: string;
-  specDescription: string;
-  approvedForUse: boolean;
-}
-
-interface RoomZoneItem {
-  id: string;
-  code: string;
-  name: string;
-  floor: number;
-  areaSquareMeters?: number;
-}
-
-interface FullRevisionDetail {
-  id: string;
-  projectId: string;
-  versionNumber: number;
-  title: string;
-  status: string;
-  submittedBy: string;
-  approvedBy?: string;
-  approvedAt?: string;
-  changeSummary?: string;
-  assets: DesignAssetItem[];
-  materialSpecs: MaterialSpecItem[];
-}
+// Baseline initial state for instant zero-flicker render
+const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
+  tenantId: 'tenant-bella-interior-default',
+  project: {
+    id: 'proj-villa-sunrise',
+    code: 'INT-2024-001',
+    name: 'Villa Sunrise Renovation',
+    breadcrumbLabel: 'Dự án > Villa Sunrise Renovation (INT-2024-001)',
+    status: 'in_progress',
+    statusLabel: 'Đang thực hiện',
+    statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    clientName: 'Trần Thị Mai',
+    contractValueFormatted: '3.85 tỷ',
+  },
+  versionLock: {
+    versionId: 'rev-r1-0',
+    versionNumber: 'R1.0',
+    status: 'approved',
+    statusLabel: 'Đã duyệt',
+    statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    isLocked: true,
+    lockLabel: 'Đã khóa',
+    lockBadgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+    approvalDateFormatted: '06/11/2026',
+    approvedBy: 'Trần Thị Mai',
+    description: 'Phiên bản thiết kế chính thức',
+    lockBannerTitle: 'Approved Design Lock',
+    lockBannerSubtitle: 'Đã khóa thiết kế, chỉ cho phép tạo phiên bản mới',
+    canUnlock: true,
+  },
+  activeTab: 'design',
+  subTabs: [
+    { key: 'overview', label: 'Tổng quan', href: '/dashboard/interior/projects', isActive: false },
+    { key: 'design', label: 'Thiết kế', href: '/dashboard/interior/design', isActive: true },
+    { key: 'materials', label: 'Vật liệu', href: '/dashboard/interior/materials', isActive: false },
+    { key: 'boq', label: 'BOQ & Dự toán', href: '/dashboard/interior/boq', isActive: false },
+    { key: 'production', label: 'Sản xuất', href: '/dashboard/interior/production', isActive: false },
+    { key: 'installation', label: 'Thi công', href: '/dashboard/interior/installation', isActive: false },
+    { key: 'reports', label: 'Báo cáo', href: '/dashboard/interior/reports', isActive: false },
+  ],
+  visuals: [
+    {
+      id: 'vis-1',
+      title: 'Phối cảnh Phòng khách & Bàn trà',
+      roomZone: 'Phòng khách',
+      category: '3d',
+      categoryLabel: 'Phối cảnh 3D',
+      imageUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1600&q=85',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=300&q=80',
+      isPrimary: true,
+      viewAngleName: 'Góc nhìn chính (Chính diện sofa & bàn trà tròn)',
+      resolution: '4K Ultra-HD (3840x2160)',
+      fileFormat: '3ds Max / Corona Render',
+      updatedDateFormatted: '06/11/2026',
+      authorName: 'KTS. Hoàng Long',
+    },
+    {
+      id: 'vis-2',
+      title: 'Khu vực Bàn ăn & Đèn chùm thả',
+      roomZone: 'Phòng ăn',
+      category: '3d',
+      categoryLabel: 'Phối cảnh 3D',
+      imageUrl: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=1600&q=85',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=300&q=80',
+      isPrimary: false,
+      viewAngleName: 'Góc nhìn phòng ăn liên thông',
+      resolution: '4K Ultra-HD',
+      fileFormat: 'Corona Render',
+      updatedDateFormatted: '05/11/2026',
+      authorName: 'KTS. Hoàng Long',
+    },
+    {
+      id: 'vis-3',
+      title: 'Phòng ngủ Master & Hệ vách ốp đầu giường',
+      roomZone: 'Phòng ngủ Master',
+      category: '3d',
+      categoryLabel: 'Phối cảnh 3D',
+      imageUrl: 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1600&q=85',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=300&q=80',
+      isPrimary: false,
+      viewAngleName: 'Góc nhìn tổng thể giường ngủ',
+      resolution: '4K Ultra-HD',
+      fileFormat: 'Corona Render',
+      updatedDateFormatted: '05/11/2026',
+      authorName: 'KTS. Lê Hoàng',
+    },
+    {
+      id: 'vis-4',
+      title: 'Không gian Bếp đảo & Tủ bếp Acrylic',
+      roomZone: 'Bếp & Đảo bếp',
+      category: '3d',
+      categoryLabel: 'Phối cảnh 3D',
+      imageUrl: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1600&q=85',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=300&q=80',
+      isPrimary: false,
+      viewAngleName: 'Góc nhìn đảo bếp & tủ bếp kịch trần',
+      resolution: '4K Ultra-HD',
+      fileFormat: 'Corona Render',
+      updatedDateFormatted: '04/11/2026',
+      authorName: 'KTS. Lê Hoàng',
+    },
+    {
+      id: 'vis-5',
+      title: 'Phòng làm việc & Hệ tủ sách kính Slim',
+      roomZone: 'Phòng làm việc',
+      category: '3d',
+      categoryLabel: 'Phối cảnh 3D',
+      imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=85',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=300&q=80',
+      isPrimary: false,
+      viewAngleName: 'Góc làm việc & view sân vườn',
+      resolution: '4K Ultra-HD',
+      fileFormat: 'Corona Render',
+      updatedDateFormatted: '04/11/2026',
+      authorName: 'KTS. Hoàng Long',
+    },
+  ],
+  technicalDrawings: [
+    {
+      id: 'dwg-1',
+      title: 'Mặt bằng bố trí nội thất tầng 1 & tầng 2',
+      drawingCode: 'REV 2 - ARCH-01',
+      fileType: 'DWG',
+      author: 'KTS. Hoàng Long',
+      updatedDateFormatted: '06/11/2026',
+      statusLabel: 'Đã duyệt',
+      statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      fileUrl: '/drawings/INT-2024-001-ARCH-01.dwg',
+      fileSize: '14.8 MB',
+    },
+    {
+      id: 'dwg-2',
+      title: 'Chi tiết mặt cắt kỹ thuật bổ đồ gỗ nội thất',
+      drawingCode: 'REV 2 - DET-02',
+      fileType: 'DWG',
+      author: 'KTS. Lê Hoàng',
+      updatedDateFormatted: '06/11/2026',
+      statusLabel: 'Đã duyệt',
+      statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      fileUrl: '/drawings/INT-2024-001-DET-02.dwg',
+      fileSize: '22.4 MB',
+    },
+    {
+      id: 'dwg-3',
+      title: 'Sơ đồ định vị ổ cắm, công tắc & chiếu sáng thông minh',
+      drawingCode: 'REV 1 - MEP-01',
+      fileType: 'PDF',
+      author: 'KS. Nguyễn Văn Tuấn',
+      updatedDateFormatted: '04/11/2026',
+      statusLabel: 'Đã duyệt',
+      statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      fileUrl: '/drawings/INT-2024-001-MEP-01.pdf',
+      fileSize: '8.2 MB',
+    },
+  ],
+  relatedDocuments: [
+    {
+      id: 'doc-1',
+      title: 'Hồ sơ chỉ dẫn kỹ thuật & tiêu chuẩn thi công gỗ óc chó',
+      documentCategory: 'Chỉ dẫn kỹ thuật',
+      fileType: 'PDF',
+      author: 'Phòng Kỹ Thuật Bella',
+      updatedDateFormatted: '06/11/2026',
+      fileSize: '4.5 MB',
+      fileUrl: '/docs/spec-walnut-wood.pdf',
+    },
+    {
+      id: 'doc-2',
+      title: 'Biên bản nghiệm thu hồ sơ thiết kế ý tưởng (Concept Sign-off)',
+      documentCategory: 'Biên bản phê duyệt',
+      fileType: 'PDF',
+      author: 'Trần Thị Mai',
+      updatedDateFormatted: '06/11/2026',
+      fileSize: '1.2 MB',
+      fileUrl: '/docs/concept-signoff.pdf',
+    },
+  ],
+  materials: [
+    {
+      id: 'mat-1',
+      name: 'Veneer Óc Chó Bắc Mỹ',
+      code: 'Code: MS-440 EV',
+      brand: 'An Cường',
+      specification: 'Hoàn thiện sơn bóng mờ 50% PU cao cấp',
+      usageArea: 'Vách ốp phòng khách, kệ tivi, bàn trà',
+      status: 'approved',
+      statusLabel: 'Đã duyệt',
+      statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      thumbnailImage: 'https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?auto=format&fit=crop&w=200&q=80',
+    },
+    {
+      id: 'mat-2',
+      name: 'Đá Thạch Anh Nhân Tạo',
+      code: 'Code: BQ8628 Nero Marquina',
+      brand: 'Vicostone',
+      specification: 'Dày 20mm, bo mài 45 độ',
+      usageArea: 'Mặt bàn trà, mặt đảo bếp, lavabo',
+      status: 'approved',
+      statusLabel: 'Đã duyệt',
+      statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      thumbnailImage: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=200&q=80',
+    },
+    {
+      id: 'mat-3',
+      name: 'Bản Lề Giảm Chấn Thép',
+      code: 'Code: Clip Top BLUMOTION 110',
+      brand: 'Blum (Áo)',
+      specification: 'Bảo hành 5 năm',
+      usageArea: 'Hệ cánh tủ áo, tủ bếp, tủ giày',
+      status: 'approved',
+      statusLabel: 'Đã duyệt',
+      statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      thumbnailImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=200&q=80',
+    },
+    {
+      id: 'mat-4',
+      name: 'Khung Cánh Kính Slim',
+      code: 'Code: SLIM-CHAMPAGNE-05',
+      brand: 'Bella Slim Aluminium',
+      specification: 'Kính xám khói cường lực 5mm',
+      usageArea: 'Tủ rượu trang trí, tủ áo walk-in closet',
+      status: 'reference',
+      statusLabel: 'Tham khảo',
+      statusBadgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+      thumbnailImage: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=200&q=80',
+    },
+  ],
+  materialAudit: {
+    allCompliant: true,
+    auditTitle: 'Tất cả vật liệu đều đạt tiêu chuẩn',
+    auditSubtitle: 'Theo danh mục được phê duyệt',
+    approvedCount: 3,
+    referenceCount: 1,
+    totalCount: 4,
+  },
+  availableVersions: [
+    { versionNumber: 'R1.0', status: 'Approved – Locked', isCurrent: true },
+    { versionNumber: 'R1.1', status: 'Draft – Editing', isCurrent: false },
+    { versionNumber: 'R0.9', status: 'Concept Review', isCurrent: false },
+  ],
+};
 
 export default function InteriorDesignStudioPage() {
-  const [projects, setProjects] = useState<ProjectSummary[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
-  const [revisions, setRevisions] = useState<RevisionSummary[]>([]);
-  const [selectedRevId, setSelectedRevId] = useState<string>('');
-  const [revisionDetail, setRevisionDetail] = useState<FullRevisionDetail | null>(null);
-  const [roomZones, setRoomZones] = useState<RoomZoneItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [approving, setApproving] = useState<boolean>(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [data, setData] = useState<DesignStudioOverviewResponse>(INITIAL_DESIGN_OVERVIEW);
+  const [selectedVisualId, setSelectedVisualId] = useState<string>('vis-1');
+  const [activeViewerTab, setActiveViewerTab] = useState<'3d' | 'technical' | 'documents'>('3d');
 
-  // Modals
-  const [showNewProjectModal, setShowNewProjectModal] = useState<boolean>(false);
-  const [showNewRevModal, setShowNewRevModal] = useState<boolean>(false);
-  const [showApproveModal, setShowApproveModal] = useState<boolean>(false);
-  const [previewAsset, setPreviewAsset] = useState<DesignAssetItem | null>(null);
+  // Modals & Drawers state
+  const [showFullscreenModal, setShowFullscreenModal] = useState<boolean>(false);
+  const [showCompareModal, setShowCompareModal] = useState<boolean>(false);
+  const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
+  const [showBoqModal, setShowBoqModal] = useState<boolean>(false);
+  const [showAllMaterialsModal, setShowAllMaterialsModal] = useState<boolean>(false);
 
-  // New Project Form
-  const [newProjectName, setNewProjectName] = useState('');
-  const [newProjectCode, setNewProjectCode] = useState('');
-  const [newProjectClient, setNewProjectClient] = useState('');
-  const [newProjectBudget, setNewProjectBudget] = useState('500000000');
-  const [newProjectDesc, setNewProjectDesc] = useState('');
-
-  // New Revision Form
-  const [newRevName, setNewRevName] = useState('');
-  const [newRevNumber, setNewRevNumber] = useState('R2.0');
-
-  // Approval Form
-  const [approvalNotes, setApprovalNotes] = useState('');
-
-  // 1. Load Projects
-  const loadProjects = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/interior/projects');
-      const json = await res.json();
-      if (json.success && json.data?.projects) {
-        setProjects(json.data.projects);
-        if (json.data.projects.length > 0 && !selectedProjectId) {
-          setSelectedProjectId(json.data.projects[0].id);
-        }
-      }
-    } catch {
-      setFeedback({ type: 'error', message: 'Không thể kết nối đến máy chủ lấy danh sách dự án.' });
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedProjectId]);
+  // Lock toggling state
+  const [isTogglingLock, setIsTogglingLock] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    loadProjects();
-  }, [loadProjects]);
+    let isMounted = true;
 
-  // 2. Load Revisions when Project changes
-  const loadRevisions = useCallback(async (projId: string) => {
-    if (!projId) return;
-    try {
-      const res = await fetch(`/api/interior/design/revisions?projectId=${encodeURIComponent(projId)}`);
-      const json = await res.json();
-      if (json.success && json.data?.revisions) {
-        const revs: RevisionSummary[] = json.data.revisions;
-        setRevisions(revs);
-        if (revs.length > 0) {
-          // Select approved revision if available, otherwise first revision
-          const defaultRev = revs.find((r) => r.status === 'approved') || revs[0];
-          setSelectedRevId(defaultRev.id);
-        } else {
-          setSelectedRevId('');
-          setRevisionDetail(null);
+    async function fetchDesignData() {
+      try {
+        const res = await fetch('/api/interior/design');
+        if (res.ok) {
+          const json: DesignStudioOverviewResponse = await res.json();
+          if (isMounted) {
+            setData(json);
+            if (json.visuals && json.visuals.length > 0) {
+              const primary = json.visuals.find((v) => v.isPrimary) || json.visuals[0];
+              setSelectedVisualId(primary.id);
+            }
+          }
         }
+      } catch {
+        // Retain initial state
       }
-    } catch {
-      setFeedback({ type: 'error', message: 'Không thể tải danh sách phiên bản thiết kế.' });
     }
+
+    fetchDesignData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  useEffect(() => {
-    if (selectedProjectId) {
-      loadRevisions(selectedProjectId);
-    }
-  }, [selectedProjectId, loadRevisions]);
+  // Active Visual item selected
+  const activeVisual: DesignVisualItem =
+    data.visuals.find((v) => v.id === selectedVisualId) || data.visuals[0];
 
-  // 3. Load Revision Details when Revision changes
-  const loadRevisionDetail = useCallback(async (revId: string) => {
-    if (!revId) return;
+  // Handle Toggle Lock
+  const handleToggleLock = async () => {
     try {
-      const res = await fetch(`/api/interior/design/revisions/${encodeURIComponent(revId)}`);
-      const json = await res.json();
-      if (json.success && json.data?.revision) {
-        setRevisionDetail(json.data.revision);
-        if (json.data.roomZones) {
-          setRoomZones(json.data.roomZones);
-        }
-      }
-    } catch {
-      // Fallback
-    }
-  }, []);
-
-  useEffect(() => {
-    if (selectedRevId) {
-      loadRevisionDetail(selectedRevId);
-    }
-  }, [selectedRevId, loadRevisionDetail]);
-
-  // Active Project object
-  const activeProject = projects.find((p) => p.id === selectedProjectId) || {
-    id: 'proj-001',
-    name: 'Dubai Luxury Villa Fitout',
-    code: 'INT-DUBAI-001',
-    status: 'design',
-    clientName: 'Sheikh Al-Maktoum Office',
-    contractValue: 850_000_000,
-  };
-
-  // Active Revision object
-  const activeRev = revisions.find((r) => r.id === selectedRevId);
-  const isApproved = activeRev?.status === 'approved' || revisionDetail?.status === 'approved';
-
-  // Handle Create Project
-  const handleCreateProject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newProjectName || !newProjectCode || !newProjectClient) {
-      setFeedback({ type: 'error', message: 'Vui lòng điền đầy đủ Tên, Mã dự án và Khách hàng.' });
-      return;
-    }
-    try {
-      const res = await fetch('/api/interior/projects', {
+      setIsTogglingLock(true);
+      const res = await fetch('/api/interior/design', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: newProjectName,
-          code: newProjectCode,
-          clientPartyId: newProjectClient,
-          estimatedBudget: parseFloat(newProjectBudget) || 0,
-          description: newProjectDesc,
+          versionId: data.versionLock.versionId,
+          targetState: !data.versionLock.isLocked,
         }),
       });
-      const json = await res.json();
-      if (json.success && json.data?.project) {
-        setShowNewProjectModal(false);
-        setNewProjectName('');
-        setNewProjectCode('');
-        setNewProjectClient('');
-        setFeedback({ type: 'success', message: `Đã khởi tạo dự án ${json.data.project.code} thành công!` });
-        await loadProjects();
-        setSelectedProjectId(json.data.project.id);
-      } else {
-        setFeedback({ type: 'error', message: json.error || 'Tạo dự án thất bại.' });
-      }
-    } catch {
-      setFeedback({ type: 'error', message: 'Lỗi kết nối khi tạo dự án.' });
-    }
-  };
 
-  // Handle Create Revision
-  const handleCreateRevision = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newRevName || !newRevNumber) {
-      setFeedback({ type: 'error', message: 'Vui lòng nhập tên và số hiệu phiên bản.' });
-      return;
-    }
-    try {
-      const res = await fetch('/api/interior/design/revisions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId: selectedProjectId,
-          revisionName: newRevName,
-          revisionNumber: newRevNumber,
-          designedByUserId: 'user-architect-lead',
-        }),
-      });
-      const json = await res.json();
-      if (json.success && json.data?.revision) {
-        setShowNewRevModal(false);
-        setNewRevName('');
-        setFeedback({ type: 'success', message: `Đã tạo phiên bản ${json.data.revision.revisionNumber} thành công!` });
-        await loadRevisions(selectedProjectId);
-        setSelectedRevId(json.data.revision.id);
-      } else {
-        setFeedback({ type: 'error', message: json.error || 'Tạo version thất bại.' });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setData((prev) => ({
+            ...prev,
+            versionLock: json.data,
+          }));
+          const msg = json.data.isLocked
+            ? 'Đã kích hoạt Approved Design Lock! Bản thiết kế đã được bảo vệ khóa sản xuất.'
+            : 'Đã mở khóa thiết kế! Cho phép kiến trúc sư cập nhật thông số và tài liệu.';
+          setToastMessage(msg);
+          setTimeout(() => setToastMessage(null), 4000);
+        }
       }
     } catch {
-      setFeedback({ type: 'error', message: 'Lỗi kết nối khi tạo version.' });
-    }
-  };
-
-  // Handle Approve Design Lock
-  const handleApproveLock = async () => {
-    if (!selectedRevId) return;
-    setApproving(true);
-    try {
-      const res = await fetch(`/api/interior/design/revisions/${encodeURIComponent(selectedRevId)}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ approvalNotes }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        setShowApproveModal(false);
-        setApprovalNotes('');
-        setFeedback({
-          type: 'success',
-          message: 'Bản vẽ đã khóa phê duyệt thành công (Approved Design Lock)! Đã đủ điều kiện sang BOQ / Sản xuất.',
-        });
-        // Refresh revisions
-        await loadRevisions(selectedProjectId);
-        await loadRevisionDetail(selectedRevId);
-      } else {
-        setFeedback({ type: 'error', message: json.error || 'Không thể phê duyệt bản vẽ.' });
-      }
-    } catch {
-      setFeedback({ type: 'error', message: 'Lỗi khi gửi yêu cầu phê duyệt.' });
+      setToastMessage('Lỗi khi thao tác khóa thiết kế. Vui lòng thử lại.');
+      setTimeout(() => setToastMessage(null), 4000);
     } finally {
-      setApproving(false);
+      setIsTogglingLock(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 lg:p-8 space-y-6 font-sans">
-      {/* Toast Feedback */}
-      {feedback && (
-        <div
-          className={`flex items-center justify-between p-4 rounded-xl text-xs font-medium border ${
-            feedback.type === 'success'
-              ? 'bg-emerald-950/80 text-emerald-300 border-emerald-800'
-              : 'bg-rose-950/80 text-rose-300 border-rose-800'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            {feedback.type === 'success' ? (
-              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-            ) : (
-              <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
-            )}
-            <span>{feedback.message}</span>
-          </div>
-          <button onClick={() => setFeedback(null)} className="hover:text-white">
-            <X className="h-4 w-4" />
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 dark:bg-slate-950 dark:text-slate-100 p-4 sm:p-6 lg:p-8 space-y-5">
+      {/* ─── Toast Feedback ─── */}
+      {toastMessage && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900 text-white shadow-xl border border-slate-700 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMessage}</span>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="ml-2 text-slate-400 hover:text-white"
+          >
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
-      {/* Navigation & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
-        <div className="flex items-center gap-3">
+      {/* ─── Top Header: Breadcrumbs & Search / User Bar ─── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
           <Link
-            href="/dashboard/interior"
-            className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition-colors"
+            href="/dashboard/interior/projects"
+            className="hover:text-slate-900 dark:hover:text-white transition-colors"
           >
-            <ArrowLeft className="h-4 w-4" />
+            Dự án
           </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-white">Studio Quản Lý Thiết Kế &amp; Bản Vẽ</h1>
-              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                Design &amp; Specification
+          <span className="text-slate-400">›</span>
+          <span className="font-semibold text-slate-800 dark:text-slate-200">
+            {data.project.name} ({data.project.code})
+          </span>
+        </div>
+
+        {/* Search, Notifications & User */}
+        <div className="flex items-center gap-3">
+          {/* Search Box */}
+          <div className="relative hidden md:block">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm... (Ctrl + K)"
+              readOnly
+              className="w-56 pl-8 pr-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none cursor-pointer shadow-2xs"
+            />
+          </div>
+
+          {/* Notifications with Red Badge */}
+          <button
+            type="button"
+            className="relative p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-2xs transition-colors"
+            aria-label="Thông báo"
+          >
+            <Bell className="w-4 h-4" />
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center">
+              3
+            </span>
+          </button>
+
+          {/* User Profile */}
+          <div className="flex items-center gap-2 pl-1 cursor-pointer">
+            <img
+              src={'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=faces'}
+              alt="Nguyễn Văn Quang"
+              className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+            />
+            <div className="hidden sm:flex items-center gap-1">
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                Nguyễn Văn Quang
               </span>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
-              <span>Dự án:</span>
-              <select
-                value={selectedProjectId}
-                onChange={(e) => setSelectedProjectId(e.target.value)}
-                className="bg-slate-900 border border-slate-700 text-amber-300 rounded px-2 py-0.5 font-medium focus:outline-none focus:border-amber-500"
-              >
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.code})
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={() => setShowNewProjectModal(true)}
-                className="hover:text-amber-400 inline-flex items-center gap-1 text-[11px] underline"
-              >
-                + Thêm dự án
-              </button>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="flex items-center gap-2">
+      {/* ─── Project Title & Action Buttons Row ─── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Title & Status Badge */}
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            {data.project.name}
+          </h1>
           <button
-            onClick={() => loadRevisions(selectedProjectId)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700"
+            type="button"
+            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${data.project.statusBadgeClass} transition-colors`}
           >
-            <RefreshCw className="h-3.5 w-3.5 text-slate-400" />
-            Làm mới
+            <span>{data.project.statusLabel}</span>
+            <ChevronDown className="w-3 h-3 ml-0.5" />
           </button>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* So sánh phiên bản */}
           <button
-            onClick={() => setShowNewRevModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg bg-amber-600 hover:bg-amber-500 text-white shadow-sm transition-all"
+            type="button"
+            onClick={() => setShowCompareModal(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-all"
           >
-            <Plus className="h-3.5 w-3.5" />
-            Tạo Version mới
+            <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
+            <span>So sánh phiên bản</span>
+          </button>
+
+          {/* Lịch sử */}
+          <button
+            type="button"
+            onClick={() => setShowHistoryModal(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-all"
+          >
+            <History className="w-3.5 h-3.5 text-slate-500" />
+            <span>Lịch sử</span>
+          </button>
+
+          {/* Lập BOQ / Dự toán */}
+          <button
+            type="button"
+            onClick={() => setShowBoqModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-semibold shadow-sm hover:shadow transition-all"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <span>Lập BOQ / Dự toán</span>
+            <ChevronDown className="w-3.5 h-3.5 ml-0.5 opacity-80" />
           </button>
         </div>
       </div>
 
-      {/* Version Selector & Lock Banner */}
-      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs font-semibold uppercase text-slate-400">Phiên bản thiết kế:</span>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {revisions.map((rev) => (
-              <button
-                key={rev.id}
-                onClick={() => setSelectedRevId(rev.id)}
-                className={`px-3 py-1 text-xs font-medium rounded-lg border transition-all ${
-                  selectedRevId === rev.id
-                    ? 'bg-amber-500/10 text-amber-300 border-amber-500/30 shadow-sm'
-                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
-                }`}
-              >
-                {rev.revisionNumber} {rev.status === 'approved' && '• APPROVED'}
-              </button>
-            ))}
+      {/* ─── Lifecycle Sub-navigation Tabs ─── */}
+      <div className="border-b border-slate-200/80 dark:border-slate-800 flex items-center gap-6 overflow-x-auto text-xs font-semibold">
+        {data.subTabs.map((tab) => (
+          <Link
+            key={tab.key}
+            href={tab.href}
+            className={`pb-3 border-b-2 whitespace-nowrap transition-colors ${
+              tab.isActive
+                ? 'border-[#0f4c3a] text-[#0f4c3a] dark:border-emerald-400 dark:text-emerald-400 font-bold'
+                : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+            }`}
+          >
+            {tab.label}
+          </Link>
+        ))}
+      </div>
+
+      {/* ─── Approved Design Lock & Version Info Strip ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Left Card: Version Information */}
+        <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+              <Layers className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-[11px] font-medium text-slate-400 dark:text-slate-400">
+                Phiên bản thiết kế
+              </div>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xl font-extrabold text-slate-900 dark:text-white">
+                  {data.versionLock.versionNumber}
+                </span>
+                <span className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300">
+                  {data.versionLock.statusLabel}
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300">
+                  <Lock className="w-2.5 h-2.5" />
+                  {data.versionLock.lockLabel}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden sm:block h-10 w-px bg-slate-200/80 dark:bg-slate-800" />
+
+          {/* Ngày duyệt */}
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+              <Calendar className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-[10px] font-medium text-slate-400">Ngày duyệt</div>
+              <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                {data.versionLock.approvalDateFormatted}
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden sm:block h-10 w-px bg-slate-200/80 dark:bg-slate-800" />
+
+          {/* Người duyệt */}
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+              <User className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-[10px] font-medium text-slate-400">Người duyệt</div>
+              <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                {data.versionLock.approvedBy}
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden md:block h-10 w-px bg-slate-200/80 dark:bg-slate-800" />
+
+          {/* Mô tả */}
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+              <FileText className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-[10px] font-medium text-slate-400">Mô tả</div>
+              <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                {data.versionLock.description}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Lock Status & Actions */}
-        <div className="flex items-center gap-2">
-          {isApproved ? (
-            <div className="flex items-center gap-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-medium">
-                <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                <span>Approved Design Lock — Bản vẽ đã khóa sản xuất</span>
-              </div>
-              <Link
-                href={`/dashboard/interior/boq?revisionId=${selectedRevId}`}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs font-medium transition-colors"
-              >
-                Lập BOQ / Dự toán
-                <ChevronRight className="h-3.5 w-3.5" />
-              </Link>
+        {/* Right Card: Approved Design Lock Status & Unlock Action */}
+        <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <Check className="w-5 h-5 stroke-[3]" />
             </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-medium">
-                <Clock className="h-4 w-4 text-amber-400" />
-                <span>Dự thảo (Chưa khóa phê duyệt)</span>
+            <div>
+              <div className="text-xs font-bold text-slate-900 dark:text-white">
+                {data.versionLock.lockBannerTitle}
               </div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                {data.versionLock.lockBannerSubtitle}
+              </div>
+            </div>
+          </div>
+
+          {/* Action button */}
+          <button
+            type="button"
+            onClick={handleToggleLock}
+            disabled={isTogglingLock}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors shrink-0 shadow-2xs"
+          >
+            {data.versionLock.isLocked ? (
+              <>
+                <Unlock className="w-3.5 h-3.5 text-slate-500" />
+                <span>Mở khóa</span>
+              </>
+            ) : (
+              <>
+                <Lock className="w-3.5 h-3.5 text-amber-600" />
+                <span>Khóa lại</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* ─── Main Content Grid: Left 3D Showcase & Right Materials ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* Left Column: 3D Perspective Viewer & Blueprint Canvas (Col 8/9) */}
+        <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex flex-col justify-between space-y-4">
+          {/* Viewer Tabs Bar */}
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            {/* View Switchers */}
+            <div className="flex items-center gap-1 sm:gap-2">
               <button
-                onClick={() => setShowApproveModal(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition-all"
+                type="button"
+                onClick={() => setActiveViewerTab('3d')}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  activeViewerTab === '3d'
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
               >
-                <Lock className="h-3.5 w-3.5" />
-                Phê duyệt &amp; Khóa (Lock)
+                <Layers className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Phối cảnh 3D</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveViewerTab('technical')}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  activeViewerTab === 'technical'
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Ruler className="w-3.5 h-3.5" />
+                <span>Bản vẽ kỹ thuật</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveViewerTab('documents')}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  activeViewerTab === 'documents'
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+              >
+                <FolderOpen className="w-3.5 h-3.5" />
+                <span>Tài liệu liên quan</span>
+              </button>
+            </div>
+
+            {/* Maximize / Fullscreen action */}
+            <button
+              type="button"
+              onClick={() => setShowFullscreenModal(true)}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Xem toàn màn hình</span>
+            </button>
+          </div>
+
+          {/* Active Canvas Body */}
+          {activeViewerTab === '3d' && (
+            <div className="space-y-4 flex-1 flex flex-col justify-between">
+              {/* Main Large Visualizer */}
+              <div
+                className="relative w-full aspect-16/10 rounded-2xl overflow-hidden bg-slate-900 shadow-inner group cursor-pointer"
+                onClick={() => setShowFullscreenModal(true)}
+              >
+                <img
+                  src={activeVisual.imageUrl}
+                  alt={activeVisual.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                />
+
+                {/* Subtle gradient vignette */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
+
+                {/* Bottom Overlay Label */}
+                <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" />
+                    <span className="font-bold drop-shadow">{activeVisual.title}</span>
+                    <span className="text-[11px] text-slate-200 opacity-90 drop-shadow">
+                      ({activeVisual.roomZone})
+                    </span>
+                  </div>
+                  <span className="hidden sm:inline-block text-[10px] font-mono bg-black/50 backdrop-blur-md px-2 py-0.5 rounded text-slate-300">
+                    {activeVisual.resolution}
+                  </span>
+                </div>
+              </div>
+
+              {/* Gallery Thumbnails Carousel Strip */}
+              <div className="grid grid-cols-5 gap-3 pt-1">
+                {data.visuals.slice(0, 4).map((visual) => (
+                  <button
+                    key={visual.id}
+                    type="button"
+                    onClick={() => setSelectedVisualId(visual.id)}
+                    className={`relative aspect-16/10 rounded-xl overflow-hidden transition-all duration-200 ${
+                      selectedVisualId === visual.id
+                        ? 'ring-2 ring-[#0f4c3a] ring-offset-2 dark:ring-offset-slate-900 scale-[1.02] shadow-sm'
+                        : 'opacity-75 hover:opacity-100 hover:scale-[1.01]'
+                    }`}
+                  >
+                    <img
+                      src={visual.thumbnailUrl}
+                      alt={visual.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+
+                {/* 5th Thumbnail with +3 Overlay */}
+                <button
+                  type="button"
+                  onClick={() => setShowFullscreenModal(true)}
+                  className="relative aspect-16/10 rounded-xl overflow-hidden bg-slate-700 hover:bg-slate-600 transition-all duration-200 flex items-center justify-center text-white"
+                >
+                  <img
+                    src={data.visuals[4]?.thumbnailUrl || data.visuals[0].thumbnailUrl}
+                    alt="Xem thêm góc nhìn"
+                    className="w-full h-full object-cover opacity-40"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center font-extrabold text-base sm:text-lg">
+                    +3
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Technical Drawings Tab View */}
+          {activeViewerTab === 'technical' && (
+            <div className="space-y-3 flex-1">
+              <div className="text-xs font-semibold text-slate-500 mb-2">
+                Hồ sơ bản vẽ kỹ thuật kiến trúc, bổ đồ gỗ &amp; MEP đã duyệt:
+              </div>
+              {data.technicalDrawings.map((dwg) => (
+                <div
+                  key={dwg.id}
+                  className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3 hover:border-slate-300 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs shrink-0">
+                      {dwg.fileType}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900 dark:text-white">
+                        {dwg.title}
+                      </div>
+                      <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                        {dwg.drawingCode} · {dwg.author} · {dwg.fileSize}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border ${dwg.statusBadgeClass}`}>
+                      {dwg.statusLabel}
+                    </span>
+                    <button
+                      type="button"
+                      className="p-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-900"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Related Documents Tab View */}
+          {activeViewerTab === 'documents' && (
+            <div className="space-y-3 flex-1">
+              <div className="text-xs font-semibold text-slate-500 mb-2">
+                Hồ sơ chỉ dẫn thi công, biên bản nghiệm thu &amp; moodboard:
+              </div>
+              {data.relatedDocuments.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3 hover:border-slate-300 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/50 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold text-xs shrink-0">
+                      PDF
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900 dark:text-white">
+                        {doc.title}
+                      </div>
+                      <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                        {doc.documentCategory} · {doc.author} · {doc.fileSize}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="p-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-900"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>
-      </div>
 
-      {/* Room Zones Navigation Strip */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-        <span className="text-slate-400 font-medium shrink-0">Không gian thiết kế:</span>
-        {roomZones.length > 0 ? (
-          roomZones.map((z) => (
-            <span
-              key={z.id}
-              className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 shrink-0"
-            >
-              {z.name} ({z.code}) {z.areaSquareMeters ? `• ${z.areaSquareMeters}m²` : ''}
-            </span>
-          ))
-        ) : (
-          <>
-            <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 shrink-0">
-              Phòng khách Luxury • 65m²
-            </span>
-            <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 shrink-0">
-              Bếp &amp; Phòng ăn Master • 45m²
-            </span>
-            <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 shrink-0">
-              Phòng ngủ Master Suite • 52m²
-            </span>
-          </>
-        )}
-      </div>
-
-      {/* Design Studio Layout: Rooms, 3D Render & Materials */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Rooms & 3D Renderings */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Layers className="h-4 w-4 text-amber-400" />
-                Phối Cảnh 3D &amp; Bản Vẽ Kỹ Thuật ({activeRev?.revisionNumber || 'R1.0'})
-              </h3>
-              <span className="text-xs text-slate-400">
-                {revisionDetail?.title || 'Phối cảnh tổng thể Luxury Villa Fitout'}
-              </span>
+        {/* Right Column: Materials & Specifications (Col 4/3) */}
+        <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex flex-col justify-between space-y-4">
+          <div>
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2">
+                <Box className="w-4 h-4 text-slate-700 dark:text-slate-300" />
+                <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                  Danh sách vật liệu
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAllMaterialsModal(true)}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 transition-colors"
+              >
+                <span>Xem tất cả</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
             </div>
 
-            {/* 3D Render Viewer Canvas */}
-            <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-950 aspect-video flex items-center justify-center group">
-              <img
-                src={
-                  revisionDetail?.assets?.[0]?.fileUrl ||
-                  'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80'
-                }
-                alt="Phối cảnh 3D"
-                className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent z-10" />
-              <div className="text-center p-6 space-y-2 z-20 mt-auto">
-                <div className="text-base font-bold text-white drop-shadow">
-                  {revisionDetail?.assets?.[0]?.title || 'Phối cảnh 3D Phòng Khách & Bàn Đảo Bếp V2'}
-                </div>
-                <p className="text-xs text-slate-300 max-w-md drop-shadow">
-                  {revisionDetail?.assets?.[0]?.notes ||
-                    'Veneer óc chó tự nhiên Bắc Mỹ, vách đá Marble Calacatta nhân tạo Vicostone, phụ kiện ray Blum.'}
-                </p>
-                <div className="pt-2 flex items-center justify-center gap-2">
-                  <button
-                    onClick={() =>
-                      setPreviewAsset(
-                        revisionDetail?.assets?.[0] || {
-                          id: 'sample',
-                          type: 'concept_3d',
-                          title: 'Phối cảnh 3D Phòng Khách & Bàn Đảo Bếp V2',
-                          fileUrl:
-                            'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80',
-                        }
-                      )
-                    }
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-900/90 text-slate-200 border border-slate-700 hover:bg-amber-600 hover:text-white transition-colors"
-                  >
-                    <Maximize2 className="h-3 w-3 text-amber-400" /> Xem ảnh phóng to
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Technical Drawing Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-1">
-                <span className="text-slate-500">Mặt cắt kỹ thuật</span>
-                <div className="font-semibold text-slate-200">2D-SEC-KIT-01.pdf</div>
-                <div className="text-[11px] text-emerald-400 flex items-center gap-1">
-                  <CheckCircle2 className="h-3 w-3" /> Đã ký duyệt
-                </div>
-              </div>
-              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-1">
-                <span className="text-slate-500">Chi tiết phụ kiện</span>
-                <div className="font-semibold text-slate-200">BLUM-TANDEM-SPEC.pdf</div>
-                <div className="text-[11px] text-emerald-400 flex items-center gap-1">
-                  <CheckCircle2 className="h-3 w-3" /> Đã chốt mã
-                </div>
-              </div>
-              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-1">
-                <span className="text-slate-500">Mặt bằng bố trí</span>
-                <div className="font-semibold text-slate-200">LAYOUT-F1-REV2.dwg</div>
-                <div className="text-[11px] text-emerald-400 flex items-center gap-1">
-                  <CheckCircle2 className="h-3 w-3" /> Cốt hiện trạng
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Material Specifications Board */}
-        <div className="space-y-4">
-          <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Palette className="h-4 w-4 text-amber-400" />
-                Quy Cách Vật Liệu &amp; Phụ Kiện
-              </h3>
-              <span className="text-xs text-amber-400">
-                {revisionDetail?.materialSpecs?.length || 4} vật tư định danh
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              {(revisionDetail?.materialSpecs && revisionDetail.materialSpecs.length > 0
-                ? revisionDetail.materialSpecs
-                : [
-                    {
-                      id: 'spec-1',
-                      itemCategory: 'wood_board',
-                      brand: 'An Cường',
-                      code: 'MS 440 EV',
-                      name: 'Veneer Óc Chó Bắc Mỹ',
-                      colorTone: 'Walnut Deep Brown',
-                      specDescription: 'Hoàn thiện sơn bóng mờ 50% PU cao cấp',
-                      approvedForUse: true,
-                    },
-                    {
-                      id: 'spec-2',
-                      itemCategory: 'stone',
-                      brand: 'Vicostone',
-                      code: 'BQ8628 Nero Marquina',
-                      name: 'Đá Thạch Anh Nhân Tạo',
-                      colorTone: 'Black Marquina',
-                      specDescription: 'Dày 20mm bo mòi 45 độ',
-                      approvedForUse: true,
-                    },
-                    {
-                      id: 'spec-3',
-                      itemCategory: 'hardware',
-                      brand: 'Blum Austria',
-                      code: 'Clip Top BLUMOTION 110',
-                      name: 'Bản Lề Giảm Chấn Thép',
-                      colorTone: 'Nikel Silver',
-                      specDescription: 'Bảo hành 5 năm cơ cấu đóng êm',
-                      approvedForUse: true,
-                    },
-                    {
-                      id: 'spec-4',
-                      itemCategory: 'glass_metal',
-                      brand: 'EuroClass',
-                      code: 'SLIM-CHAMPAGNE-05',
-                      name: 'Khung Cánh Kính Slim',
-                      colorTone: 'Champagne Gold',
-                      specDescription: 'Kính xám khói cường lực 5mm viền nhôm anode champagne',
-                      approvedForUse: true,
-                    },
-                  ]
-              ).map((spec) => (
+            {/* Materials List */}
+            <div className="mt-3.5 space-y-3">
+              {data.materials.map((mat) => (
                 <div
-                  key={spec.id}
-                  className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1.5"
+                  key={mat.id}
+                  className="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-slate-200">{spec.name}</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      {spec.brand}
-                    </span>
+                  <div className="flex items-start gap-2.5">
+                    {/* Material Texture Thumbnail */}
+                    <img
+                      src={mat.thumbnailImage}
+                      alt={mat.name}
+                      className="w-11 h-11 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0"
+                    />
+                    <div>
+                      <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
+                        {mat.name}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                        {mat.code}
+                      </div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
+                        {mat.specification}
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-400">
-                    Code: <span className="text-slate-200 font-medium">{spec.code}</span> • {spec.specDescription}
-                  </p>
+
+                  {/* Status Badge */}
+                  <span
+                    className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border shrink-0 ${mat.statusBadgeClass}`}
+                  >
+                    {mat.statusLabel}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Bottom Compliance Audit Banner */}
+          <div className="rounded-xl bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/80 p-3.5 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+              <Check className="w-4 h-4 stroke-[3]" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
+                {data.materialAudit.auditTitle}
+              </div>
+              <div className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-0.5">
+                {data.materialAudit.auditSubtitle}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Modal: New Project */}
-      {showNewProjectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Building className="h-5 w-5 text-amber-400" /> Khởi Tạo Dự Án Nội Thất Mới
-              </h3>
-              <button onClick={() => setShowNewProjectModal(false)} className="text-slate-400 hover:text-white">
-                <X className="h-5 w-5" />
-              </button>
+      {/* ─── Modal 1: Fullscreen 3D Perspectives Lightbox ─── */}
+      {showFullscreenModal && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col justify-between p-4 sm:p-6 animate-in fade-in">
+          {/* Header */}
+          <div className="flex items-center justify-between text-white pb-3 border-b border-white/10">
+            <div>
+              <h3 className="text-sm sm:text-base font-bold">{activeVisual.title}</h3>
+              <p className="text-xs text-slate-400">{activeVisual.roomZone} · {activeVisual.resolution}</p>
             </div>
-            <form onSubmit={handleCreateProject} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-slate-300 mb-1 font-medium">Tên dự án *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ví dụ: Căn hộ Duplex Vinhomes Central Park"
-                  value={newProjectName}
-                  onChange={(e) => setNewProjectName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
+            <button
+              type="button"
+              onClick={() => setShowFullscreenModal(false)}
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Main Large View */}
+          <div className="flex-1 flex items-center justify-center p-2 sm:p-4">
+            <img
+              src={activeVisual.imageUrl}
+              alt={activeVisual.title}
+              className="max-h-[75vh] w-auto max-w-full rounded-xl object-contain shadow-2xl"
+            />
+          </div>
+
+          {/* Thumbnail Picker in Fullscreen */}
+          <div className="flex items-center justify-center gap-3 overflow-x-auto py-2">
+            {data.visuals.map((visual) => (
+              <button
+                key={visual.id}
+                type="button"
+                onClick={() => setSelectedVisualId(visual.id)}
+                className={`w-20 h-14 rounded-lg overflow-hidden shrink-0 transition-all ${
+                  selectedVisualId === visual.id
+                    ? 'ring-2 ring-emerald-400 scale-105'
+                    : 'opacity-50 hover:opacity-100'
+                }`}
+              >
+                <img
+                  src={visual.thumbnailUrl}
+                  alt={visual.title}
+                  className="w-full h-full object-cover"
                 />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Mã dự án *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="INT-2026-003"
-                    value={newProjectCode}
-                    onChange={(e) => setNewProjectCode(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Khách hàng / Chủ đầu tư *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Nguyễn Văn A"
-                    value={newProjectClient}
-                    onChange={(e) => setNewProjectClient(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-slate-300 mb-1 font-medium">Dự toán dự kiến (VNĐ)</label>
-                <input
-                  type="number"
-                  value={newProjectBudget}
-                  onChange={(e) => setNewProjectBudget(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-              <div>
-                <label className="block text-slate-300 mb-1 font-medium">Địa chỉ công trình</label>
-                <textarea
-                  rows={2}
-                  placeholder="Số nhà, đường, quận/huyện..."
-                  value={newProjectDesc}
-                  onChange={(e) => setNewProjectDesc(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-              <div className="pt-2 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowNewProjectModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium shadow-sm"
-                >
-                  Lưu &amp; Tạo dự án
-                </button>
-              </div>
-            </form>
+              </button>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Modal: New Revision */}
-      {showNewRevModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Plus className="h-5 w-5 text-amber-400" /> Tạo Phiên Bản Thiết Kế Mới
-              </h3>
-              <button onClick={() => setShowNewRevModal(false)} className="text-slate-400 hover:text-white">
-                <X className="h-5 w-5" />
+      {/* ─── Modal 2: So sánh phiên bản thiết kế ─── */}
+      {showCompareModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4 text-emerald-600" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  So sánh phiên bản thiết kế (Design Revisions)
+                </h3>
+              </div>
+              <button onClick={() => setShowCompareModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <form onSubmit={handleCreateRevision} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-slate-300 mb-1 font-medium">Số hiệu Revision *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="R2.0"
-                  value={newRevNumber}
-                  onChange={(e) => setNewRevNumber(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/80">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-extrabold text-slate-900 dark:text-white">R1.0 (Hiện tại)</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                    Approved – Locked
+                  </span>
+                </div>
+                <ul className="text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
+                  <li>• Người duyệt: Trần Thị Mai</li>
+                  <li>• Ngày duyệt: 06/11/2026</li>
+                  <li>• Trạng thái BOQ: Đủ điều kiện sản xuất</li>
+                  <li>• Vật liệu: 4 hạng mục chính</li>
+                </ul>
               </div>
-              <div>
-                <label className="block text-slate-300 mb-1 font-medium">Tên phương án thiết kế *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Phương án điều chỉnh phòng khách & quầy bar"
-                  value={newRevName}
-                  onChange={(e) => setNewRevName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                />
+
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-extrabold text-slate-900 dark:text-white">R1.1 (Dự thảo)</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                    Draft – Editing
+                  </span>
+                </div>
+                <ul className="text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
+                  <li>• Kiến trúc sư: KTS. Hoàng Long</li>
+                  <li>• Cập nhật: Thay đổi chất liệu đá lavabo</li>
+                  <li>• Trạng thái: Đang chỉnh sửa, chưa khóa</li>
+                  <li>• Tác động BOQ: Ước tính +15 triệu</li>
+                </ul>
               </div>
-              <div className="pt-2 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowNewRevModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium shadow-sm"
-                >
-                  Tạo Revision
-                </button>
-              </div>
-            </form>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setShowCompareModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200"
+              >
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Modal: Approve & Lock */}
-      {showApproveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-emerald-400" /> Phê Duyệt &amp; Khóa Bản Vẽ
-              </h3>
-              <button onClick={() => setShowApproveModal(false)} className="text-slate-400 hover:text-white">
-                <X className="h-5 w-5" />
+      {/* ─── Modal 3: Lập BOQ / Dự toán ─── */}
+      {showBoqModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Lập BOQ / Dự toán từ thiết kế R1.0
+                </h3>
+              </div>
+              <button onClick={() => setShowBoqModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
               </button>
             </div>
+
+            <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 text-xs text-emerald-900 dark:text-emerald-200">
+              <div className="font-bold flex items-center gap-1.5 mb-1">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                Bản vẽ R1.0 đã đủ điều kiện khóa sản xuất!
+              </div>
+              <div>
+                Hệ thống sẽ tự động bóc tách vật liệu (gỗ óc chó, đá thạch anh Vicostone, phụ kiện Blum) và đồng bộ sang phân hệ BOQ &amp; Dự toán.
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowBoqModal(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                Hủy
+              </button>
+              <Link
+                href="/dashboard/interior/boq"
+                className="px-4 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-semibold"
+              >
+                Chuyển sang phân hệ BOQ →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal 4: Lịch sử phê duyệt ─── */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <History className="w-4 h-4 text-slate-700 dark:text-slate-300" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Lịch sử phê duyệt thiết kế
+                </h3>
+              </div>
+              <button onClick={() => setShowHistoryModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
             <div className="space-y-3 text-xs">
-              <p className="text-slate-300 leading-relaxed">
-                Khi thực hiện phê duyệt, hệ thống sẽ kích hoạt quy tắc{' '}
-                <span className="text-emerald-400 font-semibold">Approved Design Lock</span>:
-              </p>
-              <ul className="list-disc pl-5 space-y-1 text-slate-400">
-                <li>Bản vẽ và quy cách vật liệu của phiên bản này sẽ bị khóa vĩnh viễn (immutable).</li>
-                <li>Không cho phép chỉnh sửa hoặc phê duyệt lại lần 2.</li>
-                <li>Phiên bản này sẽ trở thành căn cứ pháp lý để lập BOQ, ký hợp đồng và sản xuất.</li>
-              </ul>
-              <div>
-                <label className="block text-slate-300 mb-1 font-medium">Ghi chú phê duyệt (Tùy chọn)</label>
-                <textarea
-                  rows={2}
-                  placeholder="Khách hàng đã ký biên bản chốt phương án ngày 06/11/2026..."
-                  value={approvalNotes}
-                  onChange={(e) => setApprovalNotes(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-emerald-500"
-                />
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80">
+                <div className="flex items-center justify-between font-bold text-slate-900 dark:text-white">
+                  <span>06/11/2026 14:30</span>
+                  <span className="text-emerald-600">Approved Design Lock</span>
+                </div>
+                <div className="text-slate-600 dark:text-slate-300 mt-1">
+                  Chủ đầu tư Trần Thị Mai ký duyệt phiên bản R1.0 và kích hoạt khóa sản xuất.
+                </div>
               </div>
-              <div className="pt-2 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowApproveModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
-                >
-                  Hủy
-                </button>
-                <button
-                  onClick={handleApproveLock}
-                  disabled={approving}
-                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm transition-all disabled:opacity-50"
-                >
-                  {approving ? 'Đang khóa...' : 'Xác nhận Khóa &amp; Phê duyệt'}
-                </button>
+
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80">
+                <div className="flex items-center justify-between font-bold text-slate-900 dark:text-white">
+                  <span>04/11/2026 09:15</span>
+                  <span className="text-blue-600">Client Review</span>
+                </div>
+                <div className="text-slate-600 dark:text-slate-300 mt-1">
+                  KTS. Hoàng Long trình duyệt 4K render phòng khách và danh mục vật liệu An Cường.
+                </div>
               </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setShowHistoryModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+              >
+                Đóng
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal: Preview Asset */}
-      {previewAsset && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl p-4 space-y-3 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <span className="text-sm font-semibold text-white">{previewAsset.title}</span>
-              <button onClick={() => setPreviewAsset(null)} className="text-slate-400 hover:text-white">
-                <X className="h-5 w-5" />
+      {/* ─── Modal 5: Xem tất cả vật liệu ─── */}
+      {showAllMaterialsModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-xl w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Box className="w-4 h-4 text-emerald-600" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Toàn bộ danh mục vật liệu &amp; phụ kiện (R1.0)
+                </h3>
+              </div>
+              <button onClick={() => setShowAllMaterialsModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="rounded-xl overflow-hidden bg-black max-h-[70vh] flex items-center justify-center">
-              <img src={previewAsset.fileUrl} alt={previewAsset.title} className="max-h-[70vh] object-contain" />
+
+            <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+              {data.materials.map((mat) => (
+                <div
+                  key={mat.id}
+                  className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={mat.thumbnailImage}
+                      alt={mat.name}
+                      className="w-12 h-12 rounded-lg object-cover border"
+                    />
+                    <div>
+                      <div className="text-xs font-bold text-slate-900 dark:text-white">{mat.name}</div>
+                      <div className="text-[11px] font-mono text-slate-400">{mat.code} · Thương hiệu: {mat.brand}</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">{mat.specification}</div>
+                      <div className="text-[10px] text-slate-400 italic mt-0.5">Vị trí: {mat.usageArea}</div>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold border shrink-0 ${mat.statusBadgeClass}`}>
+                    {mat.statusLabel}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setShowAllMaterialsModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+              >
+                Đóng
+              </button>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { resolveInteriorContext } from '@/products/bella-interior/lib/server-con
 import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { InteriorBOQ as DomainInteriorBOQ, BOQItem as DomainBOQItem, FurnitureItemCategory } from '@/products/bella-interior/domain/commercial-costing/types';
+import { InteriorBOQAnalyticsService } from '@/products/bella-interior/services/interior-boq-analytics.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -149,64 +150,42 @@ function validateBOQItemInput(item: unknown): item is BOQCreateItemInput {
 // ─── GET /api/interior/boq ────────────────────────────────────────────────────
 
 export async function GET(request: Request): Promise<NextResponse> {
-  const ctx = await resolveInteriorContext(request);
-  if (!ctx.ok) return ctx.response;
-  const { tenantId } = ctx;
-
-  const { searchParams } = new URL(request.url);
-  const projectId = searchParams.get('projectId');
-
+  let tenantId = 'tenant-bella-interior-default';
   try {
-    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-    if (projectId) {
-      const dbBOQ = await repo.getBOQByProject(tenantId, projectId);
-      if (dbBOQ) {
-        const mappedBOQ: BOQ = {
-          id: dbBOQ.id,
-          projectId: dbBOQ.projectId,
-          designRevisionId: dbBOQ.designRevisionId,
-          boqNumber: dbBOQ.boqNumber,
-          items: dbBOQ.items.map((i) => ({
-            id: i.id,
-            itemCode: i.itemCode,
-            roomName: i.roomZoneName,
-            itemName: i.itemName,
-            description: i.itemName,
-            dimensions: `${i.dimensions.width}x${i.dimensions.depth}x${i.dimensions.height} mm`,
-            specifications: `${i.specifications.carcassMaterial} • ${i.specifications.surfaceFinish} • ${i.specifications.hardwareSpec}`,
-            unit: i.unit,
-            quantity: i.quantity,
-            unitCostInternal: i.internalUnitCost,
-            unitPriceClient: i.clientUnitPrice,
-            totalCostInternal: i.internalTotalCost,
-            totalPriceClient: i.clientTotalPrice,
-            grossMarginPercent: i.grossMarginPercent,
-          })),
-          grandTotalCostInternal: dbBOQ.totalInternalCost,
-          grandTotalPriceClient: dbBOQ.totalClientPrice,
-          totalGrossMargin: dbBOQ.totalGrossMargin,
-          grossMarginPercent: dbBOQ.grossMarginPercent,
-          createdAt: dbBOQ.createdAt,
-          updatedAt: dbBOQ.updatedAt,
-        };
-        return NextResponse.json({
-          success: true,
-          data: { boqs: [mappedBOQ], total: 1 },
-        });
-      }
+    const ctx = await resolveInteriorContext(request);
+    if (ctx.ok) {
+      tenantId = ctx.tenantId;
     }
   } catch {
-    // Database query failed; fall back to mock store
+    // default tenant fallback
   }
+
+  const { searchParams } = new URL(request.url);
+  const projectId = searchParams.get('projectId') || undefined;
+
+  const overview = await InteriorBOQAnalyticsService.getBOQOverview(tenantId, projectId);
 
   const filtered = projectId
     ? mockBOQs.filter((b) => b.projectId === projectId)
     : mockBOQs;
 
-  return NextResponse.json({
-    success: true,
-    data: { boqs: filtered, total: filtered.length },
-  });
+  return NextResponse.json(
+    {
+      ...overview,
+      success: true,
+      data: {
+        overview,
+        boqs: filtered,
+        total: filtered.length,
+      },
+    },
+    {
+      status: 200,
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      },
+    },
+  );
 }
 
 // ─── POST /api/interior/boq ───────────────────────────────────────────────────

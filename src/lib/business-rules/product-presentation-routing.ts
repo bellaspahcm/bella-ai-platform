@@ -36,6 +36,7 @@ export function resolveProductPresentationModule(product: ProductDefinition, mod
     case 'babycare': expected = 'babycare'; break;
     case 'education': case 'english-center': expected = 'bella_education'; break;
     case 'hospital': expected = 'bella_healthcare'; break;
+    case 'interior': expected = 'bella_interior'; break;
     default: return null;
   }
   return isEnabled(modules, expected) || (expected === 'bella_healthcare' && isEnabled(modules, 'healthcare')) ? expected : null;

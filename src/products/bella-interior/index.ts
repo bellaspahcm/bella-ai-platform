@@ -44,6 +44,30 @@ export * from './lib/server-context';
 // Master Service Facade
 export * from './services/interior-os.service';
 
+// Portfolio Overview & Executive Analytics
+export * from './domain/portfolio-overview.types';
+export * from './services/interior-portfolio-analytics.service';
+
+// Customer CRM & Investor Analytics
+export * from './domain/customer-overview.types';
+export * from './services/interior-customer-analytics.service';
+
+// Schedule & Dispatch Management Analytics
+export * from './domain/schedule-overview.types';
+export * from './services/interior-schedule-analytics.service';
+
+// Design Studio & Specification Analytics
+export * from './domain/design-overview.types';
+export * from './services/interior-design-analytics.service';
+
+// BOQ & BOM Commercial & Manufacturing Costing Analytics
+export * from './domain/boq-overview.types';
+export * from './services/interior-boq-analytics.service';
+
+// Commercial Contract & Payment Progress Analytics
+export * from './domain/contract-overview.types';
+export * from './services/interior-contract-analytics.service';
+
 // Manifest
 export * from './manifest';
 

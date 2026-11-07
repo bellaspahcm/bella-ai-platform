@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
+import { InteriorPortfolioAnalyticsService } from '@/products/bella-interior/services/interior-portfolio-analytics.service';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { InteriorProject } from '@/products/bella-interior/domain/design-specification/types';
 
@@ -42,21 +43,39 @@ interface CreateProjectBody {
 const mockProjects: InteriorProjectSummary[] = [
   {
     id: 'proj-001',
-    name: 'Villa Sunrise Renovation',
-    code: 'INT-2024-001',
-    status: 'design',
-    clientName: 'Ahmad Santoso',
-    contractValue: 450_000_000,
-    createdAt: '2024-01-15T08:00:00.000Z',
+    name: 'Villa Ciputra Giai Đoạn 2',
+    code: 'INT-CIPUTRA-01',
+    status: 'production',
+    clientName: 'Nguyễn Văn A',
+    contractValue: 2_450_000_000,
+    createdAt: '2026-03-15T08:00:00.000Z',
   },
   {
     id: 'proj-002',
-    name: 'Office Tower Lobby',
-    code: 'INT-2024-002',
-    status: 'production',
-    clientName: 'PT Maju Bersama',
-    contractValue: 1_200_000_000,
-    createdAt: '2024-02-20T10:30:00.000Z',
+    name: 'Dubai Luxury Villa Fitout',
+    code: 'INT-DUBAI-001',
+    status: 'installation',
+    clientName: 'Sheikh Mansoor',
+    contractValue: 3_780_000_000,
+    createdAt: '2026-04-20T10:30:00.000Z',
+  },
+  {
+    id: 'proj-003',
+    name: 'Penthouse Metropolis Liễu Giai',
+    code: 'INT-METROPOLIS-02',
+    status: 'handover',
+    clientName: 'Trịnh Thăng Bình',
+    contractValue: 2_200_000_000,
+    createdAt: '2026-05-05T14:15:00.000Z',
+  },
+  {
+    id: 'proj-004',
+    name: 'Duplex Aqua Bay Ecopark',
+    code: 'INT-ECOPARK-03',
+    status: 'design',
+    clientName: 'Phạm Hồng Nhung',
+    contractValue: 850_000_000,
+    createdAt: '2026-06-10T09:00:00.000Z',
   },
 ];
 
@@ -83,34 +102,25 @@ export async function GET(request: Request): Promise<NextResponse> {
   const { tenantId } = ctx;
 
   try {
-    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-    const dbProjects = await repo.listProjects(tenantId);
-    if (dbProjects && dbProjects.length > 0) {
-      const summaries: InteriorProjectSummary[] = dbProjects.map((p) => ({
-        id: p.id,
-        name: p.name,
-        code: p.code,
-        status: p.status === 'contracted' ? 'approved' : p.status === 'in_production' ? 'production' : p.status === 'installing' ? 'installation' : p.status === 'handover' ? 'handover' : p.status === 'completed' ? 'completed' : 'design',
-        clientName: p.customerName || p.customerId,
-        contractValue: p.estimatedBudget,
-        createdAt: p.createdAt,
-      }));
-      return NextResponse.json({
-        success: true,
-        data: { projects: summaries, total: summaries.length },
-      });
-    }
-  } catch {
-    // Fall back to mock store if DB call fails
+    const analytics = new InteriorPortfolioAnalyticsService();
+    const overview = await analytics.computePortfolioOverview(tenantId);
+    return NextResponse.json({
+      success: true,
+      data: {
+        projects: overview.projects,
+        kpis: overview.kpis,
+        progressOverview: overview.progressOverview,
+        financialSummary: overview.financialSummary,
+        actionAlerts: overview.actionAlerts,
+        total: overview.projects.length,
+      },
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: 'Internal server error calculating portfolio overview' },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({
-    success: true,
-    data: {
-      projects: mockProjects,
-      total: mockProjects.length,
-    },
-  });
 }
 
 // ─── POST /api/interior/projects ─────────────────────────────────────────────
