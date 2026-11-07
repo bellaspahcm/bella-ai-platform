@@ -1,0 +1,2 @@
+-- Placeholder for a migration version already applied on the linked Supabase project.
+-- The original SQL is not present in this repository snapshot.

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { useCallback, useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -77,7 +77,7 @@ export default function ProjectDetailPage({
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'materials' | 'timeline' | 'handover'>('overview');
 
-  const fetchProjectDetail = async () => {
+  const fetchProjectDetail = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -93,11 +93,11 @@ export default function ProjectDetailPage({
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
 
   useEffect(() => {
     void fetchProjectDetail();
-  }, [projectId]);
+  }, [fetchProjectDetail]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
