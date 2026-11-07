@@ -433,7 +433,7 @@ export default function InteriorDesignStudioPage() {
           {/* User Profile */}
           <div className="flex items-center gap-2 pl-1 cursor-pointer">
             <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=faces"
+              src={'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=faces'}
               alt="Nguyễn Văn Quang"
               className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700"
             />
@@ -761,7 +761,7 @@ export default function InteriorDesignStudioPage() {
           {activeViewerTab === 'technical' && (
             <div className="space-y-3 flex-1">
               <div className="text-xs font-semibold text-slate-500 mb-2">
-                Hồ sơ bản vẽ kỹ thuật kiến trúc, bổ đồ gỗ & MEP đã duyệt:
+                Hồ sơ bản vẽ kỹ thuật kiến trúc, bổ đồ gỗ &amp; MEP đã duyệt:
               </div>
               {data.technicalDrawings.map((dwg) => (
                 <div
@@ -801,7 +801,7 @@ export default function InteriorDesignStudioPage() {
           {activeViewerTab === 'documents' && (
             <div className="space-y-3 flex-1">
               <div className="text-xs font-semibold text-slate-500 mb-2">
-                Hồ sơ chỉ dẫn thi công, biên bản nghiệm thu & moodboard:
+                Hồ sơ chỉ dẫn thi công, biên bản nghiệm thu &amp; moodboard:
               </div>
               {data.relatedDocuments.map((doc) => (
                 <div

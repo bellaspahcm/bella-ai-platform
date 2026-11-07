@@ -19,7 +19,7 @@ export default function InteriorReportsPage() {
             </Link>
           </div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            Báo cáo & Phân tích dự án
+            Báo cáo &amp; Phân tích dự án
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Theo dõi tổng quan tài chính, tiến độ thực tế và hiệu quả chi phí chuỗi giá trị nội thất.

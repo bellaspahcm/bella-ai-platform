@@ -253,7 +253,7 @@ export default function InteriorDashboardPage() {
         {/* Hero living room viewport image matching demo */}
         <div className="relative z-10 w-full md:w-80 lg:w-96 flex-shrink-0 rounded-2xl overflow-hidden shadow-lg border border-white/20 group">
           <img
-            src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80"
+            src={'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80'}
             alt="Bella Interior Living Room"
             className="w-full h-36 sm:h-40 object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -760,7 +760,7 @@ export default function InteriorDashboardPage() {
         {/* Right Card: Banner Promo Bella Interior OS */}
         <div className="relative rounded-3xl overflow-hidden shadow-sm border border-slate-200/80 dark:border-slate-800 min-h-[260px] flex flex-col justify-end p-6 sm:p-8 group">
           <img
-            src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1000&q=80"
+            src={'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1000&q=80'}
             alt="Bella Interior OS Promo"
             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />

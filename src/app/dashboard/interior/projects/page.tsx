@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -305,7 +306,7 @@ export default function ProjectsPage() {
             </button>
             <div className="flex items-center gap-2 pl-1 cursor-pointer">
               <img
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=120&q=80"
+                src={'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=120&q=80'}
                 alt="Nguyễn Văn Quang"
                 className="w-7 h-7 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700"
               />
