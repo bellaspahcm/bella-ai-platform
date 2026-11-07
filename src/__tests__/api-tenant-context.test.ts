@@ -43,6 +43,7 @@ const tenant = { tenant_id: profile.tenant_id, tenant_status: 'active', name: 'T
   brand_theme: { logoUrl: 'https://example.com/logo.png', primaryColor: '#FF5733' }, logo_url: null };
 const legacyTenant = { id: profile.tenant_id, status: 'active', name: 'Legacy Product Tenant',
   enabled_modules: ['spa', 'babycare'], subscription_tier: 'professional',
+  product_key: 'bella_spa',
   role_permissions: { feature_flags: { inventory_transfer: false } },
   brand_theme: { logoUrl: 'https://example.com/logo.png', primaryColor: '#FF5733' }, logo_url: null,
   salary_config: { base_salary: 5000000 }, qr_bank_code: 'VCB', qr_account_number: '1234567890',
@@ -56,7 +57,9 @@ describe('GET /api/tenant/context', () => {
     mockRpc.mockReset().mockImplementation((name: string) => Promise.resolve({
       data: name === CURRENT_ACTOR_PROFILE_RPC ? [profile] : [tenant], error: null,
     }));
-    mockSingle.mockReset().mockResolvedValue({ data: legacyTenant, error: null });
+    mockSingle.mockReset().mockResolvedValue({ data: {
+      id: tenant.tenant_id, status: 'active', product_key: 'bella_preschool',
+    }, error: null });
     mockEq.mockReset().mockReturnThis();
     mockSelect.mockReset().mockReturnThis();
     mockFrom.mockReset().mockReturnValue({ select: mockSelect, eq: mockEq, single: mockSingle });
@@ -107,7 +110,9 @@ describe('GET /api/tenant/context', () => {
       expect(mockRpc).toHaveBeenNthCalledWith(1, CURRENT_ACTOR_PROFILE_RPC);
       expect(mockRpc).toHaveBeenNthCalledWith(2, CURRENT_ACTOR_TENANT_PRESENTATION_RPC);
       expect(await response.json()).toMatchObject({ tenantId: tenant.tenant_id, tenantName: tenant.name });
-      expect(mockFrom).not.toHaveBeenCalled();
+      expect(mockFrom).toHaveBeenCalledWith('tenants');
+      expect(mockSelect).toHaveBeenCalledWith('id,status,product_key');
+      expect(mockEq).toHaveBeenCalledWith('id', profile.tenant_id);
       const { createClient } = jest.requireMock('@supabase/supabase-js') as { createClient: jest.Mock };
       expect(createClient).toHaveBeenCalledWith('https://project-ref.supabase.co', 'publishable-key',
         expect.objectContaining({ global: { headers: { Authorization: `Bearer ${accessToken}` } } }));
@@ -164,12 +169,14 @@ describe('GET /api/tenant/context', () => {
     expect(await response.json()).not.toHaveProperty('tenantName');
   });
 
-  it('maps the approved tenant projection without direct table reads or sensitive settings', async () => {
+  it('uses the approved tenant projection for Preschool without reading legacy settings', async () => {
     const response = await GET(new NextRequest('http://localhost/api/tenant/context?tenantId=foreign-tenant'));
     expect(response.status).toBe(200);
     expect(mockRpc).toHaveBeenNthCalledWith(1, CURRENT_ACTOR_PROFILE_RPC);
     expect(mockRpc).toHaveBeenNthCalledWith(2, CURRENT_ACTOR_TENANT_PRESENTATION_RPC);
-    expect(mockFrom).not.toHaveBeenCalled();
+    expect(mockFrom).toHaveBeenCalledWith('tenants');
+    expect(mockSelect).toHaveBeenCalledWith('id,status,product_key');
+    expect(mockEq).toHaveBeenCalledWith('id', profile.tenant_id);
     const data = await response.json();
     expect(data).toMatchObject({ tenantId: tenant.tenant_id, tenantName: tenant.name, enabledModules: ['bella_education'],
       subscriptionPlan: 'basic', featureFlags: {}, settings: { currency: 'VND', timezone: 'Asia/Ho_Chi_Minh',
@@ -193,15 +200,18 @@ describe('GET /api/tenant/context', () => {
   });
 
   it('preserves the established full settings response through the authenticated tenant read for other products', async () => {
-    mockSingle.mockResolvedValue({ data: legacyTenant, error: null });
-    mockRpc.mockImplementation((name: string) => Promise.resolve({
-      data: name === CURRENT_ACTOR_PROFILE_RPC ? [profile] : [{ ...tenant, product_key: 'bella_spa' }], error: null,
-    }));
+    mockSingle.mockResolvedValueOnce({ data: { id: profile.tenant_id, status: 'active', product_key: 'bella_spa' }, error: null })
+      .mockResolvedValueOnce({ data: legacyTenant, error: null });
+    mockRpc.mockImplementation((name: string) => Promise.resolve(name === CURRENT_ACTOR_PROFILE_RPC
+      ? { data: [profile], error: null }
+      : { data: null, error: { code: '42883', message: 'function missing' } }));
     const response = await GET(request());
     expect(response.status).toBe(200);
     expect(mockFrom).toHaveBeenCalledWith('tenants');
+    expect(mockSelect).toHaveBeenNthCalledWith(1, 'id,status,product_key');
     expect(mockSelect).toHaveBeenCalledWith('*');
     expect(mockEq).toHaveBeenCalledWith('id', profile.tenant_id);
+    expect(mockRpc).toHaveBeenCalledTimes(1);
     expect(await response.json()).toMatchObject({
       tenantId: legacyTenant.id,
       subscriptionPlan: 'professional',
@@ -213,10 +223,8 @@ describe('GET /api/tenant/context', () => {
 
   it.each([['error', { data: null, error: { message: 'tenant read failed' } }],
     ['missing row', { data: null, error: null }]])('fails closed when the authenticated tenant read has %s', async (_reason, result) => {
-    mockSingle.mockResolvedValue(result);
-    mockRpc.mockImplementation((name: string) => Promise.resolve({
-      data: name === CURRENT_ACTOR_PROFILE_RPC ? [profile] : [{ ...tenant, product_key: 'bella_spa' }], error: null,
-    }));
+    mockSingle.mockResolvedValueOnce({ data: { id: profile.tenant_id, status: 'active', product_key: 'bella_spa' }, error: null })
+      .mockResolvedValueOnce(result);
     const response = await GET(request());
     expect(response.status).toBe(500);
     expect(await response.json()).not.toHaveProperty('tenantName');
