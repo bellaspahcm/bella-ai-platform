@@ -266,7 +266,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   });
 
   const now = new Date().toISOString();
-  const orderId = `po-${randomUUID()}`;
+  const orderId = randomUUID();
   const newOrder: ProductionOrder = {
     id: orderId,
     tenantId,
@@ -280,7 +280,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   };
 
   const domainOrder: DomainProductionOrder = {
-    id: randomUUID(),
+    id: orderId,
     tenantId,
     projectId,
     designRevisionId,

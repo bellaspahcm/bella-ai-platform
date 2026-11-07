@@ -39,6 +39,7 @@ import type {
 } from '../domain/delivery-aftercare/types';
 
 import type { IInteriorRepository } from './interior-repository.interface';
+import { ensureUuid, isUuid } from '../lib/uuid-helper';
 
 // ---------------------------------------------------------------------------
 // Row types (DB columns → TS)
@@ -380,8 +381,8 @@ function mapProjectToRow(
   tenantId: string
 ): Omit<InteriorProjectRow, 'created_at' | 'updated_at'> & { tenant_id: string } {
   return {
-    id: project.id,
-    tenant_id: tenantId,
+    id: ensureUuid(project.id),
+    tenant_id: ensureUuid(tenantId),
     code: project.code,
     name: project.name,
     customer_id: project.customerId,
@@ -394,7 +395,7 @@ function mapProjectToRow(
     target_completion_date: project.targetCompletionDate,
     lead_architect_id: project.leadArchitectId,
     lead_architect_name: project.leadArchitectName,
-    active_approved_revision_id: project.activeApprovedRevisionId ?? null,
+    active_approved_revision_id: project.activeApprovedRevisionId ? ensureUuid(project.activeApprovedRevisionId) : null,
   };
 }
 
@@ -416,9 +417,9 @@ function mapRoomZoneToRow(
   tenantId: string
 ): Omit<ProjectRoomZoneRow, 'created_at'> & { tenant_id: string } {
   return {
-    id: roomZone.id,
-    tenant_id: tenantId,
-    project_id: roomZone.projectId,
+    id: ensureUuid(roomZone.id),
+    tenant_id: ensureUuid(tenantId),
+    project_id: ensureUuid(roomZone.projectId),
     code: roomZone.code,
     name: roomZone.name,
     floor: roomZone.floor,
@@ -484,9 +485,9 @@ function mapRevisionToRow(
   tenantId: string
 ): Omit<DesignRevisionRow, never> {
   return {
-    id: revision.id,
-    tenant_id: tenantId,
-    project_id: revision.projectId,
+    id: ensureUuid(revision.id),
+    tenant_id: ensureUuid(tenantId),
+    project_id: ensureUuid(revision.projectId),
     version_number: revision.versionNumber,
     title: revision.title,
     status: revision.status,
@@ -548,10 +549,10 @@ function mapBOQToRow(
   tenantId: string
 ): Omit<InteriorBOQRow, 'created_at' | 'updated_at'> & { tenant_id: string } {
   return {
-    id: boq.id,
-    tenant_id: tenantId,
-    project_id: boq.projectId,
-    design_revision_id: boq.designRevisionId,
+    id: ensureUuid(boq.id),
+    tenant_id: ensureUuid(tenantId),
+    project_id: ensureUuid(boq.projectId),
+    design_revision_id: ensureUuid(boq.designRevisionId),
     boq_number: boq.boqNumber,
     version_number: boq.versionNumber,
     status: boq.status,
@@ -588,10 +589,10 @@ function mapQuotationToRow(
   tenantId: string
 ): Omit<InteriorQuotationRow, 'created_at'> & { tenant_id: string } {
   return {
-    id: quotation.id,
-    tenant_id: tenantId,
-    project_id: quotation.projectId,
-    boq_id: quotation.boqId,
+    id: ensureUuid(quotation.id),
+    tenant_id: ensureUuid(tenantId),
+    project_id: ensureUuid(quotation.projectId),
+    boq_id: ensureUuid(quotation.boqId),
     quotation_number: quotation.quotationNumber,
     version_number: quotation.versionNumber,
     status: quotation.status,
@@ -649,10 +650,10 @@ function mapContractToRow(
   tenantId: string
 ): InteriorContractRow {
   return {
-    id: contract.id,
-    tenant_id: tenantId,
-    project_id: contract.projectId,
-    quotation_id: contract.quotationId,
+    id: ensureUuid(contract.id),
+    tenant_id: ensureUuid(tenantId),
+    project_id: ensureUuid(contract.projectId),
+    quotation_id: ensureUuid(contract.quotationId),
     contract_number: contract.contractNumber,
     title: contract.title,
     status: contract.status,
@@ -710,11 +711,11 @@ function mapProductionOrderToRow(
   tenantId: string
 ): Omit<ProductionOrderRow, 'created_at'> & { tenant_id: string } {
   return {
-    id: order.id,
-    tenant_id: tenantId,
-    project_id: order.projectId,
-    design_revision_id: order.designRevisionId,
-    boq_id: order.boqId,
+    id: ensureUuid(order.id),
+    tenant_id: ensureUuid(tenantId),
+    project_id: ensureUuid(order.projectId),
+    design_revision_id: ensureUuid(order.designRevisionId),
+    boq_id: ensureUuid(order.boqId),
     order_number: order.orderNumber,
     mode: order.mode,
     subcontractor_name: order.subcontractorName ?? null,
@@ -765,9 +766,9 @@ function mapInstallationPlanToRow(
   tenantId: string
 ): Omit<SiteInstallationPlanRow, 'created_at'> & { tenant_id: string } {
   return {
-    id: plan.id,
-    tenant_id: tenantId,
-    project_id: plan.projectId,
+    id: ensureUuid(plan.id),
+    tenant_id: ensureUuid(tenantId),
+    project_id: ensureUuid(plan.projectId),
     plan_number: plan.planNumber,
     site_supervisor_id: plan.siteSupervisorId,
     site_supervisor_name: plan.siteSupervisorName,
@@ -798,9 +799,9 @@ function mapSiteDiaryToRow(
   tenantId: string
 ): Omit<SiteDiaryRow, 'created_at'> & { tenant_id: string } {
   return {
-    id: entry.id,
-    tenant_id: tenantId,
-    project_id: entry.projectId,
+    id: ensureUuid(entry.id),
+    tenant_id: ensureUuid(tenantId),
+    project_id: ensureUuid(entry.projectId),
     date: entry.date,
     weather: entry.weather,
     labor_headcount: entry.laborHeadcount,
@@ -837,9 +838,9 @@ function mapPunchListItemToRow(
   tenantId: string
 ): Omit<QCPunchListItemRow, 'created_at'> & { tenant_id: string } {
   return {
-    id: item.id,
-    tenant_id: tenantId,
-    project_id: item.projectId,
+    id: ensureUuid(item.id),
+    tenant_id: ensureUuid(tenantId),
+    project_id: ensureUuid(item.projectId),
     room_zone_name: item.roomZoneName,
     item_name: item.itemName,
     defect_category: item.defectCategory,
@@ -877,10 +878,10 @@ function mapHandoverDossierToRow(
   tenantId: string
 ): HandoverDossierRow {
   return {
-    id: dossier.id,
-    tenant_id: tenantId,
-    project_id: dossier.projectId,
-    contract_id: dossier.contractId,
+    id: ensureUuid(dossier.id),
+    tenant_id: ensureUuid(tenantId),
+    project_id: ensureUuid(dossier.projectId),
+    contract_id: ensureUuid(dossier.contractId),
     handover_date: dossier.handoverDate,
     status: dossier.status,
     total_punch_list_items: dossier.totalPunchListItems,
@@ -915,10 +916,10 @@ function mapWarrantyCertificateToRow(
   tenantId: string
 ): WarrantyCertificateRow {
   return {
-    id: cert.id,
-    tenant_id: tenantId,
-    project_id: cert.projectId,
-    contract_id: cert.contractId,
+    id: ensureUuid(cert.id),
+    tenant_id: ensureUuid(tenantId),
+    project_id: ensureUuid(cert.projectId),
+    contract_id: ensureUuid(cert.contractId),
     certificate_number: cert.certificateNumber,
     customer_name: cert.customerName,
     site_address: cert.siteAddress,
@@ -957,10 +958,10 @@ function mapWarrantyTicketToRow(
   tenantId: string
 ): Omit<WarrantyServiceTicketRow, 'reported_date'> & { tenant_id: string; reported_date: string } {
   return {
-    id: ticket.id,
-    tenant_id: tenantId,
-    certificate_id: ticket.certificateId,
-    project_id: ticket.projectId,
+    id: ensureUuid(ticket.id),
+    tenant_id: ensureUuid(tenantId),
+    certificate_id: ensureUuid(ticket.certificateId),
+    project_id: ensureUuid(ticket.projectId),
     ticket_number: ticket.ticketNumber,
     reported_date: ticket.reportedDate,
     customer_report: ticket.customerReport,
@@ -994,15 +995,35 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   }
 
   async getProject(tenantId: string, projectId: string): Promise<InteriorProject | null> {
-    const { data, error } = await this.supabase
+    const validUuid = ensureUuid(projectId);
+    let query = this.supabase
       .from('interior_projects')
       .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('id', projectId)
-      .single();
-    if (error?.code === 'PGRST116') return null;
-    if (error) throw new Error(`[InteriorRepo] getProject failed: ${error.message}`);
-    return mapRowToProject(data as InteriorProjectRow);
+      .eq('tenant_id', tenantId);
+
+    if (isUuid(projectId)) {
+      query = query.eq('id', projectId);
+    } else if (typeof query.or === 'function') {
+      query = query.or(`id.eq.${validUuid},code.eq.${projectId}`);
+    } else {
+      query = query.eq('id', projectId);
+    }
+
+    let queryResult: { data: unknown; error: { code?: string; message?: string } | null } | null | undefined = undefined;
+    if (typeof query.maybeSingle === 'function') {
+      queryResult = await query.maybeSingle();
+    }
+    if (!queryResult && typeof query.single === 'function') {
+      queryResult = await query.single();
+    }
+
+    const data = queryResult?.data ?? null;
+    const error = queryResult?.error ?? null;
+
+    if (error && error.code !== 'PGRST116') {
+      throw new Error(`[InteriorRepo] getProject failed: ${error.message}`);
+    }
+    return data ? mapRowToProject(data as InteriorProjectRow) : null;
   }
 
   async listProjects(tenantId: string): Promise<InteriorProject[]> {

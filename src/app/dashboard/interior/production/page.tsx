@@ -14,6 +14,7 @@
  */
 
 import React, { Fragment, useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import type { ProductionOverviewResponse } from '@/products/bella-interior/domain/production-overview.types';
 import { InteriorProductionAnalyticsService } from '@/products/bella-interior/services/interior-production-analytics.service';
 
@@ -224,6 +225,11 @@ function AlertIcon({ iconType, className }: { iconType: string; className?: stri
 export default function ProductionDashboardPage() {
   const [data, setData] = useState<ProductionOverviewResponse | null>(null);
   const [activeTab, setActiveTab] = useState('all');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
+  const [orderDesc, setOrderDesc] = useState('');
+  const [orderProject, setOrderProject] = useState('proj-001');
+  const [orderNotice, setOrderNotice] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -241,6 +247,42 @@ export default function ProductionDashboardPage() {
     // Fallback: direct service call (SSR-compatible)
     setData(InteriorProductionAnalyticsService.getProductionOverview());
   }, []);
+
+  const handleCreateOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingOrder(true);
+    setOrderNotice(null);
+    try {
+      const res = await fetch('/api/interior/production/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: orderProject,
+          designRevisionId: 'rev-approved-001',
+          description: orderDesc || 'Gia công tủ áo & hệ vách gỗ phòng khách',
+          items: [
+            { description: 'Module thùng tủ ván MDF chống ẩm', quantity: 4, unit: 'bộ', estimatedHours: 8 },
+            { description: 'Cánh kính khung nhôm Anodized', quantity: 2, unit: 'cánh', estimatedHours: 4 },
+          ],
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setOrderNotice('Phát lệnh sản xuất thành công! Đã gửi lệnh gia công sang xưởng.');
+        setTimeout(() => {
+          setIsCreateModalOpen(false);
+          setOrderNotice(null);
+          void fetchData();
+        }, 1200);
+      } else {
+        setOrderNotice(`Lỗi: ${json.error || 'Không thể tạo lệnh sản xuất'}`);
+      }
+    } catch {
+      setOrderNotice('Lỗi kết nối khi gửi lệnh sản xuất');
+    } finally {
+      setIsSubmittingOrder(false);
+    }
+  };
 
   useEffect(() => {
     void fetchData();
@@ -272,9 +314,13 @@ export default function ProductionDashboardPage() {
       {/* ═══ HEADER ══════════════════════════════════════════════════════════ */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         {/* Back button */}
-        <button className="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors">
+        <Link
+          href="/dashboard/interior"
+          className="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+          title="Quay lại Tổng quan"
+        >
           <IconArrowLeft className="w-4 h-4 text-slate-600" />
-        </button>
+        </Link>
 
         {/* Title */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -294,18 +340,27 @@ export default function ProductionDashboardPage() {
         </div>
 
         {/* Action buttons */}
-        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+        <button
+          onClick={() => void fetchData()}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+        >
           <IconRefresh className="w-4 h-4" />
           Làm mới
         </button>
-        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2D7A4F] text-white rounded-lg text-sm font-medium hover:bg-[#235f3d] transition-colors">
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2D7A4F] text-white rounded-lg text-sm font-medium hover:bg-[#235f3d] transition-colors"
+        >
           <IconPlus className="w-4 h-4" />
           Phát Lệnh Sản Xuất
         </button>
-        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+        <Link
+          href="/dashboard/interior/installation"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+        >
           <IconBarChart2 className="w-4 h-4" />
           Tiến Độ Lắp Đặt Hiện Trường
-        </button>
+        </Link>
       </div>
 
       {/* ═══ ARCHITECTURE NOTICE BANNER ═══════════════════════════════════════ */}
@@ -753,6 +808,95 @@ export default function ProductionDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* ═══ MODAL PHÁT LỆNH SẢN XUẤT ════════════════════════════════════════ */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="text-base font-bold text-slate-800">
+                Phát Lệnh Sản Xuất Xưởng (Platform Manufacturing)
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-semibold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {orderNotice && (
+              <div className="p-3 rounded-lg text-xs bg-amber-50 text-amber-800 border border-amber-200">
+                {orderNotice}
+              </div>
+            )}
+
+            <form onSubmit={handleCreateOrder} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1">Dự án thi công</label>
+                <select
+                  value={orderProject}
+                  onChange={(e) => setOrderProject(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 font-medium"
+                >
+                  <option value="proj-001">INT-2024-001 — Biệt Thự Vườn Thảo Điền</option>
+                  <option value="proj-002">INT-2024-002 — Penthouse Grand Marina Saigon</option>
+                  <option value="proj-003">INT-2024-003 — Duplex Sunshine Venicia</option>
+                  <option value="proj-004">INT-2024-004 — Shophouse Phố Đi Bộ Sala</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1">Mô tả lệnh sản xuất</label>
+                <input
+                  type="text"
+                  value={orderDesc}
+                  onChange={(e) => setOrderDesc(e.target.value)}
+                  placeholder="Gia công tủ áo & hệ vách gỗ phòng khách..."
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-slate-800"
+                  required
+                />
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+                <div className="font-semibold text-slate-700">Hạng mục cấu kiện xưởng tiếp nhận:</div>
+                <div className="space-y-1 text-slate-600">
+                  <div className="flex justify-between">
+                    <span>• Module thùng tủ ván MDF lõi xanh chống ẩm</span>
+                    <span className="font-mono font-medium">4 bộ</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>• Cánh kính khung nhôm Anodized & Ray trượt</span>
+                    <span className="font-mono font-medium">2 cánh</span>
+                  </div>
+                </div>
+                <div className="text-[11px] text-green-700 font-medium pt-1">
+                  ✓ Điều kiện: Đã ký duyệt Approved Design Lock R1.0
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium"
+                  disabled={isSubmittingOrder}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingOrder}
+                  className="px-4 py-2 rounded-lg bg-[#2D7A4F] hover:bg-[#235f3d] text-white font-semibold transition-colors flex items-center gap-1.5"
+                >
+                  {isSubmittingOrder ? 'Đang gửi xưởng...' : 'Xác nhận Phát Lệnh'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

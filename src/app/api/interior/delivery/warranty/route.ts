@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
+import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { WarrantyServiceTicket as DomainWarrantyTicket, DefectCategory } from '@/products/bella-interior/domain/delivery-aftercare/types';
+import { ensureUuid } from '@/products/bella-interior/lib/uuid-helper';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,6 +82,28 @@ export async function GET(request: Request): Promise<NextResponse> {
   const type      = searchParams.get('type') ?? 'certificates';
 
   if (type === 'tickets') {
+    try {
+      const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+      const dbTickets = await repo.listWarrantyTickets(tenantId, projectId ?? undefined);
+      if (dbTickets && dbTickets.length > 0) {
+        const mappedTickets: WarrantyTicket[] = dbTickets.map((t) => ({
+          id: t.id,
+          tenantId: t.tenantId,
+          warrantyId: t.certificateId,
+          projectId: t.projectId,
+          reportedByClientContact: t.customerReport,
+          issueCategory: t.defectCategory === 'hardware_defect' ? 'mechanical' : 'finishing',
+          description: t.customerReport,
+          priority: 'medium',
+          status: (t.status === 'in_progress' ? 'in_progress' : t.status === 'resolved' ? 'resolved' : 'open') as WarrantyTicket['status'],
+          createdAt: t.reportedDate,
+        }));
+        return NextResponse.json({ success: true, data: { tickets: mappedTickets, total: mappedTickets.length } });
+      }
+    } catch {
+      // DB query failed; fall back to memory
+    }
+
     const tickets = ticketStore.filter((t) => {
       const tenantMatch  = t.tenantId === tenantId;
       const projectMatch = projectId ? t.projectId === projectId : true;
@@ -110,8 +136,32 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ success: false, error: 'warrantyId, projectId, description, issueCategory and priority are required' }, { status: 400 });
   }
 
+  const ticketId = randomUUID();
+  const now = new Date().toISOString();
+
+  const domainTicket: DomainWarrantyTicket = {
+    id: ticketId,
+    tenantId,
+    certificateId: ensureUuid(body.warrantyId),
+    projectId: ensureUuid(body.projectId),
+    ticketNumber: `WTK-${Date.now().toString().slice(-6)}`,
+    reportedDate: now,
+    customerReport: body.description,
+    roomZoneName: 'Toàn bộ công trình',
+    itemName: body.description.slice(0, 30),
+    defectCategory: (body.issueCategory === 'structural' ? 'finish_defect' : 'hardware_defect') as DefectCategory,
+    status: 'submitted',
+  };
+
+  try {
+    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+    await repo.saveWarrantyTicket(tenantId, domainTicket);
+  } catch {
+    // DB save failed, proceed with memory
+  }
+
   const ticket: WarrantyTicket = {
-    id: `WTK-${randomUUID().slice(0, 8).toUpperCase()}`,
+    id: ticketId,
     tenantId,
     warrantyId: body.warrantyId,
     projectId: body.projectId,
@@ -120,7 +170,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     description: body.description,
     priority: body.priority,
     status: 'open',
-    createdAt: new Date().toISOString(),
+    createdAt: now,
   };
 
   ticketStore.push(ticket);

@@ -99,7 +99,10 @@ function SettingsContent() {
   const settingsBrandName = product?.displayName ?? "Bella";
   const { tenantModuleKey } = useTenantModuleKey();
   const isHealthcare = tenantModuleKey === "bella_healthcare";
-  const isInterior = tenantModuleKey === "bella_interior" || product?.productKey === "bella_interior";
+  const isInterior =
+    tenantModuleKey === "bella_interior" ||
+    product?.productKey === "bella_interior" ||
+    searchParams.get("product") === "bella_interior";
 
   const visibleTabs = useMemo(() => {
     return TABS.map((tab) => {
@@ -412,6 +415,7 @@ function SettingsContent() {
                     generalSettings={generalSettings}
                     setGeneralSettings={setGeneralSettings}
                     isLoadingSettings={isLoadingSettings}
+                    isInterior={isInterior}
                   />
                 )}
 
@@ -443,11 +447,11 @@ function SettingsContent() {
                 )}
 
                 {activeTab === "staff" && (
-                  <StaffManagementTab />
+                  <StaffManagementTab isInterior={isInterior} />
                 )}
 
                 {activeTab === "permissions" && (
-                  <PermissionsTab />
+                  <PermissionsTab isInterior={isInterior} />
                 )}
 
                 {activeTab === "security" && (

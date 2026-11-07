@@ -933,13 +933,21 @@ export default function InteriorDashboardPage() {
               <span className="text-xs text-slate-500">
                 Phụ trách: <strong className="text-slate-800 dark:text-slate-200">{selectedWorkspaceProject.leadArchitect}</strong>
               </span>
-              <button
-                type="button"
-                onClick={() => setSelectedWorkspaceProject(null)}
-                className="px-4 py-2 rounded-xl bg-[#1B365D] hover:bg-blue-900 text-white font-semibold text-xs transition-colors"
-              >
-                Đóng không gian làm việc
-              </button>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/dashboard/interior/projects/${selectedWorkspaceProject.id}`}
+                  className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs transition-colors inline-flex items-center gap-1.5"
+                >
+                  Chi tiết dự án <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setSelectedWorkspaceProject(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors"
+                >
+                  Đóng
+                </button>
+              </div>
             </div>
           </div>
         </div>

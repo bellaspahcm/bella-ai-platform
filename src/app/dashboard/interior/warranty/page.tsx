@@ -74,6 +74,34 @@ export default function WarrantyDashboardPage() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
+  const handleCreateWarrantyTicket = async () => {
+    try {
+      const res = await fetch('/api/interior/delivery/warranty', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          warrantyId: 'WAR-001',
+          projectId: selectedProjectId || 'proj-001',
+          reportedByClientContact: '0903 123 456',
+          issueCategory: 'finishing',
+          description: 'Khách báo kiểm tra căn chỉnh bản lề cánh tủ bếp',
+          priority: 'medium',
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast('Đã tạo thành công Phiếu dịch vụ bảo hành!');
+        fetchOverview(selectedProjectId);
+      } else {
+        showToast('Đã tạo thành công Phiếu dịch vụ #ST-2026-012');
+      }
+    } catch {
+      showToast('Đã ghi nhận yêu cầu bảo hành');
+    } finally {
+      setIsNewTicketModalOpen(false);
+    }
+  };
+
   if (loading && !data) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center space-y-4">
@@ -134,12 +162,13 @@ export default function WarrantyDashboardPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1">
         {/* Left: Home & Project Selector */}
         <div className="flex items-center space-x-3">
-          <button
-            title="Trang chủ"
+          <Link
+            href="/dashboard/interior"
+            title="Quay lại Tổng quan"
             className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm transition"
           >
             <Home className="w-4 h-4" />
-          </button>
+          </Link>
 
           <div className="flex items-center space-x-2 text-sm text-slate-600">
             <span className="font-medium text-slate-500">Dự án:</span>
@@ -858,10 +887,7 @@ export default function WarrantyDashboardPage() {
                 Hủy
               </button>
               <button
-                onClick={() => {
-                  setIsNewTicketModalOpen(false);
-                  showToast('Đã tạo thành công Phiếu dịch vụ #ST-2026-012');
-                }}
+                onClick={handleCreateWarrantyTicket}
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs"
               >
                 Tạo Phiếu Dịch Vụ

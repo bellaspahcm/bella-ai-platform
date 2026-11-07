@@ -1,6 +1,8 @@
 "use client";
 
 import { PremiumSelect } from "@/components/ui/PremiumSelect";
+import { useSearchParams } from "next/navigation";
+import { useUser } from "@/lib/user-context";
 import { getSupabase } from "@/lib/supabase-client";
 import { cn, copyToClipboard } from "@/lib/utils";
 import {
@@ -105,11 +107,21 @@ function getRoleBadge(
   return { label: role || "Nhân viên", color: "bg-slate-50 text-slate-600 border-slate-100" };
 }
 
-export default function StaffManagementTab() {
+export default function StaffManagementTab({
+  isInterior: isInteriorProp,
+}: {
+  isInterior?: boolean;
+} = {}) {
   const vocab = useModuleVocabulary();
+  const searchParams = useSearchParams();
   const { tenantModuleKey } = useTenantModuleKey();
-  const isEducation = tenantModuleKey === "bella_education";
-  const isInterior = tenantModuleKey === "bella_interior";
+  const { product } = useUser();
+  const isInterior =
+    isInteriorProp ??
+    (searchParams?.get("product") === "bella_interior" ||
+      tenantModuleKey === "bella_interior" ||
+      product?.productKey === "bella_interior");
+  const isEducation = !isInterior && tenantModuleKey === "bella_education";
   const [users, setUsers] = useState<StaffRecord[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);

@@ -105,7 +105,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   const warrantyStartDate = handoverDate;
   const warrantyEnd = new Date();
   warrantyEnd.setFullYear(warrantyEnd.getFullYear() + 1);
-  const handoverId = `HDO-${randomUUID().slice(0, 8).toUpperCase()}`;
+  const handoverId = randomUUID();
 
   const domainDossier: DomainHandoverDossier = {
     id: handoverId,

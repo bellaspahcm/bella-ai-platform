@@ -192,7 +192,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  const entryId = `sde-${randomUUID()}`;
+  const entryId = randomUUID();
   const now = new Date().toISOString();
 
   const domainEntry: DomainSiteDiaryEntry = {
