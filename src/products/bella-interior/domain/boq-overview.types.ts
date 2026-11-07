@@ -114,3 +114,4 @@ export interface BOQOverviewResponse {
   readonly bomMaterials: readonly BOMMaterialItem[];
   readonly audit: BOQVersionAudit;
 }
+

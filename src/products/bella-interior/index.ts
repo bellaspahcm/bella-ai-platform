@@ -64,6 +64,10 @@ export * from './services/interior-design-analytics.service';
 export * from './domain/boq-overview.types';
 export * from './services/interior-boq-analytics.service';
 
+// Commercial Contract & Payment Progress Analytics
+export * from './domain/contract-overview.types';
+export * from './services/interior-contract-analytics.service';
+
 // Manifest
 export * from './manifest';
 
