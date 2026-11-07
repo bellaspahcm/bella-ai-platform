@@ -111,7 +111,7 @@ export default function InteriorContractsPage() {
         <div className="flex flex-col items-center gap-3">
           <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin" />
           <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-            Đang tải dữ liệu Hợp đồng & Tiến độ Thu tiền...
+            Đang tải dữ liệu Hợp đồng &amp; Tiến độ Thu tiền...
           </p>
         </div>
       </div>
@@ -126,7 +126,7 @@ export default function InteriorContractsPage() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Quản lý Báo giá, Hợp đồng & Tiến độ Thu tiền
+            Quản lý Báo giá, Hợp đồng &amp; Tiến độ Thu tiền
           </h1>
           <div className="flex items-center gap-2 mt-1 text-sm text-slate-600 dark:text-slate-400">
             <span className="font-medium text-slate-700 dark:text-slate-300">Dự án:</span>
@@ -592,7 +592,7 @@ export default function InteriorContractsPage() {
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
-              <span>Phụ lục & Tài liệu</span>
+              <span>Phụ lục &amp; Tài liệu</span>
               <span className="px-1.5 py-0.2 bg-slate-100 dark:bg-slate-800 text-[10px] rounded-full">
                 {detailedTabs.addenda.length}
               </span>
@@ -691,7 +691,7 @@ export default function InteriorContractsPage() {
             <div className="p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Danh mục phụ lục bổ sung giá trị & hồ sơ ký kết điện tử:
+                  Danh mục phụ lục bổ sung giá trị &amp; hồ sơ ký kết điện tử:
                 </p>
                 <button
                   type="button"
@@ -947,7 +947,7 @@ export default function InteriorContractsPage() {
                   <h3 className="text-base font-bold text-slate-900 dark:text-white">
                     Kiểm soát điều kiện chuyển lệnh sản xuất
                   </h3>
-                  <p className="text-xs text-slate-500">Mối liên kết giữa Thương mại & Sản xuất Xưởng Gỗ</p>
+                  <p className="text-xs text-slate-500">Mối liên kết giữa Thương mại &amp; Sản xuất Xưởng Gỗ</p>
                 </div>
               </div>
               <button
@@ -1121,7 +1121,7 @@ export default function InteriorContractsPage() {
               <div className="flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-emerald-600" />
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  Lịch sử Thu tiền & Đối soát Ngân hàng
+                  Lịch sử Thu tiền &amp; Đối soát Ngân hàng
                 </h3>
               </div>
               <button
@@ -1206,7 +1206,7 @@ export default function InteriorContractsPage() {
               </div>
 
               <div className="p-3 bg-emerald-50/60 dark:bg-emerald-950/20 rounded-lg border border-emerald-200 dark:border-emerald-800 text-[11px] text-emerald-800 dark:text-emerald-300">
-                Lịch thanh toán chuẩn 5 giai đoạn: Đặt cọc 30% — Khóa thiết kế 20% — Khởi công xuất xưởng 30% — Hoàn thành lắp đặt 15% — Bàn giao & bảo hành 5% (Tổng 100%).
+                Lịch thanh toán chuẩn 5 giai đoạn: Đặt cọc 30% — Khóa thiết kế 20% — Khởi công xuất xưởng 30% — Hoàn thành lắp đặt 15% — Bàn giao &amp; bảo hành 5% (Tổng 100%).
               </div>
             </div>
 

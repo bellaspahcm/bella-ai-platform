@@ -349,7 +349,7 @@ export default function SchedulePage() {
             <div className="flex items-center gap-2 pl-1 border-l border-slate-200 dark:border-slate-800">
               <div className="relative w-8 h-8 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
                 <Image
-                  src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=faces"
+                  src={'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=faces'}
                   alt="Nguyễn Văn Quang"
                   fill
                   sizes="32px"
