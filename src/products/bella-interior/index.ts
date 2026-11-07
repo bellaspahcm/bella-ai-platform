@@ -68,6 +68,10 @@ export * from './services/interior-boq-analytics.service';
 export * from './domain/contract-overview.types';
 export * from './services/interior-contract-analytics.service';
 
+// Project Finance & P&L Executive Analytics
+export * from './domain/finance-overview.types';
+export * from './services/interior-finance-analytics.service';
+
 // Manifest
 export * from './manifest';
 
