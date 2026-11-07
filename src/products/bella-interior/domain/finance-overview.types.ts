@@ -1,9 +1,13 @@
 /**
- * Bella Interior OS — Project Finance & P&L Domain Types
+ * Bella Interior OS — Project Finance & P&L Domain Types (Phase 1 — Financial Truth)
  *
- * Single Source of Truth for Project Financial Analysis, Revenue Recognition,
- * COGS Breakdown, Cash Flow Trajectory, Debt Ageing, and Real-time Executive Insights.
- * UI components consume these canonical models without local calculation.
+ * Single Source of Truth for Project Financial Analysis:
+ * 1. Distinction between Contract Value, Recognized Revenue, and Cash Collected.
+ * 2. Distinction between Estimated (Budget) Cost, Actual Cost, and Cost Variance.
+ * 3. Project P&L Breakdown with completion progress, forecast margin, and risk alerts.
+ * 4. Traceable Source Transactions (Contracts, Work Orders, POs, Site Packages).
+ * 5. Time consistency: Actual (Months 7-11) vs Forecast (Month 12).
+ * 6. Quarter Baseline Proof for comparative growth KPIs.
  *
  * @module src/products/bella-interior/domain/finance-overview.types
  */
@@ -24,6 +28,8 @@ export interface FinanceKPIItem {
   iconName: 'folder-kanban' | 'layers' | 'trending-up' | 'percent';
   iconBgColor: string;
   iconColor: string;
+  /** Secondary breakdown explaining financial truth behind the metric */
+  truthNote?: string;
 }
 
 export interface FinanceOverviewKPIs {
@@ -31,6 +37,35 @@ export interface FinanceOverviewKPIs {
   totalCogs: FinanceKPIItem;
   grossProfit: FinanceKPIItem;
   grossMargin: FinanceKPIItem;
+}
+
+export interface RevenueTruthMetrics {
+  contractValue: number;
+  contractValueFormatted: string;
+  recognizedRevenue: number;
+  recognizedRevenueFormatted: string;
+  cashCollected: number;
+  cashCollectedFormatted: string;
+  unearnedRevenue: number;
+  unearnedRevenueFormatted: string;
+  recognitionRatio: number;
+  recognitionRatioFormatted: string;
+}
+
+export interface CogsTruthMetrics {
+  estimatedCogs: number;
+  estimatedCogsFormatted: string;
+  actualCogs: number;
+  actualCogsFormatted: string;
+  varianceAmount: number;
+  varianceAmountFormatted: string;
+  variancePercent: number;
+  variancePercentFormatted: string;
+  isOverBudget: boolean;
+  committedCost: number;
+  committedCostFormatted: string;
+  remainingForecastCost: number;
+  remainingForecastCostFormatted: string;
 }
 
 export interface FinancialPerformanceBar {
@@ -44,6 +79,7 @@ export interface FinancialPerformanceBar {
   profit: number;
   profitFormatted: string;
   profitHeightPercent: number;
+  isForecast?: boolean;
 }
 
 export interface FinancialPerformanceSection {
@@ -52,6 +88,7 @@ export interface FinancialPerformanceSection {
   yAxisLabels: string[];
   bars: FinancialPerformanceBar[];
   legend: Array<{ label: string; color: string }>;
+  timeHorizonNote: string;
 }
 
 export interface CogsStructureItem {
@@ -64,12 +101,14 @@ export interface CogsStructureItem {
   color: string;
   dashArray: string;
   dashOffset: string;
+  categoryType: 'DIRECT_MATERIAL' | 'DIRECT_LABOR' | 'SUBCONTRACTOR' | 'LOGISTICS_INSTALL';
 }
 
 export interface CogsStructureSection {
   totalCogsFormatted: string;
   centerSublabel: string;
   items: CogsStructureItem[];
+  reconciliationSummary: string;
 }
 
 export interface ProjectPLItem {
@@ -92,6 +131,23 @@ export interface ProjectPLItem {
   outstandingDebtFormatted: string;
   hasOutstandingDebt: boolean;
   debtColorClass: string;
+
+  // ─── Phase 1: Financial Truth & Project Anomaly Detection ───
+  completionPercent: number;
+  completionFormatted: string;
+  recognizedRevenue: number;
+  recognizedRevenueFormatted: string;
+  budgetCost: number;
+  budgetCostFormatted: string;
+  costVariance: number;
+  costVarianceFormatted: string;
+  isOverBudget: boolean;
+  forecastFinalMargin: number;
+  forecastFinalMarginFormatted: string;
+  riskAlert?: {
+    label: string;
+    severity: 'normal' | 'warning' | 'danger';
+  };
 }
 
 export interface ProjectPLBreakdownSection {
@@ -110,6 +166,7 @@ export interface CashFlowPoint {
   xPercent: number;
   collectedYPercent: number;
   costYPercent: number;
+  isForecast?: boolean;
 }
 
 export interface CashFlowSection {
@@ -121,6 +178,7 @@ export interface CashFlowSection {
   collectedSvgPath: string;
   costSvgPath: string;
   legend: Array<{ label: string; color: string }>;
+  actualVsForecastNote: string;
 }
 
 export interface DebtAgeingCategory {
@@ -156,6 +214,10 @@ export interface RecentTransactionItem {
   amountColorClass: string;
   badgeLabel: string;
   badgeClass: string;
+
+  // ─── Phase 1: Traceable Source References ───
+  sourceType: 'PAYMENT_SCHEDULE' | 'PURCHASE_ORDER' | 'WORK_ORDER' | 'SITE_PACKAGE';
+  sourceRef: string;
 }
 
 export interface RecentTransactionsSection {
@@ -183,6 +245,18 @@ export interface FinanceFooterBanner {
   bgImageUrl: string;
 }
 
+export interface QuarterBaselineProof {
+  previousQuarter: string;
+  previousRevenue: number;
+  previousCogs: number;
+  previousProfit: number;
+  previousMargin: number;
+  revenueGrowthRate: number;
+  cogsGrowthRate: number;
+  profitGrowthRate: number;
+  marginDiff: number;
+}
+
 export interface FinanceOverviewResponse {
   quarter: string;
   availableQuarters: string[];
@@ -196,4 +270,9 @@ export interface FinanceOverviewResponse {
   recentTransactions: RecentTransactionsSection;
   quickInsights: QuickInsightsSection;
   footerBanner: FinanceFooterBanner;
+
+  // ─── Phase 1 Governance Additions ───
+  revenueTruth: RevenueTruthMetrics;
+  cogsTruth: CogsTruthMetrics;
+  quarterBaseline: QuarterBaselineProof;
 }

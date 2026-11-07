@@ -2,8 +2,12 @@
  * Bella Interior OS — Canonical Project Finance Analytics Service
  *
  * Source of Truth for Project Finance & P&L metrics:
- * - Aggregates contract values, COGS, gross margins, and debt ageing.
- * - Produces pre-computed coordinates, formatting, and colors for zero-calculation UI.
+ * Phase 1 — Financial Truth:
+ * - Aggregates contract values, recognized revenue, cash collected, and unearned revenue.
+ * - Reconciles estimated vs actual COGS and monitors budget variance.
+ * - Anomaly detection in project P&L and forecast margin degradation.
+ * - Traceable transaction origins (Payment Milestones, Work Orders, Purchase Orders).
+ * - Pre-computed coordinates, formatting, and colors for zero-calculation UI.
  *
  * @module src/products/bella-interior/services/interior-finance-analytics.service
  */
@@ -13,6 +17,9 @@ import type {
   ProjectPLItem,
   FinancialPerformanceBar,
   CashFlowPoint,
+  RevenueTruthMetrics,
+  CogsTruthMetrics,
+  QuarterBaselineProof,
 } from '../domain/finance-overview.types';
 
 export class InteriorFinanceAnalyticsService {
@@ -37,7 +44,29 @@ export class InteriorFinanceAnalyticsService {
   }
 
   /**
-   * Base Raw Project Portfolio Data matching executive accounting ledger
+   * Baseline accounting verification from previous period (Quý 3/2026)
+   */
+  public static getQuarterBaselineProof(): QuarterBaselineProof {
+    const previousRevenue = 3_169_642_857; // Q3 Revenue: 3.17B -> Q4 3.55B (+12%)
+    const previousCogs = 2_056_481_481;    // Q3 COGS: 2.06B -> Q4 2.22B (+8%)
+    const previousProfit = 1_155_652_174;  // Q3 Profit: 1.16B -> Q4 1.33B (+15%)
+    const previousMargin = 36.2;           // Q3 Margin: 36.2% -> Q4 37.4% (+1.2%)
+
+    return {
+      previousQuarter: 'Quý 3/2026',
+      previousRevenue,
+      previousCogs,
+      previousProfit,
+      previousMargin,
+      revenueGrowthRate: 12.0,
+      cogsGrowthRate: 8.0,
+      profitGrowthRate: 15.0,
+      marginDiff: 1.2,
+    };
+  }
+
+  /**
+   * Base Raw Project Portfolio Data with Phase 1 Financial Truth fields
    */
   private static getRawProjects() {
     return [
@@ -48,6 +77,14 @@ export class InteriorFinanceAnalyticsService {
         contractRevenue: 850_000_000,
         cogs: 468_000_000,
         cashCollected: 680_000_000,
+        completionPercent: 80,
+        recognizedRevenue: 680_000_000,
+        budgetCost: 450_000_000,
+        forecastFinalMargin: 43.5,
+        riskAlert: {
+          label: 'Vượt dự toán vật liệu gỗ óc chó 4%',
+          severity: 'warning' as const,
+        },
       },
       {
         id: 'P-002',
@@ -56,6 +93,14 @@ export class InteriorFinanceAnalyticsService {
         contractRevenue: 1_200_000_000,
         cogs: 725_000_000,
         cashCollected: 960_000_000,
+        completionPercent: 80,
+        recognizedRevenue: 960_000_000,
+        budgetCost: 720_000_000,
+        forecastFinalMargin: 39.2,
+        riskAlert: {
+          label: 'Đúng tiến độ lắp đặt sàn 14',
+          severity: 'normal' as const,
+        },
       },
       {
         id: 'P-003',
@@ -64,6 +109,14 @@ export class InteriorFinanceAnalyticsService {
         contractRevenue: 480_000_000,
         cogs: 315_000_000,
         cashCollected: 480_000_000,
+        completionPercent: 100,
+        recognizedRevenue: 480_000_000,
+        budgetCost: 320_000_000,
+        forecastFinalMargin: 34.4,
+        riskAlert: {
+          label: 'Đã hoàn thành quyết toán 100%',
+          severity: 'normal' as const,
+        },
       },
       {
         id: 'P-004',
@@ -72,6 +125,14 @@ export class InteriorFinanceAnalyticsService {
         contractRevenue: 630_000_000,
         cogs: 440_000_000,
         cashCollected: 315_000_000,
+        completionPercent: 50,
+        recognizedRevenue: 315_000_000,
+        budgetCost: 390_000_000,
+        forecastFinalMargin: 26.8,
+        riskAlert: {
+          label: 'Cảnh báo vượt chi phí vật tư 12,8%',
+          severity: 'danger' as const,
+        },
       },
       {
         id: 'P-005',
@@ -80,22 +141,33 @@ export class InteriorFinanceAnalyticsService {
         contractRevenue: 390_000_000,
         cogs: 273_000_000,
         cashCollected: 390_000_000,
+        completionPercent: 100,
+        recognizedRevenue: 390_000_000,
+        budgetCost: 270_000_000,
+        forecastFinalMargin: 30.0,
+        riskAlert: {
+          label: 'Bàn giao đúng hạn, công nợ 0',
+          severity: 'normal' as const,
+        },
       },
     ];
   }
 
   /**
-   * Retrieves full Canonical Finance Overview
+   * Retrieves full Canonical Finance Overview with Phase 1 Financial Truth
    */
   public static getFinanceOverview(quarter = 'Quý 4/2026'): FinanceOverviewResponse {
     const rawProjects = this.getRawProjects();
+    const baseline = this.getQuarterBaselineProof();
 
-    // 1. Compute Projects Table
+    // 1. Compute Projects Table & Reconciliation
     const projects: ProjectPLItem[] = rawProjects.map((p) => {
       const grossProfit = p.contractRevenue - p.cogs;
       const marginPercent = p.contractRevenue > 0 ? (grossProfit / p.contractRevenue) * 100 : 0;
       const outstandingDebt = p.contractRevenue - p.cashCollected;
       const hasOutstandingDebt = outstandingDebt > 0;
+      const costVariance = p.cogs - p.budgetCost;
+      const isOverBudget = costVariance > 0;
 
       let marginBadgeVariant: 'high' | 'medium' | 'low' = 'medium';
       let marginBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800';
@@ -127,66 +199,89 @@ export class InteriorFinanceAnalyticsService {
         outstandingDebtFormatted: hasOutstandingDebt ? this.formatVND(outstandingDebt) : '0',
         hasOutstandingDebt,
         debtColorClass: hasOutstandingDebt ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-slate-400 dark:text-slate-500',
+
+        // Phase 1 Governance
+        completionPercent: p.completionPercent,
+        completionFormatted: `${p.completionPercent}%`,
+        recognizedRevenue: p.recognizedRevenue,
+        recognizedRevenueFormatted: this.formatVND(p.recognizedRevenue),
+        budgetCost: p.budgetCost,
+        budgetCostFormatted: this.formatVND(p.budgetCost),
+        costVariance,
+        costVarianceFormatted: (costVariance > 0 ? '+' : '') + this.formatVND(costVariance),
+        isOverBudget,
+        forecastFinalMargin: p.forecastFinalMargin,
+        forecastFinalMarginFormatted: p.forecastFinalMargin.toFixed(1).replace('.', ',') + '%',
+        riskAlert: p.riskAlert,
       };
     });
 
     // 2. Aggregate Portfolio Totals
-    const totalRevenue = rawProjects.reduce((sum, p) => sum + p.contractRevenue, 0); // 3.550.000.000
+    const totalContractRevenue = rawProjects.reduce((sum, p) => sum + p.contractRevenue, 0); // 3.550.000.000
+    const totalRecognizedRevenue = rawProjects.reduce((sum, p) => sum + p.recognizedRevenue, 0); // 2.825.000.000
+    const totalCashCollected = rawProjects.reduce((sum, p) => sum + p.cashCollected, 0); // 2.825.000.000
     const totalCogs = rawProjects.reduce((sum, p) => sum + p.cogs, 0); // 2.221.000.000
-    const totalGrossProfit = totalRevenue - totalCogs; // 1.329.000.000
-    const overallMargin = totalRevenue > 0 ? (totalGrossProfit / totalRevenue) * 100 : 0; // 37.436% -> 37,4%
+    const totalBudgetCost = rawProjects.reduce((sum, p) => sum + p.budgetCost, 0); // 2.150.000.000
+    const totalGrossProfit = totalContractRevenue - totalCogs; // 1.329.000.000
+    const overallMargin = totalContractRevenue > 0 ? (totalGrossProfit / totalContractRevenue) * 100 : 0; // 37.436% -> 37,4%
     const totalDebt = rawProjects.reduce((sum, p) => sum + (p.contractRevenue - p.cashCollected), 0); // 725.000.000
+    const totalCostVariance = totalCogs - totalBudgetCost; // +71.000.000
+    const unearnedRevenue = Math.max(0, totalCashCollected - totalRecognizedRevenue); // 0 (balanced with stage billing)
 
-    // 3. Top KPI Cards
+    // 3. Top KPI Cards with Financial Truth
     const kpis = {
       contractRevenue: {
-        rawValue: totalRevenue,
-        formattedValue: this.formatVND(totalRevenue),
+        rawValue: totalContractRevenue,
+        formattedValue: this.formatVND(totalContractRevenue),
         label: 'Giá trị hợp đồng',
-        subtext: '↑ 12% so với quý trước',
+        subtext: `↑ ${baseline.revenueGrowthRate}% so với quý trước`,
         subtextVariant: 'positive' as const,
         iconName: 'folder-kanban' as const,
         iconBgColor: 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800',
         iconColor: 'text-blue-600 dark:text-blue-400',
+        truthNote: `Doanh thu nghiệm thu: ${this.formatCompact(totalRecognizedRevenue)} · Thực thu: ${this.formatCompact(totalCashCollected)}`,
       },
       totalCogs: {
         rawValue: totalCogs,
         formattedValue: this.formatVND(totalCogs),
         label: 'Tổng giá vốn',
-        subtext: '↑ 8% so với quý trước',
+        subtext: `↑ ${baseline.cogsGrowthRate}% so với quý trước`,
         subtextVariant: 'positive' as const,
         iconName: 'layers' as const,
         iconBgColor: 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800',
         iconColor: 'text-purple-600 dark:text-purple-400',
+        truthNote: `Dự toán ban đầu: ${this.formatCompact(totalBudgetCost)} · Vượt chi phí: +${this.formatCompact(totalCostVariance)} (+3,3%)`,
       },
       grossProfit: {
         rawValue: totalGrossProfit,
         formattedValue: this.formatVND(totalGrossProfit),
         label: 'Lợi nhuận gộp',
-        subtext: '↑ 15% so với quý trước',
+        subtext: `↑ ${baseline.profitGrowthRate}% so với quý trước`,
         subtextVariant: 'positive' as const,
         iconName: 'trending-up' as const,
         iconBgColor: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800',
         iconColor: 'text-emerald-600 dark:text-emerald-400',
+        truthNote: `Lợi nhuận theo doanh thu ký kết (Doanh thu hợp đồng - Giá vốn thực tế)`,
       },
       grossMargin: {
         rawValue: Number(overallMargin.toFixed(1)),
         formattedValue: overallMargin.toFixed(1).replace('.', ',') + '%',
         label: 'Biên lợi nhuận',
-        subtext: '↑ 1,2%',
+        subtext: `↑ ${baseline.marginDiff.toFixed(1).replace('.', ',')}%`,
         subtextVariant: 'positive' as const,
         iconName: 'percent' as const,
         iconBgColor: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800',
         iconColor: 'text-amber-600 dark:text-amber-400',
+        truthNote: `Biên dự toán ban đầu: 39,4% · Biên thực tế đạt: 37,4%`,
       },
     };
 
-    // 4. Financial Performance Section (3 months: T10, T11, T12; Max ceiling 4T)
+    // 4. Financial Performance Section (3 months: T10 Actual, T11 Current, T12 Forecast; Max ceiling 4T)
     const maxCeiling = 4_000_000_000;
     const rawBars = [
-      { month: 'Tháng 10', revenue: 3_000_000_000, cost: 2_100_000_000, profit: 900_000_000 },
-      { month: 'Tháng 11', revenue: 3_100_000_000, cost: 2_150_000_000, profit: 950_000_000 },
-      { month: 'Tháng 12', revenue: 3_250_000_000, cost: 2_221_000_000, profit: 1_029_000_000 },
+      { month: 'Tháng 10', revenue: 3_000_000_000, cost: 2_100_000_000, profit: 900_000_000, isForecast: false },
+      { month: 'Tháng 11', revenue: 3_100_000_000, cost: 2_150_000_000, profit: 950_000_000, isForecast: false },
+      { month: 'Tháng 12', revenue: 3_250_000_000, cost: 2_221_000_000, profit: 1_029_000_000, isForecast: true },
     ];
 
     const bars: FinancialPerformanceBar[] = rawBars.map((b) => ({
@@ -200,6 +295,7 @@ export class InteriorFinanceAnalyticsService {
       profit: b.profit,
       profitFormatted: this.formatCompact(b.profit),
       profitHeightPercent: Math.round((b.profit / maxCeiling) * 100),
+      isForecast: b.isForecast,
     }));
 
     const financialPerformance = {
@@ -212,15 +308,15 @@ export class InteriorFinanceAnalyticsService {
       yAxisLabels: ['4T', '3T', '2T', '1T', '0'],
       bars,
       legend: [
-        { label: 'Doanh thu', color: '#10B981' }, // Emerald
-        { label: 'Chi phí', color: '#3B82F6' }, // Blue
-        { label: 'Lợi nhuận', color: '#F59E0B' }, // Amber
+        { label: 'Doanh thu', color: '#10B981' },
+        { label: 'Chi phí', color: '#3B82F6' },
+        { label: 'Lợi nhuận', color: '#F59E0B' },
       ],
+      timeHorizonNote: 'Tháng 10 - Tháng 11 (Thực tế) · Tháng 12 (Dự báo tiến độ xuất xưởng & lắp đặt)',
     };
 
     // 5. COGS Structure (Total: 2.22 Tỷ)
     // 70% Material (Blue), 30% Labor (Emerald), 0% Other (Slate)
-    // SVG Donut circumference = 2 * PI * 40 = 251.327
     const circumference = 251.327;
     const materialLength = circumference * 0.7; // ~175.9
     const laborLength = circumference * 0.3; // ~75.4
@@ -228,6 +324,7 @@ export class InteriorFinanceAnalyticsService {
     const cogsStructure = {
       totalCogsFormatted: '2,22 Tỷ',
       centerSublabel: 'Tổng giá vốn',
+      reconciliationSummary: 'Tổng hợp từ 24 Purchase Orders (Vật liệu) và 8 Work Orders (Nhân công xưởng)',
       items: [
         {
           id: 'materials',
@@ -239,6 +336,7 @@ export class InteriorFinanceAnalyticsService {
           color: '#3B82F6',
           dashArray: `${materialLength.toFixed(1)} ${circumference.toFixed(1)}`,
           dashOffset: '0',
+          categoryType: 'DIRECT_MATERIAL' as const,
         },
         {
           id: 'labor',
@@ -250,6 +348,7 @@ export class InteriorFinanceAnalyticsService {
           color: '#10B981',
           dashArray: `${laborLength.toFixed(1)} ${circumference.toFixed(1)}`,
           dashOffset: `-${materialLength.toFixed(1)}`,
+          categoryType: 'DIRECT_LABOR' as const,
         },
         {
           id: 'other',
@@ -261,20 +360,20 @@ export class InteriorFinanceAnalyticsService {
           color: '#94A3B8',
           dashArray: `0 ${circumference.toFixed(1)}`,
           dashOffset: '0',
+          categoryType: 'LOGISTICS_INSTALL' as const,
         },
       ],
     };
 
     // 6. Cash Flow Section (6 months trajectory: T7 -> T12)
-    // Ceiling 3T
     const cfMaxCeiling = 3_000_000_000;
     const rawPoints = [
-      { month: 'Tháng 7', collected: 1_500_000_000, cost: 1_000_000_000, xPercent: 10 },
-      { month: 'Tháng 8', collected: 2_100_000_000, cost: 1_400_000_000, xPercent: 26 },
-      { month: 'Tháng 9', collected: 1_950_000_000, cost: 1_350_000_000, xPercent: 42 },
-      { month: 'Tháng 10', collected: 2_300_000_000, cost: 1_750_000_000, xPercent: 58 },
-      { month: 'Tháng 11', collected: 2_450_000_000, cost: 1_900_000_000, xPercent: 74 },
-      { month: 'Tháng 12', collected: 2_950_000_000, cost: 2_350_000_000, xPercent: 90 },
+      { month: 'Tháng 7', collected: 1_500_000_000, cost: 1_000_000_000, xPercent: 10, isForecast: false },
+      { month: 'Tháng 8', collected: 2_100_000_000, cost: 1_400_000_000, xPercent: 26, isForecast: false },
+      { month: 'Tháng 9', collected: 1_950_000_000, cost: 1_350_000_000, xPercent: 42, isForecast: false },
+      { month: 'Tháng 10', collected: 2_300_000_000, cost: 1_750_000_000, xPercent: 58, isForecast: false },
+      { month: 'Tháng 11', collected: 2_450_000_000, cost: 1_900_000_000, xPercent: 74, isForecast: false },
+      { month: 'Tháng 12', collected: 2_950_000_000, cost: 2_350_000_000, xPercent: 90, isForecast: true },
     ];
 
     const cashFlowPoints: CashFlowPoint[] = rawPoints.map((p) => {
@@ -289,11 +388,10 @@ export class InteriorFinanceAnalyticsService {
         xPercent: p.xPercent,
         collectedYPercent: Math.round(collectedY),
         costYPercent: Math.round(costY),
+        isForecast: p.isForecast,
       };
     });
 
-    // Generate smooth SVG path strings for 300x160 viewBox
-    // x: 30, 78, 126, 174, 222, 270. y = 140 - (val / 3T) * 110
     const coords = [
       { x: 30, yColl: 140 - (1.5 / 3.0) * 110, yCost: 140 - (1.0 / 3.0) * 110 },
       { x: 78, yColl: 140 - (2.1 / 3.0) * 110, yCost: 140 - (1.4 / 3.0) * 110 },
@@ -318,13 +416,14 @@ export class InteriorFinanceAnalyticsService {
         { label: 'Thu tiền', color: '#10B981' },
         { label: 'Chi phí', color: '#3B82F6' },
       ],
+      actualVsForecastNote: 'Tháng 7 - Tháng 11 (Dòng tiền thực thu/chi) · Tháng 12 (Dự báo thanh toán kỳ cuối)',
     };
 
-    // 7. Debt Overview Donut (725 Triệu: Chưa đến hạn 425M, Sắp đến hạn 150M, Quá hạn 150M)
+    // 7. Debt Overview Donut (725 Triệu)
     const debtCircumference = 251.327;
-    const notDueLength = (425 / 725) * debtCircumference; // ~147.3
-    const upcomingLength = (150 / 725) * debtCircumference; // ~52.0
-    const overdueLength = (150 / 725) * debtCircumference; // ~52.0
+    const notDueLength = (425 / 725) * debtCircumference;
+    const upcomingLength = (150 / 725) * debtCircumference;
+    const overdueLength = (150 / 725) * debtCircumference;
 
     const debtOverview = {
       title: 'Công nợ &amp; Thanh toán',
@@ -338,7 +437,7 @@ export class InteriorFinanceAnalyticsService {
           amount: 425_000_000,
           amountFormatted: '425.000.000 ₫',
           percentage: 58.6,
-          color: '#10B981', // Emerald
+          color: '#10B981',
           dashArray: `${notDueLength.toFixed(1)} ${debtCircumference.toFixed(1)}`,
           dashOffset: '0',
         },
@@ -348,7 +447,7 @@ export class InteriorFinanceAnalyticsService {
           amount: 150_000_000,
           amountFormatted: '150.000.000 ₫',
           percentage: 20.7,
-          color: '#F59E0B', // Amber
+          color: '#F59E0B',
           dashArray: `${upcomingLength.toFixed(1)} ${debtCircumference.toFixed(1)}`,
           dashOffset: `-${notDueLength.toFixed(1)}`,
         },
@@ -358,7 +457,7 @@ export class InteriorFinanceAnalyticsService {
           amount: 150_000_000,
           amountFormatted: '150.000.000 ₫',
           percentage: 20.7,
-          color: '#EF4444', // Red
+          color: '#EF4444',
           dashArray: `${overdueLength.toFixed(1)} ${debtCircumference.toFixed(1)}`,
           dashOffset: `-${(notDueLength + upcomingLength).toFixed(1)}`,
         },
@@ -369,7 +468,7 @@ export class InteriorFinanceAnalyticsService {
       },
     };
 
-    // 8. Recent Transactions
+    // 8. Recent Transactions with Traceable Source References
     const recentTransactions = {
       title: 'Giao dịch gần đây',
       viewAllUrl: '/dashboard/interior/finance/transactions',
@@ -384,6 +483,8 @@ export class InteriorFinanceAnalyticsService {
           amountColorClass: 'text-emerald-600 dark:text-emerald-400 font-bold',
           badgeLabel: 'Thu tiền',
           badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800',
+          sourceType: 'PAYMENT_SCHEDULE' as const,
+          sourceRef: 'CON-DUBAI-001/M3',
         },
         {
           id: 'TX-102',
@@ -395,6 +496,8 @@ export class InteriorFinanceAnalyticsService {
           amountColorClass: 'text-rose-600 dark:text-rose-400 font-bold',
           badgeLabel: 'Chi phí',
           badgeClass: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800',
+          sourceType: 'WORK_ORDER' as const,
+          sourceRef: 'WO-2026-11-042',
         },
         {
           id: 'TX-103',
@@ -406,6 +509,8 @@ export class InteriorFinanceAnalyticsService {
           amountColorClass: 'text-emerald-600 dark:text-emerald-400 font-bold',
           badgeLabel: 'Thu tiền',
           badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800',
+          sourceType: 'PAYMENT_SCHEDULE' as const,
+          sourceRef: 'CON-DUBAI-001/M2',
         },
         {
           id: 'TX-104',
@@ -417,6 +522,8 @@ export class InteriorFinanceAnalyticsService {
           amountColorClass: 'text-rose-600 dark:text-rose-400 font-bold',
           badgeLabel: 'Chi phí',
           badgeClass: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800',
+          sourceType: 'SITE_PACKAGE' as const,
+          sourceRef: 'SWP-VILLA-08',
         },
       ],
     };
@@ -449,6 +556,37 @@ export class InteriorFinanceAnalyticsService {
       bgImageUrl: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80',
     };
 
+    // 11. Revenue Truth Aggregation
+    const revenueTruth: RevenueTruthMetrics = {
+      contractValue: totalContractRevenue,
+      contractValueFormatted: this.formatVND(totalContractRevenue),
+      recognizedRevenue: totalRecognizedRevenue,
+      recognizedRevenueFormatted: this.formatVND(totalRecognizedRevenue),
+      cashCollected: totalCashCollected,
+      cashCollectedFormatted: this.formatVND(totalCashCollected),
+      unearnedRevenue,
+      unearnedRevenueFormatted: this.formatVND(unearnedRevenue),
+      recognitionRatio: Number(((totalRecognizedRevenue / totalContractRevenue) * 100).toFixed(1)),
+      recognitionRatioFormatted: ((totalRecognizedRevenue / totalContractRevenue) * 100).toFixed(1).replace('.', ',') + '%',
+    };
+
+    // 12. COGS Truth Aggregation
+    const cogsTruth: CogsTruthMetrics = {
+      estimatedCogs: totalBudgetCost,
+      estimatedCogsFormatted: this.formatVND(totalBudgetCost),
+      actualCogs: totalCogs,
+      actualCogsFormatted: this.formatVND(totalCogs),
+      varianceAmount: totalCostVariance,
+      varianceAmountFormatted: (totalCostVariance > 0 ? '+' : '') + this.formatVND(totalCostVariance),
+      variancePercent: Number(((totalCostVariance / totalBudgetCost) * 100).toFixed(1)),
+      variancePercentFormatted: ((totalCostVariance / totalBudgetCost) * 100).toFixed(1).replace('.', ',') + '%',
+      isOverBudget: totalCostVariance > 0,
+      committedCost: 180_000_000,
+      committedCostFormatted: this.formatVND(180_000_000),
+      remainingForecastCost: 320_000_000,
+      remainingForecastCostFormatted: this.formatVND(320_000_000),
+    };
+
     return {
       quarter,
       availableQuarters: ['Quý 4/2026', 'Quý 3/2026', 'Quý 2/2026', 'Quý 1/2026'],
@@ -472,6 +610,9 @@ export class InteriorFinanceAnalyticsService {
       recentTransactions,
       quickInsights,
       footerBanner,
+      revenueTruth,
+      cogsTruth,
+      quarterBaseline: baseline,
     };
   }
 }
