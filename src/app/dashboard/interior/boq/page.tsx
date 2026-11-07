@@ -588,6 +588,12 @@ export default function InteriorBOQPage() {
         >
           Thiết kế
         </Link>
+        <Link
+          href="/dashboard/interior/materials"
+          className="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white whitespace-nowrap transition-colors"
+        >
+          Vật liệu
+        </Link>
         <button
           type="button"
           className="pb-3 border-b-2 border-[#0f4c3a] text-[#0f4c3a] dark:border-emerald-400 dark:text-emerald-400 font-bold whitespace-nowrap transition-colors"
