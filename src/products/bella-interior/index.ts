@@ -56,6 +56,10 @@ export * from './services/interior-customer-analytics.service';
 export * from './domain/schedule-overview.types';
 export * from './services/interior-schedule-analytics.service';
 
+// Design Studio & Specification Analytics
+export * from './domain/design-overview.types';
+export * from './services/interior-design-analytics.service';
+
 // Manifest
 export * from './manifest';
 
