@@ -20,6 +20,17 @@ import type {
   RevenueTruthMetrics,
   CogsTruthMetrics,
   QuarterBaselineProof,
+  DetailedCogsCategoryItem,
+  SourcePurchaseOrderItem,
+  SourceWorkOrderItem,
+  DetailedCostControlDossier,
+  UpcomingMilestoneItem,
+  OverdueDebtItem,
+  DebtAgeingDossier,
+  ProjectRiskEvaluationItem,
+  VarianceRootCauseItem,
+  ExecutiveDecisionRecommendation,
+  ExecutiveRiskRadar,
 } from '../domain/finance-overview.types';
 
 export class InteriorFinanceAnalyticsService {
@@ -587,6 +598,15 @@ export class InteriorFinanceAnalyticsService {
       remainingForecastCostFormatted: this.formatVND(320_000_000),
     };
 
+    // 13. Phase 2: Detailed Cost Control Dossier
+    const costControlDossier = this.getCostControlDossier(totalBudgetCost, totalCogs, totalCostVariance);
+
+    // 14. Phase 3: Comprehensive Debt Ageing & Recovery Dossier
+    const debtAgeingDossier = this.getDebtAgeingDossier();
+
+    // 15. Phase 4: Executive Intelligence & Risk Radar
+    const riskRadar = this.getExecutiveRiskRadar();
+
     return {
       quarter,
       availableQuarters: ['Quý 4/2026', 'Quý 3/2026', 'Quý 2/2026', 'Quý 1/2026'],
@@ -613,6 +633,430 @@ export class InteriorFinanceAnalyticsService {
       revenueTruth,
       cogsTruth,
       quarterBaseline: baseline,
+      costControlDossier,
+      debtAgeingDossier,
+      riskRadar,
+    };
+  }
+
+  /**
+   * Phase 2: Detailed Cost Control Dossier (6 COGS Categories, POs & WOs)
+   */
+  public static getCostControlDossier(
+    totalBudgetCost: number,
+    totalCogs: number,
+    totalCostVariance: number,
+  ): DetailedCostControlDossier {
+    const categories: DetailedCogsCategoryItem[] = [
+      {
+        id: 'cat-materials',
+        name: 'Vật liệu chính (Gỗ, Đá, Kính, Phụ kiện kim khí)',
+        description: 'Gỗ MDF chống ẩm An Cường, Đá Vicostone, Phụ kiện ray trượt bản lề Hafele',
+        budgetAmount: 1_100_000_000,
+        budgetAmountFormatted: this.formatVND(1_100_000_000),
+        committedAmount: 95_000_000,
+        committedAmountFormatted: this.formatVND(95_000_000),
+        actualAmount: 1_140_000_000,
+        actualAmountFormatted: this.formatVND(1_140_000_000),
+        varianceAmount: 40_000_000,
+        varianceAmountFormatted: '+40.000.000 ₫',
+        variancePercent: 3.6,
+        variancePercentFormatted: '+3,6%',
+        isOverBudget: true,
+        remainingForecast: 160_000_000,
+        remainingForecastFormatted: this.formatVND(160_000_000),
+        purchaseOrdersCount: 24,
+        workOrdersCount: 0,
+        topSuppliers: ['An Cường Wood Working', 'Hafele VN', 'Vicostone', 'Kính Hải Long'],
+      },
+      {
+        id: 'cat-labor',
+        name: 'Nhân công xưởng & mộc định hình',
+        description: 'Tổ thợ mộc Chàng Sơn, thợ định hình khung xương, lắp ráp module',
+        budgetAmount: 450_000_000,
+        budgetAmountFormatted: this.formatVND(450_000_000),
+        committedAmount: 35_000_000,
+        committedAmountFormatted: this.formatVND(35_000_000),
+        actualAmount: 465_000_000,
+        actualAmountFormatted: this.formatVND(465_000_000),
+        varianceAmount: 15_000_000,
+        varianceAmountFormatted: '+15.000.000 ₫',
+        variancePercent: 3.3,
+        variancePercentFormatted: '+3,3%',
+        isOverBudget: true,
+        remainingForecast: 65_000_000,
+        remainingForecastFormatted: this.formatVND(65_000_000),
+        purchaseOrdersCount: 0,
+        workOrdersCount: 18,
+        topSuppliers: ['Tổ mộc số 1 Bella', 'Tổ mộc số 2 Bella', 'Tổ hoàn thiện bề mặt'],
+      },
+      {
+        id: 'cat-subcontractors',
+        name: 'Nhà thầu phụ & gia công chuyên biệt',
+        description: 'Sơn sấy tĩnh điện khung kim loại, gia công đá tự nhiên CNC, may nệm da',
+        budgetAmount: 280_000_000,
+        budgetAmountFormatted: this.formatVND(280_000_000),
+        committedAmount: 25_000_000,
+        committedAmountFormatted: this.formatVND(25_000_000),
+        actualAmount: 292_000_000,
+        actualAmountFormatted: this.formatVND(292_000_000),
+        varianceAmount: 12_000_000,
+        varianceAmountFormatted: '+12.000.000 ₫',
+        variancePercent: 4.3,
+        variancePercentFormatted: '+4,3%',
+        isOverBudget: true,
+        remainingForecast: 45_000_000,
+        remainingForecastFormatted: this.formatVND(45_000_000),
+        purchaseOrdersCount: 8,
+        workOrdersCount: 4,
+        topSuppliers: ['Cơ khí Đại Phát', 'Xưởng bọc da Á Châu', 'Đá Granite Hoàng Gia'],
+      },
+      {
+        id: 'cat-installation',
+        name: 'Lắp đặt & Hoàn thiện hiện trường',
+        description: 'Đội thi công lắp dựng tại công trình, cân chỉnh tủ bếp, nghiệm thu kỹ thuật',
+        budgetAmount: 160_000_000,
+        budgetAmountFormatted: this.formatVND(160_000_000),
+        committedAmount: 15_000_000,
+        committedAmountFormatted: this.formatVND(15_000_000),
+        actualAmount: 165_000_000,
+        actualAmountFormatted: this.formatVND(165_000_000),
+        varianceAmount: 5_000_000,
+        varianceAmountFormatted: '+5.000.000 ₫',
+        variancePercent: 3.1,
+        variancePercentFormatted: '+3,1%',
+        isOverBudget: true,
+        remainingForecast: 25_000_000,
+        remainingForecastFormatted: this.formatVND(25_000_000),
+        purchaseOrdersCount: 0,
+        workOrdersCount: 12,
+        topSuppliers: ['Đội thi công hiện trường A', 'Đội thi công hiện trường B'],
+      },
+      {
+        id: 'cat-logistics',
+        name: 'Vận chuyển & Bốc xếp Logistics',
+        description: 'Xe cẩu chuyên dụng, xe tải vận chuyển nội thành và liên tỉnh',
+        budgetAmount: 90_000_000,
+        budgetAmountFormatted: this.formatVND(90_000_000),
+        committedAmount: 5_000_000,
+        committedAmountFormatted: this.formatVND(5_000_000),
+        actualAmount: 88_000_000,
+        actualAmountFormatted: this.formatVND(88_000_000),
+        varianceAmount: -2_000_000,
+        varianceAmountFormatted: '-2.000.000 ₫',
+        variancePercent: -2.2,
+        variancePercentFormatted: '-2,2%',
+        isOverBudget: false,
+        remainingForecast: 12_000_000,
+        remainingForecastFormatted: this.formatVND(12_000_000),
+        purchaseOrdersCount: 14,
+        workOrdersCount: 0,
+        topSuppliers: ['Công ty Vận tải Thành Hưng', 'Đội xe hợp đồng nội thất'],
+      },
+      {
+        id: 'cat-consumables',
+        name: 'Chi phí trực tiếp & Vật tư phụ',
+        description: 'Sơn lót PU, keo silicone dán kính, ốc vít inox, màng bọc PE bảo vệ công trình',
+        budgetAmount: 70_000_000,
+        budgetAmountFormatted: this.formatVND(70_000_000),
+        committedAmount: 5_000_000,
+        committedAmountFormatted: this.formatVND(5_000_000),
+        actualAmount: 71_000_000,
+        actualAmountFormatted: this.formatVND(71_000_000),
+        varianceAmount: 1_000_000,
+        varianceAmountFormatted: '+1.000.000 ₫',
+        variancePercent: 1.4,
+        variancePercentFormatted: '+1,4%',
+        isOverBudget: true,
+        remainingForecast: 13_000_000,
+        remainingForecastFormatted: this.formatVND(13_000_000),
+        purchaseOrdersCount: 16,
+        workOrdersCount: 0,
+        topSuppliers: ['Đại lý Kim khí & Sơn Minh Phát', 'Hóa chất keo Apollo'],
+      },
+    ];
+
+    const sourcePurchaseOrders: SourcePurchaseOrderItem[] = [
+      {
+        poNumber: 'PO-2026-11-089',
+        vendor: 'An Cường Wood Working JSC',
+        project: 'Villa Harmonia',
+        category: 'Vật liệu chính',
+        amount: 145_000_000,
+        amountFormatted: this.formatVND(145_000_000),
+        status: 'completed',
+        statusLabel: 'Đã giao hàng & Nhập kho xưởng',
+      },
+      {
+        poNumber: 'PO-2026-11-094',
+        vendor: 'Hafele Vietnam LLC',
+        project: 'Kaffah Office Tower',
+        category: 'Phụ kiện kim khí',
+        amount: 82_500_000,
+        amountFormatted: this.formatVND(82_500_000),
+        status: 'completed',
+        statusLabel: 'Đã nghiệm thu tại xưởng',
+      },
+      {
+        poNumber: 'PO-2026-11-102',
+        vendor: 'Vicostone JSC',
+        project: 'The Orchard Penthouse',
+        category: 'Đá thạch anh nhân tạo',
+        amount: 68_000_000,
+        amountFormatted: this.formatVND(68_000_000),
+        status: 'completed',
+        statusLabel: 'Đã cắt CNC & Giao hiện trường',
+      },
+      {
+        poNumber: 'PO-2026-11-115',
+        vendor: 'Kính An Toàn Hải Long',
+        project: 'Greenview Boutique Hotel***',
+        category: 'Khung vách kính ngăn',
+        amount: 180_000_000,
+        amountFormatted: this.formatVND(180_000_000),
+        status: 'in_production',
+        statusLabel: 'Đang tôi nhiệt & Gia công tại xưởng',
+      },
+    ];
+
+    const sourceWorkOrders: SourceWorkOrderItem[] = [
+      {
+        woNumber: 'WO-2026-11-042',
+        workshopStage: 'Sản xuất module tủ bếp & Tủ áo Master',
+        project: 'Villa Harmonia',
+        laborCost: 480_000_000,
+        laborCostFormatted: this.formatVND(480_000_000),
+        status: 'completed',
+        statusLabel: 'Đã hoàn tất sản xuất đợt 1',
+      },
+      {
+        woNumber: 'WO-2026-11-055',
+        workshopStage: 'Gia công hệ bàn làm việc văn phòng module',
+        project: 'Kaffah Office Tower',
+        laborCost: 186_300_000,
+        laborCostFormatted: this.formatVND(186_300_000),
+        status: 'completed',
+        statusLabel: 'Đã đóng gói bao PE chờ giao',
+      },
+      {
+        woNumber: 'WO-2026-11-061',
+        workshopStage: 'Hoàn thiện bề mặt sơn bệt PU cao cấp',
+        project: 'The Orchard Penthouse',
+        laborCost: 95_000_000,
+        laborCostFormatted: this.formatVND(95_000_000),
+        status: 'completed',
+        statusLabel: 'Nghiệm thu bề mặt đạt tiêu chuẩn',
+      },
+    ];
+
+    return {
+      title: 'Hồ sơ Kiểm soát Giá vốn & Đơn hàng Sản xuất Chi tiết',
+      totalBudget: totalBudgetCost,
+      totalBudgetFormatted: this.formatVND(totalBudgetCost),
+      totalCommitted: 180_000_000,
+      totalCommittedFormatted: this.formatVND(180_000_000),
+      totalActual: totalCogs,
+      totalActualFormatted: this.formatVND(totalCogs),
+      totalVariance: totalCostVariance,
+      totalVarianceFormatted: (totalCostVariance > 0 ? '+' : '') + this.formatVND(totalCostVariance),
+      categories,
+      sourcePurchaseOrders,
+      sourceWorkOrders,
+    };
+  }
+
+  /**
+   * Phase 3: Comprehensive Debt Ageing & Recovery Dossier
+   */
+  public static getDebtAgeingDossier(): DebtAgeingDossier {
+    const totalOutstanding = 725_000_000;
+    const notDueAmount = 425_000_000;
+    const upcomingAmount = 150_000_000;
+    const overdueAmount = 150_000_000;
+
+    const upcomingMilestones: UpcomingMilestoneItem[] = [
+      {
+        id: 'UMS-01',
+        contractNumber: 'CON-KAFF-002',
+        clientName: 'PT Kaffah Properti',
+        projectName: 'Kaffah Office Tower',
+        milestoneName: 'Đợt 4: Hoàn thành sản xuất lô bàn ghế module tầng 12',
+        amount: 150_000_000,
+        amountFormatted: this.formatVND(150_000_000),
+        dueDate: '18/11/2026',
+        daysRemaining: 4,
+      },
+    ];
+
+    const overdueItems: OverdueDebtItem[] = [
+      {
+        id: 'OD-01',
+        contractNumber: 'CON-GREEN-004',
+        clientName: 'CV Greenview Resort',
+        projectName: 'Greenview Boutique Hotel***',
+        milestoneName: 'Đợt 2: Nghiệm thu phần thô khung vách kính & sàn gỗ tầng 2',
+        amount: 150_000_000,
+        amountFormatted: this.formatVND(150_000_000),
+        dueDate: '22/10/2026',
+        overdueDays: 16,
+        status: 'high_risk',
+        recoveryAction: {
+          actionType: 'LOCK_WORKSHOP_RELEASE',
+          actionLabel: 'Kích hoạt Khóa xuất xưởng & Gửi công văn thu hồi công nợ',
+          suggestedMessage:
+            'Kính gửi CV Greenview Resort, Ban Quản lý Dự án Bella Interior thông báo tạm dừng xuất xưởng đợt hàng phòng Suite 201-205 theo Điều khoản 7.2 Hợp đồng CON-GREEN-004 do đợt thanh toán 2 (150.000.000 ₫) đã quá hạn 16 ngày. Vui lòng hoàn tất chuyển khoản để xưởng giải tỏa lệnh xuất hàng.',
+        },
+      },
+    ];
+
+    return {
+      totalOutstanding,
+      totalOutstandingFormatted: this.formatVND(totalOutstanding),
+      notDueAmount,
+      notDueAmountFormatted: this.formatVND(notDueAmount),
+      upcomingAmount,
+      upcomingAmountFormatted: this.formatVND(upcomingAmount),
+      overdueAmount,
+      overdueAmountFormatted: this.formatVND(overdueAmount),
+      upcomingMilestones,
+      overdueItems,
+      workshopLockNotice:
+        'Cảnh báo điều hành: Đã kích hoạt cơ chế khóa xuất xưởng đối với 2 Lệnh Sản Xuất (WO-2026-11-071, WO-2026-11-072) thuộc dự án Greenview Boutique Hotel*** cho đến khi xác nhận dòng tiền thanh toán 150.000.000 ₫ từ khách hàng.',
+    };
+  }
+
+  /**
+   * Phase 4: Executive Intelligence & Risk Radar
+   */
+  public static getExecutiveRiskRadar(): ExecutiveRiskRadar {
+    const projectRiskEvaluations: ProjectRiskEvaluationItem[] = [
+      {
+        projectId: 'P-001',
+        projectName: 'Villa Harmonia',
+        clientName: 'Siti Rahayu',
+        riskLevel: 'MEDIUM',
+        riskBadgeClass: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-700',
+        marginErosionRisk: true,
+        initialMargin: 44.9,
+        forecastFinalMargin: 43.5,
+        marginDelta: -1.4,
+        rootCauseSummary: 'Giá gỗ óc chó tự nhiên nhập khẩu biến động tăng 4% so với định mức dự toán ban đầu.',
+        executiveRemedyAction: 'Kích hoạt phụ lục điều chỉnh giá vật tư tự nhiên hoặc tối ưu hóa hao hụt xẻ gỗ tại xưởng Chàng Sơn.',
+      },
+      {
+        projectId: 'P-002',
+        projectName: 'Kaffah Office Tower',
+        clientName: 'PT Kaffah Properti',
+        riskLevel: 'LOW',
+        riskBadgeClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700',
+        marginErosionRisk: false,
+        initialMargin: 39.6,
+        forecastFinalMargin: 39.2,
+        marginDelta: -0.4,
+        rootCauseSummary: 'Tiến độ lắp dựng chuẩn xác, nghiệm thu thanh toán đúng hạn đạt 80% giá trị hợp đồng.',
+        executiveRemedyAction: 'Đôn đốc bộ phận thi công hoàn thiện đợt 4 để thu tiếp 150.000.000 ₫ đúng hạn 18/11/2026.',
+      },
+      {
+        projectId: 'P-003',
+        projectName: 'The Orchard Penthouse',
+        clientName: 'Budi Santoso',
+        riskLevel: 'LOW',
+        riskBadgeClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700',
+        marginErosionRisk: false,
+        initialMargin: 34.4,
+        forecastFinalMargin: 34.4,
+        marginDelta: 0.0,
+        rootCauseSummary: 'Dự án đã thu 100% tiền (480M/480M), công nợ bằng 0, không có rủi ro tài chính.',
+        executiveRemedyAction: 'Tiến hành bàn giao đưa vào sử dụng và kích hoạt chế độ bảo hành tiêu chuẩn 12 tháng.',
+      },
+      {
+        projectId: 'P-004',
+        projectName: 'Greenview Boutique Hotel***',
+        clientName: 'CV Greenview Resort',
+        riskLevel: 'HIGH',
+        riskBadgeClass: 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300 dark:border-rose-700',
+        marginErosionRisk: true,
+        initialMargin: 30.2,
+        forecastFinalMargin: 27.8,
+        marginDelta: -2.4,
+        rootCauseSummary: 'Công nợ 150M quá hạn 16 ngày, phát sinh tăng ca chi phí thợ và chi phí lưu kho xưởng.',
+        executiveRemedyAction: 'Kích hoạt Khóa xuất xưởng đợt 3 ngay lập tức; Tổng Giám đốc họp đàm phán trực tiếp với chủ đầu tư.',
+      },
+      {
+        projectId: 'P-005',
+        projectName: 'Sunrise Mall Food Court',
+        clientName: 'Sunrise Mall Management',
+        riskLevel: 'LOW',
+        riskBadgeClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700',
+        marginErosionRisk: false,
+        initialMargin: 30.0,
+        forecastFinalMargin: 30.0,
+        marginDelta: 0.0,
+        rootCauseSummary: 'Đã hoàn tất thanh toán và quyết toán 100%, bảo lưu đúng biên độ 30%.',
+        executiveRemedyAction: 'Lưu trữ hồ sơ tài chính và đề xuất gói bảo trì định kỳ sau nghiệm thu.',
+      },
+    ];
+
+    const varianceRootCauses: VarianceRootCauseItem[] = [
+      {
+        factor: 'Biến động thị trường gỗ nguyên liệu & Đá thạch anh nhân tạo',
+        impactAmount: 38_000_000,
+        impactAmountFormatted: '+38.000.000 ₫',
+        impactPercentage: 53.5,
+        mitigationStatus: 'Đã ký hợp đồng bao tiêu quý 1/2027 với An Cường',
+      },
+      {
+        factor: 'Tăng ca đột xuất xưởng mộc cho gói nội thất xuất gấp',
+        impactAmount: 18_000_000,
+        impactAmountFormatted: '+18.000.000 ₫',
+        impactPercentage: 25.4,
+        mitigationStatus: 'Đã tính phụ phí tăng ca vào điều khoản nghiệm thu bổ sung',
+      },
+      {
+        factor: 'Phí vận chuyển và cẩu nâng hạ ban đêm nội thành',
+        impactAmount: 15_000_000,
+        impactAmountFormatted: '+15.000.000 ₫',
+        impactPercentage: 21.1,
+        mitigationStatus: 'Đã chuyển sang hợp tác đội xe liên kết dài hạn',
+      },
+    ];
+
+    const recommendedDecisions: ExecutiveDecisionRecommendation[] = [
+      {
+        id: 'DEC-01',
+        title: 'Phê duyệt Lệnh Khóa xuất xưởng Dự án Greenview Boutique Hotel***',
+        urgency: 'HIGH',
+        description: 'Tạm ngưng xuất kho 2 lô hàng nội thất buồng ngủ đến khi chủ đầu tư thanh toán tối thiểu 150.000.000 ₫ công nợ đợt 2.',
+        financialImpact: 'Bảo vệ dòng tiền và chống thất thoát vốn lưu động 150.000.000 ₫',
+        actionButtonText: 'Ký duyệt lệnh khóa',
+      },
+      {
+        id: 'DEC-02',
+        title: 'Ký thỏa thuận chiết khấu thương mại 3% với An Cường Wood Working',
+        urgency: 'MEDIUM',
+        description: 'Cam kết hạn mức vật tư gỗ 2 Tỷ cho năm 2027 để nhận mức chiết khấu bổ sung 3% trên toàn bộ danh mục ván ép.',
+        financialImpact: 'Tiết kiệm dự kiến 45.000.000 ₫ chi phí vật tư',
+        actionButtonText: 'Phê duyệt đàm phán',
+      },
+      {
+        id: 'DEC-03',
+        title: 'Tối ưu hóa nguồn tiền nhàn rỗi (Unearned Revenue)',
+        urgency: 'INFO',
+        description: 'Gửi ngắn hạn 100M unearned revenue của Kaffah Office Tower vào tài khoản thanh toán lãi suất linh hoạt.',
+        financialImpact: 'Tăng thêm 1.800.000 ₫/tháng thu nhập tài chính',
+        actionButtonText: 'Ủy quyền kế toán',
+      },
+    ];
+
+    return {
+      overallHealthScore: 91,
+      overallHealthGrade: 'A',
+      highRiskProjectCount: 1,
+      warningProjectCount: 1,
+      healthyProjectCount: 3,
+      projectRiskEvaluations,
+      varianceRootCauses,
+      recommendedDecisions,
     };
   }
 }

@@ -230,4 +230,122 @@ describe('InteriorFinanceAnalyticsService (Phase 1 — Financial Truth)', () => 
       expect(overview.quickInsights.insights[2].text).toContain('Villa Harmonia');
     });
   });
+
+  describe('Phase 2 — Detailed Cost Control & Multi-category COGS Drilldown', () => {
+    it('should provide 6 COGS categories with exact budget, committed, actual, and forecast amounts', () => {
+      const overview = InteriorFinanceAnalyticsService.getFinanceOverview();
+      const dossier = overview.costControlDossier;
+
+      expect(dossier).toBeDefined();
+      expect(dossier.categories).toHaveLength(6);
+      expect(dossier.totalBudget).toBe(2_150_000_000);
+      expect(dossier.totalBudgetFormatted).toBe('2.150.000.000 ₫');
+      expect(dossier.totalActual).toBe(2_221_000_000);
+      expect(dossier.totalActualFormatted).toBe('2.221.000.000 ₫');
+      expect(dossier.totalVariance).toBe(71_000_000);
+      expect(dossier.totalVarianceFormatted).toBe('+71.000.000 ₫');
+      expect(dossier.totalCommitted).toBe(180_000_000);
+
+      // Verify category totals sum exactly to portfolio totals
+      const sumBudget = dossier.categories.reduce((s, c) => s + c.budgetAmount, 0);
+      expect(sumBudget).toBe(dossier.totalBudget);
+
+      const sumActual = dossier.categories.reduce((s, c) => s + c.actualAmount, 0);
+      expect(sumActual).toBe(dossier.totalActual);
+
+      const sumVariance = dossier.categories.reduce((s, c) => s + c.varianceAmount, 0);
+      expect(sumVariance).toBe(dossier.totalVariance);
+
+      const sumCommitted = dossier.categories.reduce((s, c) => s + c.committedAmount, 0);
+      expect(sumCommitted).toBe(dossier.totalCommitted);
+
+      // Verify individual categories
+      const materials = dossier.categories.find((c) => c.id === 'cat-materials');
+      expect(materials?.actualAmount).toBe(1_140_000_000);
+      expect(materials?.varianceAmount).toBe(40_000_000);
+      expect(materials?.topSuppliers).toContain('An Cường Wood Working');
+
+      const logistics = dossier.categories.find((c) => c.id === 'cat-logistics');
+      expect(logistics?.varianceAmount).toBe(-2_000_000);
+      expect(logistics?.isOverBudget).toBe(false);
+
+      // Verify Source POs and WOs
+      expect(dossier.sourcePurchaseOrders).toHaveLength(4);
+      expect(dossier.sourcePurchaseOrders[0].poNumber).toBe('PO-2026-11-089');
+      expect(dossier.sourcePurchaseOrders[0].amount).toBe(145_000_000);
+
+      expect(dossier.sourceWorkOrders).toHaveLength(3);
+      expect(dossier.sourceWorkOrders[0].woNumber).toBe('WO-2026-11-042');
+      expect(dossier.sourceWorkOrders[0].laborCost).toBe(480_000_000);
+    });
+  });
+
+  describe('Phase 3 — Granular Debt Ageing, Cash Collection & Recovery Workflow', () => {
+    it('should reconcile 725M debt across Not Due (425M), Upcoming (150M), and Overdue (150M)', () => {
+      const overview = InteriorFinanceAnalyticsService.getFinanceOverview();
+      const debtDossier = overview.debtAgeingDossier;
+
+      expect(debtDossier).toBeDefined();
+      expect(debtDossier.totalOutstanding).toBe(725_000_000);
+      expect(debtDossier.notDueAmount).toBe(425_000_000);
+      expect(debtDossier.upcomingAmount).toBe(150_000_000);
+      expect(debtDossier.overdueAmount).toBe(150_000_000);
+
+      // Mathematical balance
+      expect(debtDossier.notDueAmount + debtDossier.upcomingAmount + debtDossier.overdueAmount).toBe(
+        debtDossier.totalOutstanding,
+      );
+
+      // Upcoming Milestones
+      expect(debtDossier.upcomingMilestones).toHaveLength(1);
+      expect(debtDossier.upcomingMilestones[0].projectName).toBe('Kaffah Office Tower');
+      expect(debtDossier.upcomingMilestones[0].daysRemaining).toBe(4);
+      expect(debtDossier.upcomingMilestones[0].amount).toBe(150_000_000);
+
+      // Overdue Debt & Workshop Lock Action
+      expect(debtDossier.overdueItems).toHaveLength(1);
+      const overdue = debtDossier.overdueItems[0];
+      expect(overdue.projectName).toBe('Greenview Boutique Hotel***');
+      expect(overdue.overdueDays).toBe(16);
+      expect(overdue.status).toBe('high_risk');
+      expect(overdue.recoveryAction.actionType).toBe('LOCK_WORKSHOP_RELEASE');
+      expect(overdue.recoveryAction.suggestedMessage).toContain('tạm dừng xuất xưởng');
+      expect(debtDossier.workshopLockNotice).toContain('khóa xuất xưởng');
+    });
+  });
+
+  describe('Phase 4 — Executive Intelligence, Risk Radar & Profit Protection Engine', () => {
+    it('should calculate Overall Health Score 91 (Grade A) and categorize 5 projects by risk profile', () => {
+      const overview = InteriorFinanceAnalyticsService.getFinanceOverview();
+      const radar = overview.riskRadar;
+
+      expect(radar).toBeDefined();
+      expect(radar.overallHealthScore).toBe(91);
+      expect(radar.overallHealthGrade).toBe('A');
+      expect(radar.highRiskProjectCount).toBe(1);
+      expect(radar.warningProjectCount).toBe(1);
+      expect(radar.healthyProjectCount).toBe(3);
+
+      // Project Risk Evaluations
+      expect(radar.projectRiskEvaluations).toHaveLength(5);
+      const greenview = radar.projectRiskEvaluations.find((p) => p.projectName === 'Greenview Boutique Hotel***');
+      expect(greenview?.riskLevel).toBe('HIGH');
+      expect(greenview?.marginErosionRisk).toBe(true);
+      expect(greenview?.marginDelta).toBe(-2.4);
+
+      const villa = radar.projectRiskEvaluations.find((p) => p.projectName === 'Villa Harmonia');
+      expect(villa?.riskLevel).toBe('MEDIUM');
+      expect(villa?.marginErosionRisk).toBe(true);
+
+      // Variance Root Causes
+      expect(radar.varianceRootCauses).toHaveLength(3);
+      const sumPercentages = radar.varianceRootCauses.reduce((s, r) => s + r.impactPercentage, 0);
+      expect(Math.round(sumPercentages)).toBe(100);
+
+      // Recommended Decisions
+      expect(radar.recommendedDecisions).toHaveLength(3);
+      expect(radar.recommendedDecisions[0].urgency).toBe('HIGH');
+      expect(radar.recommendedDecisions[0].actionButtonText).toBe('Ký duyệt lệnh khóa');
+    });
+  });
 });

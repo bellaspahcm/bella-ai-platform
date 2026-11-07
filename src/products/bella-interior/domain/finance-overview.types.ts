@@ -257,6 +257,153 @@ export interface QuarterBaselineProof {
   marginDiff: number;
 }
 
+// ─── Phase 2: Detailed Cost Control & Multi-category COGS Drilldown ───
+export interface DetailedCogsCategoryItem {
+  id: string;
+  name: string;
+  description: string;
+  budgetAmount: number;
+  budgetAmountFormatted: string;
+  committedAmount: number;
+  committedAmountFormatted: string;
+  actualAmount: number;
+  actualAmountFormatted: string;
+  varianceAmount: number;
+  varianceAmountFormatted: string;
+  variancePercent: number;
+  variancePercentFormatted: string;
+  isOverBudget: boolean;
+  remainingForecast: number;
+  remainingForecastFormatted: string;
+  purchaseOrdersCount: number;
+  workOrdersCount: number;
+  topSuppliers: string[];
+}
+
+export interface SourcePurchaseOrderItem {
+  poNumber: string;
+  vendor: string;
+  project: string;
+  category: string;
+  amount: number;
+  amountFormatted: string;
+  status: 'completed' | 'in_production' | 'draft';
+  statusLabel: string;
+}
+
+export interface SourceWorkOrderItem {
+  woNumber: string;
+  workshopStage: string;
+  project: string;
+  laborCost: number;
+  laborCostFormatted: string;
+  status: 'completed' | 'active';
+  statusLabel: string;
+}
+
+export interface DetailedCostControlDossier {
+  title: string;
+  totalBudget: number;
+  totalBudgetFormatted: string;
+  totalCommitted: number;
+  totalCommittedFormatted: string;
+  totalActual: number;
+  totalActualFormatted: string;
+  totalVariance: number;
+  totalVarianceFormatted: string;
+  categories: DetailedCogsCategoryItem[];
+  sourcePurchaseOrders: SourcePurchaseOrderItem[];
+  sourceWorkOrders: SourceWorkOrderItem[];
+}
+
+// ─── Phase 3: Comprehensive Debt Ageing & Recovery Workflow ───
+export interface UpcomingMilestoneItem {
+  id: string;
+  contractNumber: string;
+  clientName: string;
+  projectName: string;
+  milestoneName: string;
+  amount: number;
+  amountFormatted: string;
+  dueDate: string;
+  daysRemaining: number;
+}
+
+export interface OverdueDebtItem {
+  id: string;
+  contractNumber: string;
+  clientName: string;
+  projectName: string;
+  milestoneName: string;
+  amount: number;
+  amountFormatted: string;
+  dueDate: string;
+  overdueDays: number;
+  status: 'high_risk' | 'critical';
+  recoveryAction: {
+    actionType: 'SEND_REMINDER' | 'LOCK_WORKSHOP_RELEASE' | 'LEGAL_ESCALATION';
+    actionLabel: string;
+    suggestedMessage: string;
+  };
+}
+
+export interface DebtAgeingDossier {
+  totalOutstanding: number;
+  totalOutstandingFormatted: string;
+  notDueAmount: number;
+  notDueAmountFormatted: string;
+  upcomingAmount: number;
+  upcomingAmountFormatted: string;
+  overdueAmount: number;
+  overdueAmountFormatted: string;
+  upcomingMilestones: UpcomingMilestoneItem[];
+  overdueItems: OverdueDebtItem[];
+  workshopLockNotice: string;
+}
+
+// ─── Phase 4: Executive Intelligence & Risk Radar ───
+export interface ProjectRiskEvaluationItem {
+  projectId: string;
+  projectName: string;
+  clientName: string;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  riskBadgeClass: string;
+  marginErosionRisk: boolean;
+  initialMargin: number;
+  forecastFinalMargin: number;
+  marginDelta: number;
+  rootCauseSummary: string;
+  executiveRemedyAction: string;
+}
+
+export interface VarianceRootCauseItem {
+  factor: string;
+  impactAmount: number;
+  impactAmountFormatted: string;
+  impactPercentage: number;
+  mitigationStatus: string;
+}
+
+export interface ExecutiveDecisionRecommendation {
+  id: string;
+  title: string;
+  urgency: 'HIGH' | 'MEDIUM' | 'INFO';
+  description: string;
+  financialImpact: string;
+  actionButtonText: string;
+}
+
+export interface ExecutiveRiskRadar {
+  overallHealthScore: number;
+  overallHealthGrade: 'A' | 'B' | 'C' | 'D';
+  highRiskProjectCount: number;
+  warningProjectCount: number;
+  healthyProjectCount: number;
+  projectRiskEvaluations: ProjectRiskEvaluationItem[];
+  varianceRootCauses: VarianceRootCauseItem[];
+  recommendedDecisions: ExecutiveDecisionRecommendation[];
+}
+
 export interface FinanceOverviewResponse {
   quarter: string;
   availableQuarters: string[];
@@ -275,4 +422,13 @@ export interface FinanceOverviewResponse {
   revenueTruth: RevenueTruthMetrics;
   cogsTruth: CogsTruthMetrics;
   quarterBaseline: QuarterBaselineProof;
+
+  // ─── Phase 2: Cost Control Dossier ───
+  costControlDossier: DetailedCostControlDossier;
+
+  // ─── Phase 3: Debt Ageing & Recovery Dossier ───
+  debtAgeingDossier: DebtAgeingDossier;
+
+  // ─── Phase 4: Executive Intelligence & Risk Radar ───
+  riskRadar: ExecutiveRiskRadar;
 }
