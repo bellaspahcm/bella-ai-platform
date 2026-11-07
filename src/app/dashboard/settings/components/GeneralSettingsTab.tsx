@@ -33,6 +33,7 @@ export default function GeneralSettingsTab({
 }: GeneralSettingsTabProps) {
   const { tenantModuleKey } = useTenantModuleKey();
   const { product } = useUser();
+  const isBellaInterior = product?.productKey === "bella_interior" || tenantModuleKey === "bella_interior";
   const isHaircut = product?.productKey === "bella_haircut";
   const isPreschool = product?.productKey === "bella_preschool";
   const isEnglishCenter = product?.productKey === "bella_english_center";
@@ -54,7 +55,9 @@ export default function GeneralSettingsTab({
     );
   }
 
-  const titleText = isHaircut
+  const titleText = isBellaInterior
+    ? "Thông tin Doanh nghiệp Nội thất"
+    : isHaircut
     ? "Thông tin Haircut Shop"
     : isPreschool
     ? "Thông tin trường học"
@@ -72,7 +75,9 @@ export default function GeneralSettingsTab({
     ? "Thông tin Spa"
     : "Thông tin chung";
 
-  const subtitleText = isPreschool
+  const subtitleText = isBellaInterior
+    ? "Cấu hình thông tin cơ bản hiển thị trên báo giá, hợp đồng dự toán và hồ sơ công trình"
+    : isPreschool
     ? "Cấu hình thông tin cơ bản của trường hiển thị trên hóa đơn và hệ thống"
     : isRealEstate
     ? "Cấu hình thông tin cơ bản hiển thị trên hợp đồng, hóa đơn và hệ thống"
@@ -219,7 +224,7 @@ export default function GeneralSettingsTab({
       </div>
 
       {/* Advanced Conflict Detection Toggles */}
-      {!isRealEstate && !isEducationProduct && product !== null && (
+      {!isRealEstate && !isEducationProduct && !isBellaInterior && product !== null && (
         <OverbookingConfigSection
           config={(generalSettings.salary_config.conflict_detection as unknown as import('@/types/domain').ConflictDetectionConfig) ?? DEFAULT_CONFLICT_DETECTION_CONFIG}
           onChange={(updatedCd) =>

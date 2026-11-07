@@ -99,6 +99,7 @@ function SettingsContent() {
   const settingsBrandName = product?.displayName ?? "Bella";
   const { tenantModuleKey } = useTenantModuleKey();
   const isHealthcare = tenantModuleKey === "bella_healthcare";
+  const isInterior = tenantModuleKey === "bella_interior" || product?.productKey === "bella_interior";
 
   const visibleTabs = useMemo(() => {
     return TABS.map((tab) => {
@@ -124,9 +125,35 @@ function SettingsContent() {
           return { ...normalTab, label: "Định mức kỹ thuật lâm sàng" };
         }
       }
+      if (isInterior) {
+        if (
+          normalTab.id === "promotions" ||
+          normalTab.id === "meta-ads"
+        ) {
+          return null;
+        }
+        if (normalTab.id === "general") {
+          return { ...normalTab, label: "Thông tin Doanh nghiệp Nội thất" };
+        }
+        if (normalTab.id === "salary") {
+          return { ...normalTab, label: "Lương KTS & Thợ xưởng" };
+        }
+        if (normalTab.id === "commission") {
+          return { ...normalTab, label: "Hoa hồng KTS & Dự án" };
+        }
+        if (normalTab.id === "staff") {
+          return { ...normalTab, label: "Tài khoản & Đội ngũ dự án" };
+        }
+        if (normalTab.id === "permissions") {
+          return { ...normalTab, label: "Vai trò & Phân quyền (RBAC)" };
+        }
+        if (normalTab.id === "rules") {
+          return { ...normalTab, label: "Quy tắc thiết kế & Khóa bản vẽ" };
+        }
+      }
       return normalTab;
     }).filter(Boolean) as TabItem[];
-  }, [isHealthcare]);
+  }, [isHealthcare, isInterior]);
 
   const [generalSettings, setGeneralSettings] = useState<TenantGeneralSettings>({
     name: "",

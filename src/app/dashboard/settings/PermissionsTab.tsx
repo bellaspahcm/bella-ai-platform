@@ -208,6 +208,115 @@ const DEFAULT_EDUCATION_PERMISSIONS: Record<string, Record<string, boolean>> = {
   },
 };
 
+// ── Interior Dedicated Roles & Modules ──
+const INTERIOR_MODULES = [
+  { id: "dashboard", label: "Tổng quan (Interior Dashboard)" },
+  { id: "projects", label: "Danh sách dự án" },
+  { id: "customers", label: "Khách hàng dự án" },
+  { id: "schedule", label: "Lịch công việc & Tiến độ" },
+  { id: "design", label: "Design Studio & Khóa bản vẽ" },
+  { id: "boq", label: "BOQ & Dự toán chi phí" },
+  { id: "contracts", label: "Báo giá & Hợp đồng" },
+  { id: "finance", label: "Thanh toán & Thu chi P&L" },
+  { id: "production", label: "Sản xuất xưởng (Manufacturing)" },
+  { id: "installation", label: "Thi công lắp đặt (Site Ops)" },
+  { id: "qc_handover", label: "QC & Nghiệm thu bàn giao" },
+  { id: "warranty", label: "Bảo hành & CSKH" },
+  { id: "reports", label: "Báo cáo & Phân tích dự án" },
+  { id: "settings", label: "Cài đặt hệ thống" },
+] as const;
+
+const INTERIOR_ROLES = [
+  { id: "project_manager", label: "Project Manager (PM)" },
+  { id: "architect", label: "Kiến trúc sư (Architect)" },
+  { id: "workshop_supervisor", label: "Quản đốc xưởng (Supervisor)" },
+  { id: "site_engineer", label: "Giám sát thi công (Site Engineer)" },
+  { id: "accountant", label: "Kế toán dự án" },
+] as const;
+
+const DEFAULT_INTERIOR_PERMISSIONS: Record<string, Record<string, boolean>> = {
+  project_manager: {
+    dashboard: true,
+    projects: true,
+    customers: true,
+    schedule: true,
+    design: true,
+    boq: true,
+    contracts: true,
+    finance: true,
+    production: true,
+    installation: true,
+    qc_handover: true,
+    warranty: true,
+    reports: true,
+    settings: true,
+  },
+  architect: {
+    dashboard: true,
+    projects: true,
+    customers: true,
+    schedule: true,
+    design: true,
+    boq: true,
+    contracts: false,
+    finance: false,
+    production: false,
+    installation: false,
+    qc_handover: false,
+    warranty: false,
+    reports: false,
+    settings: false,
+  },
+  workshop_supervisor: {
+    dashboard: true,
+    projects: false,
+    customers: false,
+    schedule: true,
+    design: false,
+    boq: true,
+    contracts: false,
+    finance: false,
+    production: true,
+    installation: false,
+    qc_handover: false,
+    warranty: false,
+    reports: false,
+    settings: false,
+  },
+  site_engineer: {
+    dashboard: true,
+    projects: true,
+    customers: false,
+    schedule: true,
+    design: false,
+    boq: false,
+    contracts: false,
+    finance: false,
+    production: false,
+    installation: true,
+    qc_handover: true,
+    warranty: true,
+    reports: false,
+    settings: false,
+  },
+  accountant: {
+    dashboard: true,
+    projects: true,
+    customers: true,
+    schedule: false,
+    design: false,
+    boq: true,
+    contracts: true,
+    finance: true,
+    production: false,
+    installation: false,
+    qc_handover: false,
+    warranty: false,
+    reports: true,
+    settings: false,
+  },
+};
+
 type PermissionsState = Record<string, Record<string, boolean>>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -253,12 +362,13 @@ function mergePersistedPermissions(
 export default function PermissionsTab() {
   const { tenantModuleKey } = useTenantModuleKey();
   const isEducation = tenantModuleKey === 'bella_education';
+  const isInterior = tenantModuleKey === 'bella_interior';
 
-  const roles = useMemo(() => (isEducation ? EDUCATION_ROLES : SPA_ROLES), [isEducation]);
-  const modules = useMemo(() => (isEducation ? EDUCATION_MODULES : SPA_MODULES), [isEducation]);
+  const roles = useMemo(() => (isInterior ? INTERIOR_ROLES : isEducation ? EDUCATION_ROLES : SPA_ROLES), [isInterior, isEducation]);
+  const modules = useMemo(() => (isInterior ? INTERIOR_MODULES : isEducation ? EDUCATION_MODULES : SPA_MODULES), [isInterior, isEducation]);
   const defaultPermissions = useMemo(
-    () => (isEducation ? DEFAULT_EDUCATION_PERMISSIONS : DEFAULT_SPA_PERMISSIONS),
-    [isEducation]
+    () => (isInterior ? DEFAULT_INTERIOR_PERMISSIONS : isEducation ? DEFAULT_EDUCATION_PERMISSIONS : DEFAULT_SPA_PERMISSIONS),
+    [isInterior, isEducation]
   );
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);

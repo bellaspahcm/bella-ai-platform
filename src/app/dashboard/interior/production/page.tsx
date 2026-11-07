@@ -1,5 +1,4 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
 
 /**
  * Bella Interior OS — Điều phối Sản xuất xưởng (Platform Manufacturing)
@@ -14,7 +13,7 @@
  * - Light theme: bg-[#F8FAFC], green primary #2D7A4F
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { Fragment, useState, useEffect, useCallback } from 'react';
 import type { ProductionOverviewResponse } from '@/products/bella-interior/domain/production-overview.types';
 import { InteriorProductionAnalyticsService } from '@/products/bella-interior/services/interior-production-analytics.service';
 
@@ -319,28 +318,22 @@ export default function ProductionDashboardPage() {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-green-800 mb-0.5">{architectureNotice.title}</p>
           <p className="text-xs text-green-700 leading-relaxed">
-            {architectureNotice.description.split('Interior OS').map((part, i) =>
-              i === 0 ? part : (
-                <>
-                  <span key={`io-${i}`} className="underline cursor-pointer text-green-800">Interior OS</span>
-                  {part.split('Platform Manufacturing OS').map((sub, j) =>
-                    j === 0 ? sub : (
-                      <>
-                        <span key={`pm-${j}`} className="underline cursor-pointer text-green-800">Platform Manufacturing OS</span>
-                        {sub.split('Approved Design Lock').map((s2, k) =>
-                          k === 0 ? s2 : (
-                            <>
-                              <span key={`al-${k}`} className="underline cursor-pointer text-green-800 font-medium">Approved Design Lock</span>
-                              {s2}
-                            </>
-                          )
-                        )}
-                      </>
-                    )
-                  )}
-                </>
-              )
-            )}
+            {architectureNotice.description.split('Interior OS').map((part, i) => (
+              <Fragment key={`io-part-${i}`}>
+                {i > 0 && <span className="underline cursor-pointer text-green-800">Interior OS</span>}
+                {part.split('Platform Manufacturing OS').map((sub, j) => (
+                  <Fragment key={`pm-sub-${j}`}>
+                    {j > 0 && <span className="underline cursor-pointer text-green-800">Platform Manufacturing OS</span>}
+                    {sub.split('Approved Design Lock').map((s2, k) => (
+                      <Fragment key={`al-s2-${k}`}>
+                        {k > 0 && <span className="underline cursor-pointer text-green-800 font-medium">Approved Design Lock</span>}
+                        {s2}
+                      </Fragment>
+                    ))}
+                  </Fragment>
+                ))}
+              </Fragment>
+            ))}
           </p>
         </div>
       </div>

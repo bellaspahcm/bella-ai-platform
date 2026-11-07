@@ -302,11 +302,54 @@ const EDUCATION_VOCABULARY: ModuleVocabulary = {
     emptyState: 'Chưa có nhật ký sinh hoạt hoặc chăm sóc nào',
   },
 };
+
+/**
+ * Vocabulary for Interior Design, Manufacturing & Fitout module
+ */
+const INTERIOR_VOCABULARY: ModuleVocabulary = {
+  worker: {
+    singular: 'Kiến trúc sư / Thợ xưởng',
+    plural: 'Đội ngũ dự án & Xưởng',
+    short: 'KTS',
+    role: 'Kiến trúc sư / Kỹ sư',
+  },
+  workUnit: {
+    singular: 'Hạng mục thi công',
+    plural: 'Các hạng mục thi công',
+    action: 'Nghiệm thu hạng mục',
+  },
+  service: {
+    singular: 'Gói thiết kế & Thi công',
+    plural: 'Dịch vụ thiết kế & Sản xuất nội thất',
+  },
+  booking: {
+    singular: 'Hợp đồng / Đơn đặt hàng',
+    plural: 'Hợp đồng dự án',
+    action: 'Ký duyệt hợp đồng',
+  },
+  package: {
+    singular: 'Gói hoàn thiện nội thất',
+    plural: 'Hợp đồng trọn gói',
+  },
+  customer: {
+    singular: 'Chủ đầu tư / Khách hàng',
+    plural: 'Chủ đầu tư & Gia chủ',
+    context: 'Dự án nội thất',
+  },
+  serviceHistory: {
+    label: 'Tiến độ & Nhật ký thi công',
+    emptyState: 'Chưa có nhật ký thi công cho dự án này',
+  },
+};
 /**
  * Get vocabulary for a specific module
  * Returns neutral vocabulary when moduleKey is null/undefined (before tenant data loads)
  */
 export function getModuleVocabulary(moduleKey: TenantModuleKey | null | undefined): ModuleVocabulary {
+  if (moduleKey === 'bella_interior') {
+    return INTERIOR_VOCABULARY;
+  }
+
   if (moduleKey === 'bella_education') {
     return EDUCATION_VOCABULARY;
   }
