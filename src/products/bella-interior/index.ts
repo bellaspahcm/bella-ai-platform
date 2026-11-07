@@ -52,6 +52,10 @@ export * from './services/interior-portfolio-analytics.service';
 export * from './domain/customer-overview.types';
 export * from './services/interior-customer-analytics.service';
 
+// Schedule & Dispatch Management Analytics
+export * from './domain/schedule-overview.types';
+export * from './services/interior-schedule-analytics.service';
+
 // Manifest
 export * from './manifest';
 
