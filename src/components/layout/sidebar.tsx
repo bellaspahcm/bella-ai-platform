@@ -465,6 +465,7 @@ const bellaInteriorMenuItems: SidebarMenuItem[] = [
   { icon: ShieldCheck, label: 'QC & Nghiệm thu', href: '/dashboard/interior/qc-handover' },
   { icon: Award, label: 'Bảo hành', href: '/dashboard/interior/warranty' },
   { type: 'header', label: 'QUẢN TRỊ' },
+  { icon: Sparkles, label: 'AI Copilot', href: '/dashboard/ai-copilot' },
   { icon: BarChart3, label: 'Báo cáo', href: '/dashboard/interior/reports' },
   { icon: Settings, label: 'Cài đặt', href: '/dashboard/settings?product=bella_interior' },
 ];

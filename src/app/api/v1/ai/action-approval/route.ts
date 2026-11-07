@@ -27,6 +27,19 @@ function appendRollbackError(message: string, rollbackError?: string) {
   return rollbackError ? `${message}; rollback failed: ${rollbackError}` : message;
 }
 
+function getActionNotificationTitle(type: string): string {
+  if (type === "attendance_warning") return "Phê duyệt từ CEO: Giải trình chấm công KTV";
+  if (type === "inventory_restock") return "Phê duyệt từ CEO: Lệnh nhập kho vật tư bổ sung";
+  if (type === "customer_apology") return "Phê duyệt từ CEO: Xử lý phản hồi khiếu nại khách hàng";
+  if (type === "royalty_payment_reminder") return "Phê duyệt từ CEO: Đôn đốc phí nhượng quyền";
+  if (type === "real_estate_release_next_block") return "Phê duyệt từ Ban Giám Đốc: Mở bán phân khu BĐS tiếp theo";
+  if (type === "interior_spec_lock_approval") return "Phê duyệt từ Ban Điều Hành: Xác nhận khóa mẫu Spec Lock vật liệu";
+  if (type === "interior_boq_variance_review") return "Phê duyệt từ Ban Điều Hành: Rà soát điều chỉnh dự toán BOQ";
+  if (type === "interior_schedule_recovery") return "Phê duyệt từ Ban Điều Hành: Kích hoạt kế hoạch bù tiến độ công trình";
+  if (type === "interior_milestone_payment_followup") return "Phê duyệt từ Ban Điều Hành: Đôn đốc thu hồi công nợ nghiệm thu";
+  return `Phê duyệt từ Ban Điều Hành: Hành động điều phối ${type}`;
+}
+
 export const POST = withTenantContext(async (request: NextRequestWithContext) => {
   console.log("[AI Action Approval] Nhận yêu cầu duyệt hành động nháp...");
 
@@ -58,8 +71,8 @@ export const POST = withTenantContext(async (request: NextRequestWithContext) =>
 
     // 4. Validate user has permission to approve AI actions
     if (!canUseAiCopilotRole(userData.role)) {
-      console.warn(`[AI Action Approval] Người dùng ${userData.full_name} với vai trò ${userData.role} cố gắng phê duyệt.`);
-      return NextResponse.json({ error: "Quyền hạn không hợp lệ. Chỉ có Admin/Super Admin/Kế toán trưởng mới có quyền phê duyệt hành động của AI." }, { status: 403 });
+      console.warn(`[AI Action Approval] Người dùng ${userData.full_name} với vai trò ${userData.role} bị từ chối phê duyệt.`);
+      return NextResponse.json({ error: "Quyền hạn không hợp lệ. Chỉ có Ban điều hành (Admin/Super Admin), Quản lý dự án, KTS trưởng và Kế toán mới có quyền phê duyệt hành động của AI." }, { status: 403 });
     }
 
     // 5. Parse request body
@@ -76,7 +89,7 @@ export const POST = withTenantContext(async (request: NextRequestWithContext) =>
     const notificationPayload: AppNotificationInsert = {
       tenant_id: tenantId,
       type: type,
-      title: `Phê duyệt từ CEO: Giải trình ${type === "attendance_warning" ? "chấm công KTV" : "đối soát quỹ"}`,
+      title: getActionNotificationTitle(type),
       message: draftMessage,
       data: {
         recipient: recipient,
