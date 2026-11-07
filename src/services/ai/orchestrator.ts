@@ -7,6 +7,7 @@ import { runFranchiseAgent } from './agents/franchise';
 import { runCHROAgent } from './agents/chro';
 import { runCFOAgent } from './agents/cfo';
 import { runRealEstateAgent } from './agents/real_estate';
+import { runInteriorAgent } from './agents/interior';
 
 /**
  * Tìm vị trí đóng của `{` đầu tiên bằng thuật toán brace-matching,
@@ -126,6 +127,19 @@ function detectRouting(lowerCommand: string): string {
     lowerCommand.includes("chủ đầu tư") || lowerCommand.includes("villa") ||
     lowerCommand.includes("real estate") || lowerCommand.includes("realestate");
 
+  const isInteriorRelated = lowerCommand.includes("nội thất") ||
+    lowerCommand.includes("interior") || lowerCommand.includes("dự án nội thất") ||
+    lowerCommand.includes("boq") || lowerCommand.includes("dự toán") ||
+    lowerCommand.includes("spec lock") || lowerCommand.includes("khóa mẫu") ||
+    lowerCommand.includes("bản vẽ 3d") || lowerCommand.includes("xưởng sản xuất") ||
+    lowerCommand.includes("thi công lắp đặt") || lowerCommand.includes("nghiệm thu") ||
+    lowerCommand.includes("vật tư nội thất") || lowerCommand.includes("vật liệu nội thất") ||
+    lowerCommand.includes("gỗ") || lowerCommand.includes("đá nhân tạo") ||
+    lowerCommand.includes("tiến độ công trình") || lowerCommand.includes("phát sinh dự toán") ||
+    lowerCommand.includes("thiết kế nội thất") || lowerCommand.includes("fitout") ||
+    lowerCommand.includes("chậm tiến độ");
+
+  if (isInteriorRelated) return "interior";
   if (isCpoRelated) return "cpo";
   if (isCmoRelated) return "cmo";
   if (isFranchiseRelated) return "franchise";
@@ -165,6 +179,11 @@ function getStrategicRecommendations(routedTo: string): string[] {
     "Thẩm định hồ sơ pháp lý và tiến độ thi công của các dự án trước khi tiếp tục mở bán Block tiếp theo.",
     "Đánh giá và tối ưu phân bổ hoa hồng môi giới bất động sản cho các sàn giao dịch liên kết.",
     "Bật cảnh báo tự động gửi Zalo ZNS nhắc nhở các khách hàng trễ hạn đóng tiền đợt thanh toán tiến độ."
+  ];
+  if (routedTo === "interior") return [
+    "Kích hoạt quy trình khóa mẫu vật tư (Spec Lock) bắt buộc trước khi chuyển lệnh sang xưởng gia công nội thất.",
+    "Rà soát lại dự toán BOQ và định mức tiêu hao các hạng mục hoàn thiện gỗ công nghiệp và đá nhân tạo để bảo vệ biên lợi nhuận > 40%.",
+    "Bố trí thêm đội thợ lắp đặt công trình và đôn đốc thu hồi công nợ các đợt thanh toán nghiệm thu từng phần."
   ];
   return [
     "Định kỳ rà soát các chỉ số vận hành cốt lõi toàn diện chuỗi chi nhánh Bella Spa.",
@@ -245,6 +264,8 @@ export async function runCOOOrchestrator(
     subAgentResponse = await runCFOAgent(supabase, tenantId, activeDate, formattedDate, firstDayOfMonth, lowerCommand);
   } else if (routedTo === "real_estate") {
     subAgentResponse = await runRealEstateAgent(supabase, tenantId, activeDate);
+  } else if (routedTo === "interior") {
+    subAgentResponse = await runInteriorAgent(supabase, tenantId, activeDate);
   } else {
     subAgentResponse = {
       agent: "General Operation",
@@ -314,8 +335,9 @@ export async function runCOOOrchestrator(
       else if (routedTo === "cmo") assistantName = "CMO (Trưởng phòng Chăm sóc khách hàng & Marketing)";
       else if (routedTo === "franchise") assistantName = "Franchise (Ban vận hành Nhượng quyền)";
       else if (routedTo === "real_estate") assistantName = "Real Estate AI Specialist (Chuyên gia Bất Động Sản)";
+      else if (routedTo === "interior") assistantName = "Interior AI Director (Giám đốc Điều hành Dự án Nội thất)";
 
-      const actionType = routedTo === 'chro' ? 'attendance_warning' : routedTo === 'cpo' ? 'inventory_restock' : routedTo === 'cmo' ? 'customer_apology' : routedTo === 'franchise' ? 'royalty_payment_reminder' : routedTo === 'real_estate' ? 'real_estate_release_next_block' : 'reconciliation_audit';
+      const actionType = routedTo === 'chro' ? 'attendance_warning' : routedTo === 'cpo' ? 'inventory_restock' : routedTo === 'cmo' ? 'customer_apology' : routedTo === 'franchise' ? 'royalty_payment_reminder' : routedTo === 'real_estate' ? 'real_estate_release_next_block' : routedTo === 'interior' ? 'interior_spec_lock_approval' : 'reconciliation_audit';
 
       const prompt = `Bạn là AI COO (trợ lý điều phối vận hành cấp cao) của hệ thống EIP spa.
 Nhiệm vụ của bạn là nhận câu lệnh ngôn ngữ tự nhiên của Ban điều hành, kết hợp với bộ dữ liệu thô vừa truy xuất từ hệ thống EIP chi nhánh để viết báo cáo tóm tắt phân tích sâu sắc, chính xác số liệu và đề xuất các quyết định thực tế.

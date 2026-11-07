@@ -450,6 +450,7 @@ const bellaEducationMenuItems: SidebarMenuItem[] = [
 // ─── Bella Interior OS Module Menu (Dedicated) ───
 const bellaInteriorMenuItems: SidebarMenuItem[] = [
   { icon: LayoutDashboard, label: 'Tổng quan', href: '/dashboard/interior' },
+  { icon: Sparkles, label: 'AI Copilot', href: '/dashboard/ai-copilot' },
   { type: 'header', label: 'QUẢN LÝ DỰ ÁN' },
   { icon: FolderKanban, label: 'Danh sách dự án', href: '/dashboard/interior/projects' },
   { icon: Users, label: 'Khách hàng', href: '/dashboard/interior/customers' },

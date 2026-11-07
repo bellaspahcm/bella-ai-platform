@@ -9,7 +9,28 @@ export {
 } from '@bella/shared';
 
 // Web-specific permission functions below
-const AI_COPILOT_ROLES = new Set(['admin', 'super_admin', 'accountant']);
+const AI_COPILOT_ROLES = new Set([
+  'admin',
+  'super_admin',
+  'accountant',
+  'project_manager',
+  'lead_architect',
+  'architect',
+  'workshop_manager',
+  'site_supervisor',
+]);
+
+export const INTERIOR_AI_COPILOT_ROLES = new Set([
+  'admin',
+  'super_admin',
+  'accountant',
+  'project_manager',
+  'lead_architect',
+  'architect',
+  'workshop_manager',
+  'site_supervisor',
+]);
+
 const EDUCATION_AI_COPILOT_ROLES = new Set([
   'admin',
   'super_admin',
@@ -31,6 +52,10 @@ function normalizeRole(role: string | null | undefined) {
 
 export function canUseAiCopilotRole(role: string | null | undefined) {
   return AI_COPILOT_ROLES.has(normalizeRole(role));
+}
+
+export function canUseInteriorAiCopilotRole(role: string | null | undefined): boolean {
+  return INTERIOR_AI_COPILOT_ROLES.has(normalizeRole(role));
 }
 
 export function canUseEducationAiCopilotRole(role: string | null | undefined) {

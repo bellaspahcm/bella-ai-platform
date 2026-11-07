@@ -52,6 +52,10 @@ function getAiWelcomeMessage(moduleKey: TenantModuleKey | null, productKey?: str
     return "Xin chào Ban điều hành! Tôi là AI COO - trợ lý vận hành cho Bella Haircut Shop. Tôi có thể hỗ trợ theo dõi lịch hẹn cắt tóc, hồ sơ khách hàng, doanh thu, chấm công & lương stylist/KTV, CRM/Zalo, Meta Ads và các điểm bất thường cần xử lý trong ngày. Anh/chị cần tôi kiểm tra mảng nào hôm nay?";
   }
 
+  if (productKey === "bella_interior" || moduleKey === "bella_interior") {
+    return "Xin chào Ban điều hành và Đội ngũ Dự án! Tôi là AI COO - trợ lý vận hành cho Bella Interior OS. Tôi có thể hỗ trợ kiểm tra tiến độ dự án, khóa mẫu vật liệu (Spec Lock), dự toán BOQ và giá vốn công trình, cảnh báo tiến độ xưởng sản xuất, lịch thi công lắp đặt và thu hồi công nợ các đợt thanh toán. Anh/chị cần tôi kiểm tra mảng nào hôm nay?";
+  }
+
   if (moduleKey === "real_estate") {
     return "Xin chào Ban điều hành! Tôi là AI COO - trợ lý vận hành cho Bella Land. Tôi có thể hỗ trợ kiểm tra giỏ hàng căn hộ, tiến độ hợp đồng cọc, doanh thu dự án, tính hoa hồng môi giới, CRM nhà đầu tư và các báo cáo phân tích bất động sản trong ngày. Anh/chị cần tôi kiểm tra mảng nào hôm nay?";
   }
@@ -72,6 +76,9 @@ function getAiWelcomeMessage(moduleKey: TenantModuleKey | null, productKey?: str
 }
 
 function getPlaceholderText(moduleKey: TenantModuleKey | null) {
+  if (moduleKey === "bella_interior") {
+    return "Nhập yêu cầu (ví dụ: 'Kiểm tra dự án trễ hạn', 'Cảnh báo vượt ngân sách BOQ', 'Khóa vật tư Spec Lock'...)";
+  }
   if (moduleKey === "real_estate") {
     return "Nhập yêu cầu (ví dụ: 'Kiểm tra căn hộ trống', 'Tính hoa hồng dự án'...)";
   }
@@ -79,6 +86,31 @@ function getPlaceholderText(moduleKey: TenantModuleKey | null) {
     return "Nhập yêu cầu (ví dụ: 'Xem phiếu công việc', 'Tính công nhân viên'...)";
   }
   return "Nhập yêu cầu (ví dụ: 'Đối soát quỹ', 'Tính lương KTV Hoa'...)";
+}
+
+function getActionBadgeLabel(type: string): { label: string; className: string } {
+  if (type === "attendance_warning") {
+    return { label: "Nhân sự • Kỷ luật", className: "bg-pink-500/10 text-pink-500 border border-pink-500/20" };
+  }
+  if (type === "inventory_restock") {
+    return { label: "Kho vận • Vật tư", className: "bg-amber-500/10 text-amber-500 border border-amber-500/20" };
+  }
+  if (type === "customer_apology") {
+    return { label: "CRM • Khách hàng", className: "bg-rose-500/10 text-rose-500 border border-rose-500/20" };
+  }
+  if (type === "interior_spec_lock_approval") {
+    return { label: "Nội thất • Spec Lock", className: "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20" };
+  }
+  if (type === "interior_boq_variance_review") {
+    return { label: "Nội thất • Dự toán BOQ", className: "bg-purple-500/10 text-purple-500 border border-purple-500/20" };
+  }
+  if (type === "interior_schedule_recovery") {
+    return { label: "Nội thất • Bù tiến độ", className: "bg-red-500/10 text-red-500 border border-red-500/20" };
+  }
+  if (type === "interior_milestone_payment_followup") {
+    return { label: "Nội thất • Thu công nợ", className: "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" };
+  }
+  return { label: "Kế toán • Đối soát", className: "bg-cyan-500/10 text-cyan-600 border border-cyan-500/20" };
 }
 
 export default function AICopilotClient() {
@@ -299,6 +331,28 @@ export default function AICopilotClient() {
             {/* Scroll anchor handled via ref */}
           </div>
 
+          {/* Quick suggestions for Interior OS */}
+          {(productKey === 'bella_interior' || tenantModuleKey === 'bella_interior') && (
+            <div className="shrink-0 px-4 py-2 border-t border-border bg-card/40 flex flex-wrap gap-1.5 sm:gap-2">
+              {[
+                'Kiểm tra dự án trễ hạn',
+                'Vật tư chưa khóa Spec Lock',
+                'Cảnh báo vượt ngân sách BOQ',
+                'Dự báo dòng tiền và công nợ',
+              ].map((pill) => (
+                <button
+                  key={pill}
+                  type="button"
+                  onClick={() => setInput(pill)}
+                  disabled={isLoading}
+                  className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                >
+                  ✨ {pill}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Form Input */}
           <form 
             onSubmit={handleSend}
@@ -357,13 +411,14 @@ export default function AICopilotClient() {
                     >
                       <div className="flex justify-between items-start gap-2">
                         <div>
-                          <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
-                            action.type === "attendance_warning" 
-                              ? "bg-pink-500/10 text-pink-500 border border-pink-500/20" 
-                              : "bg-cyan-500/10 text-cyan-600 border border-cyan-500/20"
-                          }`}>
-                            {action.type === "attendance_warning" ? "Nhân sự - Kỷ luật" : "Kế toán - Đối soát"}
-                          </span>
+                          {(() => {
+                            const badge = getActionBadgeLabel(action.type);
+                            return (
+                              <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${badge.className}`}>
+                                {badge.label}
+                              </span>
+                            );
+                          })()}
                           <h4 className="text-xs font-black text-foreground mt-2">Đối tượng: {action.recipient}</h4>
                         </div>
 

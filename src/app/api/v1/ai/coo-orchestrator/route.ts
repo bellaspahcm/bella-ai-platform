@@ -52,7 +52,7 @@ export const POST = withTenantContext(async (request: NextRequestWithContext) =>
     // 4. Validate user has permission to use AI COO
     if (!canUseAiCopilotRole(userData.role)) {
       console.warn(`[AI COO Orchestrator] Người dùng ${userData.full_name} với vai trò ${userData.role} bị từ chối truy cập.`);
-      return NextResponse.json({ error: "Quyền hạn không hợp lệ. Chỉ có Tổng giám đốc (Admin) và Kế toán trưởng mới có quyền điều phối AI COO." }, { status: 403 });
+      return NextResponse.json({ error: "Quyền hạn không hợp lệ. Chỉ có Ban điều hành (Admin/Super Admin), Quản lý dự án, KTS trưởng và Kế toán mới có quyền điều phối AI Copilot." }, { status: 403 });
     }
 
     // 5. Parse request body
