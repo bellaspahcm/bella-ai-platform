@@ -545,11 +545,11 @@ export default function SchedulePage() {
       </div>
 
       {/* ─── Row 2: Weekly Schedule Matrix & Attention Sidebar ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Weekly Matrix Control Area (Col 9) */}
-        <div className="lg:col-span-9 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden shadow-2xs">
+        <div className="lg:col-span-9 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden shadow-2xs flex flex-col justify-between">
           {/* Schedule Navigation Bar */}
-          <div className="p-3.5 border-b border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+          <div className="p-3.5 border-b border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
             {/* View Switchers */}
             <div className="flex items-center gap-1">
               <button
@@ -633,17 +633,17 @@ export default function SchedulePage() {
           </div>
 
           {/* Schedule Grid Matrix */}
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left text-xs min-w-[700px]">
+          <div className="overflow-x-auto flex-1 flex flex-col">
+            <table className="w-full border-collapse text-left text-xs min-w-[700px] h-full">
               <thead>
                 <tr className="border-b border-slate-200/70 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400">
-                  <th className="py-3 px-3 text-center font-bold text-[11px] w-28 border-r border-slate-100 dark:border-slate-800">
+                  <th className="py-2.5 px-3 text-center font-bold text-[11px] w-28 border-r border-slate-100 dark:border-slate-800">
                     Thời gian
                   </th>
                   {data.days.map((day) => (
                     <th
                       key={day.fullDate}
-                      className="py-2.5 px-2 text-center border-r border-slate-100 dark:border-slate-800 last:border-r-0"
+                      className="py-2 px-2 text-center border-r border-slate-100 dark:border-slate-800 last:border-r-0"
                     >
                       <div className="font-bold text-slate-900 dark:text-white text-xs">
                         {day.dayOfWeek}
@@ -657,9 +657,9 @@ export default function SchedulePage() {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {data.timeSlots.map((slot) => (
-                  <tr key={slot.slotId} className="h-20">
+                  <tr key={slot.slotId} className="h-[68px]">
                     {/* Time Column */}
-                    <td className="py-2 px-3 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-50/40 dark:bg-slate-850/30 border-r border-slate-100 dark:border-slate-800 align-middle">
+                    <td className="py-1.5 px-3 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-50/40 dark:bg-slate-850/30 border-r border-slate-100 dark:border-slate-800 align-middle">
                       {slot.timeRange}
                     </td>
 
@@ -702,63 +702,65 @@ export default function SchedulePage() {
         </div>
 
         {/* Attention Alerts & Resource Capacity Sidebar (Col 3) */}
-        <div className="lg:col-span-3 space-y-4">
+        <div className="lg:col-span-3 flex flex-col justify-between gap-4">
           {/* Card 1: Công việc cần chú ý */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-rose-500" />
-                <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-                  Công việc cần chú ý
-                </h2>
-              </div>
-              <Link
-                href="/dashboard/interior/schedule?filter=attention"
-                className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 transition-colors"
-              >
-                Xem tất cả →
-              </Link>
-            </div>
-
-            <div className="mt-3 space-y-3">
-              {data.attentionAlerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-start justify-between gap-2"
-                >
-                  <div className="flex items-start gap-2">
-                    <div className="mt-0.5 shrink-0">
-                      {alert.severity === 'critical' && (
-                        <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
-                      )}
-                      {alert.severity === 'warning' && (
-                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                      )}
-                      {alert.severity === 'info' && (
-                        <Info className="w-3.5 h-3.5 text-blue-500" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
-                        {alert.title}
-                      </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        {alert.subtitle}
-                      </div>
-                    </div>
-                  </div>
-                  <span
-                    className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border shrink-0 ${alert.actionClass}`}
-                  >
-                    {alert.actionLabel}
-                  </span>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex-1 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-500" />
+                  <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                    Công việc cần chú ý
+                  </h2>
                 </div>
-              ))}
+                <Link
+                  href="/dashboard/interior/schedule?filter=attention"
+                  className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 transition-colors"
+                >
+                  Xem tất cả →
+                </Link>
+              </div>
+
+              <div className="mt-3 space-y-2.5">
+                {data.attentionAlerts.map((alert) => (
+                  <div
+                    key={alert.id}
+                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-start justify-between gap-2"
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className="mt-0.5 shrink-0">
+                        {alert.severity === 'critical' && (
+                          <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+                        )}
+                        {alert.severity === 'warning' && (
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                        )}
+                        {alert.severity === 'info' && (
+                          <Info className="w-3.5 h-3.5 text-blue-500" />
+                        )}
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
+                          {alert.title}
+                        </div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          {alert.subtitle}
+                        </div>
+                      </div>
+                    </div>
+                    <span
+                      className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border shrink-0 ${alert.actionClass}`}
+                    >
+                      {alert.actionLabel}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Card 2: Tình hình nhân sự */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex-1 flex flex-col justify-between">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -774,7 +776,7 @@ export default function SchedulePage() {
               </Link>
             </div>
 
-            <div className="mt-4 flex items-center justify-between gap-3">
+            <div className="mt-3 flex items-center justify-between gap-3">
               {/* Circular Gauge 78% */}
               <div className="flex flex-col items-center shrink-0">
                 <div className="relative w-18 h-18 flex items-center justify-center">
