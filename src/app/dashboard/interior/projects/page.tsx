@@ -373,11 +373,11 @@ export default function ProjectsPage() {
           ...prev.kpis,
           totalProjects: {
             ...prev.kpis.totalProjects,
-            value: prev.kpis.totalProjects.value + 1,
+            value: Number(prev.kpis.totalProjects.value || 0) + 1,
           },
           inProgress: {
             ...prev.kpis.inProgress,
-            value: prev.kpis.inProgress.value + 1,
+            value: Number(prev.kpis.inProgress.value || 0) + 1,
           },
         },
         projects: [newProjectItem, ...prev.projects],
