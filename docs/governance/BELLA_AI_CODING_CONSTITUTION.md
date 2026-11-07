@@ -877,6 +877,46 @@ PRE-EXISTING
 
 Only fix it when explicitly included in scope.
 
+### Main Branch Synchronization & Integration Policy
+
+1. **Main is the Single Source of Truth (`Main là Source of Truth duy nhất`):**
+   - `main` is the canonical authoritative branch of Bella AI Platform source code.
+   - Feature branches are temporary, disposable working environments only.
+   - Code residing on an unmerged feature branch is NOT integrated into the platform.
+
+2. **Integrate Immediately Upon Completion (`Hoàn thành phải tích hợp ngay`):**
+   - Once a task or feature capability is completed and pushed to Git, a PR MUST be created and integrated into `main` immediately following required scoped verification.
+   - Do NOT hold completed feature branches waiting to batch or bundle multiple PRs together.
+   - Completed code MUST NOT exist independently outside `main` without an explicit, recorded architectural justification.
+
+3. **Synchronize Before Merge (`Đồng bộ trước khi merge`):**
+   - Rebase or update branch from the latest `origin/main`.
+   - Resolve any code or migration conflicts before requesting merge.
+   - Re-run affected scoped verification checks on the synchronized state.
+   - Merge only when integration conditions are satisfied.
+
+4. **Verify Post-Merge (`Xác minh sau merge`):**
+   - Confirm commit presence on `origin/main`.
+   - Run post-merge verification for affected capabilities and critical tests.
+   - Close the PR and delete the completed feature branch from remote.
+
+5. **Distinguish Integration from Production Deployment (`Phân biệt tích hợp và triển khai`):**
+   - Merging into `main` integrates code into the authoritative development baseline; it does NOT constitute or replace an approved Production deployment.
+   - Production deployment continues to follow approved Bella deployment governance and release gates.
+
+### Mandatory Merge & Integration Gates
+
+Integration into `main` requires satisfying three lightweight gates:
+
+| Gate | PASS Criteria |
+| :--- | :--- |
+| `PRE_MERGE_SYNC` | Branch is synchronized with latest `origin/main`; all conflicts are resolved. |
+| `MERGE_READY` | All required scoped verification checks for the change boundary have achieved `PASS`. |
+| `POST_MERGE_VERIFY` | Commit is present on `origin/main`; post-merge verification confirms baseline integrity. |
+
+**Execution & Timeout Resilience Rule:**
+If CI or verification checks cannot execute due to infrastructure failures, rate limits, or network timeouts, record the result as `NOT_PROVEN`. A `NOT_PROVEN` status MUST NOT be converted into a false `PASS`. However, infrastructure/timeout obstacles do NOT automatically mandate a complete block (`BLOCK`) on all work; evaluate the risk and impact pragmatically based on the actual change scope and available local proofs.
+
 ### PR, Merge, and Main Verification
 
 Before a PR is considered merge-ready, the Builder MUST provide branch,
