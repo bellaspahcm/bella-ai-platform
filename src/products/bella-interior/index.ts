@@ -48,6 +48,10 @@ export * from './services/interior-os.service';
 export * from './domain/portfolio-overview.types';
 export * from './services/interior-portfolio-analytics.service';
 
+// Customer CRM & Investor Analytics
+export * from './domain/customer-overview.types';
+export * from './services/interior-customer-analytics.service';
+
 // Manifest
 export * from './manifest';
 
