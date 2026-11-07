@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useSearchParams } from "next/navigation";
 import { Store, Phone, Mail, MapPin, Camera, Database } from "lucide-react";
 import { PremiumSelect } from "@/components/ui/PremiumSelect";
 import { TenantGeneralSettings, DEFAULT_CONFLICT_DETECTION_CONFIG } from "@/types/domain";
@@ -24,25 +25,32 @@ interface GeneralSettingsTabProps {
   generalSettings: TenantGeneralSettings;
   setGeneralSettings: React.Dispatch<React.SetStateAction<TenantGeneralSettings>>;
   isLoadingSettings: boolean;
+  isInterior?: boolean;
 }
 
 export default function GeneralSettingsTab({
   generalSettings,
   setGeneralSettings,
   isLoadingSettings,
+  isInterior: isInteriorProp,
 }: GeneralSettingsTabProps) {
+  const searchParams = useSearchParams();
   const { tenantModuleKey } = useTenantModuleKey();
   const { product } = useUser();
-  const isBellaInterior = product?.productKey === "bella_interior" || tenantModuleKey === "bella_interior";
-  const isHaircut = product?.productKey === "bella_haircut";
-  const isPreschool = product?.productKey === "bella_preschool";
-  const isEnglishCenter = product?.productKey === "bella_english_center";
-  const isEducationProduct = isPreschool || isEnglishCenter;
-  const isBellaSpa = product?.productKey === "bella_spa";
-  const isRealEstate = tenantModuleKey === "real_estate";
-  const isIndustrialCleaning = tenantModuleKey === "industrial_cleaning";
-  const isBellaAuto = tenantModuleKey === "bella_auto";
-  const isBellaHealthcare = tenantModuleKey === "bella_healthcare";
+  const isBellaInterior =
+    isInteriorProp ??
+    (searchParams?.get("product") === "bella_interior" ||
+      product?.productKey === "bella_interior" ||
+      tenantModuleKey === "bella_interior");
+  const isHaircut = !isBellaInterior && product?.productKey === "bella_haircut";
+  const isPreschool = !isBellaInterior && product?.productKey === "bella_preschool";
+  const isEnglishCenter = !isBellaInterior && product?.productKey === "bella_english_center";
+  const isEducationProduct = !isBellaInterior && (isPreschool || isEnglishCenter);
+  const isBellaSpa = !isBellaInterior && product?.productKey === "bella_spa";
+  const isRealEstate = !isBellaInterior && tenantModuleKey === "real_estate";
+  const isIndustrialCleaning = !isBellaInterior && tenantModuleKey === "industrial_cleaning";
+  const isBellaAuto = !isBellaInterior && tenantModuleKey === "bella_auto";
+  const isBellaHealthcare = !isBellaInterior && tenantModuleKey === "bella_healthcare";
 
   if (isLoadingSettings) {
     return (

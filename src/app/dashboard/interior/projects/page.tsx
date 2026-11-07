@@ -536,9 +536,10 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {/* 10-Column Projects Table */}
+        {/* 10-Column Projects Table / Grid */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-2xs">
-          <div className="overflow-x-auto">
+          {viewMode === 'list' ? (
+            <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50/70 dark:bg-slate-800/50 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
                 <tr>
@@ -569,9 +570,12 @@ export default function ProjectsPage() {
                           className="w-11 h-11 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700 flex-shrink-0"
                         />
                         <div>
-                          <p className="font-bold text-slate-900 dark:text-white leading-tight">
+                          <Link
+                            href={`/dashboard/interior/projects/${project.id}`}
+                            className="font-bold text-slate-900 dark:text-white hover:text-amber-600 dark:hover:text-amber-400 leading-tight transition-colors"
+                          >
                             {project.name}
-                          </p>
+                          </Link>
                           <p className="text-[11px] text-slate-400 font-mono mt-0.5">
                             {project.code}
                           </p>
@@ -682,7 +686,82 @@ export default function ProjectsPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        ) : (
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredProjects.map((project: PortfolioProjectItem) => (
+              <div
+                key={project.id}
+                className="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-3 flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  <div className="relative h-40 w-full rounded-xl overflow-hidden bg-slate-100">
+                    <img
+                      src={project.imageUrl}
+                      alt={project.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2.5 right-2.5">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold shadow-xs ${project.stageBadgeClass}`}>
+                        {project.stageLabel}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-[11px] font-mono font-bold text-slate-400">{project.code}</div>
+                    <h3 className="font-bold text-sm text-slate-900 dark:text-white leading-snug">
+                      {project.name}
+                    </h3>
+                    <div className="text-xs text-slate-500 mt-1">
+                      Chủ đầu tư: <strong className="text-slate-700 dark:text-slate-300">{project.customerName}</strong>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">KTS chủ trì:</span>
+                      <span className="font-medium text-slate-800 dark:text-slate-200">{project.leadArchitect}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Giá trị hợp đồng:</span>
+                      <span className="font-bold font-mono text-slate-900 dark:text-white">{project.contractValueFormatted}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Biên lợi nhuận:</span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">{project.grossMarginFormatted}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-xs text-slate-500 mb-1">
+                      <span>Tiến độ thực tế</span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200">{project.progressPercent}%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                      <div
+                        className="bg-amber-600 h-full rounded-full transition-all"
+                        style={{ width: `${project.progressPercent}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                  <div className="text-[11px] text-slate-400 truncate max-w-[160px]">
+                    Hạn: {project.deadlineDate}
+                  </div>
+                  <Link
+                    href={`/dashboard/interior/projects/${project.id}`}
+                    className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-2xs transition-colors inline-flex items-center gap-1"
+                  >
+                    Xem chi tiết <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       </div>
 
       {/* ─── 03. TẦNG 3: 3 THẺ ĐIỀU HÀNH & PHÂN TÍCH ─────────────────────── */}

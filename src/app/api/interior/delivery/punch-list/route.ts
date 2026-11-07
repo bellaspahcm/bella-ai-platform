@@ -226,7 +226,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   const now = new Date().toISOString();
-  const pliId = `pli-${randomUUID()}`;
+  const pliId = randomUUID();
 
   const domainItem: DomainPunchItem = {
     id: pliId,

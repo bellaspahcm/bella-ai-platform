@@ -257,6 +257,53 @@ export default function CustomersPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
+  const [newCustomerName, setNewCustomerName] = useState('');
+  const [newCustomerPhone, setNewCustomerPhone] = useState('');
+  const [newCustomerEmail, setNewCustomerEmail] = useState('');
+  const [newCustomerType, setNewCustomerType] = useState('Khách hàng VIP');
+  const [customerSuccessNotice, setCustomerSuccessNotice] = useState<string | null>(null);
+
+  const handleAddCustomer = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newCust: CustomerItem = {
+      id: `cust-${Date.now()}`,
+      code: `KH-${Date.now().toString().slice(-4)}`,
+      name: newCustomerName || 'Khách hàng mới',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop',
+      type: 'individual',
+      typeLabel: newCustomerType,
+      typeBadgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+      source: 'website',
+      sourceLabel: 'Website / KTS',
+      sourceClass: 'bg-blue-50 text-blue-700 border-blue-200',
+      managerName: 'KTS. Lê Hoàng Quân',
+      managerAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop',
+      opportunityCount: 1,
+      projectCount: 1,
+      totalValue: 1_200_000_000,
+      totalValueFormatted: '1.200.000.000 ₫',
+      debt: 0,
+      debtFormatted: '0 ₫',
+      hasDebt: false,
+      lastInteractionDate: 'Vừa xong',
+      status: 'transacting',
+      statusLabel: 'Đang theo dự án',
+      statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    };
+    setData((prev) => ({
+      ...prev,
+      customers: [newCust, ...prev.customers],
+    }));
+    setCustomerSuccessNotice('Thêm khách hàng thành công!');
+    setTimeout(() => {
+      setIsAddCustomerOpen(false);
+      setCustomerSuccessNotice(null);
+      setNewCustomerName('');
+      setNewCustomerPhone('');
+      setNewCustomerEmail('');
+    }, 1000);
+  };
 
   // Fetch canonical analytics from server API without bundling server dependencies
   useEffect(() => {
@@ -357,6 +404,7 @@ export default function CustomersPage() {
 
           <button
             type="button"
+            onClick={() => setIsAddCustomerOpen(true)}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold text-xs sm:text-sm shadow-sm hover:shadow transition-all"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -835,9 +883,10 @@ export default function CustomersPage() {
 
       {/* ─── Row 4: Customer Table & Alerts Sidebar ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Customer Table (Col 9) */}
+        {/* Customer Table / Grid (Col 9) */}
         <div className="lg:col-span-9 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden shadow-2xs">
-          <div className="overflow-x-auto">
+          {viewMode === 'list' ? (
+            <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50/70 dark:bg-slate-800/60 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/70 dark:border-slate-800">
                 <tr>
@@ -980,7 +1029,52 @@ export default function CustomersPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        ) : (
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {filteredCustomers.map((cust) => (
+              <div
+                key={cust.id}
+                className="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-3"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="relative w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 bg-slate-100">
+                      <Image src={cust.avatar} alt={cust.name} fill sizes="36px" className="object-cover" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm text-slate-900 dark:text-white">{cust.name}</div>
+                      <div className="text-[10px] font-mono text-slate-400">{cust.code}</div>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${cust.statusBadgeClass}`}>
+                    {cust.statusLabel}
+                  </span>
+                </div>
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-xs space-y-1 text-slate-600 dark:text-slate-400">
+                  <div className="flex justify-between">
+                    <span>Phân loại:</span> <strong className="text-slate-800 dark:text-slate-200">{cust.typeLabel}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tổng giá trị:</span> <strong className="text-amber-600 dark:text-amber-400 font-mono">{cust.totalValueFormatted}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>KTS phụ trách:</span> <span className="font-medium text-slate-800 dark:text-slate-200">{cust.managerName}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <span className="text-[11px] text-slate-400 font-medium">{cust.projectCount} dự án</span>
+                  <Link
+                    href="/dashboard/interior/projects"
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[11px] font-semibold text-slate-700 dark:text-slate-300 transition-colors"
+                  >
+                    Xem dự án →
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
         {/* Alerts & Action Items (Col 3) */}
         <div className="lg:col-span-3 bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
@@ -1220,6 +1314,99 @@ export default function CustomersPage() {
           </div>
         </div>
       </div>
+
+      {/* ─── Modal Thêm Khách Hàng ─── */}
+      {isAddCustomerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                Thêm Khách Hàng Mới (CRM)
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsAddCustomerOpen(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-semibold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {customerSuccessNotice && (
+              <div className="p-3 rounded-xl text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
+                {customerSuccessNotice}
+              </div>
+            )}
+
+            <form onSubmit={handleAddCustomer} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Họ và tên khách hàng</label>
+                <input
+                  type="text"
+                  value={newCustomerName}
+                  onChange={(e) => setNewCustomerName(e.target.value)}
+                  placeholder="Ví dụ: Nguyễn Văn Hoàng"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Số điện thoại liên hệ</label>
+                <input
+                  type="tel"
+                  value={newCustomerPhone}
+                  onChange={(e) => setNewCustomerPhone(e.target.value)}
+                  placeholder="Ví dụ: 0912 345 678"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Email</label>
+                <input
+                  type="email"
+                  value={newCustomerEmail}
+                  onChange={(e) => setNewCustomerEmail(e.target.value)}
+                  placeholder="hoang.nguyen@example.com"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Phân loại khách hàng</label>
+                <select
+                  value={newCustomerType}
+                  onChange={(e) => setNewCustomerType(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                >
+                  <option value="Khách hàng VIP">Khách hàng VIP</option>
+                  <option value="Tiềm năng cao">Tiềm năng cao</option>
+                  <option value="Đang tư vấn thiết kế">Đang tư vấn thiết kế</option>
+                  <option value="Khách hàng cũ (Giới thiệu)">Khách hàng cũ (Giới thiệu)</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddCustomerOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold shadow-xs transition-colors"
+                >
+                  Lưu Khách Hàng
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
