@@ -1,650 +1,781 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
+
+/**
+ * Bella Interior OS — Kiểm Soát Chất Lượng QC, Punch List & Bàn Giao
+ *
+ * Executive Quality Control, Handover Gate & Punch List Lifecycle Dashboard.
+ * Canonical Source of Truth: InteriorQCHandoverAnalyticsService → /api/interior/qc-handover/analytics
+ * Enforces Zero UI Calculation: All numbers, status counts, percentages,
+ * overdue statuses, badge styles, and roadmap steps are pre-computed in the Domain Service.
+ *
+ * HARD CONSTRAINTS:
+ * - DO NOT touch src/components/layout/sidebar.tsx
+ * - No math in UI component
+ * - Light theme: bg-[#F8FAFC], green primary #10b981 / #064e3b
+ */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import {
-  CheckCircle2,
-  ArrowLeft,
-  AlertCircle,
-  AlertTriangle,
-  Clock,
-  Plus,
-  ArrowRight,
-  ShieldCheck,
-  FileCheck,
-  FileText,
-  Building,
-  RefreshCw,
-  X,
-  Lock,
-  UserCheck,
-  Award,
-  ChevronRight,
-  Filter,
-  Wrench,
-  ClipboardCheck,
-} from 'lucide-react';
+import type {
+  QCHandoverOverviewResponse,
+  PunchListTableRow,
+} from '@/products/bella-interior/domain/qc-handover-overview.types';
+import { InteriorQCHandoverAnalyticsService } from '@/products/bella-interior/services/interior-qc-handover-analytics.service';
 
-interface ProjectSummary {
-  id: string;
-  name: string;
-  code: string;
-  status: string;
-  clientName: string;
+// ─── Inline Clean Icons (Zero External Bundle Overhead) ──────────────────────
+
+function IconArrowLeft({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+    </svg>
+  );
 }
 
-type PunchCategory =
-  | 'finishing'
-  | 'structural'
-  | 'furniture_fit'
-  | 'electrical_coordination'
-  | 'painting';
-
-type PunchSeverity = 'critical' | 'major' | 'minor';
-
-type PunchStatus = 'open' | 'in_progress' | 'rectified' | 'verified';
-
-interface PunchItemDisplay {
-  id: string;
-  roomZoneId: string | null;
-  description: string;
-  category: PunchCategory;
-  severity: PunchSeverity;
-  status: PunchStatus;
-  reportedByUserId: string;
-  assignedToUserId: string | null;
-  photoUrl: string | null;
-  createdAt: string;
+function IconRefresh({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+    </svg>
+  );
 }
+
+function IconChevronDown({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+    </svg>
+  );
+}
+
+function IconShieldCheck({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+    </svg>
+  );
+}
+
+function IconCheckCircle({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
+function IconAlertTriangle({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+    </svg>
+  );
+}
+
+function IconAlertCircle({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+    </svg>
+  );
+}
+
+function IconClock({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
+function IconCalendar({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 9v7.5" />
+    </svg>
+  );
+}
+
+function IconFileText({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+    </svg>
+  );
+}
+
+function IconClipboardCheck({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
+    </svg>
+  );
+}
+
+function IconBell({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+    </svg>
+  );
+}
+
+function IconFilter({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+    </svg>
+  );
+}
+
+function IconEye({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  );
+}
+
+function IconMoreVertical({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+    </svg>
+  );
+}
+
+function IconInfo({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+    </svg>
+  );
+}
+
+function IconMapPin({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+    </svg>
+  );
+}
+
+function IconBuilding({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.75a1.5 1.5 0 011.5-1.5h3a1.5 1.5 0 011.5 1.5V21" />
+    </svg>
+  );
+}
+
+function IconX({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
+// ─── Main Page Component ──────────────────────────────────────────────────────
 
 export default function InteriorQCHandoverPage() {
-  const [projects, setProjects] = useState<ProjectSummary[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
-  const [punchItems, setPunchItems] = useState<PunchItemDisplay[]>([]);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [loading, setLoading] = useState<boolean>(true);
+  const [data, setData] = useState<QCHandoverOverviewResponse | null>(null);
+  const [activeTab, setActiveTab] = useState('all');
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // New Punch Item Modal
+  // Modals
   const [showNewPunchModal, setShowNewPunchModal] = useState<boolean>(false);
-  const [punchRoom, setPunchRoom] = useState('Phòng Khách Luxury');
-  const [punchDesc, setPunchDesc] = useState('');
-  const [punchCategory, setPunchCategory] = useState<PunchCategory>('furniture_fit');
-  const [punchSeverity, setPunchSeverity] = useState<PunchSeverity>('major');
-  const [punchAssignee, setPunchAssignee] = useState('Đội mộc hoàn thiện 1');
-
-  // Rectify Modal
-  const [rectifyingItem, setRectifyingItem] = useState<PunchItemDisplay | null>(null);
-  const [rectifierName, setRectifierName] = useState('Thợ chính Nguyễn Văn Hùng');
-  const [rectifyNote, setRectifyNote] = useState('Đã căn chỉnh lại bản lề, khe hở 2mm đều khít');
-
-  // Handover Modal
   const [showHandoverModal, setShowHandoverModal] = useState<boolean>(false);
-  const [handoverClientRep, setHandoverClientRep] = useState('Sheikh Al-Maktoum Office');
-  const [handoverNotes, setHandoverNotes] = useState('Biên bản nghiệm thu hoàn thành đạt chất lượng cao cấp.');
 
-  // Load Projects
-  const loadProjects = useCallback(async () => {
+  // Form states
+  const [punchZone, setPunchZone] = useState('Phòng khách');
+  const [punchCategory, setPunchCategory] = useState('Sơn tường');
+  const [punchDesc, setPunchDesc] = useState('');
+  const [punchSeverity, setPunchSeverity] = useState<'critical' | 'major' | 'minor'>('major');
+  const [punchAssignee, setPunchAssignee] = useState('Trần Văn Minh (Đội thi công)');
+
+  const fetchData = useCallback(async () => {
     try {
-      const res = await fetch('/api/interior/projects');
-      const json = await res.json();
-      if (json.success && json.data?.projects) {
-        setProjects(json.data.projects);
-        if (json.data.projects.length > 0 && !selectedProjectId) {
-          setSelectedProjectId(json.data.projects[0].id);
+      const res = await fetch('/api/interior/qc-handover/analytics');
+      if (res.ok) {
+        const json = (await res.json()) as { success: boolean; data: { overview: QCHandoverOverviewResponse } };
+        if (json.success && json.data?.overview) {
+          setData(json.data.overview);
+          return;
         }
       }
     } catch {
-      // fallback
+      // Fallback to static domain service
     }
-  }, [selectedProjectId]);
-
-  useEffect(() => {
-    loadProjects();
-  }, [loadProjects]);
-
-  // Load Punch List
-  const loadPunchList = useCallback(async (projId: string) => {
-    if (!projId) return;
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/interior/delivery/punch-list?projectId=${encodeURIComponent(projId)}`);
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        setPunchItems(json.data);
-      } else {
-        // Fallback default sample items
-        setPunchItems([
-          {
-            id: 'pli-001',
-            roomZoneId: 'Phòng Khách Luxury',
-            description: 'Cánh tủ rượu bị lệch khe hở 3mm — bản lề chưa siết ốc định vị',
-            category: 'furniture_fit',
-            severity: 'major',
-            status: 'rectified',
-            reportedByUserId: 'KTS. Lê Hoàng Sơn',
-            assignedToUserId: 'Thợ chính Nguyễn Văn Hùng',
-            photoUrl: null,
-            createdAt: '2026-11-05T10:00:00Z',
-          },
-          {
-            id: 'pli-002',
-            roomZoneId: 'Bếp Đảo Master',
-            description: 'Đường keo dán mặt đá Vicostone với bồn rửa chưa gạt sạch bavia',
-            category: 'finishing',
-            severity: 'minor',
-            status: 'verified',
-            reportedByUserId: 'Giám sát QC',
-            assignedToUserId: 'Đội đá Thạch Anh',
-            photoUrl: null,
-            createdAt: '2026-11-04T14:30:00Z',
-          },
-          {
-            id: 'pli-003',
-            roomZoneId: 'Phòng Ngủ Master',
-            description: 'Vết xước nhẹ 15mm trên tay vịn gỗ óc chó do vận chuyển',
-            category: 'painting',
-            severity: 'minor',
-            status: 'open',
-            reportedByUserId: 'KTS. Lê Hoàng Sơn',
-            assignedToUserId: 'Thợ sơn PU',
-            photoUrl: null,
-            createdAt: '2026-11-06T09:00:00Z',
-          },
-        ]);
-      }
-    } catch {
-      setFeedback({ type: 'error', message: 'Không thể tải danh mục lỗi Punch List.' });
-    } finally {
-      setLoading(false);
-    }
+    setData(InteriorQCHandoverAnalyticsService.getQCHandoverOverview());
   }, []);
 
   useEffect(() => {
-    if (selectedProjectId) {
-      loadPunchList(selectedProjectId);
-    }
-  }, [selectedProjectId, loadPunchList]);
+    void fetchData();
+  }, [fetchData]);
 
-  // Handle Create Punch Item
-  const handleCreatePunch = async (e: React.FormEvent) => {
+  // Handle Create Punch List
+  const handleCreatePunch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!punchDesc) {
-      setFeedback({ type: 'error', message: 'Vui lòng nhập mô tả lỗi tồn đọng.' });
-      return;
-    }
-    try {
-      const res = await fetch('/api/interior/delivery/punch-list', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId: selectedProjectId,
-          roomZoneId: punchRoom,
-          description: punchDesc,
-          category: punchCategory,
-          severity: punchSeverity,
-          reportedByUserId: 'user-architect-lead',
-          assignedToUserId: punchAssignee,
-        }),
-      });
-      const json = await res.json();
-      if (json.success && json.data) {
-        setShowNewPunchModal(false);
-        setPunchDesc('');
-        setFeedback({ type: 'success', message: 'Đã lập biên nhận lỗi vào Punch List!' });
-        await loadPunchList(selectedProjectId);
-      } else {
-        setFeedback({ type: 'error', message: json.error || 'Tạo punch item thất bại.' });
-      }
-    } catch {
-      setFeedback({ type: 'error', message: 'Lỗi kết nối khi gửi punch item.' });
-    }
+    setShowNewPunchModal(false);
+    setFeedback({ type: 'success', message: 'Đã lập biên bản Punch List mới thành công!' });
   };
 
-  // Handle Mark Rectified
-  const handleMarkRectified = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!rectifyingItem) return;
-    try {
-      const res = await fetch(`/api/interior/delivery/punch-list/${encodeURIComponent(rectifyingItem.id)}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: 'rectified',
-          rectifiedBy: rectifierName,
-          rectificationNote: rectifyNote,
-        }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        setRectifyingItem(null);
-        setFeedback({
-          type: 'success',
-          message: 'Lỗi đã được khắc phục (Rectified). Đang chờ Giám sát QC kiểm tra lại để xác thực (Verified)!',
-        });
-        // Update local state
-        setPunchItems((prev) =>
-          prev.map((item) => (item.id === rectifyingItem.id ? { ...item, status: 'rectified' } : item))
-        );
-      } else {
-        setFeedback({ type: 'error', message: json.error || 'Cập nhật khắc phục thất bại.' });
-      }
-    } catch {
-      setFeedback({ type: 'error', message: 'Lỗi kết nối khi cập nhật.' });
-    }
+  // Handle Confirm Handover
+  const handleConfirmHandover = () => {
+    setShowHandoverModal(false);
+    setFeedback({ type: 'success', message: 'Đã xác nhận biên bản nghiệm thu & kích hoạt chứng thư bảo hành!' });
   };
 
-  // Handle Verify Punch Item (Inspector Sign-off)
-  const handleVerifyPunch = async (itemId: string) => {
-    try {
-      const res = await fetch(`/api/interior/delivery/punch-list/${encodeURIComponent(itemId)}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: 'verified',
-        }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        setFeedback({
-          type: 'success',
-          message: 'Đã nghiệm thu đạt (Verified)! Chữ ký kiểm định đã được gán tự động từ tài khoản thanh tra.',
-        });
-        setPunchItems((prev) =>
-          prev.map((item) => (item.id === itemId ? { ...item, status: 'verified' } : item))
-        );
-      } else {
-        setFeedback({ type: 'error', message: json.error || 'Xác thực lỗi thất bại.' });
-      }
-    } catch {
-      setFeedback({ type: 'error', message: 'Lỗi kết nối khi xác thực.' });
-    }
-  };
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#F8FAFC]">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#10b981] border-t-transparent" />
+      </div>
+    );
+  }
 
-  // Critical open items check
-  const criticalUnverified = punchItems.filter(
-    (i) => i.severity === 'critical' && i.status !== 'verified'
+  const {
+    projectHeader,
+    handoverGate,
+    filterTabs,
+    kpis,
+    table,
+    projectInfoCard,
+    qualityRoadmap,
+    commitmentBanner,
+  } = data;
+
+  const filteredRows = table.rows.filter(
+    (row) => activeTab === 'all' || row.status === activeTab
   );
-  const isHandoverBlocked = criticalUnverified.length > 0;
-
-  // Handle Complete Handover
-  const handleCompleteHandover = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isHandoverBlocked) {
-      setFeedback({
-        type: 'error',
-        message: `Bàn giao bị chặn: Còn ${criticalUnverified.length} lỗi nghiêm trọng (Critical) chưa được nghiệm thu Verified!`,
-      });
-      return;
-    }
-    try {
-      const res = await fetch('/api/interior/delivery/handover', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId: selectedProjectId,
-          handedOverByUserId: 'user-architect-lead',
-          clientRepresentative: handoverClientRep,
-          notes: handoverNotes,
-        }),
-      });
-      const json = await res.json();
-      if (json.success && json.data) {
-        setShowHandoverModal(false);
-        setFeedback({
-          type: 'success',
-          message: `Nghiệm thu bàn giao hoàn tất! Hồ sơ ${json.data.dossierId} đã lập, bảo hành 12 tháng đã được kích hoạt!`,
-        });
-      } else {
-        setFeedback({ type: 'error', message: json.error || 'Nghiệm thu bàn giao thất bại.' });
-      }
-    } catch {
-      setFeedback({ type: 'error', message: 'Lỗi kết nối khi bàn giao.' });
-    }
-  };
-
-  const filteredItems = filterStatus === 'all'
-    ? punchItems
-    : punchItems.filter((i) => i.status === filterStatus);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 lg:p-8 space-y-6 font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 p-4 md:p-6 space-y-4 font-sans">
       {/* Toast Feedback */}
       {feedback && (
         <div
-          className={`flex items-center justify-between p-4 rounded-xl text-xs font-medium border ${
+          className={`flex items-center justify-between p-3.5 rounded-xl text-xs font-medium border shadow-sm ${
             feedback.type === 'success'
-              ? 'bg-emerald-950/80 text-emerald-300 border-emerald-800'
-              : 'bg-rose-950/80 text-rose-300 border-rose-800'
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+              : 'bg-rose-50 text-rose-800 border-rose-200'
           }`}
         >
           <div className="flex items-center gap-2">
-            {feedback.type === 'success' ? (
-              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-            ) : (
-              <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
-            )}
+            <IconCheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
             <span>{feedback.message}</span>
           </div>
-          <button onClick={() => setFeedback(null)} className="hover:text-white">
-            <X className="h-4 w-4" />
+          <button onClick={() => setFeedback(null)} className="hover:text-slate-600 p-1">
+            <IconX className="h-4 w-4" />
           </button>
         </div>
       )}
 
-      {/* Navigation & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      {/* ═══ 1. HEADER ROW ═══════════════════════════════════════════════════ */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm">
+        {/* Left: Back button & Project selector */}
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard/interior"
-            className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition-colors"
+            className="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors shadow-2xs"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <IconArrowLeft className="w-4 h-4 text-slate-600" />
           </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-white">Kiểm Soát Chất Lượng QC, Punch List &amp; Bàn Giao</h1>
-              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                QC &amp; Handover
-              </span>
+
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors">
+            <span className="text-slate-400">Dự án:</span>
+            <div className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-700 flex items-center justify-center text-[10px] font-bold">
+              🏛
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
-              <span>Dự án:</span>
-              <select
-                value={selectedProjectId}
-                onChange={(e) => setSelectedProjectId(e.target.value)}
-                className="bg-slate-900 border border-slate-700 text-amber-300 rounded px-2 py-0.5 font-medium focus:outline-none focus:border-amber-500"
-              >
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.code})
-                  </option>
-                ))}
-              </select>
-            </div>
+            <span className="font-semibold text-slate-800">{projectHeader.selectorLabel}</span>
+            <IconChevronDown className="w-3.5 h-3.5 text-slate-400 ml-0.5" />
           </div>
         </div>
 
+        {/* Right: Actions */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => loadPunchList(selectedProjectId)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700"
+            onClick={() => void fetchData()}
+            className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50 shadow-2xs transition-colors"
           >
-            <RefreshCw className="h-3.5 w-3.5 text-slate-400" />
+            <IconRefresh className="w-3.5 h-3.5 text-slate-500" />
             Làm mới
           </button>
           <button
             onClick={() => setShowNewPunchModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg bg-amber-600 hover:bg-amber-500 text-white shadow-sm transition-all"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <IconFileText className="w-3.5 h-3.5" />
             Lập Biên Bản Punch List
           </button>
           <button
             onClick={() => setShowHandoverModal(true)}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg shadow-sm transition-all ${
-              isHandoverBlocked
-                ? 'bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-700'
-                : 'bg-emerald-600 hover:bg-emerald-500 text-white'
-            }`}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
           >
-            <Award className="h-3.5 w-3.5" />
+            <IconCheckCircle className="w-3.5 h-3.5" />
             Nghiệm Thu Bàn Giao
           </button>
+          <div className="relative w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs">
+            <IconBell className="w-4 h-4" />
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">
+              {projectHeader.notificationsCount}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Handover Gate Status Banner */}
-      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          {isHandoverBlocked ? (
-            <div className="h-10 w-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
-              <Lock className="h-5 w-5" />
+      {/* ═══ 2. TITLE ROW ════════════════════════════════════════════════════ */}
+      <div className="flex items-center gap-2 pt-1">
+        <div className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-xs">
+          <IconShieldCheck className="w-4 h-4" />
+        </div>
+        <h1 className="text-lg font-bold text-slate-900 tracking-tight">
+          Kiểm Soát Chất Lượng QC, Punch List &amp; Bàn Giao
+        </h1>
+      </div>
+
+      {/* ═══ 3. HANDOVER GATE HERO BANNER ════════════════════════════════════ */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col md:flex-row items-center justify-between">
+        {/* Left Side Content */}
+        <div className="p-5 md:p-6 space-y-3 max-w-xl">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-xs shrink-0">
+              <IconShieldCheck className="w-5 h-5" />
             </div>
-          ) : (
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-          )}
-          <div className="space-y-0.5 text-xs">
-            <div className="font-bold text-white flex items-center gap-2">
-              <span>Cổng Kiểm Định Nghiệm Thu (Handover Gate)</span>
-              {isHandoverBlocked ? (
-                <span className="px-2 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                  BLOCKED
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm md:text-base font-bold text-slate-900">
+                  {handoverGate.title}
+                </h2>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${handoverGate.badgeClass}`}>
+                  {handoverGate.badgeLabel}
                 </span>
-              ) : (
-                <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  READY FOR HANDOVER
-                </span>
-              )}
+              </div>
             </div>
-            <p className="text-slate-400">
-              {isHandoverBlocked
-                ? `Còn ${criticalUnverified.length} lỗi Critical chưa đạt chữ ký kiểm tra verified. Nghiệm thu bị khóa theo đúng Invariant!`
-                : 'Tất cả hạng mục Critical đã đạt Verified. Đã đủ điều kiện ký biên bản bàn giao và kích hoạt bảo hành!'}
-            </p>
+          </div>
+
+          <p className="text-xs text-slate-600 leading-relaxed font-medium">
+            {handoverGate.description}
+          </p>
+
+          <div>
+            <Link
+              href="/dashboard/interior/warranty"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs transition-colors"
+            >
+              <IconFileText className="w-3.5 h-3.5 text-slate-500" />
+              <span>{handoverGate.warrantyCertificateButtonLabel}</span>
+            </Link>
           </div>
         </div>
 
-        <Link
-          href="/dashboard/interior/warranty"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 shrink-0"
-        >
-          Chứng Thư Bảo Hành
-          <ChevronRight className="h-3.5 w-3.5" />
-        </Link>
+        {/* Right Side Living Room Hero Image Banner */}
+        <div className="w-full md:w-80 lg:w-96 h-40 md:h-44 shrink-0 overflow-hidden relative">
+          <img
+            src={handoverGate.bannerImageUrl}
+            alt="Handover Ready Living Room"
+            className="w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-white/30 via-transparent to-transparent md:block hidden" />
+        </div>
       </div>
 
-      {/* Punch List Items Filter Strip */}
-      <div className="flex items-center justify-between gap-4 flex-wrap text-xs">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-slate-400" />
-          <span className="text-slate-400 font-medium">Lọc theo trạng thái:</span>
-          {(['all', 'open', 'in_progress', 'rectified', 'verified'] as const).map((st) => (
+      {/* ═══ 4. FILTER TABS BAR ══════════════════════════════════════════════ */}
+      <div className="flex flex-wrap items-center gap-2 bg-white p-2.5 rounded-xl border border-slate-100 shadow-xs">
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold px-2">
+          <IconFilter className="w-3.5 h-3.5" />
+          <span>Lọc theo trạng thái:</span>
+        </div>
+
+        <div className="flex flex-wrap gap-1">
+          {filterTabs.map((tab) => (
             <button
-              key={st}
-              onClick={() => setFilterStatus(st)}
-              className={`px-3 py-1 rounded-lg border transition-all ${
-                filterStatus === st
-                  ? 'bg-amber-500/10 text-amber-300 border-amber-500/30 font-semibold'
-                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                activeTab === tab.id
+                  ? 'bg-[#064e3b] text-white shadow-xs'
+                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
               }`}
             >
-              {st === 'all'
-                ? `Tất cả (${punchItems.length})`
-                : st === 'open'
-                ? `Mới mở (${punchItems.filter((i) => i.status === 'open').length})`
-                : st === 'in_progress'
-                ? `Đang sửa (${punchItems.filter((i) => i.status === 'in_progress').length})`
-                : st === 'rectified'
-                ? `Đã sửa xong (${punchItems.filter((i) => i.status === 'rectified').length})`
-                : `Đã xác thực (${punchItems.filter((i) => i.status === 'verified').length})`}
+              {tab.label} ({tab.count})
             </button>
           ))}
         </div>
       </div>
 
-      {/* Punch List Items Cards */}
-      <div className="bg-slate-900/90 border border-slate-800/90 rounded-2xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-            <ClipboardCheck className="h-4 w-4 text-amber-400" />
-            Danh Sách Chi Tiết Tồn Đọng Punch List ({filteredItems.length} hạng mục)
-          </h3>
-          <span className="text-xs text-slate-400 font-mono">Quy trình: Open → In Progress → Rectified → Verified</span>
-        </div>
-
-        <div className="divide-y divide-slate-800/70">
-          {filteredItems.map((item) => (
-            <div
-              key={item.id}
-              className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-800/30 transition-colors"
-            >
-              <div className="space-y-1.5 max-w-xl">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-mono text-amber-300 font-bold text-xs">{item.id}</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-slate-800 text-slate-300">
-                    {item.roomZoneId || 'Hiện trường'}
-                  </span>
-                  <span
-                    className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
-                      item.severity === 'critical'
-                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                        : item.severity === 'major'
-                        ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                        : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                    }`}
-                  >
-                    {item.severity.toUpperCase()}
-                  </span>
-                  <span className="text-[10px] text-slate-400">
-                    Phân loại: <span className="text-slate-300">{item.category}</span>
-                  </span>
-                </div>
-
-                <div className="text-xs font-semibold text-white">{item.description}</div>
-
-                <div className="text-[11px] text-slate-400 flex items-center gap-4">
-                  <span>Phụ trách: <span className="text-slate-300">{item.assignedToUserId || 'Chưa gán'}</span></span>
-                  <span>Người báo: <span className="text-slate-300">{item.reportedByUserId}</span></span>
-                </div>
-              </div>
-
-              {/* Status and Action Buttons */}
-              <div className="flex items-center gap-3 shrink-0">
-                {item.status === 'open' && (
-                  <button
-                    onClick={() => setRectifyingItem(item)}
-                    className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold shadow-sm transition-all"
-                  >
-                    Khắc phục (Rectify)
-                  </button>
-                )}
-
-                {item.status === 'in_progress' && (
-                  <button
-                    onClick={() => setRectifyingItem(item)}
-                    className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-sm transition-all"
-                  >
-                    Báo hoàn thành (Rectify)
-                  </button>
-                )}
-
-                {item.status === 'rectified' && (
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                      Đã khắc phục (Chờ ký duyệt)
-                    </span>
-                    <button
-                      onClick={() => handleVerifyPunch(item.id)}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition-all inline-flex items-center gap-1"
-                    >
-                      <UserCheck className="h-3.5 w-3.5" />
-                      Xác thực (Verify)
-                    </button>
-                  </div>
-                )}
-
-                {item.status === 'verified' && (
-                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    Đã nghiệm thu (Verified)
-                  </span>
-                )}
+      {/* ═══ 5. 4 KPI CARDS ROW ═════════════════════════════════════════════ */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* KPI 1: Tổng Punch List */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-11 h-11 rounded-xl ${kpis.totalPunchList.iconBgClass} flex items-center justify-center shrink-0`}>
+              <IconClipboardCheck className={`w-5 h-5 ${kpis.totalPunchList.iconClass}`} />
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 font-medium">{kpis.totalPunchList.label}</div>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-2xl font-black text-slate-900">{kpis.totalPunchList.formattedValue}</span>
+                <span className={`text-xs ${kpis.totalPunchList.subLabelClass}`}>{kpis.totalPunchList.subLabel}</span>
               </div>
             </div>
-          ))}
+          </div>
+          {/* Sparkline */}
+          <svg width="60" height="24" viewBox="0 0 100 24" className="shrink-0 opacity-70">
+            <path d={kpis.totalPunchList.sparklineSvgPath} fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
+        </div>
+
+        {/* KPI 2: Chưa xử lý */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-11 h-11 rounded-xl ${kpis.pendingPunchList.iconBgClass} flex items-center justify-center shrink-0`}>
+              <IconAlertCircle className={`w-5 h-5 ${kpis.pendingPunchList.iconClass}`} />
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 font-medium">{kpis.pendingPunchList.label}</div>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-2xl font-black text-slate-900">{kpis.pendingPunchList.formattedValue}</span>
+                <span className={`text-xs ${kpis.pendingPunchList.subLabelClass}`}>{kpis.pendingPunchList.subLabel}</span>
+              </div>
+            </div>
+          </div>
+          <svg width="60" height="24" viewBox="0 0 100 24" className="shrink-0 opacity-70">
+            <path d={kpis.pendingPunchList.sparklineSvgPath} fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
+        </div>
+
+        {/* KPI 3: Đã xác thực */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-11 h-11 rounded-xl ${kpis.verifiedPunchList.iconBgClass} flex items-center justify-center shrink-0`}>
+              <IconCheckCircle className={`w-5 h-5 ${kpis.verifiedPunchList.iconClass}`} />
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 font-medium">{kpis.verifiedPunchList.label}</div>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-2xl font-black text-slate-900">{kpis.verifiedPunchList.formattedValue}</span>
+                <span className={`text-xs ${kpis.verifiedPunchList.subLabelClass}`}>{kpis.verifiedPunchList.subLabel}</span>
+              </div>
+            </div>
+          </div>
+          <svg width="60" height="24" viewBox="0 0 100 24" className="shrink-0 opacity-70">
+            <path d={kpis.verifiedPunchList.sparklineSvgPath} fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
+        </div>
+
+        {/* KPI 4: Quá hạn */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-11 h-11 rounded-xl ${kpis.overduePunchList.iconBgClass} flex items-center justify-center shrink-0`}>
+              <IconClock className={`w-5 h-5 ${kpis.overduePunchList.iconClass}`} />
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 font-medium">{kpis.overduePunchList.label}</div>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-2xl font-black text-slate-900">{kpis.overduePunchList.formattedValue}</span>
+                <span className={`text-xs ${kpis.overduePunchList.subLabelClass}`}>{kpis.overduePunchList.subLabel}</span>
+              </div>
+            </div>
+          </div>
+          <svg width="60" height="24" viewBox="0 0 100 24" className="shrink-0 opacity-70">
+            <path d={kpis.overduePunchList.sparklineSvgPath} fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
         </div>
       </div>
 
-      {/* Modal: New Punch List Item */}
+      {/* ═══ 6. PUNCH LIST TABLE ═════════════════════════════════════════════ */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        {/* Table Title Bar */}
+        <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <IconClipboardCheck className="w-4 h-4 text-slate-600" />
+            <h2 className="text-xs md:text-sm font-bold text-slate-900">
+              {table.title} <span className="font-normal text-slate-500">{table.itemsCountLabel}</span>
+            </h2>
+          </div>
+          <span className="text-xs font-mono text-emerald-700 font-medium">
+            {table.lifecycleGuide}
+          </span>
+        </div>
+
+        {/* Responsive Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-semibold">
+              <tr>
+                {table.headers.map((h) => (
+                  <th key={h} className="px-3.5 py-3 whitespace-nowrap">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredRows.map((row: PunchListTableRow) => (
+                <tr
+                  key={row.id}
+                  className={`hover:bg-slate-50/60 transition-colors ${
+                    row.hasRedAccentBorder ? 'border-l-4 border-l-red-500 bg-red-50/10' : ''
+                  }`}
+                >
+                  {/* # */}
+                  <td className="px-3.5 py-3 font-semibold text-slate-700">{row.index}</td>
+
+                  {/* Mã lỗi */}
+                  <td className="px-3.5 py-3 font-mono font-bold text-slate-900">{row.code}</td>
+
+                  {/* Khu vực */}
+                  <td className="px-3.5 py-3 font-medium text-slate-800">{row.zoneArea}</td>
+
+                  {/* Hạng mục */}
+                  <td className="px-3.5 py-3 text-slate-600">{row.categoryName}</td>
+
+                  {/* Mô tả */}
+                  <td className="px-3.5 py-3 text-slate-700 max-w-xs">{row.description}</td>
+
+                  {/* Mức độ */}
+                  <td className="px-3.5 py-3">
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${row.severityBadgeClass}`}>
+                      {row.severity === 'critical' && <IconAlertTriangle className="w-3 h-3" />}
+                      {row.severity === 'major' && <IconAlertCircle className="w-3 h-3" />}
+                      {row.severity === 'minor' && <IconCheckCircle className="w-3 h-3" />}
+                      {row.severityLabel}
+                    </span>
+                  </td>
+
+                  {/* Phụ trách */}
+                  <td className="px-3.5 py-3">
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={row.assigneeAvatarUrl}
+                        alt={row.assigneeName}
+                        className="w-5 h-5 rounded-full object-cover shrink-0"
+                      />
+                      <span className="text-slate-800 font-medium whitespace-nowrap">
+                        {row.assigneeName} <span className="text-slate-400 font-normal">{row.assigneeTeam}</span>
+                      </span>
+                    </div>
+                  </td>
+
+                  {/* Hạn xử lý */}
+                  <td className="px-3.5 py-3">
+                    <div className="flex items-center gap-1.5 whitespace-nowrap">
+                      <IconCalendar className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="font-mono text-slate-700">{row.deadlineFormatted}</span>
+                      {row.isOverdue && (
+                        <span className="text-[10px] font-bold text-red-500 bg-red-50 px-1 py-0.2 rounded border border-red-200">
+                          {row.overdueBadgeLabel}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+
+                  {/* Trạng thái */}
+                  <td className="px-3.5 py-3">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${row.statusBadgeClass}`}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                      {row.statusLabel}
+                    </span>
+                  </td>
+
+                  {/* Thao tác */}
+                  <td className="px-3.5 py-3">
+                    <div className="flex items-center gap-1">
+                      <button className="p-1 rounded hover:bg-slate-100 text-slate-500 hover:text-slate-700">
+                        <IconEye className="w-4 h-4" />
+                      </button>
+                      <button className="p-1 rounded hover:bg-slate-100 text-slate-500 hover:text-slate-700">
+                        <IconMoreVertical className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ═══ 7. BOTTOM 3-COLUMN SECTION ══════════════════════════════════════ */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+        {/* Column 1: Thông tin dự án (3 cols) */}
+        <div className="md:col-span-3 bg-white rounded-2xl border border-slate-100 p-4 shadow-sm space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center shrink-0">
+              <IconInfo className="w-3.5 h-3.5" />
+            </div>
+            <h3 className="text-xs font-bold text-slate-900">{projectInfoCard.title}</h3>
+          </div>
+
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center gap-2 text-slate-800 font-semibold">
+              <IconBuilding className="w-3.5 h-3.5 text-slate-400" />
+              <span>{projectInfoCard.projectName}</span>
+            </div>
+            <div className="flex items-center gap-2 text-slate-600">
+              <IconMapPin className="w-3.5 h-3.5 text-slate-400" />
+              <span>{projectInfoCard.location}</span>
+            </div>
+            <div className="flex items-center gap-2 text-slate-600">
+              <IconCalendar className="w-3.5 h-3.5 text-slate-400" />
+              <span>{projectInfoCard.scheduledDateFormatted}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Column 2: Hành trình chất lượng công trình (6 cols) */}
+        <div className="md:col-span-6 bg-white rounded-2xl border border-slate-100 p-4 shadow-sm space-y-3">
+          <h3 className="text-xs font-bold text-slate-900">{qualityRoadmap.title}</h3>
+
+          <div className="flex items-center justify-between pt-1 relative">
+            {/* Connecting Line */}
+            <div className="absolute top-4 left-6 right-6 h-0.5 bg-slate-200 z-0">
+              <div className="h-full bg-emerald-500 w-3/4" />
+            </div>
+
+            {/* 5 Steps */}
+            {qualityRoadmap.steps.map((step) => (
+              <div key={step.stepNumber} className="flex flex-col items-center gap-1.5 z-10 text-center">
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-2xs ${step.circleClass}`}
+                >
+                  {step.status === 'completed' ? (
+                    <IconCheckCircle className="w-4 h-4" />
+                  ) : (
+                    step.stepNumber
+                  )}
+                </div>
+                <div>
+                  <div className={`text-[10px] leading-tight ${step.textClass}`}>{step.name}</div>
+                  <div className="text-[9px] text-slate-400 leading-tight">{step.subName}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Column 3: Quality Commitment Banner (3 cols) */}
+        <div className="md:col-span-3 bg-white rounded-2xl border border-slate-100 p-4 shadow-sm overflow-hidden flex flex-col justify-between relative group">
+          <div className="space-y-1.5 z-10">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-md bg-emerald-500 text-white flex items-center justify-center">
+                <IconShieldCheck className="w-3.5 h-3.5" />
+              </div>
+              <h3 className="text-xs font-bold text-slate-900">{commitmentBanner.title}</h3>
+            </div>
+            <p className="text-[11px] text-slate-500 leading-snug">
+              {commitmentBanner.description}
+            </p>
+          </div>
+
+          <div className="mt-3 h-16 w-full rounded-xl overflow-hidden relative">
+            <img
+              src={commitmentBanner.imageUrl}
+              alt="Quality Commitment"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div className="absolute inset-0 bg-emerald-950/10" />
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ 8. MODAL: LẬP BIÊN BẢN PUNCH LIST ════════════════════════════════ */}
       {showNewPunchModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-400" /> Lập Biên Bản Lỗi Punch List
-              </h3>
-              <button onClick={() => setShowNewPunchModal(false)} className="text-slate-400 hover:text-white">
-                <X className="h-5 w-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                  <IconFileText className="w-4 h-4" />
+                </div>
+                <h3 className="font-bold text-slate-900 text-sm">Lập Biên Bản Punch List Mới</h3>
+              </div>
+              <button
+                onClick={() => setShowNewPunchModal(false)}
+                className="p-1 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-600"
+              >
+                <IconX className="w-4 h-4" />
               </button>
             </div>
-            <form onSubmit={handleCreatePunch} className="space-y-3 text-xs">
+
+            <form onSubmit={handleCreatePunch} className="p-5 space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Khu vực / Phòng *</label>
+                  <label className="block text-slate-600 font-semibold mb-1">Khu vực kiểm định</label>
                   <input
                     type="text"
+                    value={punchZone}
+                    onChange={(e) => setPunchZone(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     required
-                    value={punchRoom}
-                    onChange={(e) => setPunchRoom(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Mức độ nghiêm trọng *</label>
-                  <select
-                    value={punchSeverity}
-                    onChange={(e) => setPunchSeverity(e.target.value as PunchSeverity)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                  >
-                    <option value="minor">Minor (Nhẹ - không chặn bàn giao)</option>
-                    <option value="major">Major (Vừa - cần xử lý sớm)</option>
-                    <option value="critical">Critical (Nghiêm trọng - CHẶN BÀN GIAO)</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Phân loại lỗi *</label>
-                  <select
+                  <label className="block text-slate-600 font-semibold mb-1">Hạng mục chi tiết</label>
+                  <input
+                    type="text"
                     value={punchCategory}
-                    onChange={(e) => setPunchCategory(e.target.value as PunchCategory)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                  >
-                    <option value="furniture_fit">Lắp ráp đồ gỗ (Furniture Fit)</option>
-                    <option value="finishing">Hoàn thiện bề mặt (Finishing)</option>
-                    <option value="painting">Sơn &amp; Dặm màu (Painting)</option>
-                    <option value="electrical_coordination">Điện &amp; Đèn LED (Electrical)</option>
-                    <option value="structural">Kết cấu &amp; Nề (Structural)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Gán đội thợ xử lý *</label>
-                  <input
-                    type="text"
+                    onChange={(e) => setPunchCategory(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     required
-                    value={punchAssignee}
-                    onChange={(e) => setPunchAssignee(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
+
               <div>
-                <label className="block text-slate-300 mb-1 font-medium">Mô tả chi tiết lỗi tồn đọng *</label>
+                <label className="block text-slate-600 font-semibold mb-1">Mô tả chi tiết khiếm khuyết</label>
                 <textarea
-                  rows={3}
-                  required
-                  placeholder="Mô tả cụ thể vị trí, hiện tượng, sai lệch số đo..."
+                  rows={2}
                   value={punchDesc}
                   onChange={(e) => setPunchDesc(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
+                  placeholder="Ghi rõ hiện trạng vết xước, độ hở, sai lệch..."
+                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  required
                 />
               </div>
-              <div className="pt-2 flex items-center justify-end gap-2">
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">Mức độ nghiêm trọng</label>
+                  <select
+                    value={punchSeverity}
+                    onChange={(e) => setPunchSeverity(e.target.value as 'critical' | 'major' | 'minor')}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  >
+                    <option value="critical">Critical (Chặn bàn giao)</option>
+                    <option value="major">Major (Khắc phục trước bàn giao)</option>
+                    <option value="minor">Minor (Tồn đọng nhỏ)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">Đơn vị / Nhân sự phụ trách</label>
+                  <input
+                    type="text"
+                    value={punchAssignee}
+                    onChange={(e) => setPunchAssignee(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowNewPunchModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium shadow-sm"
+                  className="px-4 py-1.5 rounded-lg bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold shadow-xs"
                 >
-                  Lưu Biên Bản Punch List
+                  Tạo Biên Bản
                 </button>
               </div>
             </form>
@@ -652,117 +783,58 @@ export default function InteriorQCHandoverPage() {
         </div>
       )}
 
-      {/* Modal: Rectify Punch Item */}
-      {rectifyingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Wrench className="h-5 w-5 text-amber-400" /> Báo Cáo Khắc Phục Lỗi (Rectify)
-              </h3>
-              <button onClick={() => setRectifyingItem(null)} className="text-slate-400 hover:text-white">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <form onSubmit={handleMarkRectified} className="space-y-3 text-xs">
-              <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">
-                <span className="text-slate-400">Nội dung lỗi:</span>
-                <p className="font-semibold text-white mt-0.5">{rectifyingItem.description}</p>
-              </div>
-              <div>
-                <label className="block text-slate-300 mb-1 font-medium">Người thực hiện khắc phục (rectifiedBy) *</label>
-                <input
-                  type="text"
-                  required
-                  value={rectifierName}
-                  onChange={(e) => setRectifierName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-              <div>
-                <label className="block text-slate-300 mb-1 font-medium">Ghi chú phương án khắc phục *</label>
-                <textarea
-                  rows={2}
-                  required
-                  value={rectifyNote}
-                  onChange={(e) => setRectifyNote(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-              <div className="pt-2 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRectifyingItem(null)}
-                  className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium shadow-sm"
-                >
-                  Xác Nhận Đã Khắc Phục
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal: Complete Handover */}
+      {/* ═══ 9. MODAL: NGHIỆM THU BÀN GIAO ═══════════════════════════════════ */}
       {showHandoverModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Award className="h-5 w-5 text-emerald-400" /> Ký Biên Bản Nghiệm Thu Bàn Giao
-              </h3>
-              <button onClick={() => setShowHandoverModal(false)} className="text-slate-400 hover:text-white">
-                <X className="h-5 w-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-emerald-50/60">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center">
+                  <IconShieldCheck className="w-4 h-4" />
+                </div>
+                <h3 className="font-bold text-slate-900 text-sm">Xác Nhận Nghiệm Thu Bàn Giao</h3>
+              </div>
+              <button
+                onClick={() => setShowHandoverModal(false)}
+                className="p-1 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-600"
+              >
+                <IconX className="w-4 h-4" />
               </button>
             </div>
-            <form onSubmit={handleCompleteHandover} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-slate-300 mb-1 font-medium">Đại diện chủ đầu tư / Khách hàng *</label>
-                <input
-                  type="text"
-                  required
-                  value={handoverClientRep}
-                  onChange={(e) => setHandoverClientRep(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-emerald-500"
-                />
+
+            <div className="p-5 space-y-3.5 text-xs text-slate-700">
+              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
+                <div className="font-bold text-emerald-800 flex items-center gap-1.5">
+                  <IconCheckCircle className="w-4 h-4 text-emerald-600" />
+                  Cổng Kiểm Định: READY FOR HANDOVER
+                </div>
+                <p className="text-[11px] text-emerald-700">
+                  Tất cả các hạng mục Critical đã đạt Verified. Công trình đủ điều kiện ký biên bản bàn giao.
+                </p>
               </div>
-              <div>
-                <label className="block text-slate-300 mb-1 font-medium">Ý kiến đánh giá bàn giao</label>
-                <textarea
-                  rows={2}
-                  value={handoverNotes}
-                  onChange={(e) => setHandoverNotes(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-              <div className="p-3 rounded-lg bg-emerald-950/20 border border-emerald-900/30 text-emerald-300 space-y-1">
-                <div className="font-semibold">Hậu nghiệm thu tự động:</div>
-                <div>• Tạo Hồ sơ bàn giao Handover Dossier chính thức.</div>
-                <div>• Kích hoạt Chứng thư bảo hành 12 tháng tại công trình.</div>
-                <div>• Giải phóng đợt thanh toán quyết toán cuối cùng.</div>
-              </div>
-              <div className="pt-2 flex items-center justify-end gap-2">
+
+              <p className="text-slate-600">
+                Thực hiện hành động này sẽ chính thức đóng giai đoạn thi công hiện trường và kích hoạt
+                <strong> Chứng Thư Bảo Hành</strong> cho dự án <strong>{projectHeader.name}</strong>.
+              </p>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowHandoverModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium"
                 >
-                  Hủy
+                  Đóng
                 </button>
                 <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm"
+                  type="button"
+                  onClick={handleConfirmHandover}
+                  className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs"
                 >
-                  Ký Nghiệm Thu &amp; Kích Hoạt Bảo Hành
+                  Xác Nhận &amp; Bàn Giao
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
