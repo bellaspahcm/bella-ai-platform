@@ -167,7 +167,10 @@ export class InteriorFinanceAnalyticsService {
   /**
    * Retrieves full Canonical Finance Overview with Phase 1 Financial Truth
    */
-  public static getFinanceOverview(quarter = 'Quý 4/2026'): FinanceOverviewResponse {
+  public static getFinanceOverview(
+    quarter = 'Quý 4/2026',
+    period: '3_months' | '6_months' | '1_year' = '3_months'
+  ): FinanceOverviewResponse {
     const rawProjects = this.getRawProjects();
     const baseline = this.getQuarterBaselineProof();
 
@@ -287,13 +290,45 @@ export class InteriorFinanceAnalyticsService {
       },
     };
 
-    // 4. Financial Performance Section (3 months: T10 Actual, T11 Current, T12 Forecast; Max ceiling 4T)
-    const maxCeiling = 4_000_000_000;
-    const rawBars = [
-      { month: 'Tháng 10', revenue: 3_000_000_000, cost: 2_100_000_000, profit: 900_000_000, isForecast: false },
-      { month: 'Tháng 11', revenue: 3_100_000_000, cost: 2_150_000_000, profit: 950_000_000, isForecast: false },
-      { month: 'Tháng 12', revenue: 3_250_000_000, cost: 2_221_000_000, profit: 1_029_000_000, isForecast: true },
-    ];
+    // 4. Financial Performance Section (Dynamic based on selected period: 3_months, 6_months, 1_year)
+    let maxCeiling = 4_000_000_000;
+    let yAxisLabels = ['4T', '3T', '2T', '1T', '0'];
+    let rawBars: Array<{ month: string; revenue: number; cost: number; profit: number; isForecast?: boolean }> = [];
+    let timeHorizonNote = '';
+
+    if (period === '6_months') {
+      maxCeiling = 4_000_000_000;
+      yAxisLabels = ['4T', '3T', '2T', '1T', '0'];
+      timeHorizonNote = 'Tháng 7 - Tháng 11 (Thực tế) · Tháng 12 (Dự báo tiến độ xuất xưởng & lắp đặt)';
+      rawBars = [
+        { month: 'Tháng 7', revenue: 2_750_000_000, cost: 1_920_000_000, profit: 830_000_000, isForecast: false },
+        { month: 'Tháng 8', revenue: 2_880_000_000, cost: 2_010_000_000, profit: 870_000_000, isForecast: false },
+        { month: 'Tháng 9', revenue: 2_950_000_000, cost: 2_050_000_000, profit: 900_000_000, isForecast: false },
+        { month: 'Tháng 10', revenue: 3_000_000_000, cost: 2_100_000_000, profit: 900_000_000, isForecast: false },
+        { month: 'Tháng 11', revenue: 3_100_000_000, cost: 2_150_000_000, profit: 950_000_000, isForecast: false },
+        { month: 'Tháng 12', revenue: 3_250_000_000, cost: 2_221_000_000, profit: 1_029_000_000, isForecast: true },
+      ];
+    } else if (period === '1_year') {
+      maxCeiling = 12_000_000_000;
+      yAxisLabels = ['12T', '9T', '6T', '3T', '0'];
+      timeHorizonNote = 'Quý 1 - Quý 3 (Thực tế) · Quý 4 (Dự báo chốt năm tài chính 2026)';
+      rawBars = [
+        { month: 'Quý 1', revenue: 8_200_000_000, cost: 5_740_000_000, profit: 2_460_000_000, isForecast: false },
+        { month: 'Quý 2', revenue: 8_750_000_000, cost: 6_125_000_000, profit: 2_625_000_000, isForecast: false },
+        { month: 'Quý 3', revenue: 9_100_000_000, cost: 6_370_000_000, profit: 2_730_000_000, isForecast: false },
+        { month: 'Quý 4', revenue: 9_350_000_000, cost: 6_471_000_000, profit: 2_879_000_000, isForecast: true },
+      ];
+    } else {
+      // 3_months default
+      maxCeiling = 4_000_000_000;
+      yAxisLabels = ['4T', '3T', '2T', '1T', '0'];
+      timeHorizonNote = 'Tháng 10 - Tháng 11 (Thực tế) · Tháng 12 (Dự báo tiến độ xuất xưởng & lắp đặt)';
+      rawBars = [
+        { month: 'Tháng 10', revenue: 3_000_000_000, cost: 2_100_000_000, profit: 900_000_000, isForecast: false },
+        { month: 'Tháng 11', revenue: 3_100_000_000, cost: 2_150_000_000, profit: 950_000_000, isForecast: false },
+        { month: 'Tháng 12', revenue: 3_250_000_000, cost: 2_221_000_000, profit: 1_029_000_000, isForecast: true },
+      ];
+    }
 
     const bars: FinancialPerformanceBar[] = rawBars.map((b) => ({
       month: b.month,
@@ -310,20 +345,20 @@ export class InteriorFinanceAnalyticsService {
     }));
 
     const financialPerformance = {
-      selectedPeriod: '3_months' as const,
+      selectedPeriod: period,
       availablePeriods: [
         { key: '3_months' as const, label: '3 tháng' },
         { key: '6_months' as const, label: '6 tháng' },
         { key: '1_year' as const, label: '1 năm' },
       ],
-      yAxisLabels: ['4T', '3T', '2T', '1T', '0'],
+      yAxisLabels,
       bars,
       legend: [
         { label: 'Doanh thu', color: '#10B981' },
         { label: 'Chi phí', color: '#3B82F6' },
         { label: 'Lợi nhuận', color: '#F59E0B' },
       ],
-      timeHorizonNote: 'Tháng 10 - Tháng 11 (Thực tế) · Tháng 12 (Dự báo tiến độ xuất xưởng & lắp đặt)',
+      timeHorizonNote,
     };
 
     // 5. COGS Structure (Total: 2.22 Tỷ)

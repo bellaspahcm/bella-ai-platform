@@ -17,8 +17,11 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   const { searchParams } = new URL(request.url);
   const quarter = searchParams.get('quarter') || 'Quý 4/2026';
+  const periodParam = searchParams.get('period');
+  const period =
+    periodParam === '6_months' || periodParam === '1_year' ? periodParam : '3_months';
 
-  const overview = InteriorFinanceAnalyticsService.getFinanceOverview(quarter);
+  const overview = InteriorFinanceAnalyticsService.getFinanceOverview(quarter, period);
 
   return NextResponse.json({
     success: true,
