@@ -33,7 +33,7 @@ export default function GeneralSettingsTab({
 }: GeneralSettingsTabProps) {
   const { tenantModuleKey } = useTenantModuleKey();
   const { product } = useUser();
-  const isBellaInterior = product?.productKey === "bella_interior" || tenantModuleKey === "bella_interior" || tenantModuleKey === "interior";
+  const isBellaInterior = product?.productKey === "bella_interior" || tenantModuleKey === "bella_interior";
   const isHaircut = product?.productKey === "bella_haircut";
   const isPreschool = product?.productKey === "bella_preschool";
   const isEnglishCenter = product?.productKey === "bella_english_center";
