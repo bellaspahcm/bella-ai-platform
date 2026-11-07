@@ -450,6 +450,7 @@ const bellaEducationMenuItems: SidebarMenuItem[] = [
 // ─── Bella Interior OS Module Menu (Dedicated) ───
 const bellaInteriorMenuItems: SidebarMenuItem[] = [
   { icon: LayoutDashboard, label: 'Tổng quan', href: '/dashboard/interior' },
+  { icon: Sparkles, label: 'AI Copilot', href: '/dashboard/ai-copilot' },
   { type: 'header', label: 'QUẢN LÝ DỰ ÁN' },
   { icon: FolderKanban, label: 'Danh sách dự án', href: '/dashboard/interior/projects' },
   { icon: Users, label: 'Khách hàng', href: '/dashboard/interior/customers' },
@@ -465,7 +466,6 @@ const bellaInteriorMenuItems: SidebarMenuItem[] = [
   { icon: ShieldCheck, label: 'QC & Nghiệm thu', href: '/dashboard/interior/qc-handover' },
   { icon: Award, label: 'Bảo hành', href: '/dashboard/interior/warranty' },
   { type: 'header', label: 'QUẢN TRỊ' },
-  { icon: Sparkles, label: 'AI Copilot', href: '/dashboard/ai-copilot' },
   { icon: BarChart3, label: 'Báo cáo', href: '/dashboard/interior/reports' },
   { icon: Settings, label: 'Cài đặt', href: '/dashboard/settings?product=bella_interior' },
 ];
