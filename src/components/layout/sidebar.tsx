@@ -466,7 +466,7 @@ const bellaInteriorMenuItems: SidebarMenuItem[] = [
   { icon: Award, label: 'Bảo hành', href: '/dashboard/interior/warranty' },
   { type: 'header', label: 'QUẢN TRỊ' },
   { icon: BarChart3, label: 'Báo cáo', href: '/dashboard/interior/reports' },
-  { icon: Settings, label: 'Cài đặt', href: '/dashboard/settings' },
+  { icon: Settings, label: 'Cài đặt', href: '/dashboard/settings?product=bella_interior' },
 ];
 
 const customerMenuItems: SidebarMenuItem[] = [
@@ -641,7 +641,10 @@ export function Sidebar() {
     }
   };
 
-  const isInteriorRoute = pathname?.startsWith('/dashboard/interior') || product?.productKey === 'bella_interior';
+  const isInteriorRoute =
+    pathname?.startsWith('/dashboard/interior') ||
+    product?.productKey === 'bella_interior' ||
+    searchParams.get('product') === 'bella_interior';
   const isBellaInteriorShell = isInteriorRoute || tenantBrand.moduleKey === 'bella_interior';
 
   // ── Menu resolution: bella_auto, real_estate, bella_healthcare use hardcoded menus ──

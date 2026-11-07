@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { toast } from 'sonner';
 import {
   Handshake,
   Coins,
@@ -546,7 +547,7 @@ export default function InteriorContractsPage() {
               <button
                 type="button"
                 onClick={() => {
-                  alert('Báo cáo công nợ & tiến độ thu tiền hợp đồng CON-DUBAI-001 đang được tạo dưới định dạng PDF...');
+                  toast.success('Báo cáo công nợ & tiến độ thu tiền đang được trích xuất PDF...');
                 }}
                 className="w-full flex items-center gap-3 p-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-800/80 rounded-lg transition-colors group border border-transparent hover:border-emerald-200 dark:hover:border-slate-700 text-left"
               >
@@ -695,7 +696,7 @@ export default function InteriorContractsPage() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => alert('Mở form tạo phụ lục hợp đồng mới')}
+                  onClick={() => toast.info('Tính năng tạo phụ lục đang đồng bộ với thay đổi BOQ...')}
                   className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -1102,7 +1103,10 @@ export default function InteriorContractsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => alert('Đang tải bản PDF có dấu mộc tròn đỏ...')}
+                onClick={() => {
+                  toast.success('Đang tạo và tải bản scan hợp đồng PDF...');
+                  if (typeof window !== 'undefined') window.print();
+                }}
                 className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm"
               >
                 <Download className="w-3.5 h-3.5" />
@@ -1221,7 +1225,7 @@ export default function InteriorContractsPage() {
               <button
                 type="button"
                 onClick={() => {
-                  alert('Hợp đồng mới đã được tạo và đồng bộ với bảng BOQ R1.0.');
+                  toast.success('Hợp đồng mới đã được tạo và đồng bộ với bảng BOQ R1.0.');
                   setShowNewContractModal(false);
                 }}
                 className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold shadow-sm"

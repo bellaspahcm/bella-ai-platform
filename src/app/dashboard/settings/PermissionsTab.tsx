@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Lock, Save, ShieldAlert, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -8,6 +9,7 @@ import { createClient } from "@/lib/supabase-client";
 import { getTenantSettings, saveTenantSettings } from "@/services/tenant-actions";
 import { clearDashboardClientContextCache } from "@/lib/dashboard-client-context";
 import { useTenantModuleKey } from "@/hooks/useTenantModuleKey";
+import { useUser } from "@/lib/user-context";
 
 // ── SPA / Standard Roles & Modules ──
 const SPA_MODULES = [
@@ -359,10 +361,20 @@ function mergePersistedPermissions(
   return next;
 }
 
-export default function PermissionsTab() {
+export default function PermissionsTab({
+  isInterior: isInteriorProp,
+}: {
+  isInterior?: boolean;
+} = {}) {
+  const searchParams = useSearchParams();
   const { tenantModuleKey } = useTenantModuleKey();
-  const isEducation = tenantModuleKey === 'bella_education';
-  const isInterior = tenantModuleKey === 'bella_interior';
+  const { product } = useUser();
+  const isInterior =
+    isInteriorProp ??
+    (searchParams?.get("product") === "bella_interior" ||
+      tenantModuleKey === "bella_interior" ||
+      product?.productKey === "bella_interior");
+  const isEducation = !isInterior && tenantModuleKey === "bella_education";
 
   const roles = useMemo(() => (isInterior ? INTERIOR_ROLES : isEducation ? EDUCATION_ROLES : SPA_ROLES), [isInterior, isEducation]);
   const modules = useMemo(() => (isInterior ? INTERIOR_MODULES : isEducation ? EDUCATION_MODULES : SPA_MODULES), [isInterior, isEducation]);

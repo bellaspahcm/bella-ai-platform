@@ -769,7 +769,7 @@ export default function SchedulePage() {
                 </h2>
               </div>
               <Link
-                href="/dashboard/interior/users"
+                href="/dashboard/settings?product=bella_interior&tab=staff"
                 className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 transition-colors"
               >
                 Xem chi tiết →
