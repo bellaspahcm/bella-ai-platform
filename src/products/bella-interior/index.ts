@@ -60,6 +60,10 @@ export * from './services/interior-schedule-analytics.service';
 export * from './domain/design-overview.types';
 export * from './services/interior-design-analytics.service';
 
+// BOQ & BOM Commercial & Manufacturing Costing Analytics
+export * from './domain/boq-overview.types';
+export * from './services/interior-boq-analytics.service';
+
 // Manifest
 export * from './manifest';
 
