@@ -88,4 +88,38 @@ describe('InteriorPortfolioAnalyticsService', () => {
     expect(result.actionAlerts[0].type).toBe('critical');
     expect(result.actionAlerts[0].title).toContain('Skyline Residence');
   });
+
+  it('should compute multi-period business chain progress across the 4 key stages', async () => {
+    const result = await service.computePortfolioOverview('tenant-test-001');
+
+    expect(result.businessChainProgress).toBeDefined();
+    expect(result.businessChainProgress?.defaultPeriod).toBe('this_month');
+
+    const thisMonth = result.businessChainProgress?.periods.this_month;
+    expect(thisMonth).toBeDefined();
+    expect(thisMonth?.periodLabel).toBe('Tháng này');
+    expect(thisMonth?.stages.length).toBe(4);
+
+    const design = thisMonth?.stages.find((s) => s.key === 'design');
+    const commercial = thisMonth?.stages.find((s) => s.key === 'commercial');
+    const production = thisMonth?.stages.find((s) => s.key === 'production');
+    const handover = thisMonth?.stages.find((s) => s.key === 'handover');
+
+    expect(design?.percent).toBe(92);
+    expect(commercial?.percent).toBe(85);
+    expect(production?.percent).toBe(70);
+    expect(handover?.percent).toBe(45);
+    expect(thisMonth?.overallPercent).toBe(65);
+    expect(thisMonth?.statusLabel).toBe('Đúng tiến độ');
+
+    const lastMonth = result.businessChainProgress?.periods.last_month;
+    expect(lastMonth).toBeDefined();
+    expect(lastMonth?.periodLabel).toBe('Tháng trước');
+    expect(lastMonth?.overallPercent).toBe(58);
+
+    const thisQuarter = result.businessChainProgress?.periods.this_quarter;
+    expect(thisQuarter).toBeDefined();
+    expect(thisQuarter?.statusLabel).toBe('Vượt tiến độ +3%');
+    expect(thisQuarter?.overallPercent).toBe(72);
+  });
 });

@@ -840,10 +840,10 @@ export default function ProductionDashboardPage() {
                   onChange={(e) => setOrderProject(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 font-medium"
                 >
-                  <option value="proj-001">INT-2024-001 — Biệt Thự Vườn Thảo Điền</option>
-                  <option value="proj-002">INT-2024-002 — Penthouse Grand Marina Saigon</option>
-                  <option value="proj-003">INT-2024-003 — Duplex Sunshine Venicia</option>
-                  <option value="proj-004">INT-2024-004 — Shophouse Phố Đi Bộ Sala</option>
+                  <option value="proj-001">INT-2024-001 — Villa Sunrise Renovation</option>
+                  <option value="proj-002">INT-2024-002 — Office Tower Lobby</option>
+                  <option value="proj-003">INT-2024-003 — Skyline Residence</option>
+                  <option value="proj-004">INT-2024-004 — Duplex Aqua Bay Ecopark</option>
                 </select>
               </div>
 
@@ -867,7 +867,7 @@ export default function ProductionDashboardPage() {
                     <span className="font-mono font-medium">4 bộ</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>• Cánh kính khung nhôm Anodized & Ray trượt</span>
+                    <span>• Cánh kính khung nhôm Anodized &amp; Ray trượt</span>
                     <span className="font-mono font-medium">2 cánh</span>
                   </div>
                 </div>
