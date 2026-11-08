@@ -299,7 +299,12 @@ export default function InteriorMaterialsPage() {
 
           <button
             type="button"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-semibold shadow-sm hover:shadow transition-all"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.print();
+              }
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-semibold shadow-sm hover:shadow transition-all cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Xuất Bảng Spec Kỹ Thuật (PDF)</span>

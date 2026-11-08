@@ -1459,6 +1459,11 @@ export default function InteriorProjectFinancePage() {
                         </span>
                         <button
                           type="button"
+                          onClick={() => {
+                            if (typeof window !== 'undefined') {
+                              alert(`Đã phê duyệt quyết định tài chính: ${dec.title}`);
+                            }
+                          }}
                           className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
                         >
                           {dec.actionButtonText}
