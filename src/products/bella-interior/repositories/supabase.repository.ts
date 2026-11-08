@@ -39,7 +39,7 @@ import type {
   WarrantyServiceTicket,
 } from '../domain/delivery-aftercare/types';
 
-import type { IInteriorRepository } from './interior-repository.interface';
+import type { IInteriorRepository, SaveBOQOptions } from './interior-repository.interface';
 import { ensureUuid, isUuid } from '../lib/uuid-helper';
 
 // ---------------------------------------------------------------------------
@@ -1172,9 +1172,81 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
 
   // ─── Commercial & Costing ──────────────────────────────────────────────────
 
-  async saveBOQ(tenantId: string, boq: InteriorBOQ): Promise<void> {
-    // Immutability Guard: Reject unauthorized modifications to Approved / Locked BOQs
+  async saveBOQ(tenantId: string, boq: InteriorBOQ, options?: SaveBOQOptions): Promise<void> {
+    const validTenantId = ensureUuid(tenantId);
+    const validBoqId = ensureUuid(boq.id);
+
+    // 1. Try atomic database transaction RPC first if available (R3, R2, R5, R6)
+    try {
+      const headerRow = mapBOQToRow(boq, validTenantId);
+      const itemsPayload = boq.items.map(item => ({
+        id: ensureUuid(item.id),
+        room_zone_id: item.roomZoneId ? ensureUuid(item.roomZoneId) : null,
+        room_zone_name: item.roomZoneName,
+        item_code: item.itemCode,
+        item_name: item.itemName,
+        category: item.category,
+        dimensions: item.dimensions ?? {},
+        specifications: item.specifications ?? {},
+        unit: item.unit,
+        quantity: item.quantity,
+        internal_unit_cost: item.internalUnitCost,
+        internal_total_cost: item.internalTotalCost,
+        client_unit_price: item.clientUnitPrice,
+        client_total_price: item.clientTotalPrice,
+        gross_margin_amount: item.grossMarginAmount,
+        gross_margin_percent: item.grossMarginPercent,
+      }));
+
+      const { error: rpcError } = await this.supabase.rpc('save_interior_boq_atomic', {
+        p_tenant_id: validTenantId,
+        p_boq_header: headerRow,
+        p_boq_items: itemsPayload,
+        p_expected_version: options?.expectedVersionNumber ?? null,
+        p_idempotency_key: options?.idempotencyKey ?? null,
+        p_request_hash: options?.requestHash ?? null,
+        p_audit_actor_id: options?.auditActorId ? ensureUuid(options.auditActorId) : null,
+      });
+
+      if (!rpcError) {
+        return;
+      }
+
+      // If the error is a known business or guard violation from DB trigger/RPC, rethrow it
+      if (
+        rpcError.message.includes('Immutability violation') ||
+        rpcError.message.includes('ConcurrencyConflict') ||
+        rpcError.message.includes('IdempotencyPayloadMismatch') ||
+        rpcError.message.includes('TenantIsolationViolation')
+      ) {
+        throw new Error(`[InteriorRepo] ${rpcError.message}`);
+      }
+
+      // If RPC is missing (e.g. migration not applied in this environment), fallback to REST
+      const isMissingRpc =
+        rpcError.code === '42883' ||
+        rpcError.code === 'PGRST202' ||
+        rpcError.message.includes('Could not find the function') ||
+        rpcError.message.includes('function save_interior_boq_atomic');
+
+      if (!isMissingRpc) {
+        throw new Error(`[InteriorRepo] saveBOQ atomic RPC failed: ${rpcError.message}`);
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message.startsWith('[InteriorRepo]')) {
+        throw err;
+      }
+    }
+
+    // 2. Fallback: Standard PostgREST sequential save (guarded by application logic & triggers)
     const existing = await this.getBOQ(tenantId, boq.id);
+
+    if (existing && options?.expectedVersionNumber !== undefined && existing.versionNumber !== options.expectedVersionNumber) {
+      throw new Error(
+        `[InteriorRepo] ConcurrencyConflict: Expected version ${options.expectedVersionNumber}, but found ${existing.versionNumber}`
+      );
+    }
+
     if (existing && (existing.status === 'approved' || existing.status === 'locked_for_contract')) {
       const isStatusTransitionToLocked = existing.status === 'approved' && boq.status === 'locked_for_contract';
       if (!isStatusTransitionToLocked) {
@@ -1202,10 +1274,10 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
       const { error: itemErr } = await this.supabase
         .from('interior_boq_items')
         .insert({
-          id: item.id,
-          tenant_id: tenantId,
-          boq_id: item.boqId,
-          room_zone_id: item.roomZoneId || null,
+          id: ensureUuid(item.id),
+          tenant_id: validTenantId,
+          boq_id: validBoqId,
+          room_zone_id: item.roomZoneId ? ensureUuid(item.roomZoneId) : null,
           room_zone_name: item.roomZoneName,
           item_code: item.itemCode,
           item_name: item.itemName,

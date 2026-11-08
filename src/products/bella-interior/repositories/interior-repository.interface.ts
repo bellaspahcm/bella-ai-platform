@@ -28,6 +28,13 @@ import type {
   WarrantyServiceTicket,
 } from '../domain/delivery-aftercare/types';
 
+export interface SaveBOQOptions {
+  readonly expectedVersionNumber?: number;
+  readonly idempotencyKey?: string;
+  readonly requestHash?: string;
+  readonly auditActorId?: string;
+}
+
 export interface IInteriorRepository {
   // Design & Specification
   saveProject(tenantId: string, project: InteriorProject): Promise<void>;
@@ -45,7 +52,7 @@ export interface IInteriorRepository {
   listTakeoffRuns(tenantId: string, projectId: string): Promise<DesignTakeoffRun[]>;
 
   // Commercial & Costing
-  saveBOQ(tenantId: string, boq: InteriorBOQ): Promise<void>;
+  saveBOQ(tenantId: string, boq: InteriorBOQ, options?: SaveBOQOptions): Promise<void>;
   getBOQ(tenantId: string, boqId: string): Promise<InteriorBOQ | null>;
   getBOQByProject(tenantId: string, projectId: string): Promise<InteriorBOQ | null>;
   listBOQRevisions(tenantId: string, projectId: string): Promise<InteriorBOQ[]>;

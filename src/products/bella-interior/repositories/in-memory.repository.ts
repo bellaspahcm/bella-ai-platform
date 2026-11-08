@@ -8,7 +8,7 @@
  */
 
 import { TenantIsolationViolationError, TakeoffRunImmutableError } from '../domain/errors';
-import type { IInteriorRepository } from './interior-repository.interface';
+import type { IInteriorRepository, SaveBOQOptions } from './interior-repository.interface';
 import type {
   InteriorProject,
   ProjectRoomZone,
@@ -142,10 +142,17 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
 
   // --- Commercial & Costing ---
 
-  async saveBOQ(tenantId: string, boq: InteriorBOQ): Promise<void> {
+  async saveBOQ(tenantId: string, boq: InteriorBOQ, options?: SaveBOQOptions): Promise<void> {
     if (boq.tenantId !== tenantId) throw new TenantIsolationViolationError();
     const key = this.makeKey(tenantId, boq.id);
     const existing = this.boqs.get(key);
+
+    if (existing && options?.expectedVersionNumber !== undefined && existing.versionNumber !== options.expectedVersionNumber) {
+      throw new Error(
+        `[InteriorRepo] ConcurrencyConflict: Expected version ${options.expectedVersionNumber}, but found ${existing.versionNumber}`
+      );
+    }
+
     if (existing && (existing.status === 'approved' || existing.status === 'locked_for_contract')) {
       const isStatusTransitionToLocked =
         existing.status === 'approved' && boq.status === 'locked_for_contract';
