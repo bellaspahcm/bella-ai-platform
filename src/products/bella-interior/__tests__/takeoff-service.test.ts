@@ -708,7 +708,7 @@ describe('InteriorTakeoffService — Phase 2A (Structured Takeoff & Review)', ()
         designRevisionId: approvedRevisionR1.id,
         title: 'Bóc tách lần 1',
         preparedBy: 'QS. Nguyễn Văn Quang',
-        idempotencyKey: 'idemp-dedup-takeoff-001',
+        idempotencyKey: 'takeoff-1',
       });
 
       const run2 = await takeoffService.initializeTakeoffRun({
@@ -717,7 +717,7 @@ describe('InteriorTakeoffService — Phase 2A (Structured Takeoff & Review)', ()
         designRevisionId: approvedRevisionR1.id,
         title: 'Bóc tách lần 1 (Retry do mạng rớt)',
         preparedBy: 'QS. Nguyễn Văn Quang',
-        idempotencyKey: 'idemp-dedup-takeoff-001',
+        idempotencyKey: 'takeoff-1',
       });
 
       expect(run2.id).toBe(run1.id);
