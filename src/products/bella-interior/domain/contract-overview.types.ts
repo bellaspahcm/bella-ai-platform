@@ -191,6 +191,7 @@ export interface WorkshopReleaseGating {
 }
 
 export interface ContractOverviewResponse {
+  hasContract: boolean;
   header: ContractProjectHeader;
   kpis: ContractOverviewKPIs;
   progressStepper: PaymentProgressStepper;
@@ -200,5 +201,13 @@ export interface ContractOverviewResponse {
   detailedTabs: ContractDetailedTabs;
   projectSummary: ProjectSummaryCardData;
   workshopReleaseGating: WorkshopReleaseGating;
+  scheduledAmount?: number;
+  scheduledAmountFormatted?: string;
+  scheduleVariance?: number;
+  scheduleVarianceFormatted?: string;
+  netCollected?: number;
+  outstandingAmount?: number;
+  referenceBOQValue?: number;
+  referenceBOQValueFormatted?: string;
 }
 
