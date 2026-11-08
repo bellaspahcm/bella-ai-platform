@@ -60,3 +60,45 @@ export class InteriorAuthorizationError extends Error {
   }
 }
 
+export class TakeoffRunNotFoundError extends Error {
+  constructor(runId: string) {
+    super(`Takeoff Run not found: ${runId}`);
+    this.name = 'TakeoffRunNotFoundError';
+  }
+}
+
+export class TakeoffRunImmutableError extends Error {
+  constructor(runId: string, status: string) {
+    super(
+      `Takeoff Run '${runId}' is immutable in status '${status}'. Completed or locked runs cannot be modified.`
+    );
+    this.name = 'TakeoffRunImmutableError';
+  }
+}
+
+export class TakeoffComponentNotFoundError extends Error {
+  constructor(componentId: string) {
+    super(`Takeoff Component not found: ${componentId}`);
+    this.name = 'TakeoffComponentNotFoundError';
+  }
+}
+
+export class InvalidRoomZoneBindingError extends Error {
+  constructor(zoneId: string, projectId: string) {
+    super(
+      `Room Zone '${zoneId}' does not belong to project '${projectId}' or does not exist.`
+    );
+    this.name = 'InvalidRoomZoneBindingError';
+  }
+}
+
+export class TakeoffIncompleteReviewError extends Error {
+  constructor(pendingCount: number) {
+    super(
+      `Cannot complete Takeoff Run with ${pendingCount} component(s) still pending review. All components must be reviewed by Estimator.`
+    );
+    this.name = 'TakeoffIncompleteReviewError';
+  }
+}
+
+

@@ -10,6 +10,7 @@ import type {
   ProjectRoomZone,
   DesignRevision,
 } from '../domain/design-specification/types';
+import type { DesignTakeoffRun } from '../domain/takeoff/types';
 import type {
   InteriorBOQ,
   InteriorQuotation,
@@ -37,6 +38,11 @@ export interface IInteriorRepository {
   saveDesignRevision(tenantId: string, revision: DesignRevision): Promise<void>;
   getDesignRevision(tenantId: string, revisionId: string): Promise<DesignRevision | null>;
   listDesignRevisions(tenantId: string, projectId: string): Promise<DesignRevision[]>;
+
+  // Design Takeoff Staging & Review (Phase 2A)
+  saveTakeoffRun(tenantId: string, run: DesignTakeoffRun): Promise<void>;
+  getTakeoffRun(tenantId: string, runId: string): Promise<DesignTakeoffRun | null>;
+  listTakeoffRuns(tenantId: string, projectId: string): Promise<DesignTakeoffRun[]>;
 
   // Commercial & Costing
   saveBOQ(tenantId: string, boq: InteriorBOQ): Promise<void>;

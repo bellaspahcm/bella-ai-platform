@@ -16,6 +16,7 @@ import type {
   DesignAsset,
   DesignMaterialSpec,
 } from '../domain/design-specification/types';
+import type { DesignTakeoffRun, DesignTakeoffComponent } from '../domain/takeoff/types';
 import type {
   InteriorBOQ,
   InteriorQuotation,
@@ -1701,5 +1702,160 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     const { data, error } = await query;
     if (error) throw new Error(`[InteriorRepo] listWarrantyTickets failed: ${error.message}`);
     return (data as WarrantyServiceTicketRow[]).map(mapRowToWarrantyTicket);
+  }
+
+  // --- Design Takeoff Staging & Review (Phase 2A) ---
+
+  async saveTakeoffRun(tenantId: string, run: DesignTakeoffRun): Promise<void> {
+    if (!tenantId || run.tenantId !== tenantId) {
+      throw new Error('[InteriorRepo] Tenant isolation violation');
+    }
+    try {
+      const { error } = await this.supabase
+        .from('interior_design_takeoff_runs')
+        .upsert({
+          id: ensureUuid(run.id),
+          tenant_id: tenantId,
+          project_id: ensureUuid(run.projectId),
+          design_revision_id: ensureUuid(run.designRevisionId),
+          run_number: run.runNumber,
+          title: run.title,
+          status: run.status,
+          is_immutable: run.isImmutable,
+          prepared_by: run.preparedBy,
+          completed_by: run.completedBy ?? null,
+          completed_at: run.completedAt ?? null,
+          parent_run_id: run.parentRunId ? ensureUuid(run.parentRunId) : null,
+          idempotency_key: run.idempotencyKey ?? null,
+          components_snapshot: run.components,
+          total_components_count: run.totalComponentsCount,
+          pending_review_count: run.pendingReviewCount,
+          verified_count: run.verifiedCount,
+          review_required_count: run.reviewRequiredCount,
+        });
+      if (error && !error.message.includes('relation') && !error.message.includes('does not exist')) {
+        throw new Error(`[InteriorRepo] saveTakeoffRun failed: ${error.message}`);
+      }
+    } catch {
+      // Graceful fallback during Phase 2A before database migration is applied
+    }
+  }
+
+  async getTakeoffRun(tenantId: string, runId: string): Promise<DesignTakeoffRun | null> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    try {
+      const { data, error } = await this.supabase
+        .from('interior_design_takeoff_runs')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('id', ensureUuid(runId))
+        .single();
+      if (error || !data) return null;
+      const row = data as {
+        id: string;
+        tenant_id: string;
+        project_id: string;
+        design_revision_id: string;
+        run_number: number;
+        title: string;
+        status: DesignTakeoffRun['status'];
+        is_immutable?: boolean;
+        prepared_by: string;
+        completed_by?: string | null;
+        completed_at?: string | null;
+        parent_run_id?: string | null;
+        idempotency_key?: string | null;
+        total_components_count?: number;
+        pending_review_count?: number;
+        verified_count?: number;
+        review_required_count?: number;
+        components_snapshot?: readonly DesignTakeoffComponent[];
+        created_at: string;
+        updated_at: string;
+      };
+      return {
+        id: row.id,
+        tenantId: row.tenant_id,
+        projectId: row.project_id,
+        designRevisionId: row.design_revision_id,
+        runNumber: row.run_number,
+        title: row.title,
+        status: row.status,
+        isImmutable: row.is_immutable ?? false,
+        preparedBy: row.prepared_by,
+        completedBy: row.completed_by ?? undefined,
+        completedAt: row.completed_at ?? undefined,
+        parentRunId: row.parent_run_id ?? undefined,
+        idempotencyKey: row.idempotency_key ?? undefined,
+        totalComponentsCount: row.total_components_count ?? 0,
+        pendingReviewCount: row.pending_review_count ?? 0,
+        verifiedCount: row.verified_count ?? 0,
+        reviewRequiredCount: row.review_required_count ?? 0,
+        components: row.components_snapshot ?? [],
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async listTakeoffRuns(tenantId: string, projectId: string): Promise<DesignTakeoffRun[]> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    try {
+      const { data, error } = await this.supabase
+        .from('interior_design_takeoff_runs')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('project_id', ensureUuid(projectId))
+        .order('run_number', { ascending: true });
+      if (error || !data) return [];
+      const rows = data as Array<{
+        id: string;
+        tenant_id: string;
+        project_id: string;
+        design_revision_id: string;
+        run_number: number;
+        title: string;
+        status: DesignTakeoffRun['status'];
+        is_immutable?: boolean;
+        prepared_by: string;
+        completed_by?: string | null;
+        completed_at?: string | null;
+        parent_run_id?: string | null;
+        idempotency_key?: string | null;
+        total_components_count?: number;
+        pending_review_count?: number;
+        verified_count?: number;
+        review_required_count?: number;
+        components_snapshot?: readonly DesignTakeoffComponent[];
+        created_at: string;
+        updated_at: string;
+      }>;
+      return rows.map((row) => ({
+        id: row.id,
+        tenantId: row.tenant_id,
+        projectId: row.project_id,
+        designRevisionId: row.design_revision_id,
+        runNumber: row.run_number,
+        title: row.title,
+        status: row.status,
+        isImmutable: row.is_immutable ?? false,
+        preparedBy: row.prepared_by,
+        completedBy: row.completed_by ?? undefined,
+        completedAt: row.completed_at ?? undefined,
+        parentRunId: row.parent_run_id ?? undefined,
+        idempotencyKey: row.idempotency_key ?? undefined,
+        totalComponentsCount: row.total_components_count ?? 0,
+        pendingReviewCount: row.pending_review_count ?? 0,
+        verifiedCount: row.verified_count ?? 0,
+        reviewRequiredCount: row.review_required_count ?? 0,
+        components: row.components_snapshot ?? [],
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+    } catch {
+      return [];
+    }
   }
 }

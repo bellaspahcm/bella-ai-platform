@@ -7,13 +7,14 @@
  * @module src/products/bella-interior/repositories
  */
 
-import { TenantIsolationViolationError } from '../domain/errors';
+import { TenantIsolationViolationError, TakeoffRunImmutableError } from '../domain/errors';
 import type { IInteriorRepository } from './interior-repository.interface';
 import type {
   InteriorProject,
   ProjectRoomZone,
   DesignRevision,
 } from '../domain/design-specification/types';
+import type { DesignTakeoffRun } from '../domain/takeoff/types';
 import type {
   InteriorBOQ,
   InteriorQuotation,
@@ -35,6 +36,7 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
   private readonly projects = new Map<string, InteriorProject>();
   private readonly roomZones = new Map<string, ProjectRoomZone>();
   private readonly designRevisions = new Map<string, DesignRevision>();
+  private readonly takeoffRuns = new Map<string, DesignTakeoffRun>();
   private readonly boqs = new Map<string, InteriorBOQ>();
   private readonly quotations = new Map<string, InteriorQuotation>();
   private readonly contracts = new Map<string, InteriorContract>();
@@ -105,6 +107,37 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
       }
     }
     return result.sort((a, b) => a.versionNumber - b.versionNumber);
+  }
+
+  // --- Design Takeoff Staging & Review (Phase 2A) ---
+
+  async saveTakeoffRun(tenantId: string, run: DesignTakeoffRun): Promise<void> {
+    if (run.tenantId !== tenantId) throw new TenantIsolationViolationError();
+    const key = this.makeKey(tenantId, run.id);
+    const existing = this.takeoffRuns.get(key);
+    if (existing && existing.isImmutable) {
+      throw new TakeoffRunImmutableError(run.id, existing.status);
+    }
+    // Deep clone snapshot so external in-memory references cannot mutate stored state
+    this.takeoffRuns.set(key, JSON.parse(JSON.stringify(run)) as DesignTakeoffRun);
+  }
+
+  async getTakeoffRun(tenantId: string, runId: string): Promise<DesignTakeoffRun | null> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    const run = this.takeoffRuns.get(this.makeKey(tenantId, runId));
+    if (!run) return null;
+    return JSON.parse(JSON.stringify(run)) as DesignTakeoffRun;
+  }
+
+  async listTakeoffRuns(tenantId: string, projectId: string): Promise<DesignTakeoffRun[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    const result: DesignTakeoffRun[] = [];
+    for (const [key, val] of this.takeoffRuns.entries()) {
+      if (key.startsWith(`${tenantId}::`) && val.projectId === projectId) {
+        result.push(JSON.parse(JSON.stringify(val)) as DesignTakeoffRun);
+      }
+    }
+    return result.sort((a, b) => a.runNumber - b.runNumber);
   }
 
   // --- Commercial & Costing ---
