@@ -12,6 +12,11 @@
 import { TenantIsolationViolationError } from '../domain/errors';
 import type { IInteriorRepository } from '../repositories/interior-repository.interface';
 import type {
+  InteriorContract,
+  PaymentMilestone,
+  PaymentMilestoneStatus,
+} from '../domain/commercial-costing/types';
+import type {
   ContractOverviewResponse,
   ContractProjectHeader,
   ContractOverviewKPIs,
@@ -515,6 +520,78 @@ export class InteriorContractAnalyticsService {
     }
 
     const normalizedProjId = projectId?.trim() || '';
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // DB-FIRST PATH: When a real repository is provided, query Supabase.
+    // This is the production execution path.
+    // Falls through to in-memory CASE routing only when repository is absent
+    // (unit test isolation — no live DB connection).
+    // ──────────────────────────────────────────────────────────────────────────
+    if (repository && normalizedProjId) {
+      const uuid = this.resolveProjectUUID(normalizedProjId);
+      let dbContract: import('../domain/commercial-costing/types').InteriorContract | null = null;
+      try {
+        dbContract = await repository.getContractByProject(tenantId, uuid);
+      } catch (err) {
+        // Log but do not swallow — let caller handle
+        console.error(`[ContractAnalytics] DB lookup failed for project ${uuid}:`, err);
+        throw err;
+      }
+
+      if (dbContract) {
+        // Contract found in DB — build response from real data
+        return this.buildResponseFromDBContract(dbContract, normalizedProjId);
+      }
+
+      // No contract found in DB → genuine empty state (not Dubai fallback)
+      const projectCatalogDB: Record<string, { code: string; name: string; client: string; manager: string }> = {
+        'INT-2024-001': { code: 'INT-2024-001', name: 'Villa Sunrise Renovation', client: 'SunCasa Group (Ahmad Santoso)', manager: 'KTS. Hoàng Long' },
+        'INT-2024-002': { code: 'INT-2024-002', name: 'Dubai Luxury Villa Fitout', client: 'Sheikh Al-Maktoum Office', manager: 'Nguyễn Thị Mai' },
+        'INT-THD-2026': { code: 'INT-THD-2026', name: 'Villa Riverside Thảo Điền', client: 'Trần Minh Quân', manager: 'KTS. Lê Hoàng Sơn' },
+        'INT-2024-003': { code: 'INT-2024-003', name: 'Penthouse Metropolis Liễu Giai', client: 'Trịnh Thăng Bình', manager: 'KTS. Phan Hải' },
+        'INT-2024-004': { code: 'INT-2024-004', name: 'Duplex Aqua Bay Ecopark', client: 'Phạm Hồng Nhung', manager: 'KTS. Hoàng Long' },
+      };
+      const info = projectCatalogDB[normalizedProjId] ?? {
+        code: normalizedProjId,
+        name: `Dự án ${normalizedProjId}`,
+        client: 'Khách hàng',
+        manager: 'Chủ trì dự án',
+      };
+
+      return {
+        hasContract: false,
+        header: {
+          projectId: uuid,
+          projectCode: info.code,
+          projectName: info.name,
+          selectorLabel: `${info.name} (${info.code})`,
+          clientName: info.client,
+          contractId: 'CHƯA KÝ KẾT',
+          managerName: info.manager,
+          managerRole: 'Chủ trì dự án',
+        },
+        kpis: {
+          contractAndClient: { formattedValue: 'Chưa ký HĐ', label: 'Số hợp đồng & khách hàng', subtext: info.client, iconName: 'Handshake', iconBgClass: 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400' },
+          totalContractValue: { rawValue: 0, formattedValue: '0 đ', label: 'Tổng giá trị hợp đồng', subtext: 'Chưa có hợp đồng', iconName: 'Coins', iconBgClass: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' },
+          collectedAmount: { rawValue: 0, formattedValue: '0 đ', label: 'Đã thực thu', subtext: 'Chưa có giao dịch', subtextVariant: 'neutral', iconName: 'CheckCircle2', iconBgClass: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' },
+          remainingAmount: { rawValue: 0, formattedValue: '0 đ', label: 'Còn phải thu', subtext: '0 đ', subtextVariant: 'neutral', iconName: 'Wallet', iconBgClass: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' },
+          contractStatus: { formattedValue: 'Chưa ký kết', badgeLabel: 'Chờ ký kết', badgeClass: 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800', label: 'Trạng thái hợp đồng', subtext: 'Cần ký kết để giải ngân sản xuất', iconName: 'ShieldCheck', iconBgClass: 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400' },
+        },
+        progressStepper: { completionPercentage: 0, completionFormatted: 'Chưa bắt đầu', steps: [] },
+        milestones: [],
+        alerts: [],
+        quickActions: this.CANONICAL_QUICK_ACTIONS,
+        detailedTabs: {
+          activeTab: 'info',
+          info: { clientName: info.client, projectName: info.name, signedDateFormatted: 'Chưa ký kết', contractValueFormatted: '0 đ', executionPeriod: 'Chưa xác định', paymentTerms: 'Chưa xác định', notes: 'Chưa có hợp đồng kinh tế.' },
+          addenda: [],
+          auditLogs: [],
+          financialAnalysis: { estimatedCogs: 0, estimatedCogsFormatted: '0 đ', contractValue: 0, contractValueFormatted: '0 đ', grossProfitExpected: 0, grossProfitExpectedFormatted: '0 đ', grossMarginExpectedPercent: 0, grossMarginExpectedFormatted: '0%', cashflowSummary: 'Chưa có dữ liệu hợp đồng', cashflowStatus: 'neutral' },
+        },
+        projectSummary: { title: 'Tổng quan dự án', imageUrl: '', imageAlt: info.name, progressPercentage: 0, progressFormatted: '0%', expectedCompletionDate: '', completionDateFormatted: 'Chưa xác định' },
+        workshopReleaseGating: { isEligible: false, statusBadge: 'Chưa ký hợp đồng', statusText: 'Cần ký kết hợp đồng kinh tế trước khi chuyển lệnh xưởng.', releaseConditionsNote: 'Yêu cầu có Hợp đồng kinh tế và tiền thực thu đạt điều kiện.', criteria: [{ id: 'crit-contract', label: 'Hợp đồng kinh tế đã ký kết và đang có hiệu lực', satisfied: false, evidence: `Không tìm thấy hợp đồng cho ${info.code} trong database` }] },
+      };
+    }
 
     // Check project identity
     // Recognized project codes:
@@ -1284,5 +1361,244 @@ export class InteriorContractAnalyticsService {
    */
   public static formatVND(amount: number): string {
     return `${amount.toLocaleString('vi-VN')} đ`;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DB INTEGRATION HELPERS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Map a domain PaymentMilestone (from DB) to MilestoneTableItem (UI type).
+   * Note: DB milestones do not carry transactions[] yet — net collected is derived
+   * from milestone status ('paid' | 'invoiced' | 'pending' | 'overdue').
+   * When a payment_transactions table is added, this mapper should be extended.
+   */
+  private static mapDomainMilestoneToTableItem(
+    m: PaymentMilestone,
+    contractValue: number,
+  ): MilestoneTableItem {
+    const milestoneStatus = m.status as PaymentMilestoneStatus;
+    const isPaid = milestoneStatus === 'paid';
+    const isInvoiced = milestoneStatus === 'invoiced';
+    const isOverdue = milestoneStatus === 'overdue';
+
+    // Collected = full amount only when paid. For invoiced/partial, we cannot determine
+    // exact collected without a transactions table — treat as 0 collected until confirmed.
+    const collectedAmount = isPaid ? m.amount : 0;
+    const remainingAmount = Math.max(0, m.amount - collectedAmount);
+
+    let status: MilestoneTableItem['status'] = 'pending';
+    let statusLabel = 'Chờ thanh toán';
+    let statusBadgeVariant: MilestoneTableItem['statusBadgeVariant'] = 'neutral';
+    let invoiceStatus: MilestoneTableItem['invoiceStatus'] = 'unissued';
+    let invoiceStatusLabel = 'Chưa xuất HĐ';
+
+    if (isPaid) {
+      status = 'paid';
+      statusLabel = 'Đã thu';
+      statusBadgeVariant = 'success';
+      invoiceStatus = 'issued';
+      invoiceStatusLabel = 'Đã xuất HĐ';
+    } else if (isInvoiced) {
+      status = 'pending';
+      statusLabel = 'Đã xuất HĐ';
+      statusBadgeVariant = 'warning';
+      invoiceStatus = 'issued';
+      invoiceStatusLabel = 'Đã xuất HĐ';
+    } else if (isOverdue) {
+      status = 'overdue';
+      statusLabel = 'Quá hạn';
+      statusBadgeVariant = 'danger';
+    }
+
+    const percentage = typeof m.percentage === 'number' ? m.percentage : Number(m.percentage) || 0;
+    void contractValue; // used for future partial payment calculation
+
+    return {
+      id: m.id,
+      milestoneOrder: m.milestoneOrder,
+      phaseName: m.name,
+      percentage,
+      percentageFormatted: `${percentage}%`,
+      amount: m.amount,
+      amountFormatted: this.formatVND(m.amount),
+      collectedAmount,
+      collectedFormatted: this.formatVND(collectedAmount),
+      remainingAmount,
+      remainingFormatted: this.formatVND(remainingAmount),
+      dueDate: m.dueDate ?? '',
+      dueDateFormatted: m.dueDate
+        ? new Date(m.dueDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        : 'Chưa xác định',
+      status,
+      statusLabel,
+      statusBadgeVariant,
+      invoiceStatus,
+      invoiceStatusLabel,
+      transactions: [],
+    };
+  }
+
+  /**
+   * Build a full ContractOverviewResponse from a real InteriorContract domain object.
+   * This is the DB-first path: data sourced entirely from Supabase.
+   */
+  private static buildResponseFromDBContract(
+    contract: InteriorContract,
+    projectCode?: string,
+  ): ContractOverviewResponse {
+    const contractValue = contract.baselineContractValue;
+
+    const milestones: MilestoneTableItem[] = contract.milestones.map((m) =>
+      this.mapDomainMilestoneToTableItem(m, contractValue),
+    );
+
+    const financialTruth = this.computeFinancialTruth({
+      contractValue,
+      milestones,
+      clientName: contract.clientRepresentative,
+      contractNumber: contract.contractNumber,
+      signedDate: contract.signedDate
+        ? new Date(contract.signedDate).toLocaleDateString('vi-VN')
+        : undefined,
+      contractStatusLabel:
+        contract.status === 'active' || contract.status === 'signed'
+          ? 'Đang hiệu lực'
+          : contract.status === 'completed'
+          ? 'Đã hoàn thành'
+          : 'Đã chấm dứt',
+    });
+
+    const progressStepper = this.computeProgressStepper(
+      milestones,
+      contractValue,
+      financialTruth.netCollected,
+    );
+
+    const releaseGating = this.computeReleaseGating({
+      hasContract: true,
+      contractNumber: contract.contractNumber,
+      contractSignedDate: contract.signedDate
+        ? new Date(contract.signedDate).toLocaleDateString('vi-VN')
+        : undefined,
+      clientName: contract.clientRepresentative,
+      contractValue,
+      netCollected: financialTruth.netCollected,
+    });
+
+    // Build alerts from overdue / upcoming milestones
+    const alerts: ContractOperationalAlert[] = milestones
+      .filter((m) => m.status !== 'paid' && m.dueDate)
+      .slice(0, 1)
+      .map((m) => {
+        const dueDate = new Date(m.dueDate);
+        const daysUntil = Math.ceil((dueDate.getTime() - Date.now()) / 86_400_000);
+        return {
+          id: `alert-${m.id}`,
+          title: daysUntil < 0 ? 'Quá hạn thanh toán' : 'Sắp đến hạn thanh toán',
+          highlightText: daysUntil < 0 ? `Quá hạn ${Math.abs(daysUntil)} ngày` : `Còn ${daysUntil} ngày`,
+          description: 'đến hạn thanh toán',
+          amountFormatted: `(${m.phaseName}: ${m.amountFormatted})`,
+          dueInDays: daysUntil,
+          targetMilestoneId: m.id,
+          type: daysUntil < 0 ? 'warning' : 'info',
+          actionText: 'Xem chi tiết →',
+        };
+      });
+
+    // Map addenda from domain
+    const addenda = contract.addenda.map((a) => ({
+      id: a.id,
+      code: a.addendumNumber,
+      title: a.title,
+      valueChange: a.valueDelta,
+      valueChangeFormatted: `${a.valueDelta >= 0 ? '+' : ''}${this.formatVND(a.valueDelta)}`,
+      effectiveDate: new Date(a.approvedAt).toLocaleDateString('vi-VN'),
+      status: 'approved' as const,
+      statusLabel: 'Đã duyệt',
+      statusBadgeVariant: 'success' as const,
+    }));
+
+    return {
+      hasContract: true,
+      header: {
+        projectId: contract.projectId,
+        projectCode: projectCode ?? contract.projectId,
+        projectName: contract.title,
+        selectorLabel: `${contract.title} (${projectCode ?? contract.projectId})`,
+        clientName: contract.clientRepresentative,
+        contractId: contract.contractNumber,
+        managerName: contract.contractorRepresentative,
+        managerRole: 'Chủ trì dự án',
+      },
+      kpis: financialTruth.kpis,
+      progressStepper,
+      milestones,
+      alerts,
+      quickActions: this.CANONICAL_QUICK_ACTIONS,
+      detailedTabs: {
+        activeTab: 'info',
+        info: {
+          clientName: contract.clientRepresentative,
+          projectName: contract.title,
+          signedDateFormatted: contract.signedDate
+            ? new Date(contract.signedDate).toLocaleDateString('vi-VN')
+            : 'Chưa ký',
+          contractValueFormatted: this.formatVND(contractValue),
+          executionPeriod: 'Theo hợp đồng',
+          paymentTerms: `${contract.milestones.length} đợt theo tiến độ`,
+          notes: `Hợp đồng số ${contract.contractNumber} — dữ liệu từ Supabase.`,
+        },
+        addenda,
+        auditLogs: [],
+        financialAnalysis: {
+          estimatedCogs: 0,
+          estimatedCogsFormatted: '0 đ',
+          contractValue,
+          contractValueFormatted: this.formatVND(contractValue),
+          grossProfitExpected: 0,
+          grossProfitExpectedFormatted: '0 đ',
+          grossMarginExpectedPercent: 0,
+          grossMarginExpectedFormatted: '0%',
+          cashflowSummary: `Đã thực thu ${this.formatVND(financialTruth.netCollected)} trên tổng ${this.formatVND(contractValue)}`,
+          cashflowStatus: financialTruth.netCollected > 0 ? 'positive' : 'neutral',
+        },
+      },
+      projectSummary: {
+        title: 'Tổng quan dự án',
+        imageUrl: '',
+        imageAlt: contract.title,
+        progressPercentage: financialTruth.paymentProgressPercent,
+        progressFormatted: `${Math.round(financialTruth.paymentProgressPercent)}%`,
+        expectedCompletionDate: '',
+        completionDateFormatted: 'Theo tiến độ hợp đồng',
+      },
+      workshopReleaseGating: releaseGating,
+      scheduledAmount: financialTruth.scheduledAmount,
+      scheduledAmountFormatted: this.formatVND(financialTruth.scheduledAmount),
+      scheduleVariance: financialTruth.scheduleVariance,
+      scheduleVarianceFormatted: this.formatVND(financialTruth.scheduleVariance),
+      netCollected: financialTruth.netCollected,
+      outstandingAmount: financialTruth.outstandingAmount,
+    };
+  }
+
+  /**
+   * Resolve a project code or alias to a UUID for DB lookup.
+   * Returns the best UUID to use with getContractByProject().
+   */
+  private static resolveProjectUUID(projectId: string): string {
+    const CODE_TO_UUID: Record<string, string> = {
+      'INT-THD-2026':  '77a11111-2222-3333-4444-555566667777',
+      'INT-2024-001':  'f6b027ee-494c-4c42-a6cd-01b18626c043',
+      'INT-2024-002':  '7044e341-0a0b-4b10-a240-be5cb40b2fe0',
+      'INT-2024-003':  '88113a2e-0000-0000-0000-000000000003',
+      'INT-2024-004':  'd450fc00-0000-0000-0000-000000000004',
+      'proj-villa-sunrise': 'f6b027ee-494c-4c42-a6cd-01b18626c043',
+      'proj-dubai-villa':   '7044e341-0a0b-4b10-a240-be5cb40b2fe0',
+      'proj-001': 'f6b027ee-494c-4c42-a6cd-01b18626c043',
+      'proj-002': '7044e341-0a0b-4b10-a240-be5cb40b2fe0',
+    };
+    return CODE_TO_UUID[projectId] ?? projectId;
   }
 }

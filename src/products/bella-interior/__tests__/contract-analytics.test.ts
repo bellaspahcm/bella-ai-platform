@@ -1,5 +1,7 @@
 import { InteriorContractAnalyticsService } from '../services/interior-contract-analytics.service';
 import { TenantIsolationViolationError } from '../domain/errors';
+import type { IInteriorRepository } from '../repositories/interior-repository.interface';
+import type { InteriorContract } from '../domain/commercial-costing/types';
 
 /**
  * Tests for InteriorContractAnalyticsService
@@ -233,5 +235,150 @@ describe('InteriorContractAnalyticsService – Currency Formatting', () => {
 
   it('formats 1_350_000_000 correctly', () => {
     expect(InteriorContractAnalyticsService.formatVND(1_350_000_000)).toBe('1.350.000.000 đ');
+  });
+});
+
+describe('InteriorContractAnalyticsService – DB-First Repository Integration', () => {
+  const mockContract: InteriorContract = {
+    id: 'contract-db-001',
+    tenantId: validTenant,
+    projectId: '77a11111-2222-3333-4444-555566667777',
+    quotationId: 'quot-001',
+    contractNumber: 'HD-NT-2026/08',
+    title: 'Villa Riverside Thảo Điền - Fitout Trọn Gói',
+    status: 'active',
+    baselineContractValue: 1_350_000_000,
+    currentContractValue: 1_350_000_000,
+    signedDate: '2026-11-06T00:00:00.000Z',
+    clientRepresentative: 'Trần Minh Quân',
+    contractorRepresentative: 'KTS. Lê Hoàng Sơn',
+    milestones: [
+      {
+        id: 'm-1',
+        tenantId: validTenant,
+        contractId: 'contract-db-001',
+        milestoneOrder: 1,
+        name: 'Đợt 1: Tạm ứng ký hợp đồng',
+        percentage: 30,
+        amount: 405_000_000,
+        triggerCondition: 'Ký hợp đồng',
+        status: 'paid',
+        dueDate: '2026-11-01',
+        paidAt: '2026-11-01',
+      },
+      {
+        id: 'm-2',
+        tenantId: validTenant,
+        contractId: 'contract-db-001',
+        milestoneOrder: 2,
+        name: 'Đợt 2: Khóa thiết kế & Chuyển xưởng',
+        percentage: 20,
+        amount: 270_000_000,
+        triggerCondition: 'Duyệt bản vẽ',
+        status: 'paid',
+        dueDate: '2026-11-05',
+        paidAt: '2026-11-05',
+      },
+      {
+        id: 'm-3',
+        tenantId: validTenant,
+        contractId: 'contract-db-001',
+        milestoneOrder: 3,
+        name: 'Đợt 3: Hoàn thiện gia công',
+        percentage: 30,
+        amount: 405_000_000,
+        triggerCondition: 'Xuất xưởng',
+        status: 'pending',
+        dueDate: '2026-12-01',
+      },
+      {
+        id: 'm-4',
+        tenantId: validTenant,
+        contractId: 'contract-db-001',
+        milestoneOrder: 4,
+        name: 'Đợt 4: Lắp đặt hoàn thiện',
+        percentage: 15,
+        amount: 202_500_000,
+        triggerCondition: 'Lắp đặt xong',
+        status: 'pending',
+        dueDate: '2026-12-25',
+      },
+      {
+        id: 'm-5',
+        tenantId: validTenant,
+        contractId: 'contract-db-001',
+        milestoneOrder: 5,
+        name: 'Đợt 5: Nghiệm thu bàn giao',
+        percentage: 5,
+        amount: 67_500_000,
+        triggerCondition: 'Bàn giao',
+        status: 'pending',
+        dueDate: '2027-01-10',
+      },
+    ],
+    addenda: [],
+  };
+
+  const mockRepo = {
+    getContractByProject: jest.fn().mockImplementation(async (tenant: string, projId: string) => {
+      if (tenant !== validTenant) throw new Error('Tenant isolation breach in repo');
+      if (projId === '77a11111-2222-3333-4444-555566667777') return mockContract;
+      return null;
+    }),
+  } as unknown as IInteriorRepository;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('queries repository with tenantId and resolved project UUID for INT-THD-2026', async () => {
+    const res = await InteriorContractAnalyticsService.getContractOverview(
+      validTenant,
+      'INT-THD-2026',
+      mockRepo,
+    );
+
+    expect(mockRepo.getContractByProject).toHaveBeenCalledTimes(1);
+    expect(mockRepo.getContractByProject).toHaveBeenCalledWith(
+      validTenant,
+      '77a11111-2222-3333-4444-555566667777',
+    );
+    expect(res.hasContract).toBe(true);
+    expect(res.header.contractId).toBe('HD-NT-2026/08');
+    expect(res.header.clientName).toBe('Trần Minh Quân');
+    expect(res.kpis.totalContractValue.rawValue).toBe(1_350_000_000);
+    expect(res.kpis.collectedAmount.rawValue).toBe(675_000_000); // 405M + 270M from 2 paid milestones
+    expect(res.kpis.remainingAmount.rawValue).toBe(675_000_000);
+    expect(res.progressStepper.completionPercentage).toBe(50);
+  });
+
+  it('returns explicit empty state when repository returns null (Villa Sunrise INT-2024-001)', async () => {
+    const res = await InteriorContractAnalyticsService.getContractOverview(
+      validTenant,
+      'INT-2024-001',
+      mockRepo,
+    );
+
+    expect(mockRepo.getContractByProject).toHaveBeenCalledWith(
+      validTenant,
+      'f6b027ee-494c-4c42-a6cd-01b18626c043',
+    );
+    expect(res.hasContract).toBe(false);
+    expect(res.header.contractId).toBe('CHƯA KÝ KẾT');
+    expect(res.header.clientName).toBe('SunCasa Group (Ahmad Santoso)');
+    expect(res.kpis.totalContractValue.rawValue).toBe(0);
+    expect(res.kpis.collectedAmount.rawValue).toBe(0);
+    expect(res.progressStepper.steps).toHaveLength(0);
+    expect(res.workshopReleaseGating.isEligible).toBe(false);
+  });
+
+  it('propagates repository error without masking', async () => {
+    const failingRepo = {
+      getContractByProject: jest.fn().mockRejectedValue(new Error('PostgreSQL connection timeout')),
+    } as unknown as IInteriorRepository;
+
+    await expect(
+      InteriorContractAnalyticsService.getContractOverview(validTenant, 'INT-THD-2026', failingRepo),
+    ).rejects.toThrow('PostgreSQL connection timeout');
   });
 });
