@@ -1,10 +1,16 @@
 /**
- * BELLA INTERIOR OS — AI COPILOT & SECURITY GOVERNANCE TESTS
+ * BELLA INTERIOR OS — AI COPILOT & EXECUTIVE BOARD TESTS
  *
  * Verifies:
  *   1. RBAC (Role-Based Access Control) for Interior AI Copilot.
  *   2. Multi-Tenant Isolation (Gate 0 / P0) & RLS query verification.
- *   3. Interior AI Agent anomaly detection (delays, spec lock, BOQ variance).
+ *   3. 6 Specialized AI Executive Directors:
+ *      - AI CCO (Giám đốc Kinh doanh): sales conversion & contract upsell
+ *      - AI COO (Giám đốc Vận hành & Thi công): schedule slippage & site recovery
+ *      - AI CPO (Giám đốc Sản xuất & Xưởng): Spec Lock approval & CNC orders
+ *      - AI CHRO (Giám đốc Nhân sự & Năng suất): Architect workload & recruitment
+ *      - AI CFO (Giám đốc Tài chính - Kế toán): P&L margin & milestone debt recovery
+ *      - AI Strategic Advisor (Cố vấn Quản trị): Cross-functional bottleneck synthesis
  *   4. Draft action proposal structuring for human-in-the-loop approval.
  *
  * @module src/products/bella-interior/__tests__/interior-ai-copilot.test
@@ -110,52 +116,74 @@ describe('Bella Interior OS — AI Sub-Agent RLS & Tenant Isolation', () => {
     );
 
     // Verify agent response structure
-    expect(result.agent).toContain('Bella Interior AI Specialist');
+    expect(result.agent).toContain('Bella Interior');
     expect(result.summary).toBeTruthy();
     expect(result.anomalies).toBeDefined();
     expect(Array.isArray(result.draftProposals)).toBe(true);
     expect(result.draftProposals?.length).toBeGreaterThan(0);
   });
+});
 
-  it('detects operational anomalies: delay alerts, spec lock pending, and BOQ variance', async () => {
-    const mockSupabase = {
-      from: jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockResolvedValue({ data: [], error: null }),
-          }),
+describe('Bella Interior OS — 6 Specialized AI Executive Directors', () => {
+  const createMockSupabase = () => ({
+    from: jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          order: jest.fn().mockResolvedValue({ data: [], error: null }),
         }),
       }),
-    } as unknown as SupabaseClient<Database>;
+    }),
+  } as unknown as SupabaseClient<Database>);
 
-    const result = await runInteriorAgent(mockSupabase, 'tenant-test-001', new Date());
+  it('AI CCO (Giám đốc Kinh doanh): analyzes conversion opportunities and contract follow-ups', async () => {
+    const result = await runInteriorAgent(createMockSupabase(), 'tenant-001', new Date(), 'interior_cco');
+    expect(result.agent).toContain('Kinh doanh');
+    const proposalTypes = result.draftProposals?.map((p) => p.type) || [];
+    expect(proposalTypes).toContain('interior_sales_followup');
+  });
 
-    // Should detect at least 1 delay anomaly from baseline projects
-    const hasDelayAlert = result.anomalies?.some((a) =>
-      typeof a === 'string' ? a.includes('chậm tiến độ') : false
-    );
-    expect(hasDelayAlert).toBe(true);
-
-    // Should detect spec lock pending for design stage projects
-    const hasSpecLockAlert = result.anomalies?.some((a) =>
-      typeof a === 'string' ? a.includes('Spec Lock') || a.includes('khóa mẫu') : false
-    );
-    expect(hasSpecLockAlert).toBe(true);
-
-    // Should generate draft actionable proposals
-    expect(result.draftProposals?.length).toBeGreaterThanOrEqual(3);
-
+  it('AI COO (Giám đốc Vận hành): detects schedule slippage and generates recovery plans', async () => {
+    const result = await runInteriorAgent(createMockSupabase(), 'tenant-001', new Date(), 'interior_coo');
+    expect(result.agent).toContain('Vận hành');
     const proposalTypes = result.draftProposals?.map((p) => p.type) || [];
     expect(proposalTypes).toContain('interior_schedule_recovery');
-    expect(proposalTypes).toContain('interior_spec_lock_approval');
-    expect(proposalTypes).toContain('interior_boq_variance_review');
+  });
 
-    // Verify each proposal has required fields for Human-In-The-Loop approval
+  it('AI CPO (Giám đốc Sản xuất): enforces Spec Lock approval and factory production orders', async () => {
+    const result = await runInteriorAgent(createMockSupabase(), 'tenant-001', new Date(), 'interior_cpo');
+    expect(result.agent).toContain('Sản xuất');
+    const proposalTypes = result.draftProposals?.map((p) => p.type) || [];
+    expect(proposalTypes).toContain('interior_spec_lock_approval');
+    expect(proposalTypes).toContain('interior_workshop_production_order');
+  });
+
+  it('AI CHRO (Giám đốc Nhân sự): balances architect workload and peak-season workshop recruitment', async () => {
+    const result = await runInteriorAgent(createMockSupabase(), 'tenant-001', new Date(), 'interior_chro');
+    expect(result.agent).toContain('Nhân sự');
+    const proposalTypes = result.draftProposals?.map((p) => p.type) || [];
+    expect(proposalTypes).toContain('interior_architect_rebalance');
+    expect(proposalTypes).toContain('interior_workshop_recruitment');
+  });
+
+  it('AI CFO (Giám đốc Tài chính): monitors margin compression and milestone debt collection', async () => {
+    const result = await runInteriorAgent(createMockSupabase(), 'tenant-001', new Date(), 'interior_cfo');
+    expect(result.agent).toContain('Tài chính');
+    const proposalTypes = result.draftProposals?.map((p) => p.type) || [];
+    expect(proposalTypes).toContain('interior_boq_variance_review');
+    expect(proposalTypes).toContain('interior_milestone_payment_followup');
+  });
+
+  it('AI Strategic Advisor: provides cross-functional value chain synthesis and executive resolutions', async () => {
+    const result = await runInteriorAgent(createMockSupabase(), 'tenant-001', new Date(), 'interior_advisor');
+    expect(result.agent).toContain('Quản trị');
+    const proposalTypes = result.draftProposals?.map((p) => p.type) || [];
+    expect(proposalTypes).toContain('interior_executive_action');
+
+    // Verify all proposals have human-in-the-loop fields
     for (const proposal of result.draftProposals || []) {
       expect(proposal.type).toBeTruthy();
       expect(proposal.recipient).toBeTruthy();
       expect(proposal.reason).toBeTruthy();
-      expect(proposal.draftMessage).toBeTruthy();
       expect(proposal.draftMessage.length).toBeGreaterThan(20);
     }
   });

@@ -53,7 +53,7 @@ function getAiWelcomeMessage(moduleKey: TenantModuleKey | null, productKey?: str
   }
 
   if (productKey === "bella_interior" || moduleKey === "bella_interior") {
-    return "Xin chào Ban điều hành và Đội ngũ Dự án! Tôi là AI COO - trợ lý vận hành cho Bella Interior OS. Tôi có thể hỗ trợ kiểm tra tiến độ dự án, khóa mẫu vật liệu (Spec Lock), dự toán BOQ và giá vốn công trình, cảnh báo tiến độ xưởng sản xuất, lịch thi công lắp đặt và thu hồi công nợ các đợt thanh toán. Anh/chị cần tôi kiểm tra mảng nào hôm nay?";
+    return "Xin chào Ban điều hành! Tôi là Đội ngũ Lãnh đạo & Cố vấn Điều hành AI cho Bella Interior OS. Chúng tôi mô phỏng năng lực của 6 Giám đốc chuyên môn: Kinh doanh (CCO), Vận hành & Thi công (COO), Sản xuất & Xưởng (CPO), Nhân sự & Năng suất (CHRO), Tài chính - Kế toán (CFO), và Cố vấn Quản trị Toàn diện. Hệ thống kết nối trực tiếp với dữ liệu thực tế về tiến độ công trình, khóa mẫu vật tư Spec Lock, định mức xưởng CNC, tải công việc KTS và thu hồi công nợ theo đợt. Anh/chị cần ban giám đốc AI nào hỗ trợ hôm nay?";
   }
 
   if (moduleKey === "real_estate") {
@@ -98,20 +98,93 @@ function getActionBadgeLabel(type: string): { label: string; className: string }
   if (type === "customer_apology") {
     return { label: "CRM • Khách hàng", className: "bg-rose-500/10 text-rose-500 border border-rose-500/20" };
   }
-  if (type === "interior_spec_lock_approval") {
-    return { label: "Nội thất • Spec Lock", className: "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20" };
+  // Bella Interior OS Executive Actions
+  if (type === "interior_sales_followup") {
+    return { label: "Kinh doanh • Chốt HĐ", className: "bg-blue-500/10 text-blue-500 border border-blue-500/20" };
   }
-  if (type === "interior_boq_variance_review") {
-    return { label: "Nội thất • Dự toán BOQ", className: "bg-purple-500/10 text-purple-500 border border-purple-500/20" };
+  if (type === "interior_commercial_upsell") {
+    return { label: "Kinh doanh • Upsell", className: "bg-sky-500/10 text-sky-500 border border-sky-500/20" };
+  }
+  if (type === "interior_spec_lock_approval") {
+    return { label: "Sản xuất • Spec Lock", className: "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20" };
+  }
+  if (type === "interior_workshop_production_order") {
+    return { label: "Sản xuất • Lệnh xưởng", className: "bg-amber-500/10 text-amber-500 border border-amber-500/20" };
+  }
+  if (type === "interior_material_replenish") {
+    return { label: "Sản xuất • Đặt vật tư", className: "bg-orange-500/10 text-orange-500 border border-orange-500/20" };
   }
   if (type === "interior_schedule_recovery") {
-    return { label: "Nội thất • Bù tiến độ", className: "bg-red-500/10 text-red-500 border border-red-500/20" };
+    return { label: "Vận hành • Bù tiến độ", className: "bg-red-500/10 text-red-500 border border-red-500/20" };
+  }
+  if (type === "interior_site_team_dispatch") {
+    return { label: "Vận hành • Đội thợ", className: "bg-rose-500/10 text-rose-500 border border-rose-500/20" };
+  }
+  if (type === "interior_architect_rebalance") {
+    return { label: "Nhân sự • Tải KTS", className: "bg-pink-500/10 text-pink-500 border border-pink-500/20" };
+  }
+  if (type === "interior_workshop_recruitment") {
+    return { label: "Nhân sự • Tuyển thợ", className: "bg-fuchsia-500/10 text-fuchsia-500 border border-fuchsia-500/20" };
+  }
+  if (type === "interior_boq_variance_review") {
+    return { label: "Tài chính • Dự toán BOQ", className: "bg-purple-500/10 text-purple-500 border border-purple-500/20" };
   }
   if (type === "interior_milestone_payment_followup") {
-    return { label: "Nội thất • Thu công nợ", className: "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" };
+    return { label: "Tài chính • Thu công nợ", className: "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" };
+  }
+  if (type === "interior_executive_action") {
+    return { label: "Quản trị • Toàn diện", className: "bg-teal-500/10 text-teal-500 border border-teal-500/20" };
   }
   return { label: "Kế toán • Đối soát", className: "bg-cyan-500/10 text-cyan-600 border border-cyan-500/20" };
 }
+
+const INTERIOR_DIRECTORS = [
+  { id: 'all', label: 'Tất cả / Cố vấn Quản trị', icon: '🎯', badge: 'Advisor' },
+  { id: 'cco', label: 'AI GĐ Kinh doanh', icon: '📈', badge: 'CCO' },
+  { id: 'cpo', label: 'AI GĐ Sản xuất & Xưởng', icon: '🏭', badge: 'CPO' },
+  { id: 'coo', label: 'AI GĐ Vận hành & Thi công', icon: '🏗️', badge: 'COO' },
+  { id: 'chro', label: 'AI GĐ Nhân sự & Năng suất', icon: '👥', badge: 'CHRO' },
+  { id: 'cfo', label: 'AI GĐ Tài chính - Kế toán', icon: '💰', badge: 'CFO' },
+] as const;
+
+const INTERIOR_DIRECTOR_PILLS: Record<string, string[]> = {
+  all: [
+    'Bức tranh toàn cảnh toàn doanh nghiệp',
+    'Đánh giá rủi ro chéo chuỗi giá trị',
+    'Kiểm tra điểm nghẽn các dự án trọng điểm',
+    'Khuyến nghị chiến lược cho Ban Giám Đốc',
+  ],
+  cco: [
+    'Đôn đốc chốt hợp đồng thi công sau thiết kế',
+    'Phân tích deal size và cơ cấu phân khúc',
+    'Đề xuất gói vật tư và đồ rời cao cấp',
+    'Tỷ lệ chuyển đổi chốt thầu tháng này',
+  ],
+  cpo: [
+    'Kiểm tra vật tư chưa khóa Spec Lock',
+    'Kế hoạch tăng ca xưởng máy CNC',
+    'Dự trù ván MDF An Cường và phụ kiện Blum',
+    'Tỷ lệ hao hụt phôi gỗ tại phân xưởng',
+  ],
+  coo: [
+    'Kiểm tra các dự án trễ hạn bàn giao',
+    'Kế hoạch bù 5% tiến độ công trình',
+    'Điều động đội thợ lắp đặt hiện trường',
+    'Xung đột mặt bằng và kiểm soát KCS',
+  ],
+  chro: [
+    'Đánh giá tải công việc các KTS chủ trì',
+    'Năng suất triển khai hồ sơ bản vẽ 3D/2D',
+    'Kế hoạch tuyển thợ hoàn thiện cho xưởng',
+    'Cân đối KTS phụ tá hỗ trợ công trình chậm',
+  ],
+  cfo: [
+    'Cảnh báo dự án biên lợi nhuận BOQ dưới 40%',
+    'Đôn đốc thu hồi công nợ các đợt nghiệm thu',
+    'Phân tích P&L và cơ cấu giá vốn COGS',
+    'Dự báo dòng tiền thực thu 3 tháng tới',
+  ],
+};
 
 export default function AICopilotClient() {
   const { tenantModuleKey } = useTenantModuleKey();
@@ -124,6 +197,7 @@ export default function AICopilotClient() {
     }
   ]);
   const [input, setInput] = useState("");
+  const [selectedDirector, setSelectedDirector] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(false);
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [approvedActions, setApprovedActions] = useState<Record<string, boolean>>({});
@@ -331,15 +405,42 @@ export default function AICopilotClient() {
             {/* Scroll anchor handled via ref */}
           </div>
 
-          {/* Quick suggestions for Interior OS */}
+          {/* Executive Directors Selector for Bella Interior OS */}
           {(productKey === 'bella_interior' || tenantModuleKey === 'bella_interior') && (
-            <div className="shrink-0 px-4 py-2 border-t border-border bg-card/40 flex flex-wrap gap-1.5 sm:gap-2">
-              {[
-                'Kiểm tra dự án trễ hạn',
-                'Vật tư chưa khóa Spec Lock',
-                'Cảnh báo vượt ngân sách BOQ',
-                'Dự báo dòng tiền và công nợ',
-              ].map((pill) => (
+            <div className="shrink-0 px-3 sm:px-4 py-2 border-t border-border bg-card/60 backdrop-blur-md">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Brain className="w-3 h-3 text-primary" /> Đội ngũ Lãnh đạo &amp; Cố vấn AI:
+                </span>
+                <span className="text-[9px] font-bold text-primary">6 Giám đốc chuyên môn</span>
+              </div>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                {INTERIOR_DIRECTORS.map((d) => {
+                  const isActive = selectedDirector === d.id;
+                  return (
+                    <button
+                      key={d.id}
+                      type="button"
+                      onClick={() => setSelectedDirector(d.id)}
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-xl shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
+                        isActive
+                          ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/30 ring-1 ring-primary'
+                          : 'bg-muted/80 text-muted-foreground hover:text-foreground hover:bg-muted border border-border'
+                      }`}
+                    >
+                      <span>{d.icon}</span>
+                      <span>{d.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Quick suggestions for Interior OS matching selected Director */}
+          {(productKey === 'bella_interior' || tenantModuleKey === 'bella_interior') && (
+            <div className="shrink-0 px-3 sm:px-4 py-2 border-t border-border bg-card/40 flex flex-wrap gap-1.5 sm:gap-2">
+              {(INTERIOR_DIRECTOR_PILLS[selectedDirector] || INTERIOR_DIRECTOR_PILLS.all).map((pill) => (
                 <button
                   key={pill}
                   type="button"
