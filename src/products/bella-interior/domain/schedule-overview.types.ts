@@ -80,6 +80,8 @@ export interface UpcomingTaskItem {
   readonly categoryLabel: string;
   readonly categoryClass: string;
   readonly assigneeAvatar: string;
+  /** Links this upcoming task to its ScheduledCalendarEvent id (optional) */
+  readonly calendarEventId?: string;
 }
 
 export interface ProjectScheduleProgressItem {
@@ -92,9 +94,19 @@ export interface ProjectScheduleProgressItem {
   readonly progressBarClass: string;
 }
 
+export interface ScheduleActionItem {
+  readonly id: string;
+  readonly text: string;
+  readonly actionLabel: string;
+  readonly actionType: 'open_task' | 'switch_tab' | 'view_project';
+  readonly targetId?: string;
+  readonly badgeColorClass?: string;
+}
+
 export interface ScheduleActionSuggestion {
   readonly title: string;
   readonly items: readonly string[];
+  readonly actions?: readonly ScheduleActionItem[];
 }
 
 export interface CreateScheduledTaskInput {
