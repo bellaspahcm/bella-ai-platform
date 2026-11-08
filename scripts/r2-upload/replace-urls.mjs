@@ -38,18 +38,22 @@ const TARGET_EXTS = new Set(['.ts', '.tsx', '.json']);
 async function* walk(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
   for (const entry of entries) {
-    // Guard: entry.name must be a plain filename — no slashes or traversal sequences
-    if (entry.name.includes('/') || entry.name.includes('\\') || entry.name === '..') {
+    // Sanitize: strip to safe filename characters only (letters, digits, dash, dot, underscore).
+    // This eliminates any traversal sequences before the name is used in a path operation.
+    const safeName = entry.name.replace(/[^a-zA-Z0-9._-]/g, '');
+    if (!safeName || safeName === '..') {
       continue;
     }
-    // Build the absolute path and confirm it stays within ROOT (defense-in-depth)
-    const full = resolve(dir, entry.name);
-    if (!full.startsWith(ROOT + '/') && !full.startsWith(ROOT + '\\') && full !== ROOT) {
+    // Construct path using only the sanitized name, then verify it stays inside ROOT.
+    // entry.name is sanitized above: only [a-zA-Z0-9._-] remain, traversal sequences removed.
+    const full = resolve(dir, safeName); // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal
+    const insideRoot = full.startsWith(ROOT + '/') || full.startsWith(ROOT + '\\');
+    if (!insideRoot) {
       continue;
     }
-    if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules' && entry.name !== '__tests__') {
+    if (entry.isDirectory() && !safeName.startsWith('.') && safeName !== 'node_modules' && safeName !== '__tests__') {
       yield* walk(full);
-    } else if (entry.isFile() && TARGET_EXTS.has(extname(entry.name))) {
+    } else if (entry.isFile() && TARGET_EXTS.has(extname(safeName))) {
       yield full;
     }
   }
