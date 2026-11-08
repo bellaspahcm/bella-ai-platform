@@ -110,7 +110,7 @@ describe('InteriorDesignAnalyticsService', () => {
       const primary = overview.visuals.find((v) => v.isPrimary);
       expect(primary).toBeDefined();
       expect(primary?.roomZone).toBe('Phòng khách');
-      expect(primary?.imageUrl).toContain('images.unsplash.com');
+      expect(primary?.imageUrl).toMatch(/r2\.dev|r2\.cloudflarestorage\.com|cdn\.bella-interior\.com|images\.unsplash\.com/);
       expect(primary?.thumbnailUrl).toBeDefined();
     });
 

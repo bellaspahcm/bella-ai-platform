@@ -12,9 +12,11 @@
  * Resolved from NEXT_PUBLIC_R2_BASE_URL env var, with fallback to the
  * direct R2 endpoint for development.
  */
-const R2_BASE =
-  process.env.NEXT_PUBLIC_R2_BASE_URL ??
-  `https://${process.env.R2_ACCOUNT_ID ?? '3c8d589a1d10e0c3a2167a27abd354ab'}.r2.cloudflarestorage.com/${process.env.R2_BUCKET_NAME ?? 'bella-production'}`;
+const R2_BASE = (
+  process.env.NEXT_PUBLIC_R2_BASE_URL ||
+  process.env.R2_PUBLIC_BASE_URL ||
+  'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev'
+).replace(/\/+$/, '');
 
 /**
  * Returns the full CDN URL for a given R2 object key.
@@ -84,3 +86,4 @@ export const BELLA_INTERIOR_ASSETS = {
 } as const;
 
 export type BellaInteriorAssetKey = keyof typeof BELLA_INTERIOR_ASSETS;
+

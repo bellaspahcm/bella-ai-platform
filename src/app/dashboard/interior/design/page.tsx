@@ -94,8 +94,8 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
       roomZone: 'Phòng khách',
       category: '3d',
       categoryLabel: 'Phối cảnh 3D',
-      imageUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1600&q=85',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=300&q=80',
+      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/installation/site-progress-main.jpg',
+      thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/installation/site-progress-main.jpg',
       isPrimary: true,
       viewAngleName: 'Góc nhìn chính (Chính diện sofa & bàn trà tròn)',
       resolution: '4K Ultra-HD (3840x2160)',
@@ -109,8 +109,8 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
       roomZone: 'Phòng ăn',
       category: '3d',
       categoryLabel: 'Phối cảnh 3D',
-      imageUrl: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=1600&q=85',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=300&q=80',
+      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/luxury-living-room.jpg',
+      thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/luxury-living-room.jpg',
       isPrimary: false,
       viewAngleName: 'Góc nhìn phòng ăn liên thông',
       resolution: '4K Ultra-HD',
@@ -124,8 +124,8 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
       roomZone: 'Phòng ngủ Master',
       category: '3d',
       categoryLabel: 'Phối cảnh 3D',
-      imageUrl: 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1600&q=85',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=300&q=80',
+      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/bedroom-render-modern.jpg',
+      thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/bedroom-render-modern.jpg',
       isPrimary: false,
       viewAngleName: 'Góc nhìn tổng thể giường ngủ',
       resolution: '4K Ultra-HD',
@@ -139,8 +139,8 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
       roomZone: 'Bếp & Đảo bếp',
       category: '3d',
       categoryLabel: 'Phối cảnh 3D',
-      imageUrl: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1600&q=85',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=300&q=80',
+      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/kitchen-design-render.jpg',
+      thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/kitchen-design-render.jpg',
       isPrimary: false,
       viewAngleName: 'Góc nhìn đảo bếp & tủ bếp kịch trần',
       resolution: '4K Ultra-HD',
@@ -154,8 +154,8 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
       roomZone: 'Phòng làm việc',
       category: '3d',
       categoryLabel: 'Phối cảnh 3D',
-      imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=85',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=300&q=80',
+      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/office-tower-wide.jpg',
+      thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/office-tower-wide.jpg',
       isPrimary: false,
       viewAngleName: 'Góc làm việc & view sân vườn',
       resolution: '4K Ultra-HD',
@@ -235,7 +235,7 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
       status: 'approved',
       statusLabel: 'Đã duyệt',
       statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      thumbnailImage: 'https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?auto=format&fit=crop&w=200&q=80',
+      thumbnailImage: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/material-texture-board.jpg',
     },
     {
       id: 'mat-2',
@@ -247,7 +247,7 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
       status: 'approved',
       statusLabel: 'Đã duyệt',
       statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      thumbnailImage: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=200&q=80',
+      thumbnailImage: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/accent-wall-detail.jpg',
     },
     {
       id: 'mat-3',
@@ -259,7 +259,7 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
       status: 'approved',
       statusLabel: 'Đã duyệt',
       statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      thumbnailImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=200&q=80',
+      thumbnailImage: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/materials/wood-panel.jpg',
     },
     {
       id: 'mat-4',
@@ -271,7 +271,7 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
       status: 'reference',
       statusLabel: 'Tham khảo',
       statusBadgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
-      thumbnailImage: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=200&q=80',
+      thumbnailImage: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/project-render-warm.jpg',
     },
   ],
   materialAudit: {
@@ -433,7 +433,7 @@ export default function InteriorDesignStudioPage() {
           {/* User Profile */}
           <div className="flex items-center gap-2 pl-1 cursor-pointer">
             <img
-              src={'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=faces'}
+              src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg'}
               alt="Nguyễn Văn Quang"
               className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700"
             />

@@ -75,7 +75,7 @@ const INITIAL_PORTFOLIO: PortfolioOverviewResponse = {
       customerName: 'Ahmad Santoso',
       customerSegment: 'Biệt thự cao cấp',
       leadArchitect: 'KTS. Hoàng Long',
-      leadArchitectAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
+      leadArchitectAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg',
       stage: 'design',
       stageLabel: 'Thiết kế',
       stageBadgeClass: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800',
@@ -93,7 +93,7 @@ const INITIAL_PORTFOLIO: PortfolioOverviewResponse = {
       grossMarginPercent: 41.5,
       grossMarginFormatted: '41.5%',
       nextAction: 'Hoàn thiện bản vẽ 3D',
-      imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80',
+      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
     },
     {
       id: 'proj-002',
@@ -102,7 +102,7 @@ const INITIAL_PORTFOLIO: PortfolioOverviewResponse = {
       customerName: 'PT Maju Bersama',
       customerSegment: 'Dinh thự Palm Jumeirah',
       leadArchitect: 'KTS. Lê Hoàng Sơn',
-      leadArchitectAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
+      leadArchitectAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg',
       stage: 'production',
       stageLabel: 'Sản xuất',
       stageBadgeClass: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800',
@@ -120,7 +120,7 @@ const INITIAL_PORTFOLIO: PortfolioOverviewResponse = {
       grossMarginPercent: 43.1,
       grossMarginFormatted: '43.1%',
       nextAction: 'Thi công phòng khách',
-      imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=300&q=80',
+      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/office-tower-lobby.jpg',
     },
     {
       id: 'proj-003',
@@ -129,7 +129,7 @@ const INITIAL_PORTFOLIO: PortfolioOverviewResponse = {
       customerName: 'VinaReal Group',
       customerSegment: 'Chung cư cao cấp',
       leadArchitect: 'KTS. Trần Minh Đức',
-      leadArchitectAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80',
+      leadArchitectAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-2.jpg',
       stage: 'installation',
       stageLabel: 'Lắp đặt',
       stageBadgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800',
@@ -147,7 +147,7 @@ const INITIAL_PORTFOLIO: PortfolioOverviewResponse = {
       grossMarginPercent: 38.7,
       grossMarginFormatted: '38.7%',
       nextAction: 'Lắp đặt nội thất tầng 5',
-      imageUrl: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=300&q=80',
+      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/skyline-residence.jpg',
     },
     {
       id: 'proj-004',
@@ -156,7 +156,7 @@ const INITIAL_PORTFOLIO: PortfolioOverviewResponse = {
       customerName: 'Green Life Co.',
       customerSegment: 'Biệt thự sân vườn',
       leadArchitect: 'KTS. Nguyễn Thu Hà',
-      leadArchitectAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
+      leadArchitectAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/customers/client-testimonial-female.jpg',
       stage: 'handover',
       stageLabel: 'Bàn giao',
       stageBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800',
@@ -174,7 +174,7 @@ const INITIAL_PORTFOLIO: PortfolioOverviewResponse = {
       grossMarginPercent: 45.2,
       grossMarginFormatted: '45.2%',
       nextAction: 'Nghiệm thu & Bàn giao',
-      imageUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=300&q=80',
+      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/installation/site-progress-main.jpg',
     },
   ],
   progressOverview: {
@@ -335,7 +335,7 @@ export default function ProjectsPage() {
         customerSegment: PROJECT_TYPES[formData.projectType] || 'Biệt thự cao cấp',
         leadArchitect: formData.leadArchitect,
         leadArchitectAvatar:
-          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
+          'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg',
         stage: 'design',
         stageLabel: 'Thiết kế',
         stageBadgeClass:
@@ -364,7 +364,7 @@ export default function ProjectsPage() {
         grossMarginFormatted: '40.0%',
         nextAction: 'Lên ý tưởng thiết kế 2D/3D',
         imageUrl:
-          'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80',
+          'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
       };
 
       setData((prev) => ({
@@ -398,7 +398,7 @@ export default function ProjectsPage() {
         customerSegment: PROJECT_TYPES[formData.projectType] || 'Biệt thự cao cấp',
         leadArchitect: formData.leadArchitect,
         leadArchitectAvatar:
-          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
+          'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg',
         stage: 'design',
         stageLabel: 'Thiết kế',
         stageBadgeClass:
@@ -421,7 +421,7 @@ export default function ProjectsPage() {
         grossMarginFormatted: '40.0%',
         nextAction: 'Lên ý tưởng thiết kế 2D/3D',
         imageUrl:
-          'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80',
+          'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
       };
 
       setData((prev) => ({
@@ -507,7 +507,7 @@ export default function ProjectsPage() {
             </button>
             <div className="flex items-center gap-2 pl-1 cursor-pointer">
               <img
-                src={'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=120&q=80'}
+                src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/finance-director-male.jpg'}
                 alt="Nguyễn Văn Quang"
                 className="w-7 h-7 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700"
               />

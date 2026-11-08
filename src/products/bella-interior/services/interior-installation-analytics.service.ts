@@ -139,7 +139,7 @@ export class InteriorInstallationAnalyticsService {
         status: 'installing',
         statusLabel: 'Đang lắp đặt',
         statusBadgeClass: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-        imageUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=600&q=80',
+        imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/installation/site-progress-main.jpg',
       },
       {
         id: 'room-02',
@@ -155,7 +155,7 @@ export class InteriorInstallationAnalyticsService {
         status: 'installing',
         statusLabel: 'Đang lắp đặt',
         statusBadgeClass: 'bg-amber-50 text-amber-700 border border-amber-200',
-        imageUrl: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&q=80',
+        imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/kitchen-design-render.jpg',
       },
       {
         id: 'room-03',
@@ -171,7 +171,7 @@ export class InteriorInstallationAnalyticsService {
         status: 'pending',
         statusLabel: 'Chờ lắp',
         statusBadgeClass: 'bg-blue-50 text-blue-700 border border-blue-200',
-        imageUrl: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=600&q=80',
+        imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/installation/ceiling-work.jpg',
       },
       {
         id: 'room-04',
@@ -187,7 +187,7 @@ export class InteriorInstallationAnalyticsService {
         status: 'pending',
         statusLabel: 'Chờ lắp',
         statusBadgeClass: 'bg-slate-100 text-slate-600 border border-slate-200',
-        imageUrl: 'https://images.unsplash.com/photo-1558997519-83ea9252def8?auto=format&fit=crop&w=600&q=80',
+        imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/installation/furniture-assembly.jpg',
       },
     ];
   }

@@ -137,3 +137,4 @@ const url = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=300'
 | `interior/customers/client-female-2.jpg` | Client female 2 | Customers, Handover |
 | `interior/customers/client-male-1.jpg` | Client male 1 | Customers |
 | `interior/customers/client-testimonial-female.jpg` | Testimonial avatar | Portfolio |
+

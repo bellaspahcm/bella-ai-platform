@@ -241,7 +241,7 @@ export class InteriorReportsAnalyticsService {
       {
         id: 'PRJ-CIPUTRA',
         name: 'Villa Ciputra Giai Đoạn 2',
-        thumbnailUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=100&q=80',
+        thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
         contractValueFormatted: '2.45 tỷ đ',
         materialCostFormatted: '980 triệu đ',
         laborCostFormatted: '450 triệu đ',
@@ -255,7 +255,7 @@ export class InteriorReportsAnalyticsService {
       {
         id: 'PRJ-DUBAI',
         name: 'Dubai Luxury Villa Fitout',
-        thumbnailUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=100&q=80',
+        thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/office-tower-lobby.jpg',
         contractValueFormatted: '3.78 tỷ đ',
         materialCostFormatted: '1.51 tỷ đ',
         laborCostFormatted: '640 triệu đ',
@@ -269,7 +269,7 @@ export class InteriorReportsAnalyticsService {
       {
         id: 'PRJ-METROPOLIS',
         name: 'Penthouse Metropolis L. Giai',
-        thumbnailUrl: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=100&q=80',
+        thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/skyline-residence.jpg',
         contractValueFormatted: '2.20 tỷ đ',
         materialCostFormatted: '920 triệu đ',
         laborCostFormatted: '405 triệu đ',
@@ -365,7 +365,7 @@ export class InteriorReportsAnalyticsService {
         id: currentProject.id,
         code: currentProject.code,
         name: currentProject.name,
-        thumbnailUrl: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=100&q=80',
+        thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/finance/financial-report-cover.jpg',
       },
       availableProjects,
       filterOptions: {

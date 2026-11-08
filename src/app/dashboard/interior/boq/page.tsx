@@ -482,7 +482,7 @@ export default function InteriorBOQPage() {
           {/* User Profile */}
           <div className="flex items-center gap-2 pl-1 cursor-pointer">
             <img
-              src={'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=faces'}
+              src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg'}
               alt="Nguyễn Văn Quang"
               className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700"
             />
