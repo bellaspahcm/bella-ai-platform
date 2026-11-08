@@ -467,6 +467,40 @@ describe('InteriorBOQAnalyticsService', () => {
         InteriorBOQAnalyticsService.deleteItem(MUTATION_TENANT, 'item-foreign-tenant-xyz'),
       ).rejects.toThrow(/không tồn tại/);
     });
+
+    it('should record comprehensive audit log with oldData and newData before/after changesets', async () => {
+      const insertMock = jest.fn().mockResolvedValue({ error: null });
+      const mockSupabase = {
+        from: jest.fn().mockImplementation((table: string) => {
+          if (table === 'audit_logs') {
+            return { insert: insertMock };
+          }
+          return {};
+        }),
+      };
+
+      const { SupabaseInteriorRepository } = await import(
+        '../repositories/supabase.repository'
+      );
+      const repo = new SupabaseInteriorRepository(mockSupabase as unknown as SupabaseClient);
+
+      await repo.recordAuditLog(MUTATION_TENANT, {
+        userId: 'user-estimator-001',
+        action: 'BOQ_UPDATE_ITEM',
+        module: 'INTERIOR_BOQ',
+        targetId: 'item-sofa',
+        oldData: { quantity: 1, clientTotalPrice: 110_000_000 },
+        newData: { quantity: 2, clientTotalPrice: 220_000_000 },
+      });
+
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      const insertedPayload = insertMock.mock.calls[0][0];
+      expect(insertedPayload.tenant_id).toBe(MUTATION_TENANT);
+      expect(insertedPayload.action).toBe('BOQ_UPDATE_ITEM');
+      expect(insertedPayload.module).toBe('INTERIOR_BOQ');
+      expect(insertedPayload.old_data).toEqual({ quantity: 1, clientTotalPrice: 110_000_000 });
+      expect(insertedPayload.new_data).toEqual({ quantity: 2, clientTotalPrice: 220_000_000 });
+    });
   });
 });
 

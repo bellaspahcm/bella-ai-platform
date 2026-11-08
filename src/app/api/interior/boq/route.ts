@@ -213,6 +213,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
 
     try {
+      const previousOverview = await InteriorBOQAnalyticsService.getBOQOverview(tenantId);
       let result;
       switch (action) {
         case 'add_zone': {
@@ -355,6 +356,15 @@ export async function POST(request: Request): Promise<NextResponse> {
           action: `BOQ_${action.toUpperCase()}`,
           module: 'INTERIOR_BOQ',
           targetId: result.project.id,
+          oldData: {
+            action,
+            status: previousOverview.status,
+            versionNumber: previousOverview.versionNumber,
+            totalClientPrice: previousOverview.kpis.totalClientPrice.rawValue,
+            totalCogs: previousOverview.kpis.totalCogs.rawValue,
+            grossProfit: previousOverview.kpis.grossProfit.rawValue,
+            grossMargin: previousOverview.kpis.grossMargin.rawPercentage,
+          },
           newData: {
             action,
             status: result.status,
