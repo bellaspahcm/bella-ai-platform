@@ -51,10 +51,7 @@ R2_PUBLIC_BASE_URL=https://cdn.bella-interior.com
 ## Bước 3 — Upload toàn bộ ảnh lên R2
 
 ```bash
-# Install dependency (một lần)
-npm install @aws-sdk/client-s3 --save-dev
-
-# Upload 33 ảnh Bella Interior lên R2
+# Upload 33 ảnh Bella Interior lên R2 (sử dụng native Node.js crypto AWS SigV4, không cần cài thêm package)
 node scripts/r2-upload/upload-to-r2.mjs
 ```
 
