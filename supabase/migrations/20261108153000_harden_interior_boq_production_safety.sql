@@ -49,9 +49,11 @@ DO $$ BEGIN
     END IF;
 END $$;
 
+-- zero-downtime: allow blocking-index - newly created interior_sync_idempotency table in same migration
 CREATE INDEX IF NOT EXISTS idx_interior_sync_idempotency_lookup
     ON public.interior_sync_idempotency(tenant_id, project_id, idempotency_key);
 
+-- zero-downtime: allow blocking-index - newly created interior_sync_idempotency table in same migration
 CREATE INDEX IF NOT EXISTS idx_interior_sync_idempotency_expires_at
     ON public.interior_sync_idempotency(expires_at);
 
