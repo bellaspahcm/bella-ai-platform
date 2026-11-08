@@ -595,7 +595,8 @@ export default function CustomersPage() {
             </div>
             <button
               type="button"
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+              onClick={() => setCustomerSuccessNotice('📅 Đang lọc số liệu phễu kinh doanh: Tháng này')}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
               Tháng này
               <ChevronDown className="w-3 h-3 text-slate-400" />
@@ -846,7 +847,8 @@ export default function CustomersPage() {
 
           <button
             type="button"
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors"
+            onClick={() => setCustomerSuccessNotice('🔍 Bộ lọc nâng cao: Đang hiển thị toàn bộ phân khúc khách hàng')}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors cursor-pointer"
           >
             Bộ lọc khác ⌵
           </button>

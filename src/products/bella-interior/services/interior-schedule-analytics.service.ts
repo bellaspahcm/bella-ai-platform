@@ -21,9 +21,18 @@ import type {
   ProjectScheduleProgressItem,
   ScheduleActionSuggestion,
   ScheduleTaskCategory,
+  CreateScheduledTaskInput,
 } from '../domain/schedule-overview.types';
 
 export class InteriorScheduleAnalyticsService {
+  /**
+   * Intermediate In-Memory Canonical Store for dynamic tenant tasks.
+   * Serves as intermediate Source of Truth across API calls, UI interactions,
+   * AI Copilot queries, and portfolio sync.
+   */
+  private static readonly tenantCustomTasks: Map<string, ScheduledCalendarEvent[]> = new Map();
+  private static readonly tenantCompletedTaskIds: Map<string, Set<string>> = new Map();
+
   /**
    * Predefined weekly time slots matching the dispatch control matrix
    */
@@ -173,21 +182,26 @@ export class InteriorScheduleAnalyticsService {
     }
 
     // 1. KPIs
+    const customTasks = this.tenantCustomTasks.get(tenantId) || [];
+    const completedSet = this.tenantCompletedTaskIds.get(tenantId) || new Set<string>();
+    const customCompletedCount = customTasks.filter((t) => completedSet.has(t.id)).length;
+    const customInProgressCount = customTasks.filter((t) => !completedSet.has(t.id)).length;
+
     const kpis: ScheduleKPIs = {
       totalTasks: {
-        value: 48,
+        value: 48 + customTasks.length,
         label: 'Tổng công việc',
         trend: '↑ 12%',
         isPositiveTrend: true,
       },
       completedTasks: {
-        value: 32,
+        value: 32 + customCompletedCount,
         label: 'Đã hoàn thành',
         trend: '↑ 8%',
         isPositiveTrend: true,
       },
       inProgressTasks: {
-        value: 11,
+        value: 11 + customInProgressCount,
         label: 'Đang thực hiện',
         trend: '↓ 5%',
         isPositiveTrend: false,
@@ -332,6 +346,24 @@ export class InteriorScheduleAnalyticsService {
       ],
     };
 
+    const customUpcoming: UpcomingTaskItem[] = customTasks.map((ct) => {
+      const timeSlot = this.TIME_SLOTS.find((s) => s.slotId === ct.timeSlotId);
+      const timePrefix = timeSlot ? timeSlot.timeRange.split(' - ')[0] : '08:00';
+      const badge = this.resolveCategoryBadge(ct.category);
+      return {
+        id: ct.id,
+        time: timePrefix,
+        title: `${ct.title} (${ct.projectName})`,
+        projectName: ct.projectName,
+        category: ct.category,
+        categoryLabel: ct.categoryLabel,
+        categoryClass: badge.badgeClass,
+        assigneeAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop',
+      };
+    });
+
+    const mergedUpcomingTasks = [...customUpcoming, ...upcomingTasks].slice(0, 6);
+
     return {
       success: true,
       tenantId,
@@ -339,12 +371,120 @@ export class InteriorScheduleAnalyticsService {
       kpis,
       timeSlots: this.TIME_SLOTS,
       days: this.CALENDAR_DAYS,
-      calendarEvents: this.CANONICAL_CALENDAR_EVENTS,
+      calendarEvents: [...this.CANONICAL_CALENDAR_EVENTS, ...customTasks],
       attentionAlerts,
       resourceCapacity,
-      upcomingTasks,
+      upcomingTasks: mergedUpcomingTasks,
       projectProgress,
       actionSuggestions,
     };
+  }
+
+  /**
+   * Create a new scheduled task through intermediate domain service
+   */
+  public static createScheduledTask(
+    tenantId: string,
+    input: CreateScheduledTaskInput,
+  ): ScheduledCalendarEvent {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new TenantIsolationViolationError(
+        'TenantId is mandatory to create a scheduled task',
+      );
+    }
+    if (!input.title || input.title.trim() === '') {
+      throw new Error('Task title is required');
+    }
+
+    let badgeBgClass = 'bg-blue-50/90 dark:bg-blue-950/40';
+    let badgeBorderClass = 'border-l-4 border-l-blue-500 border-blue-100 dark:border-blue-800';
+    let textColorClass = 'text-blue-900 dark:text-blue-200';
+    let categoryLabel = 'Thiết kế';
+
+    switch (input.category) {
+      case 'workshop':
+        badgeBgClass = 'bg-purple-50/90 dark:bg-purple-950/40';
+        badgeBorderClass = 'border-l-4 border-l-purple-500 border-purple-100 dark:border-purple-800';
+        textColorClass = 'text-purple-900 dark:text-purple-200';
+        categoryLabel = 'Sản xuất';
+        break;
+      case 'site':
+        badgeBgClass = 'bg-sky-50/90 dark:bg-sky-950/40';
+        badgeBorderClass = 'border-l-4 border-l-sky-500 border-sky-100 dark:border-sky-800';
+        textColorClass = 'text-sky-900 dark:text-sky-200';
+        categoryLabel = 'Lắp đặt';
+        break;
+      case 'handover':
+        badgeBgClass = 'bg-teal-50/90 dark:bg-teal-950/40';
+        badgeBorderClass = 'border-l-4 border-l-teal-500 border-teal-100 dark:border-teal-800';
+        textColorClass = 'text-teal-900 dark:text-teal-200';
+        categoryLabel = 'Nghiệm thu';
+        break;
+      default:
+        badgeBgClass = 'bg-blue-50/90 dark:bg-blue-950/40';
+        badgeBorderClass = 'border-l-4 border-l-blue-500 border-blue-100 dark:border-blue-800';
+        textColorClass = 'text-blue-900 dark:text-blue-200';
+        categoryLabel = 'Thiết kế';
+        break;
+    }
+
+    const newTask: ScheduledCalendarEvent = {
+      id: `evt-custom-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      title: input.title.trim(),
+      projectName: input.projectName.trim() || 'Dự án nội thất',
+      assignee: input.assignee.trim() || 'KTS. Phụ trách',
+      dayIndex: Math.max(0, Math.min(6, input.dayIndex ?? 0)),
+      timeSlotId: input.timeSlotId || 'slot-1',
+      category: input.category || 'design',
+      categoryLabel,
+      badgeBgClass,
+      badgeBorderClass,
+      textColorClass,
+    };
+
+    if (!this.tenantCustomTasks.has(tenantId)) {
+      this.tenantCustomTasks.set(tenantId, []);
+    }
+    this.tenantCustomTasks.get(tenantId)!.push(newTask);
+
+    return newTask;
+  }
+
+  /**
+   * Mark a scheduled task as completed
+   */
+  public static completeScheduledTask(tenantId: string, taskId: string): boolean {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new TenantIsolationViolationError('TenantId is mandatory');
+    }
+    if (!this.tenantCompletedTaskIds.has(tenantId)) {
+      this.tenantCompletedTaskIds.set(tenantId, new Set());
+    }
+    this.tenantCompletedTaskIds.get(tenantId)!.add(taskId);
+    return true;
+  }
+
+  /**
+   * Delete a custom task from the intermediate store
+   */
+  public static deleteScheduledTask(tenantId: string, taskId: string): boolean {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new TenantIsolationViolationError('TenantId is mandatory');
+    }
+    const current = this.tenantCustomTasks.get(tenantId) || [];
+    const filtered = current.filter((t) => t.id !== taskId);
+    this.tenantCustomTasks.set(tenantId, filtered);
+    if (this.tenantCompletedTaskIds.has(tenantId)) {
+      this.tenantCompletedTaskIds.get(tenantId)!.delete(taskId);
+    }
+    return true;
+  }
+
+  /**
+   * Reset tenant custom tasks (used in testing and tenant reset)
+   */
+  public static resetTenantTasks(tenantId: string): void {
+    this.tenantCustomTasks.delete(tenantId);
+    this.tenantCompletedTaskIds.delete(tenantId);
   }
 }

@@ -375,6 +375,7 @@ export default function InteriorBOQPage() {
   const [showCompareModal, setShowCompareModal] = useState<boolean>(false);
   const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
   const [showQuoteModal, setShowQuoteModal] = useState<boolean>(false);
+  const [showFilterBar, setShowFilterBar] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -761,7 +762,12 @@ export default function InteriorBOQPage() {
 
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 shadow-2xs"
+            onClick={() => setShowFilterBar((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-2xs transition-all cursor-pointer ${
+              showFilterBar
+                ? 'bg-amber-100 border-amber-300 text-amber-900 dark:bg-amber-950/40 dark:border-amber-700 dark:text-amber-300'
+                : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
+            }`}
           >
             <Filter className="w-3.5 h-3.5 text-slate-500" />
             <span>Bộ lọc</span>
@@ -769,6 +775,26 @@ export default function InteriorBOQPage() {
           </button>
         </div>
       </div>
+
+      {/* Filter Bar Panel when toggled */}
+      {showFilterBar && (
+        <div className="p-3.5 rounded-2xl bg-amber-50/60 dark:bg-slate-850/60 border border-amber-200/60 dark:border-slate-800 flex items-center justify-between gap-3 text-xs animate-in fade-in duration-150">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-slate-700 dark:text-slate-300">Lọc chuyên mục:</span>
+            <span className="px-2.5 py-1 rounded-lg bg-amber-600 text-white font-semibold">Tất cả ({data.zoneGroups.length} khu vực)</span>
+            <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50">Mộc &amp; Ván gỗ</span>
+            <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50">Kim loại &amp; Cơ khí</span>
+            <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50">Đá &amp; Kính</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowFilterBar(false)}
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+          >
+            Đóng
+          </button>
+        </div>
+      )}
 
       {/* ─── Main Content Table Card ─── */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs overflow-hidden">

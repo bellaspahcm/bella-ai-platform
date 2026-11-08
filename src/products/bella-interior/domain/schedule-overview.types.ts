@@ -97,6 +97,18 @@ export interface ScheduleActionSuggestion {
   readonly items: readonly string[];
 }
 
+export interface CreateScheduledTaskInput {
+  readonly title: string;
+  readonly projectName: string;
+  readonly assignee: string;
+  readonly dayIndex: number;
+  readonly timeSlotId: string;
+  readonly category: ScheduleTaskCategory;
+  readonly priority?: 'normal' | 'urgent';
+  readonly notes?: string;
+  readonly status?: ScheduleTaskStatus;
+}
+
 export interface ScheduleOverviewResponse {
   readonly success: boolean;
   readonly tenantId: string;
