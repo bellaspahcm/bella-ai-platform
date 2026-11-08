@@ -1,0 +1,322 @@
+{
+  "_comment": "Bella Interior — Cloudflare R2 Image Manifest",
+  "_account_id": "3c8d589a1d10e0c3a2167a27abd354ab",
+  "_bucket": "bella-production",
+  "_endpoint": "https://3c8d589a1d10e0c3a2167a27abd354ab.r2.cloudflarestorage.com",
+  "_r2_public_base": "https://cdn.bella-interior.com",
+
+  "folder_structure": {
+    "interior/projects/": "Project thumbnails & hero images (Villa, Office Tower, etc.)",
+    "interior/team/": "Staff & assignee avatar photos",
+    "interior/design/": "Design Studio – mockups, renders, concept images",
+    "interior/materials/": "Material catalog & spec sheet thumbnails",
+    "interior/installation/": "On-site installation & progress photos",
+    "interior/handover/": "QC & handover documentation photos",
+    "interior/finance/": "Finance & contract supporting imagery",
+    "interior/schedule/": "Schedule & dispatch imagery",
+    "interior/customers/": "Customer profile photos",
+    "interior/reports/": "Report cover imagery",
+    "interior/warranty/": "Warranty & after-care imagery",
+    "shared/": "Brand logos, icons, UI assets shared across modules"
+  },
+
+  "images": [
+    {
+      "photo_id": "photo-1600585154340-be6161a56a0c",
+      "unsplash_url": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
+      "description": "Villa Sunrise Renovation – luxury villa exterior",
+      "r2_folder": "interior/projects/",
+      "r2_key": "interior/projects/villa-sunrise-renovation.jpg",
+      "used_in": ["interior/projects", "interior/schedule", "interior/reports"],
+      "sizes": [100, 200, 300, 600, 800]
+    },
+    {
+      "photo_id": "photo-1600596542815-ffad4c1539a9",
+      "unsplash_url": "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9",
+      "description": "Office Tower Lobby – modern commercial interior",
+      "r2_folder": "interior/projects/",
+      "r2_key": "interior/projects/office-tower-lobby.jpg",
+      "used_in": ["interior/projects", "interior/reports"],
+      "sizes": [100, 200, 300, 600]
+    },
+    {
+      "photo_id": "photo-1600607687939-ce8a6c25118c",
+      "unsplash_url": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c",
+      "description": "Skyline Residence – skyline apartment project",
+      "r2_folder": "interior/projects/",
+      "r2_key": "interior/projects/skyline-residence.jpg",
+      "used_in": ["interior/projects", "interior/reports"],
+      "sizes": [100, 200, 300, 600]
+    },
+    {
+      "photo_id": "photo-1512917774080-9991f1c4c750",
+      "unsplash_url": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750",
+      "description": "The Garden Villa – garden villa project",
+      "r2_folder": "interior/projects/",
+      "r2_key": "interior/projects/the-garden-villa.jpg",
+      "used_in": ["interior/projects", "interior/schedule"],
+      "sizes": [100, 200, 300, 600, 800]
+    },
+    {
+      "photo_id": "photo-1545324418-cc1a3fa10c00",
+      "unsplash_url": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00",
+      "description": "Skyline Residence – alternate project thumbnail",
+      "r2_folder": "interior/projects/",
+      "r2_key": "interior/projects/skyline-residence-alt.jpg",
+      "used_in": ["interior/schedule"],
+      "sizes": [100]
+    },
+    {
+      "photo_id": "photo-1497366216548-37526070297c",
+      "unsplash_url": "https://images.unsplash.com/photo-1497366216548-37526070297c",
+      "description": "Office Tower – alternate wide shot",
+      "r2_folder": "interior/projects/",
+      "r2_key": "interior/projects/office-tower-wide.jpg",
+      "used_in": ["interior/design", "interior/schedule"],
+      "sizes": [100, 300, 1600]
+    },
+    {
+      "photo_id": "photo-1513694203232-719a280e022f",
+      "unsplash_url": "https://images.unsplash.com/photo-1513694203232-719a280e022f",
+      "description": "Design project – interior render warm tones",
+      "r2_folder": "interior/design/",
+      "r2_key": "interior/design/project-render-warm.jpg",
+      "used_in": ["interior/design"],
+      "sizes": [200, 300, 800, 1600]
+    },
+    {
+      "photo_id": "photo-1556911220-e15b29be8c8f",
+      "unsplash_url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f",
+      "description": "Design Studio – kitchen design render",
+      "r2_folder": "interior/design/",
+      "r2_key": "interior/design/kitchen-design-render.jpg",
+      "used_in": ["interior/design", "interior/installation"],
+      "sizes": [300, 600, 800, 1600]
+    },
+    {
+      "photo_id": "photo-1595526114035-0d45ed16cfbf",
+      "unsplash_url": "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf",
+      "description": "Design project – modern bedroom render",
+      "r2_folder": "interior/design/",
+      "r2_key": "interior/design/bedroom-render-modern.jpg",
+      "used_in": ["interior/design"],
+      "sizes": [300, 1600]
+    },
+    {
+      "photo_id": "photo-1617806118233-18e1de247200",
+      "unsplash_url": "https://images.unsplash.com/photo-1617806118233-18e1de247200",
+      "description": "Design project – luxury living room",
+      "r2_folder": "interior/design/",
+      "r2_key": "interior/design/luxury-living-room.jpg",
+      "used_in": ["interior/design"],
+      "sizes": [300, 1600]
+    },
+    {
+      "photo_id": "photo-1584622650111-993a426fbf0a",
+      "unsplash_url": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a",
+      "description": "Design project – bathroom design",
+      "r2_folder": "interior/design/",
+      "r2_key": "interior/design/bathroom-design.jpg",
+      "used_in": ["interior/design"],
+      "sizes": [300, 1600]
+    },
+    {
+      "photo_id": "photo-1546484396-fb3fc6f95f98",
+      "unsplash_url": "https://images.unsplash.com/photo-1546484396-fb3fc6f95f98",
+      "description": "Design Studio – material & texture board",
+      "r2_folder": "interior/design/",
+      "r2_key": "interior/design/material-texture-board.jpg",
+      "used_in": ["interior/design"],
+      "sizes": [200, 800]
+    },
+    {
+      "photo_id": "photo-1563245372-f21724e3856d",
+      "unsplash_url": "https://images.unsplash.com/photo-1563245372-f21724e3856d",
+      "description": "Design project – accent wall detail",
+      "r2_folder": "interior/design/",
+      "r2_key": "interior/design/accent-wall-detail.jpg",
+      "used_in": ["interior/design"],
+      "sizes": [200]
+    },
+    {
+      "photo_id": "photo-1581092160607-ee22621dd758",
+      "unsplash_url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758",
+      "description": "Materials – wood panel material",
+      "r2_folder": "interior/materials/",
+      "r2_key": "interior/materials/wood-panel.jpg",
+      "used_in": ["interior/design", "interior/materials"],
+      "sizes": [200, 800]
+    },
+    {
+      "photo_id": "photo-1581092335397-9583fe92d232",
+      "unsplash_url": "https://images.unsplash.com/photo-1581092335397-9583fe92d232",
+      "description": "Materials – stone tile texture",
+      "r2_folder": "interior/materials/",
+      "r2_key": "interior/materials/stone-tile.jpg",
+      "used_in": ["interior/materials"],
+      "sizes": [800]
+    },
+    {
+      "photo_id": "photo-1507473885765-e6ed057f782c",
+      "unsplash_url": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c",
+      "description": "Materials – fabric upholstery swatch",
+      "r2_folder": "interior/materials/",
+      "r2_key": "interior/materials/fabric-upholstery.jpg",
+      "used_in": ["interior/materials"],
+      "sizes": [800]
+    },
+    {
+      "photo_id": "photo-1600210492486-724fe5c67fb0",
+      "unsplash_url": "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0",
+      "description": "Installation – site work progress",
+      "r2_folder": "interior/installation/",
+      "r2_key": "interior/installation/site-progress-main.jpg",
+      "used_in": ["interior/installation", "interior/contract", "interior/design"],
+      "sizes": [200, 300, 600, 800, 1600]
+    },
+    {
+      "photo_id": "photo-1558997519-83ea9252def8",
+      "unsplash_url": "https://images.unsplash.com/photo-1558997519-83ea9252def8",
+      "description": "Installation – furniture assembly on-site",
+      "r2_folder": "interior/installation/",
+      "r2_key": "interior/installation/furniture-assembly.jpg",
+      "used_in": ["interior/installation"],
+      "sizes": [600]
+    },
+    {
+      "photo_id": "photo-1616594039964-ae9021a400a0",
+      "unsplash_url": "https://images.unsplash.com/photo-1616594039964-ae9021a400a0",
+      "description": "Installation – ceiling work in progress",
+      "r2_folder": "interior/installation/",
+      "r2_key": "interior/installation/ceiling-work.jpg",
+      "used_in": ["interior/installation"],
+      "sizes": [600]
+    },
+    {
+      "photo_id": "photo-1589939705384-5185137a7f0f",
+      "unsplash_url": "https://images.unsplash.com/photo-1589939705384-5185137a7f0f",
+      "description": "Installation – flooring installation",
+      "r2_folder": "interior/installation/",
+      "r2_key": "interior/installation/flooring-installation.jpg",
+      "used_in": ["interior/installation"],
+      "sizes": [800]
+    },
+    {
+      "photo_id": "photo-1535713875002-d1d0cf377fde",
+      "unsplash_url": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde",
+      "description": "QC / Handover – inspector avatar",
+      "r2_folder": "interior/handover/",
+      "r2_key": "interior/handover/qc-inspector-avatar.jpg",
+      "used_in": ["interior/handover", "interior/team"],
+      "sizes": [120]
+    },
+    {
+      "photo_id": "photo-1628157582853-a796fa650a6a",
+      "unsplash_url": "https://images.unsplash.com/photo-1628157582853-a796fa650a6a",
+      "description": "QC / Handover – handover certificate sign-off",
+      "r2_folder": "interior/handover/",
+      "r2_key": "interior/handover/handover-signoff.jpg",
+      "used_in": ["interior/handover"],
+      "sizes": [120]
+    },
+    {
+      "photo_id": "photo-1618221195710-dd6b41faaea6",
+      "unsplash_url": "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6",
+      "description": "Finance – financial statement imagery",
+      "r2_folder": "interior/finance/",
+      "r2_key": "interior/finance/financial-report-cover.jpg",
+      "used_in": ["interior/finance", "interior/handover", "interior/warranty", "interior/reports"],
+      "sizes": [100, 600, 800, 1000, 1200]
+    },
+    {
+      "photo_id": "photo-1472099645785-5658abf4ff4e",
+      "unsplash_url": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
+      "description": "Finance Director avatar – male professional",
+      "r2_folder": "interior/team/",
+      "r2_key": "interior/team/finance-director-male.jpg",
+      "used_in": ["interior/finance", "interior/team"],
+      "sizes": [80, 120]
+    },
+    {
+      "photo_id": "photo-1534528741775-53994a69daeb",
+      "unsplash_url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb",
+      "description": "Team avatar – female staff 1",
+      "r2_folder": "interior/team/",
+      "r2_key": "interior/team/staff-female-1.jpg",
+      "used_in": ["interior/customers", "interior/schedule", "interior/team"],
+      "sizes": [80, 100, 120]
+    },
+    {
+      "photo_id": "photo-1507003211169-0a1dd7228f2d",
+      "unsplash_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
+      "description": "Team avatar – male staff architect 1",
+      "r2_folder": "interior/team/",
+      "r2_key": "interior/team/staff-male-architect-1.jpg",
+      "used_in": ["interior/customers", "interior/schedule", "interior/team"],
+      "sizes": [80, 100, 120]
+    },
+    {
+      "photo_id": "photo-1500648767791-00dcc994a43e",
+      "unsplash_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+      "description": "Team avatar – male staff 2",
+      "r2_folder": "interior/team/",
+      "r2_key": "interior/team/staff-male-2.jpg",
+      "used_in": ["interior/customers", "interior/schedule", "interior/portfolio", "interior/team"],
+      "sizes": [80, 100, 120]
+    },
+    {
+      "photo_id": "photo-1573496359142-b8d87734a5a2",
+      "unsplash_url": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2",
+      "description": "Customer avatar – female client 1",
+      "r2_folder": "interior/customers/",
+      "r2_key": "interior/customers/client-female-1.jpg",
+      "used_in": ["interior/customers", "interior/warranty"],
+      "sizes": [100, 120]
+    },
+    {
+      "photo_id": "photo-1580489944761-15a19d654956",
+      "unsplash_url": "https://images.unsplash.com/photo-1580489944761-15a19d654956",
+      "description": "Customer avatar – female client 2",
+      "r2_folder": "interior/customers/",
+      "r2_key": "interior/customers/client-female-2.jpg",
+      "used_in": ["interior/customers", "interior/handover"],
+      "sizes": [100, 120]
+    },
+    {
+      "photo_id": "photo-1554469384-e58fac16e23a",
+      "unsplash_url": "https://images.unsplash.com/photo-1554469384-e58fac16e23a",
+      "description": "Customer avatar – male client",
+      "r2_folder": "interior/customers/",
+      "r2_key": "interior/customers/client-male-1.jpg",
+      "used_in": ["interior/customers"],
+      "sizes": [100]
+    },
+    {
+      "photo_id": "photo-1494790108377-be9c29b29330",
+      "unsplash_url": "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
+      "description": "Portfolio – client testimonial avatar female",
+      "r2_folder": "interior/customers/",
+      "r2_key": "interior/customers/client-testimonial-female.jpg",
+      "used_in": ["interior/portfolio"],
+      "sizes": [120]
+    },
+    {
+      "photo_id": "photo-1486406146926-c627a92ad1ab",
+      "unsplash_url": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab",
+      "description": "Portfolio – award-winning commercial project",
+      "r2_folder": "interior/projects/",
+      "r2_key": "interior/projects/commercial-award-project.jpg",
+      "used_in": ["interior/portfolio", "interior/customers"],
+      "sizes": [100, 300, 600, 800]
+    },
+    {
+      "photo_id": "photo-1544005313-94ddf0286df2",
+      "unsplash_url": "https://images.unsplash.com/photo-1544005313-94ddf0286df2",
+      "description": "Team avatar – female staff 2 (site)",
+      "r2_folder": "interior/team/",
+      "r2_key": "interior/team/staff-female-site.jpg",
+      "used_in": ["interior/schedule"],
+      "sizes": [80, 100]
+    }
+  ]
+}
