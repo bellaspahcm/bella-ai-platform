@@ -8,6 +8,7 @@ export interface SubAgentResponse {
   anomalies?: unknown[];
   draftProposals?: unknown[];
   reportType?: string;
+  executiveDeepReport?: unknown;
 }
 
 export interface COOAnalysisResult {
@@ -21,6 +22,7 @@ export interface COOAnalysisResult {
     executiveSummary: string;
     anomaliesFound: unknown[];
     fullData: unknown[];
+    executiveDeepReport?: unknown;
   };
   draftActions: unknown[];
   strategicRecommendations: string[];

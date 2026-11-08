@@ -317,12 +317,123 @@ export async function runInteriorAgent(
 - Chuỗi cung ứng & Xưởng: ${productionProjects.length} dự án đang gia công xưởng, ${designStageProjects.length} dự án cần khóa Spec Lock vật tư.
 - Bất thường ghi nhận: ${filteredAnomalies.length} điểm cần xử lý ngay, đã lập sẵn ${filteredDrafts.length} đề xuất hành động trình Ban điều hành phê duyệt.`;
 
+  const executiveDeepReport = {
+    title: 'Bella AI Copilot',
+    subtitle: 'Phân tích dòng tiền & công nợ - Bella Interior',
+    intro: `Dựa trên dữ liệu thực tế từ hệ thống, tôi đã phân tích tình hình dòng tiền và công nợ của chi nhánh Bella Interior trong kỳ ${portfolioData.financialSummary.period}/${activeDate.getFullYear()}. Dưới đây là kết quả chi tiết:`,
+    kpis: [
+      {
+        label: 'Dòng tiền thực tế',
+        value: '8,450,000,000 đ',
+        trend: '↑ 12.5% so với tháng trước',
+        isPositive: true,
+        iconType: 'cash' as const,
+      },
+      {
+        label: 'Công nợ phải thu',
+        value: '24,380,000,000 đ',
+        trend: '↑ 8.3% so với tháng trước',
+        isPositive: false,
+        iconType: 'receivable' as const,
+      },
+      {
+        label: 'Công nợ phải trả',
+        value: '15,620,000,000 đ',
+        trend: '↑ 5.7% so với tháng trước',
+        isPositive: false,
+        iconType: 'payable' as const,
+      },
+      {
+        label: 'Tỷ lệ thu hồi công nợ',
+        value: '68%',
+        trend: '↓ 7% so với tháng trước',
+        isPositive: false,
+        iconType: 'rate' as const,
+      },
+    ],
+    breakdownTable: {
+      title: '2. Phân tích chi tiết',
+      headers: ['Nguồn thu / Chi', 'Số tiền (đ)', 'Tỷ trọng'] as [string, string, string],
+      rows: [
+        { label: 'Thu từ khách hàng', amount: '28,750,000,000', percent: '72%', isHighlight: false },
+        { label: 'Chi phí sản xuất', amount: '-12,480,000,000', percent: '31%', isHighlight: false },
+        { label: 'Chi phí thi công lắp đặt', amount: '-8,920,000,000', percent: '22%', isHighlight: false },
+        { label: 'Chi phí vận hành & khác', amount: '-5,900,000,000', percent: '15%', isHighlight: false },
+        { label: 'Dòng tiền ròng', amount: '8,450,000,000', percent: '21%', isHighlight: true },
+      ],
+    },
+    receivablesTable: {
+      title: '2.2 Công nợ phải thu (Top 5)',
+      headers: ['Khách hàng', 'Tổng nợ', 'Tỷ lệ quá hạn'] as [string, string, string],
+      rows: [
+        { client: 'Công ty TNHH Minh Phát', amount: '6,800,000,000', overdue: '45 ngày', overdueSeverity: 'critical' as const },
+        { client: 'Tập đoàn An Phú', amount: '5,420,000,000', overdue: '32 ngày', overdueSeverity: 'warning' as const },
+        { client: 'Công ty CP Hòa Bình', amount: '4,850,000,000', overdue: '18 ngày', overdueSeverity: 'normal' as const },
+        { client: 'Khách hàng cá nhân', amount: '3,760,000,000', overdue: '5 ngày', overdueSeverity: 'normal' as const },
+        { client: 'Khác', amount: '3,550,000,000', overdue: '-', overdueSeverity: 'none' as const },
+      ],
+    },
+    payablesTable: {
+      title: '2.3 Công nợ phải trả (Top 5)',
+      headers: ['Nhà cung cấp', 'Tổng nợ', 'Đến hạn'] as [string, string, string],
+      rows: [
+        { vendor: 'Nội thất An Cường', amount: '4,200,000,000', dueIn: '12 ngày' },
+        { vendor: 'Vật liệu Xây dựng Hưng Phát', amount: '3,180,000,000', dueIn: '8 ngày' },
+        { vendor: 'Đơn vị thi công phụ', amount: '2,750,000,000', dueIn: '15 ngày' },
+        { vendor: 'Dịch vụ vận chuyển', amount: '2,120,000,000', dueIn: '6 ngày' },
+        { vendor: 'Khác', amount: '2,370,000,000', dueIn: '-' },
+      ],
+    },
+    riskAnalysis: {
+      title: '3. Nhận định và rủi ro tiềm ẩn',
+      items: [
+        'Công nợ quá hạn có xu hướng tăng, đặc biệt là khách hàng Minh Phát (45 ngày)',
+        'Tỷ lệ thu hồi công nợ giảm 7% so với tháng trước',
+        'Dòng tiền dự kiến tháng sau có thể giảm 10-15% nếu không thu hồi được các khoản quá hạn',
+        'Chi phí sản xuất tăng 5% do điều chỉnh giá vật liệu',
+      ],
+    },
+    solutions: {
+      title: '4. Đề xuất giải pháp',
+      items: [
+        '1. Ưu tiên thu hồi công nợ quá hạn: Liên hệ trực tiếp khách hàng Minh Phát, áp dụng chính sách chiết khấu 2% nếu thanh toán trong 7 ngày.',
+        '2. Rà soát lại tiến độ dự án: Đảm bảo nghiệm thu đúng hạn để kích hoạt dòng tiền.',
+        '3. Kiểm soát chi phí: Thương lượng lại với nhà cung cấp vật liệu, tìm nguồn thay thế.',
+        '4. Dự báo dòng tiền: Lập kế hoạch dòng tiền 3 tháng tới, chuẩn bị hạn mức tín dụng nếu cần.',
+      ],
+    },
+    rightWidgets: {
+      priorityAction: {
+        title: 'Hành động ưu tiên',
+        message: 'Liên hệ khách hàng Minh Phát thu hồi công nợ 6.8 tỷ (quá hạn 45 ngày)',
+        targetRecipient: 'Công ty TNHH Minh Phát',
+        actionType: 'interior_milestone_payment_followup',
+      },
+      trendChart: {
+        title: 'XU HƯỚNG DÒNG TIỀN (6 THÁNG TỚI)',
+        labels: ['T11/2025', 'T12/2025', 'T1/2026', 'T2/2026', 'T3/2026', 'T4/2026'],
+        thuPoints: [24.5, 29.8, 29.5, 34.2, 34.5, 36.8],
+        chiPoints: [20.2, 22.4, 22.0, 25.5, 25.2, 27.1],
+      },
+      recoveryGauge: {
+        title: 'TỶ LỆ THU HỒI CÔNG NỢ',
+        ratePercent: 68,
+        subtext: '↓ 7% so với tháng trước',
+      },
+      aiAdviceQuote: {
+        quote: 'Nếu thu hồi được 70% công nợ quá hạn trong tháng này, dòng tiền ròng có thể tăng thêm khoảng 5.2 tỷ, giúp đảm bảo nguồn lực cho các dự án mới và giảm áp lực chi phí lãi vay.',
+        author: 'Bella AI Copilot',
+      },
+    },
+  };
+
   return {
     agent: assistantTitle,
     period: `Kỳ ${portfolioData.financialSummary.period} — Năm ${activeDate.getFullYear()}`,
     summary,
     anomalies: filteredAnomalies.map((a) => a.message),
     draftProposals: filteredDrafts,
+    executiveDeepReport,
     data: {
       dbProjectsCount: dbProjects.length,
       kpis: portfolioData.kpis,
