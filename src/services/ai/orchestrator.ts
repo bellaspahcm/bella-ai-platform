@@ -139,7 +139,27 @@ function detectRouting(lowerCommand: string): string {
     lowerCommand.includes("thiết kế nội thất") || lowerCommand.includes("fitout") ||
     lowerCommand.includes("chậm tiến độ");
 
-  if (isInteriorRelated) return "interior";
+  if (isInteriorRelated) {
+    if (lowerCommand.includes("kinh doanh") || lowerCommand.includes("sales") || lowerCommand.includes("bán hàng") || lowerCommand.includes("chốt thầu") || lowerCommand.includes("hợp đồng mới") || lowerCommand.includes("upsell") || lowerCommand.includes("khách hàng tiềm năng") || lowerCommand.includes("phễu")) {
+      return "interior_cco";
+    }
+    if (lowerCommand.includes("xưởng") || lowerCommand.includes("sản xuất") || lowerCommand.includes("nhà máy") || lowerCommand.includes("gia công") || lowerCommand.includes("spec lock") || lowerCommand.includes("khóa mẫu") || lowerCommand.includes("cnc") || lowerCommand.includes("phôi gỗ") || lowerCommand.includes("an cường") || lowerCommand.includes("blum") || lowerCommand.includes("vicostone")) {
+      return "interior_cpo";
+    }
+    if (lowerCommand.includes("nhân sự") || lowerCommand.includes("kts") || lowerCommand.includes("kiến trúc sư") || lowerCommand.includes("tải công việc") || lowerCommand.includes("thợ xưởng") || lowerCommand.includes("tuyển dụng thợ") || lowerCommand.includes("năng suất thiết kế")) {
+      return "interior_chro";
+    }
+    if (lowerCommand.includes("tài chính") || lowerCommand.includes("kế toán") || lowerCommand.includes("p&l") || lowerCommand.includes("giá vốn") || lowerCommand.includes("cogs") || lowerCommand.includes("biên lợi nhuận") || lowerCommand.includes("công nợ") || lowerCommand.includes("dòng tiền") || lowerCommand.includes("thu tiền") || lowerCommand.includes("thanh toán đợt")) {
+      return "interior_cfo";
+    }
+    if (lowerCommand.includes("vận hành") || lowerCommand.includes("tiến độ") || lowerCommand.includes("thi công") || lowerCommand.includes("lắp đặt") || lowerCommand.includes("công trường") || lowerCommand.includes("hiện trường") || lowerCommand.includes("chậm tiến độ") || lowerCommand.includes("mặt bằng") || lowerCommand.includes("bàn giao")) {
+      return "interior_coo";
+    }
+    if (lowerCommand.includes("quản trị") || lowerCommand.includes("chiến lược") || lowerCommand.includes("toàn diện") || lowerCommand.includes("chuỗi giá trị") || lowerCommand.includes("rủi ro chéo") || lowerCommand.includes("nghị quyết")) {
+      return "interior_advisor";
+    }
+    return "interior";
+  }
   if (isCpoRelated) return "cpo";
   if (isCmoRelated) return "cmo";
   if (isFranchiseRelated) return "franchise";
@@ -180,10 +200,35 @@ function getStrategicRecommendations(routedTo: string): string[] {
     "Đánh giá và tối ưu phân bổ hoa hồng môi giới bất động sản cho các sàn giao dịch liên kết.",
     "Bật cảnh báo tự động gửi Zalo ZNS nhắc nhở các khách hàng trễ hạn đóng tiền đợt thanh toán tiến độ."
   ];
-  if (routedTo === "interior") return [
+  if (routedTo === "interior_cco") return [
+    "Xây dựng chính sách ưu đãi chiết khấu 50% phí thiết kế khi ký hợp đồng thi công trọn gói để tăng tỷ lệ chốt thầu.",
+    "Tập trung khai thác phân khúc biệt thự và dinh thự cao cấp có deal size trung bình > 1 tỷ đồng/hợp đồng.",
+    "Thiết lập gói đề xuất đồ rời và thiết bị bếp cao cấp nâng cao giá trị trung bình trên mỗi công trình."
+  ];
+  if (routedTo === "interior_cpo") return [
     "Kích hoạt quy trình khóa mẫu vật tư (Spec Lock) bắt buộc trước khi chuyển lệnh sang xưởng gia công nội thất.",
-    "Rà soát lại dự toán BOQ và định mức tiêu hao các hạng mục hoàn thiện gỗ công nghiệp và đá nhân tạo để bảo vệ biên lợi nhuận > 40%.",
-    "Bố trí thêm đội thợ lắp đặt công trình và đôn đốc thu hồi công nợ các đợt thanh toán nghiệm thu từng phần."
+    "Bố trí ca chạy máy cắt CNC 2 ca/ngày tại phân xưởng để bảo đảm tiến độ gia công module đồ gỗ cho các công trình trọng điểm.",
+    "Đàm phán với các nhà cung cấp cốt ván MDF An Cường và phụ kiện Blum để giữ giá cố định và dự phòng nguồn cung cuối năm."
+  ];
+  if (routedTo === "interior_coo") return [
+    "Điều động 02 đội thợ hoàn thiện hiện trường tăng ca buổi tối để bù lại 5% tiến độ bị trễ tại các công trình có nguy cơ.",
+    "Khảo sát và xử lý xung đột mặt bằng thi công giữa đội thợ thạch cao, sơn nước và đội lắp ráp đồ gỗ trước 03 ngày lắp đặt.",
+    "Áp dụng quy trình kiểm tra chất lượng KCS từng công đoạn để không phát sinh sửa chữa kéo dài thời gian bàn giao."
+  ];
+  if (routedTo === "interior_chro") return [
+    "Bổ sung 01 KTS phụ tá triển khai bản vẽ chi tiết hỗ trợ các KTS chủ trì đang gánh khối lượng dự án cao điểm.",
+    "Ký hợp đồng lao động thời vụ với 04 thợ mộc hoàn thiện và 02 thợ sơn PU lành nghề bổ sung cho phân xưởng.",
+    "Rà soát chỉ số năng suất triển khai bản vẽ 3D/2D và thưởng nóng cho các đồ án hoàn thành trước cam kết hợp đồng."
+  ];
+  if (routedTo === "interior_cfo") return [
+    "Rà soát lại dự toán BOQ và định mức tiêu hao các hạng mục gỗ công nghiệp và đá nhân tạo để bảo vệ biên lợi nhuận > 40%.",
+    "Phát hành công văn đề nghị thanh toán đợt tiếp theo đối với các dự án đã ký biên bản nghiệm thu từng phần để giảm công nợ > 3 tỷ đ.",
+    "Theo dõi chặt chẽ tiến độ dòng tiền tạm ứng và kiểm soát tạm ứng thầu phụ vật liệu để giữ cân đối ngân quỹ."
+  ];
+  if (routedTo === "interior_advisor" || routedTo === "interior") return [
+    "Thắt chặt liên kết chuỗi giá trị: Khóa mẫu Spec Lock (Thiết kế) -> Xuất xưởng CNC (Xưởng) -> Lắp đặt hiện trường (Công trình) -> Nghiệm thu giải ngân (Tài chính).",
+    "Tập trung tháo gỡ điểm nghẽn dự án Skyline Residence để thu hồi công nợ 1.2 tỷ đ tái đầu tư nguồn vật tư.",
+    "Duy trì hội đồng giao ban điều hành AI định kỳ hàng tuần giữa 5 khối chuyên môn để phòng ngừa rủi ro chéo."
   ];
   return [
     "Định kỳ rà soát các chỉ số vận hành cốt lõi toàn diện chuỗi chi nhánh Bella Spa.",
@@ -264,8 +309,8 @@ export async function runCOOOrchestrator(
     subAgentResponse = await runCFOAgent(supabase, tenantId, activeDate, formattedDate, firstDayOfMonth, lowerCommand);
   } else if (routedTo === "real_estate") {
     subAgentResponse = await runRealEstateAgent(supabase, tenantId, activeDate);
-  } else if (routedTo === "interior") {
-    subAgentResponse = await runInteriorAgent(supabase, tenantId, activeDate);
+  } else if (routedTo.startsWith("interior")) {
+    subAgentResponse = await runInteriorAgent(supabase, tenantId, activeDate, routedTo);
   } else {
     subAgentResponse = {
       agent: "General Operation",
@@ -335,9 +380,25 @@ export async function runCOOOrchestrator(
       else if (routedTo === "cmo") assistantName = "CMO (Trưởng phòng Chăm sóc khách hàng & Marketing)";
       else if (routedTo === "franchise") assistantName = "Franchise (Ban vận hành Nhượng quyền)";
       else if (routedTo === "real_estate") assistantName = "Real Estate AI Specialist (Chuyên gia Bất Động Sản)";
-      else if (routedTo === "interior") assistantName = "Interior AI Director (Giám đốc Điều hành Dự án Nội thất)";
+      else if (routedTo === "interior_cco") assistantName = "Interior CCO (AI Giám đốc Kinh doanh Nội thất)";
+      else if (routedTo === "interior_cpo") assistantName = "Interior CPO (AI Giám đốc Sản xuất & Xưởng Nội thất)";
+      else if (routedTo === "interior_coo") assistantName = "Interior COO (AI Giám đốc Vận hành & Thi công Dự án)";
+      else if (routedTo === "interior_chro") assistantName = "Interior CHRO (AI Giám đốc Nhân sự & Năng suất KTS/Thợ)";
+      else if (routedTo === "interior_cfo") assistantName = "Interior CFO (AI Giám đốc Tài chính - Kế toán Dự án)";
+      else if (routedTo === "interior_advisor" || routedTo === "interior") assistantName = "Interior Strategic Advisor (AI Cố vấn Quản trị & Điều hành Toàn diện)";
 
-      const actionType = routedTo === 'chro' ? 'attendance_warning' : routedTo === 'cpo' ? 'inventory_restock' : routedTo === 'cmo' ? 'customer_apology' : routedTo === 'franchise' ? 'royalty_payment_reminder' : routedTo === 'real_estate' ? 'real_estate_release_next_block' : routedTo === 'interior' ? 'interior_spec_lock_approval' : 'reconciliation_audit';
+      let actionType = 'reconciliation_audit';
+      if (routedTo === 'chro') actionType = 'attendance_warning';
+      else if (routedTo === 'cpo') actionType = 'inventory_restock';
+      else if (routedTo === 'cmo') actionType = 'customer_apology';
+      else if (routedTo === 'franchise') actionType = 'royalty_payment_reminder';
+      else if (routedTo === 'real_estate') actionType = 'real_estate_release_next_block';
+      else if (routedTo === 'interior_cco') actionType = 'interior_sales_followup';
+      else if (routedTo === 'interior_cpo') actionType = 'interior_spec_lock_approval';
+      else if (routedTo === 'interior_coo') actionType = 'interior_schedule_recovery';
+      else if (routedTo === 'interior_chro') actionType = 'interior_architect_rebalance';
+      else if (routedTo === 'interior_cfo') actionType = 'interior_boq_variance_review';
+      else if (routedTo === 'interior_advisor' || routedTo === 'interior') actionType = 'interior_executive_action';
 
       const prompt = `Bạn là AI COO (trợ lý điều phối vận hành cấp cao) của hệ thống EIP spa.
 Nhiệm vụ của bạn là nhận câu lệnh ngôn ngữ tự nhiên của Ban điều hành, kết hợp với bộ dữ liệu thô vừa truy xuất từ hệ thống EIP chi nhánh để viết báo cáo tóm tắt phân tích sâu sắc, chính xác số liệu và đề xuất các quyết định thực tế.

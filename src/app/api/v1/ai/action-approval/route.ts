@@ -33,10 +33,19 @@ function getActionNotificationTitle(type: string): string {
   if (type === "customer_apology") return "Phê duyệt từ CEO: Xử lý phản hồi khiếu nại khách hàng";
   if (type === "royalty_payment_reminder") return "Phê duyệt từ CEO: Đôn đốc phí nhượng quyền";
   if (type === "real_estate_release_next_block") return "Phê duyệt từ Ban Giám Đốc: Mở bán phân khu BĐS tiếp theo";
-  if (type === "interior_spec_lock_approval") return "Phê duyệt từ Ban Điều Hành: Xác nhận khóa mẫu Spec Lock vật liệu";
-  if (type === "interior_boq_variance_review") return "Phê duyệt từ Ban Điều Hành: Rà soát điều chỉnh dự toán BOQ";
-  if (type === "interior_schedule_recovery") return "Phê duyệt từ Ban Điều Hành: Kích hoạt kế hoạch bù tiến độ công trình";
-  if (type === "interior_milestone_payment_followup") return "Phê duyệt từ Ban Điều Hành: Đôn đốc thu hồi công nợ nghiệm thu";
+  // Bella Interior OS Executive Actions
+  if (type === "interior_sales_followup") return "Phê duyệt Kinh doanh: Đôn đốc ký Hợp đồng thi công trọn gói";
+  if (type === "interior_commercial_upsell") return "Phê duyệt Kinh doanh: Đề xuất gói vật tư & đồ rời cao cấp";
+  if (type === "interior_spec_lock_approval") return "Phê duyệt Sản xuất: Xác nhận khóa mẫu Spec Lock vật liệu";
+  if (type === "interior_workshop_production_order") return "Phê duyệt Sản xuất: Lệnh tăng ca Phân xưởng gia công CNC";
+  if (type === "interior_material_replenish") return "Phê duyệt Sản xuất: Đặt mua bổ sung phôi gỗ và phụ kiện";
+  if (type === "interior_schedule_recovery") return "Phê duyệt Vận hành: Kích hoạt kế hoạch bù tiến độ công trình";
+  if (type === "interior_site_team_dispatch") return "Phê duyệt Vận hành: Điều động đội thợ lắp đặt hiện trường";
+  if (type === "interior_architect_rebalance") return "Phê duyệt Nhân sự: Tái phân bổ tải công việc KTS thiết kế";
+  if (type === "interior_workshop_recruitment") return "Phê duyệt Nhân sự: Tuyển dụng bổ sung thợ hoàn thiện xưởng";
+  if (type === "interior_boq_variance_review") return "Phê duyệt Tài chính: Rà soát điều chỉnh dự toán BOQ";
+  if (type === "interior_milestone_payment_followup") return "Phê duyệt Tài chính: Đôn đốc thu hồi công nợ nghiệm thu";
+  if (type === "interior_executive_action") return "Phê duyệt Quản trị: Nghị quyết điều hành toàn diện chuỗi giá trị";
   return `Phê duyệt từ Ban Điều Hành: Hành động điều phối ${type}`;
 }
 
