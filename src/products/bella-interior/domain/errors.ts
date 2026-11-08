@@ -108,4 +108,40 @@ export class TakeoffDiffRunMismatchError extends Error {
   }
 }
 
+export class BOQUnderReviewSyncForbiddenError extends Error {
+  constructor(boqId: string, versionNumber: number) {
+    super(
+      `Cannot sync design diff to BOQ '${boqId}' (R${versionNumber}.0) in status 'under_review'. The BOQ is currently awaiting approval. Estimator must reject or approve the current revision before initiating a new sync.`
+    );
+    this.name = 'BOQUnderReviewSyncForbiddenError';
+  }
+}
+
+export class BOQProjectMismatchError extends Error {
+  constructor(diffProjectId: string, boqProjectId: string) {
+    super(
+      `Project mismatch in BOQ sync: Diff project '${diffProjectId}' does not match target BOQ project '${boqProjectId}'.`
+    );
+    this.name = 'BOQProjectMismatchError';
+  }
+}
+
+export class BOQConcurrencyConflictError extends Error {
+  constructor(boqId: string, expectedVersion: number, actualVersion: number) {
+    super(
+      `Concurrency conflict on BOQ '${boqId}': expected version ${expectedVersion}, but found version ${actualVersion}. Another estimator or operation has modified this BOQ.`
+    );
+    this.name = 'BOQConcurrencyConflictError';
+  }
+}
+
+export class BOQUnresolvedItemsExistError extends Error {
+  constructor(unresolvedCount: number) {
+    super(
+      `Cannot submit or approve BOQ while ${unresolvedCount} unresolved review items (REVIEW_REQUIRED) remain pending. Estimator must resolve all component ambiguities before submission.`
+    );
+    this.name = 'BOQUnresolvedItemsExistError';
+  }
+}
+
 

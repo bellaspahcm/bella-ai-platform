@@ -79,6 +79,9 @@ export * from './services/interior-takeoff.service';
 // Takeoff Diff Engine (Phase 2B)
 export * from './services/interior-takeoff-diff.service';
 
+// Takeoff-to-BOQ Sync (Phase 2C)
+export * from './services/interior-takeoff-sync.service';
+
 // Manifest
 export * from './manifest';
 

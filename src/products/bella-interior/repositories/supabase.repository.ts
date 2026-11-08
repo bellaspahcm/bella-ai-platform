@@ -1226,13 +1226,17 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   }
 
   async getBOQRevisionsByProject(tenantId: string, projectId: string): Promise<InteriorBOQ[]> {
+    return this.listBOQRevisions(tenantId, projectId);
+  }
+
+  async listBOQRevisions(tenantId: string, projectId: string): Promise<InteriorBOQ[]> {
     const { data, error } = await this.supabase
       .from('interior_boqs')
       .select('*')
       .eq('tenant_id', tenantId)
       .eq('project_id', projectId)
       .order('version_number', { ascending: false });
-    if (error) throw new Error(`[InteriorRepo] getBOQRevisionsByProject failed: ${error.message}`);
+    if (error) throw new Error(`[InteriorRepo] listBOQRevisions failed: ${error.message}`);
     if (!data || data.length === 0) return [];
 
     const revisions: InteriorBOQ[] = [];
@@ -1242,7 +1246,7 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
         .select('*')
         .eq('tenant_id', tenantId)
         .eq('boq_id', row.id);
-      if (itemErr) throw new Error(`[InteriorRepo] getBOQRevisionsByProject (items) failed: ${itemErr.message}`);
+      if (itemErr) throw new Error(`[InteriorRepo] listBOQRevisions (items) failed: ${itemErr.message}`);
       const items = ((itemData || []) as BOQItemRow[]).map(mapRowToBOQItem);
       revisions.push(mapRowToBOQ(row, items));
     }

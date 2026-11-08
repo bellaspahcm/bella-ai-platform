@@ -48,6 +48,7 @@ export interface IInteriorRepository {
   saveBOQ(tenantId: string, boq: InteriorBOQ): Promise<void>;
   getBOQ(tenantId: string, boqId: string): Promise<InteriorBOQ | null>;
   getBOQByProject(tenantId: string, projectId: string): Promise<InteriorBOQ | null>;
+  listBOQRevisions(tenantId: string, projectId: string): Promise<InteriorBOQ[]>;
   saveQuotation(tenantId: string, quotation: InteriorQuotation): Promise<void>;
   getQuotation(tenantId: string, quotationId: string): Promise<InteriorQuotation | null>;
   saveContract(tenantId: string, contract: InteriorContract): Promise<void>;

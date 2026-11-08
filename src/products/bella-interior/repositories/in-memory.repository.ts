@@ -144,21 +144,42 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
 
   async saveBOQ(tenantId: string, boq: InteriorBOQ): Promise<void> {
     if (boq.tenantId !== tenantId) throw new TenantIsolationViolationError();
-    this.boqs.set(this.makeKey(tenantId, boq.id), boq);
+    const key = this.makeKey(tenantId, boq.id);
+    const existing = this.boqs.get(key);
+    if (existing && (existing.status === 'approved' || existing.status === 'locked_for_contract')) {
+      const isStatusTransitionToLocked =
+        existing.status === 'approved' && boq.status === 'locked_for_contract';
+      if (!isStatusTransitionToLocked) {
+        throw new Error(
+          `[InteriorRepo] Immutability violation: BOQ ${boq.id} is '${existing.status}' and cannot be modified. Create a new revision.`
+        );
+      }
+    }
+    // Deep-copy snapshot to prevent external in-memory references from mutating stored state
+    this.boqs.set(key, JSON.parse(JSON.stringify(boq)) as InteriorBOQ);
   }
 
   async getBOQ(tenantId: string, boqId: string): Promise<InteriorBOQ | null> {
-    return this.boqs.get(this.makeKey(tenantId, boqId)) ?? null;
+    const boq = this.boqs.get(this.makeKey(tenantId, boqId));
+    if (!boq) return null;
+    return JSON.parse(JSON.stringify(boq)) as InteriorBOQ;
   }
 
   async getBOQByProject(tenantId: string, projectId: string): Promise<InteriorBOQ | null> {
     if (!tenantId) throw new TenantIsolationViolationError();
+    const revisions = await this.listBOQRevisions(tenantId, projectId);
+    return revisions.length > 0 ? revisions[0] : null;
+  }
+
+  async listBOQRevisions(tenantId: string, projectId: string): Promise<InteriorBOQ[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    const result: InteriorBOQ[] = [];
     for (const [key, val] of this.boqs.entries()) {
       if (key.startsWith(`${tenantId}::`) && val.projectId === projectId) {
-        return val;
+        result.push(JSON.parse(JSON.stringify(val)) as InteriorBOQ);
       }
     }
-    return null;
+    return result.sort((a, b) => b.versionNumber - a.versionNumber);
   }
 
   async saveQuotation(tenantId: string, quotation: InteriorQuotation): Promise<void> {
