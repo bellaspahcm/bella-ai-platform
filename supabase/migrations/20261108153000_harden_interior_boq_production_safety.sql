@@ -5,15 +5,16 @@
 -- Purpose:
 -- 1. [R1] Tenant Isolation & Security Definer Hardening:
 --    - Verify caller JWT matches tenant_id in RPC when invoked by authenticated users.
+--    - Verify project_id, revision_id, and BOQ ownership match tenant_id (service_role safe).
 --    - Strict search_path = public, pg_temp on all triggers and functions.
 --    - Revoke EXECUTE from public/anon, grant only to authenticated/service_role.
 -- 2. [R2] Persistent Idempotency: Create table `interior_sync_idempotency`
---    with request_hash guard and 7-day expiration.
+--    with request_hash guard, 7-day TTL, auto-expiry on reuse, and cleanup function.
 -- 3. [R3] Transaction Atomicity: Create RPC `save_interior_boq_atomic`
 --    executing header upsert, item replacement, audit log, and idempotency
 --    in a single atomic PostgreSQL transaction.
--- 4. [R4] Database-level Immutability: Add BEFORE UPDATE and BEFORE DELETE
---    triggers on `interior_boqs` and `interior_boq_items`.
+-- 4. [R4] Database-level Immutability: Pure state-machine BEFORE UPDATE and BEFORE DELETE
+--    triggers on `interior_boqs` and `interior_boq_items` without reliance on custom GUCs.
 -- 5. [R5] Database Concurrency Protection: Optimistic locking in RPC + constraints.
 -- 6. [R6] Protected Audit Integration: Audit logs written within the same transaction.
 -- ============================================================================
@@ -51,8 +52,25 @@ END $$;
 CREATE INDEX IF NOT EXISTS idx_interior_sync_idempotency_lookup
     ON public.interior_sync_idempotency(tenant_id, project_id, idempotency_key);
 
+CREATE INDEX IF NOT EXISTS idx_interior_sync_idempotency_expires_at
+    ON public.interior_sync_idempotency(expires_at);
+
+-- Cleanup function for scheduled maintenance jobs
+CREATE OR REPLACE FUNCTION public.cleanup_expired_interior_idempotency()
+RETURNS INTEGER AS $$
+DECLARE
+    v_deleted INTEGER;
+BEGIN
+    DELETE FROM public.interior_sync_idempotency
+    WHERE expires_at < timezone('utc'::text, now());
+    GET DIAGNOSTICS v_deleted = ROW_COUNT;
+    RETURN v_deleted;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
+
 -- ----------------------------------------------------------------------------
 -- 2. DATABASE-LEVEL IMMUTABILITY TRIGGERS (R4)
+-- Pure State-Machine Architecture: Zero reliance on custom GUC variables
 -- ----------------------------------------------------------------------------
 
 -- 2.1 Trigger on interior_boqs (BEFORE UPDATE)
@@ -111,17 +129,13 @@ BEFORE DELETE ON public.interior_boqs
 FOR EACH ROW EXECUTE FUNCTION public.trg_guard_interior_boq_delete_immutability();
 
 -- 2.3 Trigger on interior_boq_items (BEFORE INSERT, UPDATE, DELETE)
+-- Directly inspects parent BOQ status in interior_boqs table (no GUC spoofing possible)
 CREATE OR REPLACE FUNCTION public.trg_guard_interior_boq_items_immutability()
 RETURNS TRIGGER AS $$
 DECLARE
     v_parent_status TEXT;
     v_target_boq_id UUID;
 BEGIN
-    -- If running inside save_interior_boq_atomic on an unapproved BOQ, allow atomic item population
-    IF current_setting('app.interior_boq_sync_active', true) = 'true' THEN
-        RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;
-    END IF;
-
     v_target_boq_id := CASE WHEN TG_OP = 'DELETE' THEN OLD.boq_id ELSE NEW.boq_id END;
 
     SELECT status INTO v_parent_status
@@ -178,9 +192,37 @@ BEGIN
         END IF;
     END IF;
 
+    -- Validate tenant exists and is active (protects service_role calls)
+    IF NOT EXISTS (SELECT 1 FROM public.tenants WHERE id = p_tenant_id AND status = 'active') THEN
+        RAISE EXCEPTION 'TenantIsolationViolation: Tenant % does not exist or is inactive', p_tenant_id;
+    END IF;
+
     v_boq_id := (p_boq_header->>'id')::UUID;
     v_project_id := (p_boq_header->>'project_id')::UUID;
     v_target_status := COALESCE(p_boq_header->>'status', 'draft');
+
+    -- Validate project belongs to the tenant (protects service_role calls)
+    IF NOT EXISTS (SELECT 1 FROM public.interior_projects WHERE id = v_project_id AND tenant_id = p_tenant_id) THEN
+        RAISE EXCEPTION 'TenantIsolationViolation: Project % does not belong to Tenant %', v_project_id, p_tenant_id;
+    END IF;
+
+    -- Validate design_revision belongs to project and tenant (if provided)
+    IF (p_boq_header->>'design_revision_id') IS NOT NULL THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM public.interior_design_revisions
+            WHERE id = (p_boq_header->>'design_revision_id')::UUID
+              AND tenant_id = p_tenant_id
+              AND project_id = v_project_id
+        ) THEN
+            RAISE EXCEPTION 'TenantIsolationViolation: Revision % does not belong to Project % under Tenant %',
+                p_boq_header->>'design_revision_id', v_project_id, p_tenant_id;
+        END IF;
+    END IF;
+
+    -- Check cross-tenant collision for BOQ ID
+    IF EXISTS (SELECT 1 FROM public.interior_boqs WHERE id = v_boq_id AND tenant_id != p_tenant_id) THEN
+        RAISE EXCEPTION 'TenantIsolationViolation: Cross-tenant BOQ collision for BOQ %', v_boq_id;
+    END IF;
 
     -- Validate actor ID references a valid user to satisfy audit_logs foreign key
     IF p_audit_actor_id IS NOT NULL THEN
@@ -189,7 +231,7 @@ BEGIN
         END IF;
     END IF;
 
-    -- 2. Persistent Idempotency Check (R2)
+    -- 2. Persistent Idempotency Check with TTL Awareness (R2)
     IF p_idempotency_key IS NOT NULL AND p_idempotency_key != '' THEN
         SELECT * INTO v_existing_idempotency
         FROM public.interior_sync_idempotency
@@ -198,19 +240,26 @@ BEGIN
           AND idempotency_key = p_idempotency_key;
 
         IF FOUND THEN
-            -- Payload Mismatch Guard
-            IF p_request_hash IS NOT NULL AND v_existing_idempotency.request_hash != p_request_hash THEN
-                RAISE EXCEPTION 'IdempotencyPayloadMismatch: Re-used idempotency key with conflicting payload';
+            -- Check if the idempotency record has expired (TTL passed)
+            IF v_existing_idempotency.expires_at < timezone('utc'::text, now()) THEN
+                -- Remove stale expired key and allow fresh transaction execution
+                DELETE FROM public.interior_sync_idempotency WHERE id = v_existing_idempotency.id;
+            ELSE
+                -- Active key: Payload Mismatch Guard
+                IF p_request_hash IS NOT NULL AND v_existing_idempotency.request_hash != p_request_hash THEN
+                    RAISE EXCEPTION 'IdempotencyPayloadMismatch: Re-used idempotency key with conflicting payload';
+                END IF;
+                -- Return cached response snapshot
+                RETURN v_existing_idempotency.response_snapshot;
             END IF;
-            -- Return cached response
-            RETURN v_existing_idempotency.response_snapshot;
         END IF;
     END IF;
 
-    -- 3. Check existing BOQ and Concurrency (Optimistic Locking R5 & Immutability R4)
+    -- 3. Check existing BOQ with Row-Level Lock for Concurrency Protection (R5)
     SELECT * INTO v_existing
     FROM public.interior_boqs
-    WHERE id = v_boq_id AND tenant_id = p_tenant_id;
+    WHERE id = v_boq_id AND tenant_id = p_tenant_id
+    FOR UPDATE;
 
     IF FOUND THEN
         -- Concurrency Guard
@@ -275,10 +324,8 @@ BEGIN
         v_old_snapshot := NULL;
     END IF;
 
-    -- 4. Enable atomic sync session setting for item replacement
-    PERFORM set_config('app.interior_boq_sync_active', 'true', true);
-
-    -- 5. Upsert BOQ Header (R3 Atomicity)
+    -- 4. Upsert BOQ Header in intermediate 'draft' state to satisfy FK constraint
+    --    without triggering premature item immutability check
     INSERT INTO public.interior_boqs (
         id, tenant_id, project_id, design_revision_id,
         boq_number, version_number, status,
@@ -291,7 +338,7 @@ BEGIN
         (p_boq_header->>'design_revision_id')::UUID,
         p_boq_header->>'boq_number',
         (p_boq_header->>'version_number')::INTEGER,
-        v_target_status,
+        'draft',
         (p_boq_header->>'total_internal_cost')::NUMERIC,
         (p_boq_header->>'total_client_price')::NUMERIC,
         (p_boq_header->>'total_gross_margin')::NUMERIC,
@@ -303,7 +350,7 @@ BEGIN
         design_revision_id = EXCLUDED.design_revision_id,
         boq_number = EXCLUDED.boq_number,
         version_number = EXCLUDED.version_number,
-        status = EXCLUDED.status,
+        status = 'draft',
         total_internal_cost = EXCLUDED.total_internal_cost,
         total_client_price = EXCLUDED.total_client_price,
         total_gross_margin = EXCLUDED.total_gross_margin,
@@ -311,11 +358,11 @@ BEGIN
         prepared_by = EXCLUDED.prepared_by,
         updated_at = timezone('utc'::text, now());
 
-    -- 6. Delete old items (atomic replacement)
+    -- 5. Delete old items (atomic replacement)
     DELETE FROM public.interior_boq_items
     WHERE boq_id = v_boq_id AND tenant_id = p_tenant_id;
 
-    -- 7. Insert new items from JSON array
+    -- 6. Insert new items from JSON array (parent status is draft, trigger allows it)
     FOR v_item IN SELECT * FROM jsonb_array_elements(p_boq_items)
     LOOP
         INSERT INTO public.interior_boq_items (
@@ -344,6 +391,15 @@ BEGIN
             (v_item.value->>'gross_margin_percent')::NUMERIC
         );
     END LOOP;
+
+    -- 7. Finalize BOQ Header to target status (e.g. approved, review, or draft)
+    --    Once updated here, trg_guard_interior_boq_items_immutability immediately seals items!
+    IF v_target_status != 'draft' THEN
+        UPDATE public.interior_boqs
+        SET status = v_target_status,
+            updated_at = timezone('utc'::text, now())
+        WHERE id = v_boq_id AND tenant_id = p_tenant_id;
+    END IF;
 
     -- 8. Audit Logging in the same transaction (R6)
     INSERT INTO public.audit_logs (
@@ -379,11 +435,11 @@ BEGIN
                 'status', v_target_status
             ),
             timezone('utc'::text, now()) + INTERVAL '7 days'
-        );
+        )
+        ON CONFLICT (tenant_id, project_id, idempotency_key) DO UPDATE SET
+            response_snapshot = EXCLUDED.response_snapshot,
+            expires_at = EXCLUDED.expires_at;
     END IF;
-
-    -- 10. Reset atomic sync setting
-    PERFORM set_config('app.interior_boq_sync_active', 'false', true);
 
     RETURN jsonb_build_object(
         'success', true,
@@ -402,3 +458,8 @@ REVOKE EXECUTE ON FUNCTION public.save_interior_boq_atomic(UUID, JSONB, JSONB, I
 REVOKE EXECUTE ON FUNCTION public.save_interior_boq_atomic(UUID, JSONB, JSONB, INTEGER, TEXT, TEXT, UUID) FROM anon;
 GRANT EXECUTE ON FUNCTION public.save_interior_boq_atomic(UUID, JSONB, JSONB, INTEGER, TEXT, TEXT, UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.save_interior_boq_atomic(UUID, JSONB, JSONB, INTEGER, TEXT, TEXT, UUID) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.cleanup_expired_interior_idempotency() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.cleanup_expired_interior_idempotency() FROM anon;
+GRANT EXECUTE ON FUNCTION public.cleanup_expired_interior_idempotency() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.cleanup_expired_interior_idempotency() TO service_role;
