@@ -1,7 +1,7 @@
 # Bella Interior Production Security Audit — Architecture Gate
 
 Date: 2026-11-09
-Result: `PASS` for bounded deny-by-default hardening; `PROPOSED` for the least-privilege role matrix; `DEFER` for role-to-user assignments and direct-table read/write enablement.
+Result: `PASS` for the Production database hardening; `PROPOSED` for the least-privilege role matrix; `DEFER` for role-to-user assignments and direct-table read/write enablement; `BLOCKED` for Production application release until the source fixes below pass the required CI gates.
 
 ## Bella OS / Product Process Gate
 
@@ -68,7 +68,9 @@ No broad authenticated table grants, role assignment, general Platform RBAC rede
 
 ## UI → Contract Reconciliation
 
-No UI redesign is planned. The project detail view now withholds customer/address fields without `customer:read`, withholds estimated budget without `finance:read` or `contract:read`, and shows unknown progress/material data as unavailable instead of inventing values. Unsupported reads/writes and unconfigured private upload return explicit failures rather than mock or synthetic success data.
+No UI redesign is planned. Project detail reads withhold customer/address fields without `customer:read`; project-list reads withhold customer name without that permission. Both detail and list views withhold estimated budget without `finance:read` or `contract:read`. BOQ reads retain non-financial specification/quantity fields for `boq:read`, expose client pricing only with `contract:read` or `finance:read`, and expose internal costs/margins only with `finance:read`; denied or unavailable decisions omit those fields and aggregate totals. Handover reads expose the client sign-off name only with `customer:read`, and settlement value only with `contract:read` or `finance:read`. Warranty certificate reads expose the client name only with `customer:read`. These projections fail closed when the authorization resolver is unavailable.
+
+Unsupported reads/writes and unconfigured private upload return explicit failures rather than mock or synthetic success data. These route-level projections do not activate direct authenticated table access: Production direct-table grants remain revoked, so repository-backed reads/writes still require approved action-aware read/command contracts before those capabilities can be enabled.
 
 ## Migration Applicability and Recovery
 
@@ -94,7 +96,24 @@ Read-only checks after applying migration `20261108224216_bella_interior_product
 - The project-wide Security Advisor also reports 8 security-definer views, 27 public tables with RLS disabled, 218 functions with mutable search paths, and leaked-password protection disabled. The Interior-specific policy/function checks above do not show these findings on Interior tables/functions; the global findings were not changed by this product-scoped audit.
 - At the time of this catalog verification, the application source edits had not been deployed. Local `npm run typecheck:changed` passed with zero diagnostics; `git diff --check` passed after report cleanup. Production app deployment must be evidenced by the exact-SHA release workflow and health verification, separately from this DB result. No Production user grants were added, so authorization remains deny-by-default until approved Interior membership assignments are provided. No managed backup is available on the current Free plan; the applied DDL did not modify business rows.
 
+The production catalog was rechecked read-only on 2026-11-09 during the continuation: migration ledger row `20261108224216` = 1; Interior tables = 21; RLS-enabled = 21; restrictive policies = 21; policies whose `USING` and `WITH CHECK` both reference `platform_current_actor_profile()` = 21; anon/authenticated table CRUD grants = 0; Interior direct-user grants = 0. No Production data or schema was written during this recheck.
+
+## Additional Audit Findings and Deferred Work
+
+- Read-only source review found customer and financial fields in list projections that were guarded only by `project:read`, `boq:read`, `delivery:read`, or `warranty:read`. The source patch now applies the field-level permissions above. These fixes are not Production-active until the exact source SHA passes CI and the release workflow.
+- The repository references `interior_design_takeoff_runs` in its save/get/list methods, but the Production schema has no such table and no live API route calls those methods. This capability is `DEFER`; no table, policy, grant, or route is being invented as part of the security repair.
+- The proposed `interior_estimator` role has `contract:read` but not `finance:read`: it can read client pricing, while internal COGS/margin remain hidden. If Interior wants estimators to see internal cost, the owner must explicitly add the existing `finance:read` action to that assignment or approve a narrower BOQ-cost permission; no grant is inferred.
+- No named account roster has been supplied. The CSV's sample accounts use the requested `*@bellainterior.vn` domain pattern; they are examples only. Production still has zero Interior user grants and no role membership. Deny-by-default remains in force.
+
+## Release Gate Status
+
+- PR #521 at source SHA `bae52270f29381cf0ea732cb3fe95c8d9cb68edb` remains open and unmerged. The preview deployment is not Production evidence.
+- The associated `CI - Quality Gates` run completed successfully at that SHA, including Affected Unit and Integration Tests, Real Database Business E2E, Migration Gates, and the aggregate required-gates job. The separate Static Analysis Security Suite did not pass because of the Semgrep gate failure below.
+- A scoped source scan also found client pages that still contain hard-coded presentation fixtures and can retain them when their API read model returns unavailable. These fixtures are not Production tenant data, but they can make the UI show fabricated customer/financial values to a user whose API action is denied. Removing these remaining client-side fallbacks is still required before treating the whole Bella Interior UI as authorization-safe; the current PR fixes the server-side field disclosure paths and retains the deny-by-default API boundary.
+- The Semgrep CE rerun for that SHA failed a second time. Its scan completed (8,552 tracked files; 525 rules; 495 findings reported as blocking), then the gate exited with `SEMGREP_GATE_EXECUTION_OR_EVIDENCE_FAILED`. The available job log does not identify a single triaged source finding as the terminal cause. This gate is unresolved and must not be bypassed or weakened.
+- The source changes in this audit continuation are newer than that SHA and need the normal CI checks on their new exact SHA. No merge or application deployment is claimed.
+
 ## Gate Decision
 
-`PASS` for the bounded deny-by-default hardening described above.
-`PROPOSED` for the least-privilege Interior role matrix above. `DEFER` for role-to-user assignments, a Platform role-to-permission contract, per-context data projections, and direct-table access. Until those are approved and implemented, direct action decisions deny by default, and direct table access remains closed.
+`PASS` for the bounded Production database hardening and the source-level deny-by-default authorization design described above.
+`PROPOSED` for the least-privilege Interior role matrix. `DEFER` for role-to-user assignments, the absent takeoff persistence capability, and direct-table access. `BLOCKED` for Production application release until the field-projection fixes pass current required CI and the existing Semgrep failure is resolved without weakening its gate. Until approved memberships and action-aware data contracts exist, direct action decisions deny by default, and direct table access remains closed.

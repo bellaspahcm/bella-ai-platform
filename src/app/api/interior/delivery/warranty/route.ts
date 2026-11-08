@@ -46,26 +46,34 @@ export async function GET(request: Request): Promise<NextResponse> {
         status: ticket.status === 'in_progress' ? 'in_progress' : ticket.status === 'resolved' ? 'resolved' : 'open',
         createdAt: ticket.reportedDate,
       }));
-      return NextResponse.json({ success: true, data: { tickets, total: tickets.length } });
+      return NextResponse.json({ success: true, data: { tickets, total: tickets.length } }, {
+        headers: { 'Cache-Control': 'no-store, max-age=0' },
+      });
     }
     if (type !== 'certificates') {
       return NextResponse.json({ success: false, error: 'Unsupported warranty data type' }, { status: 400 });
     }
 
     const rows = await repo.listWarrantyCertificates(ctx.tenantId, projectId);
+    const customerDecision = await ctx.authorization.authorize({
+      permissionId: 'interior:customer:read',
+      tenantId: ctx.tenantId,
+    });
     const certificates = rows.map((certificate) => ({
       id: certificate.id,
       tenantId: certificate.tenantId,
       projectId: certificate.projectId,
       certificateNumber: certificate.certificateNumber,
-      clientName: certificate.customerName,
+      clientName: customerDecision.status === 'ALLOW' ? certificate.customerName : null,
       handoverDate: certificate.effectiveDate,
       warrantyStartDate: certificate.effectiveDate,
       warrantyEndDate: certificate.expirationDate,
       coverageScope: certificate.termsSummary,
       status: computeStatus(certificate.expirationDate),
     }));
-    return NextResponse.json({ success: true, data: { certificates, total: certificates.length } });
+    return NextResponse.json({ success: true, data: { certificates, total: certificates.length } }, {
+      headers: { 'Cache-Control': 'no-store, max-age=0' },
+    });
   } catch {
     return NextResponse.json({ success: false, error: 'INTERIOR_WARRANTY_LOOKUP_FAILED' }, { status: 503 });
   }

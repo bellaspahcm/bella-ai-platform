@@ -91,7 +91,9 @@ export async function GET(
         progress: null,
       };
 
-      return NextResponse.json({ success: true, data: responseData });
+      return NextResponse.json({ success: true, data: responseData }, {
+        headers: { 'Cache-Control': 'no-store, max-age=0' },
+      });
     }
   } catch {
     return NextResponse.json({ success: false, error: 'INTERIOR_PROJECT_READ_FAILED' }, { status: 503 });

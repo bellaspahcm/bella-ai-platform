@@ -51,6 +51,12 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   try {
     const projects = await repo.listProjects(ctx.tenantId);
+    const [customerDecision, financeDecision, contractDecision] = await Promise.all([
+      ctx.authorization.authorize({ permissionId: 'interior:customer:read', tenantId: ctx.tenantId }),
+      ctx.authorization.authorize({ permissionId: 'interior:finance:read', tenantId: ctx.tenantId }),
+      ctx.authorization.authorize({ permissionId: 'interior:contract:read', tenantId: ctx.tenantId }),
+    ]);
+    const canReadBudget = financeDecision.status === 'ALLOW' || contractDecision.status === 'ALLOW';
     return NextResponse.json({
       success: true,
       data: {
@@ -59,13 +65,17 @@ export async function GET(request: Request): Promise<NextResponse> {
           code: project.code,
           name: project.name,
           status: project.status,
-          customerName: project.customerName,
-          estimatedBudget: project.estimatedBudget,
+          customerName: customerDecision.status === 'ALLOW' ? project.customerName : null,
+          estimatedBudget: canReadBudget && Number.isFinite(project.estimatedBudget)
+            ? project.estimatedBudget
+            : null,
           targetCompletionDate: project.targetCompletionDate,
           leadArchitectName: project.leadArchitectName,
         })),
         total: projects.length,
       },
+    }, {
+      headers: { 'Cache-Control': 'no-store, max-age=0' },
     });
   } catch {
     return NextResponse.json(

@@ -58,6 +58,8 @@ export async function GET(request: Request): Promise<NextResponse> {
       contracts: contract ? [contract] : [],
       total: contract ? 1 : 0,
     },
+  }, {
+    headers: { 'Cache-Control': 'no-store, max-age=0' },
   });
 }
 

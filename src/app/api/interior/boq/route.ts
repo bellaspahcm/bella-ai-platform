@@ -93,13 +93,59 @@ export async function GET(request: Request): Promise<NextResponse> {
   try {
     const project = await repo.getProject(ctx.tenantId, requestedProjectId);
     if (!project) return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
+    const [financeDecision, contractDecision] = await Promise.all([
+      ctx.authorization.authorize({ permissionId: 'interior:finance:read', tenantId: ctx.tenantId }),
+      ctx.authorization.authorize({ permissionId: 'interior:contract:read', tenantId: ctx.tenantId }),
+    ]);
+    const canReadInternalCosts = financeDecision.status === 'ALLOW';
+    const canReadClientPricing = canReadInternalCosts || contractDecision.status === 'ALLOW';
     const boqs = await repo.listBOQRevisions(ctx.tenantId, project.id);
     const totals = boqs.reduce((sum, boq) => ({
       internalCost: sum.internalCost + boq.totalInternalCost,
       clientPrice: sum.clientPrice + boq.totalClientPrice,
       grossMargin: sum.grossMargin + boq.totalGrossMargin,
     }), { internalCost: 0, clientPrice: 0, grossMargin: 0 });
-    return NextResponse.json({ success: true, data: { projectId: project.id, boqs, total: boqs.length, totals } }, {
+    const projectedBOQs = boqs.map((boq) => {
+      const {
+        totalInternalCost,
+        totalClientPrice,
+        totalGrossMargin,
+        grossMarginPercent,
+        items,
+        ...visibleBOQ
+      } = boq;
+      return {
+        ...visibleBOQ,
+        items: items.map((item) => {
+          const {
+            internalUnitCost,
+            internalTotalCost,
+            clientUnitPrice,
+            clientTotalPrice,
+            grossMarginAmount,
+            grossMarginPercent: itemGrossMarginPercent,
+            ...visibleItem
+          } = item;
+          return {
+            ...visibleItem,
+            ...(canReadInternalCosts ? {
+              internalUnitCost,
+              internalTotalCost,
+              grossMarginAmount,
+              grossMarginPercent: itemGrossMarginPercent,
+            } : {}),
+            ...(canReadClientPricing ? { clientUnitPrice, clientTotalPrice } : {}),
+          };
+        }),
+        ...(canReadInternalCosts ? { totalInternalCost, totalGrossMargin, grossMarginPercent } : {}),
+        ...(canReadClientPricing ? { totalClientPrice } : {}),
+      };
+    });
+    const visibleTotals = {
+      ...(canReadInternalCosts ? { internalCost: totals.internalCost, grossMargin: totals.grossMargin } : {}),
+      ...(canReadClientPricing ? { clientPrice: totals.clientPrice } : {}),
+    };
+    return NextResponse.json({ success: true, data: { projectId: project.id, boqs: projectedBOQs, total: boqs.length, totals: visibleTotals } }, {
       status: 200,
       headers: { 'Cache-Control': 'no-store, max-age=0' },
     });
