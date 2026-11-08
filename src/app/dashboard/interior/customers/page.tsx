@@ -102,7 +102,7 @@ const INITIAL_CUSTOMER_OVERVIEW: CustomerOverviewResponse = {
       id: 'cust-001',
       code: 'KH-000128',
       name: 'Công ty CP An Phú',
-      avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=100&h=100&fit=crop&crop=faces',
+      avatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/commercial-award-project.jpg',
       type: 'enterprise',
       typeLabel: 'Doanh nghiệp',
       typeBadgeClass: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800',
@@ -110,7 +110,7 @@ const INITIAL_CUSTOMER_OVERVIEW: CustomerOverviewResponse = {
       sourceLabel: 'Giới thiệu',
       sourceClass: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200/60',
       managerName: 'Nguyễn Văn Minh',
-      managerAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces',
+      managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg',
       opportunityCount: 2,
       projectCount: 3,
       totalValue: 5_200_000_000,
@@ -127,7 +127,7 @@ const INITIAL_CUSTOMER_OVERVIEW: CustomerOverviewResponse = {
       id: 'cust-002',
       code: 'KH-000129',
       name: 'Trần Thị Mai',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=faces',
+      avatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-site.jpg',
       type: 'individual',
       typeLabel: 'Cá nhân',
       typeBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800',
@@ -135,7 +135,7 @@ const INITIAL_CUSTOMER_OVERVIEW: CustomerOverviewResponse = {
       sourceLabel: 'Marketing',
       sourceClass: 'text-purple-600 bg-purple-50 dark:bg-purple-950/30 border-purple-200/60',
       managerName: 'Lê Thị Hương',
-      managerAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=faces',
+      managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/customers/client-female-1.jpg',
       opportunityCount: 1,
       projectCount: 1,
       totalValue: 1_500_000_000,
@@ -152,7 +152,7 @@ const INITIAL_CUSTOMER_OVERVIEW: CustomerOverviewResponse = {
       id: 'cust-003',
       code: 'KH-000130',
       name: 'Tập đoàn Hòa Bình',
-      avatar: 'https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=100&h=100&fit=crop&crop=faces',
+      avatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/customers/client-male-1.jpg',
       type: 'organization',
       typeLabel: 'Tổ chức',
       typeBadgeClass: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800',
@@ -160,7 +160,7 @@ const INITIAL_CUSTOMER_OVERVIEW: CustomerOverviewResponse = {
       sourceLabel: 'Đối tác',
       sourceClass: 'text-cyan-600 bg-cyan-50 dark:bg-cyan-950/30 border-cyan-200/60',
       managerName: 'Phạm Văn Tuấn',
-      managerAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces',
+      managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg',
       opportunityCount: 3,
       projectCount: 5,
       totalValue: 12_800_000_000,
@@ -177,7 +177,7 @@ const INITIAL_CUSTOMER_OVERVIEW: CustomerOverviewResponse = {
       id: 'cust-004',
       code: 'KH-000131',
       name: 'Nguyễn Văn Sơn',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=faces',
+      avatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-2.jpg',
       type: 'individual',
       typeLabel: 'Cá nhân',
       typeBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800',
@@ -185,7 +185,7 @@ const INITIAL_CUSTOMER_OVERVIEW: CustomerOverviewResponse = {
       sourceLabel: 'Khách hàng cũ',
       sourceClass: 'text-slate-600 bg-slate-100 dark:bg-slate-800 border-slate-200',
       managerName: 'Nguyễn Thị Mai',
-      managerAvatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=faces',
+      managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/customers/client-female-2.jpg',
       opportunityCount: 1,
       projectCount: 1,
       totalValue: 850_000_000,
@@ -270,7 +270,7 @@ export default function CustomersPage() {
       id: `cust-${Date.now()}`,
       code: `KH-${Date.now().toString().slice(-4)}`,
       name: newCustomerName || 'Khách hàng mới',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop',
+      avatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg',
       type: 'individual',
       typeLabel: newCustomerType,
       typeBadgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -278,7 +278,7 @@ export default function CustomersPage() {
       sourceLabel: 'Website / KTS',
       sourceClass: 'bg-blue-50 text-blue-700 border-blue-200',
       managerName: 'KTS. Lê Hoàng Quân',
-      managerAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop',
+      managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg',
       opportunityCount: 1,
       projectCount: 1,
       totalValue: 1_200_000_000,
@@ -388,7 +388,7 @@ export default function CustomersPage() {
             <div className="flex items-center gap-2 pl-1 border-l border-slate-200 dark:border-slate-800">
               <div className="relative w-8 h-8 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
                 <Image
-                  src={'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=faces'}
+                  src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/finance-director-male.jpg'}
                   alt="Nguyễn Văn Quang"
                   fill
                   sizes="32px"

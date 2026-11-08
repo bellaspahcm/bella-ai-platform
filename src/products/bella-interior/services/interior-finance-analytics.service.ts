@@ -599,7 +599,7 @@ export class InteriorFinanceAnalyticsService {
     const footerBanner = {
       title: 'Bella Interior',
       subtitle: 'Kiến tạo không gian sống đẳng cấp',
-      bgImageUrl: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80',
+      bgImageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/finance/financial-report-cover.jpg',
     };
 
     // 11. Revenue Truth Aggregation
@@ -648,7 +648,7 @@ export class InteriorFinanceAnalyticsService {
       user: {
         name: 'Nguyễn Văn Quang',
         role: 'Project Manager',
-        avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=120&q=80',
+        avatarUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/finance-director-male.jpg',
         notificationsCount: 3,
       },
       kpis,

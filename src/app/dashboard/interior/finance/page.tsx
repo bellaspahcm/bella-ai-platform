@@ -164,7 +164,7 @@ export default function InteriorProjectFinancePage() {
           {/* User Profile Avatar */}
           <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800 cursor-pointer">
             <img
-              src={'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=120&q=80'}
+              src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/finance-director-male.jpg'}
               alt={data.user.name}
               className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-500/20 dark:ring-emerald-500/40"
             />
@@ -858,7 +858,7 @@ export default function InteriorProjectFinancePage() {
       {/* ─── 07. FOOTER BANNER: Bella Interior Luxury Living ─── */}
       <div className="relative rounded-3xl overflow-hidden shadow-sm border border-slate-200/80 dark:border-slate-800 min-h-[200px] sm:min-h-[240px] flex flex-col justify-end p-6 sm:p-8 group">
         <img
-          src={'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80'}
+          src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/finance/financial-report-cover.jpg'}
           alt="Bella Interior Living Room"
           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
         />

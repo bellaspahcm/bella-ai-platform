@@ -449,7 +449,7 @@ export class InteriorContractAnalyticsService {
    */
   public static readonly CANONICAL_PROJECT_SUMMARY: ProjectSummaryCardData = {
     title: 'Tổng quan dự án',
-    imageUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=600&q=80',
+    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/installation/site-progress-main.jpg',
     imageAlt: 'Villa Sunrise Renovation Living Space',
     progressPercentage: 65,
     progressFormatted: '65%',

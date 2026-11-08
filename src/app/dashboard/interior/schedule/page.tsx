@@ -203,7 +203,7 @@ const INITIAL_SCHEDULE_OVERVIEW: ScheduleOverviewResponse = {
       category: 'design',
       categoryLabel: 'Thiết kế',
       categoryClass: 'bg-blue-50 text-blue-700 border-blue-200',
-      assigneeAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop',
+      assigneeAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg',
     },
     {
       id: 'up-2',
@@ -213,7 +213,7 @@ const INITIAL_SCHEDULE_OVERVIEW: ScheduleOverviewResponse = {
       category: 'design',
       categoryLabel: 'Thiết kế',
       categoryClass: 'bg-blue-50 text-blue-700 border-blue-200',
-      assigneeAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop',
+      assigneeAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg',
     },
     {
       id: 'up-3',
@@ -223,7 +223,7 @@ const INITIAL_SCHEDULE_OVERVIEW: ScheduleOverviewResponse = {
       category: 'workshop',
       categoryLabel: 'Sản xuất',
       categoryClass: 'bg-amber-50 text-amber-700 border-amber-200',
-      assigneeAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop',
+      assigneeAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-2.jpg',
     },
     {
       id: 'up-4',
@@ -233,14 +233,14 @@ const INITIAL_SCHEDULE_OVERVIEW: ScheduleOverviewResponse = {
       category: 'site',
       categoryLabel: 'Thi công',
       categoryClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      assigneeAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop',
+      assigneeAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-site.jpg',
     },
   ],
   projectProgress: [
     {
       id: 'prog-1',
       projectName: 'Villa Sunrise Renovation',
-      projectThumbnail: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100&h=100&fit=crop',
+      projectThumbnail: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
       progressPercent: 92,
       statusLabel: 'Đúng tiến độ',
       statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -249,7 +249,7 @@ const INITIAL_SCHEDULE_OVERVIEW: ScheduleOverviewResponse = {
     {
       id: 'prog-2',
       projectName: 'Office Tower Lobby',
-      projectThumbnail: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=100&h=100&fit=crop',
+      projectThumbnail: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/office-tower-wide.jpg',
       progressPercent: 65,
       statusLabel: 'Chậm tiến độ',
       statusBadgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -258,7 +258,7 @@ const INITIAL_SCHEDULE_OVERVIEW: ScheduleOverviewResponse = {
     {
       id: 'prog-3',
       projectName: 'Skyline Residence',
-      projectThumbnail: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=100&h=100&fit=crop',
+      projectThumbnail: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/skyline-residence-alt.jpg',
       progressPercent: 80,
       statusLabel: 'Đúng tiến độ',
       statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -267,7 +267,7 @@ const INITIAL_SCHEDULE_OVERVIEW: ScheduleOverviewResponse = {
     {
       id: 'prog-4',
       projectName: 'The Garden Villa',
-      projectThumbnail: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=100&h=100&fit=crop',
+      projectThumbnail: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/the-garden-villa.jpg',
       progressPercent: 45,
       statusLabel: 'Cần chú ý',
       statusBadgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
@@ -548,7 +548,7 @@ export default function SchedulePage() {
             <div className="flex items-center gap-2 pl-1 border-l border-slate-200 dark:border-slate-800">
               <div className="relative w-8 h-8 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
                 <Image
-                  src={'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=faces'}
+                  src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/finance-director-male.jpg'}
                   alt="Nguyễn Văn Quang"
                   fill
                   sizes="32px"

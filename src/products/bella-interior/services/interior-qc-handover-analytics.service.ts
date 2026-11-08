@@ -51,7 +51,7 @@ export class InteriorQCHandoverAnalyticsService {
       totalCriticalCount: 1,
       isEligibleForHandover: true,
       warrantyCertificateButtonLabel: 'Chứng Thư Bảo Hành >',
-      bannerImageUrl: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80',
+      bannerImageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/finance/financial-report-cover.jpg',
     };
   }
 
@@ -146,7 +146,7 @@ export class InteriorQCHandoverAnalyticsService {
         severityBadgeClass: 'bg-red-500 text-white',
         assigneeName: 'Trần Văn Minh',
         assigneeTeam: '(Đội thi công)',
-        assigneeAvatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+        assigneeAvatarUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/handover/qc-inspector-avatar.jpg',
         deadlineDate: '2026-10-10',
         deadlineFormatted: '10/10/2026',
         isOverdue: true,
@@ -169,7 +169,7 @@ export class InteriorQCHandoverAnalyticsService {
         severityBadgeClass: 'bg-amber-500 text-white',
         assigneeName: 'Nguyễn Thị Hà',
         assigneeTeam: '(Đội sản xuất)',
-        assigneeAvatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=120&q=80',
+        assigneeAvatarUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/customers/client-female-2.jpg',
         deadlineDate: '2026-10-12',
         deadlineFormatted: '12/10/2026',
         isOverdue: false,
@@ -191,7 +191,7 @@ export class InteriorQCHandoverAnalyticsService {
         severityBadgeClass: 'bg-emerald-500 text-white',
         assigneeName: 'Lê Văn Dũng',
         assigneeTeam: '(Đội thi công)',
-        assigneeAvatarUrl: 'https://images.unsplash.com/photo-1628157582853-a796fa650a6a?auto=format&fit=crop&w=120&q=80',
+        assigneeAvatarUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/handover/handover-signoff.jpg',
         deadlineDate: '2026-10-14',
         deadlineFormatted: '14/10/2026',
         isOverdue: false,
@@ -261,7 +261,7 @@ export class InteriorQCHandoverAnalyticsService {
       title: 'Chất lượng tạo nên giá trị',
       description: 'Bella Interior cam kết mang đến không gian sống hoàn hảo nhất.',
       iconName: 'shield-check',
-      imageUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=600&q=80',
+      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/installation/site-progress-main.jpg',
     };
   }
 

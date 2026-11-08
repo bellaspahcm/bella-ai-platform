@@ -23,6 +23,20 @@ APPROVED_CODE_SCANNING_SUPPRESSIONS = (
         41,
         "const TEST_BASE_URL = 'http://localhost/api/education/curriculum'; // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request",
     ),
+    (
+        "scripts/r2-upload/replace-urls.mjs",
+        "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+        49,
+        "    const full = resolve(dir, safeName); // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+    ),
+    # Second taint path for the same sanitized resolve() call (Semgrep reports
+    # one finding per taint source; both are suppressed by the same nosemgrep annotation).
+    (
+        "scripts/r2-upload/replace-urls.mjs",
+        "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+        49,
+        "    const full = resolve(dir, safeName); // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+    ),
 )
 # Back-compat alias used by the exclusion count guard (max 1 per run).
 APPROVED_CODE_SCANNING_SUPPRESSION = APPROVED_CODE_SCANNING_SUPPRESSIONS[0]

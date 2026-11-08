@@ -268,7 +268,7 @@ export class InteriorWarrantyAnalyticsService {
         type: 'ticket_created',
         title: 'Nguyễn Thị Mai đã tạo Ticket #ST-2026-011',
         timeAgo: '2 giờ trước',
-        avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80',
+        avatarUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/customers/client-female-1.jpg',
       },
       {
         id: 'ACT-002',
@@ -293,7 +293,7 @@ export class InteriorWarrantyAnalyticsService {
         id: currentProject.id,
         code: currentProject.code,
         name: currentProject.name,
-        thumbnailUrl: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=100&q=80',
+        thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/finance/financial-report-cover.jpg',
         notificationCount: 3,
       },
       availableProjects,
@@ -331,7 +331,7 @@ export class InteriorWarrantyAnalyticsService {
         subtitle: 'Đồng hành cùng khách hàng sau bàn giao',
         buttonText: 'Tìm hiểu thêm →',
         buttonHref: '#learn-more-warranty',
-        imageUrl: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=600&q=80',
+        imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/finance/financial-report-cover.jpg',
       },
       calendar: {
         monthLabel: 'Tháng 11/2026',

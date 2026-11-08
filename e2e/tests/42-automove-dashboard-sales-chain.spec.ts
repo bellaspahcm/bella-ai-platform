@@ -65,7 +65,7 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     await db.query('commit'); transaction = false; seeded = true;
 
     stage = 'login';
-    await page.goto('/login');
+    await page.goto('/login?next=/dashboard/bella-auto');
     await page.getByPlaceholder('email', { exact: true }).fill(email);
     await page.locator('input[type="password"]').fill(password);
     const login = page.waitForResponse(response => response.url().startsWith(`${apiUrl}/auth/v1/token`) && response.request().method() === 'POST');
