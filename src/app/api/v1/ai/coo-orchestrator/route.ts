@@ -6,6 +6,7 @@ import { withTenantContext, type NextRequestWithContext } from "@/core/middlewar
 import { SupabasePlatformActionAuthorization } from "@/platform/authorization";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database.types";
+import { detectRouting } from "@/services/ai/orchestrator";
 
 // Cấu trúc yêu cầu của CEO
 interface COORequest {
@@ -43,7 +44,7 @@ export const POST = withTenantContext(async (request: NextRequestWithContext) =>
     // 3. Fetch user profile for role and full_name (tenant_id already validated by middleware)
     const { data: userData, error: userError } = await supabase
       .from("users")
-      .select("id, role, full_name, tenant_id, status")
+      .select("id, role, full_name, tenant_id")
       .eq("id", authUser.id)
       .single();
 
@@ -51,23 +52,14 @@ export const POST = withTenantContext(async (request: NextRequestWithContext) =>
       console.error("[AI COO Orchestrator] Không tìm thấy hồ sơ người dùng trong hệ thống:", userError);
       return NextResponse.json({ error: "Tài khoản của bạn không tồn tại trong hệ thống Bella EIP." }, { status: 403 });
     }
-    if (userData.tenant_id !== tenantId || userData.status !== 'active') {
-      return NextResponse.json({ error: "Tài khoản không hoạt động trong tenant hiện tại." }, { status: 403 });
+    if (userData.tenant_id !== tenantId) {
+      return NextResponse.json({ error: "Tài khoản không thuộc tenant hiện tại." }, { status: 403 });
     }
 
     // 4. Validate user has permission to use AI COO
     if (!canUseAiCopilotRole(userData.role)) {
       console.warn(`[AI COO Orchestrator] Người dùng ${userData.full_name} với vai trò ${userData.role} bị từ chối truy cập.`);
       return NextResponse.json({ error: "Quyền hạn không hợp lệ. Chỉ có Ban điều hành (Admin/Super Admin), Quản lý dự án, KTS trưởng và Kế toán mới có quyền điều phối AI Copilot." }, { status: 403 });
-    }
-
-    const authorization = new SupabasePlatformActionAuthorization(supabase as unknown as SupabaseClient<Database>);
-    const decision = await authorization.authorize({ permissionId: 'interior:reports:read', tenantId });
-    if (decision.status === 'DENY') {
-      return NextResponse.json({ error: "Không có quyền xem báo cáo Interior qua AI COO." }, { status: 403 });
-    }
-    if (decision.status === 'UNAVAILABLE') {
-      return NextResponse.json({ error: "Không thể xác thực quyền AI COO." }, { status: 503 });
     }
 
     // 5. Parse request body
@@ -82,6 +74,17 @@ export const POST = withTenantContext(async (request: NextRequestWithContext) =>
     }
     if (monthYear !== undefined && (typeof monthYear !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])(?:-(0[1-9]|[12]\d|3[01]))?$/.test(monthYear))) {
       return NextResponse.json({ error: "monthYear must use YYYY-MM or YYYY-MM-DD." }, { status: 400 });
+    }
+
+    if (detectRouting(command.toLowerCase()).startsWith('interior')) {
+      const authorization = new SupabasePlatformActionAuthorization(supabase as unknown as SupabaseClient<Database>);
+      const decision = await authorization.authorize({ permissionId: 'interior:reports:read', tenantId });
+      if (decision.status === 'DENY') {
+        return NextResponse.json({ error: "Không có quyền xem báo cáo Interior qua AI COO." }, { status: 403 });
+      }
+      if (decision.status === 'UNAVAILABLE') {
+        return NextResponse.json({ error: "Không thể xác thực quyền AI COO." }, { status: 503 });
+      }
     }
 
     console.log(`[AI COO Orchestrator] CEO ${userData.full_name} gửi lệnh: "${command}"`);
@@ -103,6 +106,9 @@ export const POST = withTenantContext(async (request: NextRequestWithContext) =>
 
   } catch (error: unknown) {
     console.error("[AI COO Orchestrator] Lỗi ngoại lệ nghiêm trọng:", error);
+    if (error instanceof Error && error.message === 'INTERIOR_AI_DATA_SOURCE_UNAVAILABLE') {
+      return NextResponse.json({ error: "Dữ liệu Interior chưa có nguồn đọc an toàn." }, { status: 503 });
+    }
     // Trả về lỗi rõ ràng để hệ thống kiểm thử tự động nhận diện lập tức
     return NextResponse.json(
       { error: "Đã xảy ra lỗi nghiêm trọng trong quá trình xử lý của AI Orchestrator.", details: getErrorMessage(error) },

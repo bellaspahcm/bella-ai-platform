@@ -79,16 +79,12 @@ describe('Bella Interior OS — Platform Manufacturing Adapter', () => {
     );
   });
 
-  it('provides status query through port', async () => {
+  it('fails closed when no persisted Manufacturing status provider is configured', async () => {
     const adapter = new PlatformManufacturingAdapter();
-    const status = await adapter.getProductionStatus({
+    await expect(adapter.getProductionStatus({
       tenantId,
       manufacturingProductionOrderId: 'mfg_po_12345',
-    });
-
-    expect(status.status).toBe('in_production');
-    expect(status.currentStage).toBe('cutting_cnc');
-    expect(status.completionPercent).toBe(35);
+    })).rejects.toThrow('MANUFACTURING_SERVICE_UNAVAILABLE');
   });
 });
 

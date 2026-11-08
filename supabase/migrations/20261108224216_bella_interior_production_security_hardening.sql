@@ -90,7 +90,16 @@ BEGIN
       'construction:project:write',
       'construction:site:write',
       'construction:work_package:write',
-      'construction:boq:write'
+      'construction:boq:write',
+      'construction.site_diary.view',
+      'construction.site_diary.create',
+      'construction.site_diary.update',
+      'construction.issue.view',
+      'construction.issue.create',
+      'construction.issue.update',
+      'construction.issue.resolve',
+      'construction.issue.close',
+      'construction.issue.reopen'
     )
   ) THEN
     RAISE EXCEPTION 'Bella Interior security preflight found an unexpected existing permission identifier';
@@ -98,51 +107,140 @@ BEGIN
 END
 $preflight$;
 
--- Extend the existing direct-user-action catalog only. No user or role grants
--- are created here; authorization remains deny-by-default.
-ALTER TABLE public.platform_direct_user_action_grants
-  DROP CONSTRAINT platform_direct_user_action_grants_permission_id_check;
+-- Extend the existing direct-user-action catalog without dropping the
+-- Construction actions present in the full migration chain. Production may
+-- start from the earlier five-action grant catalog; recognize only the two
+-- reviewed variants and preserve the superset whenever either source has it.
+DO $permission_catalog$
+DECLARE
+  v_constraint_definition text;
+  v_grant_definition text;
+  v_catalog_count integer;
+  v_has_construction_actions boolean;
+BEGIN
+  SELECT pg_get_constraintdef(oid)
+    INTO v_constraint_definition
+  FROM pg_constraint
+  WHERE conrelid = 'public.platform_direct_user_action_grants'::regclass
+    AND conname = 'platform_direct_user_action_grants_permission_id_check'
+    AND contype = 'c';
 
-ALTER TABLE public.platform_direct_user_action_grants
-  ADD CONSTRAINT platform_direct_user_action_grants_permission_id_check
-  CHECK (permission_id IN (
-    'construction:foundation:read',
-    'construction:project:write',
-    'construction:site:write',
-    'construction:work_package:write',
-    'construction:boq:write',
-    'interior:project:read',
-    'interior:project:write',
-    'interior:customer:read',
-    'interior:design:read',
-    'interior:design:write',
-    'interior:design:approve',
-    'interior:boq:read',
-    'interior:boq:write',
-    'interior:contract:read',
-    'interior:contract:write',
-    'interior:finance:read',
-    'interior:finance:write',
-    'interior:schedule:read',
-    'interior:schedule:write',
-    'interior:production:read',
-    'interior:production:write',
-    'interior:installation:read',
-    'interior:installation:write',
-    'interior:qc:read',
-    'interior:qc:write',
-    'interior:delivery:read',
-    'interior:delivery:write',
-    'interior:reports:read',
-    'interior:warranty:read',
-    'interior:warranty:write',
-    'interior:design:upload',
-    'interior:executive:approve'
-  ));
+  SELECT pg_get_functiondef('public.platform_grant_direct_user_action(uuid,text,text,uuid)'::regprocedure)
+    INTO v_grant_definition;
+
+  SELECT count(*) INTO v_catalog_count
+  FROM unnest(ARRAY[
+    'construction.site_diary.view',
+    'construction.site_diary.create',
+    'construction.site_diary.update',
+    'construction.issue.view',
+    'construction.issue.create',
+    'construction.issue.update',
+    'construction.issue.resolve',
+    'construction.issue.close',
+    'construction.issue.reopen'
+  ]::text[]) AS permission_id
+  WHERE position(permission_id IN coalesce(v_constraint_definition, '') || coalesce(v_grant_definition, '')) > 0;
+
+  IF v_catalog_count NOT IN (0, 9) THEN
+    RAISE EXCEPTION 'Bella Interior security preflight found a partial Construction action catalog';
+  END IF;
+  v_has_construction_actions := v_catalog_count = 9;
+
+  ALTER TABLE public.platform_direct_user_action_grants
+    DROP CONSTRAINT platform_direct_user_action_grants_permission_id_check;
+
+  IF v_has_construction_actions THEN
+    ALTER TABLE public.platform_direct_user_action_grants
+      ADD CONSTRAINT platform_direct_user_action_grants_permission_id_check
+      CHECK (permission_id IN (
+        'construction:foundation:read',
+        'construction:project:write',
+        'construction:site:write',
+        'construction:work_package:write',
+        'construction:boq:write',
+        'construction.site_diary.view',
+        'construction.site_diary.create',
+        'construction.site_diary.update',
+        'construction.issue.view',
+        'construction.issue.create',
+        'construction.issue.update',
+        'construction.issue.resolve',
+        'construction.issue.close',
+        'construction.issue.reopen',
+        'interior:project:read',
+        'interior:project:write',
+        'interior:customer:read',
+        'interior:design:read',
+        'interior:design:write',
+        'interior:design:approve',
+        'interior:boq:read',
+        'interior:boq:write',
+        'interior:contract:read',
+        'interior:contract:write',
+        'interior:finance:read',
+        'interior:finance:write',
+        'interior:schedule:read',
+        'interior:schedule:write',
+        'interior:production:read',
+        'interior:production:write',
+        'interior:installation:read',
+        'interior:installation:write',
+        'interior:qc:read',
+        'interior:qc:write',
+        'interior:delivery:read',
+        'interior:delivery:write',
+        'interior:reports:read',
+        'interior:warranty:read',
+        'interior:warranty:write',
+        'interior:design:upload',
+        'interior:executive:approve'
+      ));
+  ELSE
+    ALTER TABLE public.platform_direct_user_action_grants
+      ADD CONSTRAINT platform_direct_user_action_grants_permission_id_check
+      CHECK (permission_id IN (
+        'construction:foundation:read',
+        'construction:project:write',
+        'construction:site:write',
+        'construction:work_package:write',
+        'construction:boq:write',
+        'interior:project:read',
+        'interior:project:write',
+        'interior:customer:read',
+        'interior:design:read',
+        'interior:design:write',
+        'interior:design:approve',
+        'interior:boq:read',
+        'interior:boq:write',
+        'interior:contract:read',
+        'interior:contract:write',
+        'interior:finance:read',
+        'interior:finance:write',
+        'interior:schedule:read',
+        'interior:schedule:write',
+        'interior:production:read',
+        'interior:production:write',
+        'interior:installation:read',
+        'interior:installation:write',
+        'interior:qc:read',
+        'interior:qc:write',
+        'interior:delivery:read',
+        'interior:delivery:write',
+        'interior:reports:read',
+        'interior:warranty:read',
+        'interior:warranty:write',
+        'interior:design:upload',
+        'interior:executive:approve'
+      ));
+  END IF;
+END
+$permission_catalog$;
 
 DO $grant_catalog$
 DECLARE
   v_definition text;
+  v_constraint_definition text;
   v_before text := $before$ p_permission_id NOT IN (
        'construction:foundation:read',
        'construction:project:write',
@@ -150,6 +248,22 @@ DECLARE
        'construction:work_package:write',
        'construction:boq:write'
      )$before$;
+  v_before_extended text := $before_extended$ p_permission_id NOT IN (
+       'construction:foundation:read',
+       'construction:project:write',
+       'construction:site:write',
+       'construction:work_package:write',
+       'construction:boq:write',
+       'construction.site_diary.view',
+       'construction.site_diary.create',
+       'construction.site_diary.update',
+       'construction.issue.view',
+       'construction.issue.create',
+       'construction.issue.update',
+       'construction.issue.resolve',
+       'construction.issue.close',
+       'construction.issue.reopen'
+     )$before_extended$;
   v_after text := $after$ p_permission_id NOT IN (
        'construction:foundation:read',
        'construction:project:write',
@@ -184,14 +298,98 @@ DECLARE
        'interior:design:upload',
        'interior:executive:approve'
      )$after$;
+  v_after_extended text := $after_extended$ p_permission_id NOT IN (
+       'construction:foundation:read',
+       'construction:project:write',
+       'construction:site:write',
+       'construction:work_package:write',
+       'construction:boq:write',
+       'construction.site_diary.view',
+       'construction.site_diary.create',
+       'construction.site_diary.update',
+       'construction.issue.view',
+       'construction.issue.create',
+       'construction.issue.update',
+       'construction.issue.resolve',
+       'construction.issue.close',
+       'construction.issue.reopen',
+       'interior:project:read',
+       'interior:project:write',
+       'interior:customer:read',
+       'interior:design:read',
+       'interior:design:write',
+       'interior:design:approve',
+       'interior:boq:read',
+       'interior:boq:write',
+       'interior:contract:read',
+       'interior:contract:write',
+       'interior:finance:read',
+       'interior:finance:write',
+       'interior:schedule:read',
+       'interior:schedule:write',
+       'interior:production:read',
+       'interior:production:write',
+       'interior:installation:read',
+       'interior:installation:write',
+       'interior:qc:read',
+       'interior:qc:write',
+       'interior:delivery:read',
+       'interior:delivery:write',
+       'interior:reports:read',
+       'interior:warranty:read',
+       'interior:warranty:write',
+       'interior:design:upload',
+       'interior:executive:approve'
+     )$after_extended$;
+  v_catalog_count integer;
   v_position integer;
 BEGIN
   SELECT pg_get_functiondef('public.platform_grant_direct_user_action(uuid,text,text,uuid)'::regprocedure)
   INTO v_definition;
 
+  SELECT pg_get_constraintdef(oid)
+  INTO v_constraint_definition
+  FROM pg_constraint
+  WHERE conrelid = 'public.platform_direct_user_action_grants'::regclass
+    AND conname = 'platform_direct_user_action_grants_permission_id_check'
+    AND contype = 'c';
+
+  SELECT count(*) INTO v_catalog_count
+  FROM unnest(ARRAY[
+    'construction.site_diary.view',
+    'construction.site_diary.create',
+    'construction.site_diary.update',
+    'construction.issue.view',
+    'construction.issue.create',
+    'construction.issue.update',
+    'construction.issue.resolve',
+    'construction.issue.close',
+    'construction.issue.reopen'
+  ]::text[]) AS permission_id
+  WHERE position(permission_id IN coalesce(v_definition, '') || coalesce(v_constraint_definition, '')) > 0;
+
+  IF v_catalog_count NOT IN (0, 9) THEN
+    RAISE EXCEPTION 'Bella Interior security preflight found a partial Construction grant allow-list';
+  END IF;
+
+  IF v_catalog_count = 9 THEN
+    v_position := strpos(v_definition, v_before_extended);
+    IF v_position > 0 AND strpos(substr(v_definition, v_position + length(v_before_extended)), v_before_extended) = 0 THEN
+      EXECUTE replace(v_definition, v_before_extended, v_after_extended);
+      RETURN;
+    END IF;
+
+    v_position := strpos(v_definition, v_before);
+    IF v_position = 0 OR strpos(substr(v_definition, v_position + length(v_before)), v_before) > 0 THEN
+      RAISE EXCEPTION 'Bella Interior security preflight grant RPC allow-list does not match either reviewed definition';
+    END IF;
+    EXECUTE replace(v_definition, v_before, v_after_extended);
+    RETURN;
+  END IF;
+
   v_position := strpos(v_definition, v_before);
   IF v_position = 0 OR strpos(substr(v_definition, v_position + length(v_before)), v_before) > 0 THEN
-    RAISE EXCEPTION 'Bella Interior security preflight grant RPC allow-list does not match the reviewed Production definition';
+    RAISE EXCEPTION 'Bella Interior security preflight grant RPC allow-list does not match either reviewed definition';
   END IF;
 
   EXECUTE replace(v_definition, v_before, v_after);
