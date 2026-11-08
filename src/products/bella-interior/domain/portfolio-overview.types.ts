@@ -90,10 +90,32 @@ export interface ActionAlertItem {
   readonly actionUrl?: string;
 }
 
+export type BusinessChainPeriodKey = 'this_month' | 'last_month' | 'this_quarter' | 'all';
+
+export interface BusinessChainStageItem {
+  readonly key: 'design' | 'commercial' | 'production' | 'handover';
+  readonly label: string;
+  readonly percent: number;
+}
+
+export interface BusinessChainPeriodData {
+  readonly periodKey: BusinessChainPeriodKey;
+  readonly periodLabel: string;
+  readonly stages: BusinessChainStageItem[];
+  readonly overallPercent: number;
+  readonly statusLabel: string;
+}
+
+export interface BusinessChainProgressOverview {
+  readonly defaultPeriod: BusinessChainPeriodKey;
+  readonly periods: Record<BusinessChainPeriodKey, BusinessChainPeriodData>;
+}
+
 export interface PortfolioOverviewResponse {
   readonly kpis: PortfolioKPIs;
   readonly projects: PortfolioProjectItem[];
   readonly progressOverview: ProgressOverviewSummary;
   readonly financialSummary: FinancialOverviewSummary;
   readonly actionAlerts: ActionAlertItem[];
+  readonly businessChainProgress?: BusinessChainProgressOverview;
 }

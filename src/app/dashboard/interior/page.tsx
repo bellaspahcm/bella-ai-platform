@@ -31,6 +31,12 @@ import {
   ChevronDown,
 } from 'lucide-react';
 
+import type {
+  BusinessChainPeriodKey,
+  BusinessChainProgressOverview,
+  BusinessChainPeriodData,
+} from '@/products/bella-interior/domain/portfolio-overview.types';
+
 interface MockProject {
   id: string;
   code: string;
@@ -54,14 +60,14 @@ interface MockProject {
 const INITIAL_PROJECTS: MockProject[] = [
   {
     id: 'proj-001',
-    code: 'INT-CIPUTRA-01',
-    name: 'Villa Ciputra Giai Đoạn 2',
+    code: 'INT-2024-001',
+    name: 'Villa Sunrise Renovation',
     customerName: 'Nguyễn Văn A',
     projectType: 'Biệt thự cao cấp · Ciputra Group',
     status: 'production',
     statusLabel: 'Sản xuất',
     statusColor: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800/40',
-    contractValue: 2450000000,
+    contractValue: 450000000,
     grossMarginPercent: 41.5,
     approvedRevisionNumber: 2,
     leadArchitect: 'KTS. Hoàng Long',
@@ -73,14 +79,14 @@ const INITIAL_PROJECTS: MockProject[] = [
   },
   {
     id: 'proj-002',
-    code: 'INT-DUBAI-001',
-    name: 'Dubai Luxury Villa Fitout',
+    code: 'INT-2024-002',
+    name: 'Office Tower Lobby',
     customerName: 'Sheikh Mansoor',
     projectType: 'Dinh thự Palm Jumeirah · Dubai Group',
     status: 'installation',
     statusLabel: 'Lắp đặt',
     statusColor: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800/40',
-    contractValue: 3780000000,
+    contractValue: 1200000000,
     grossMarginPercent: 43.1,
     approvedRevisionNumber: 3,
     leadArchitect: 'KTS. Lê Hoàng Sơn',
@@ -92,14 +98,14 @@ const INITIAL_PROJECTS: MockProject[] = [
   },
   {
     id: 'proj-003',
-    code: 'INT-METROPOLIS-02',
-    name: 'Penthouse Metropolis Liễu Giai',
+    code: 'INT-2024-003',
+    name: 'Skyline Residence',
     customerName: 'Trịnh Thăng Bình',
     projectType: 'Penthouse 2 tầng · Metropolis JSC',
     status: 'design',
     statusLabel: 'Thiết kế',
     statusColor: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/50 dark:text-purple-400 dark:border-purple-800/40',
-    contractValue: 2200000000,
+    contractValue: 780000000,
     grossMarginPercent: 39.8,
     approvedRevisionNumber: 1,
     leadArchitect: 'KTS. Phan Hải',
@@ -111,7 +117,7 @@ const INITIAL_PROJECTS: MockProject[] = [
   },
   {
     id: 'proj-004',
-    code: 'INT-ECOPARK-03',
+    code: 'INT-2024-004',
     name: 'Duplex Aqua Bay Ecopark',
     customerName: 'Phạm Hồng Nhung',
     projectType: 'Căn hộ Duplex cao cấp',
@@ -132,6 +138,7 @@ const INITIAL_PROJECTS: MockProject[] = [
 
 interface UrgentItem {
   id: string;
+  projectId: string;
   tag: string;
   tagClass: string;
   projectName: string;
@@ -145,43 +152,103 @@ interface UrgentItem {
 const URGENT_ITEMS: UrgentItem[] = [
   {
     id: 'u-1',
+    projectId: 'proj-001',
     tag: 'Khẩn cấp',
     tagClass: 'bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-900',
-    projectName: 'Villa Ciputra',
+    projectName: 'Villa Sunrise Renovation',
     taskTitle: 'Thiếu duyệt bản vẽ',
     dueTime: 'Hôm nay',
     timeClass: 'text-rose-600 dark:text-rose-400 font-semibold',
     imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
-    actionHref: '/dashboard/interior/design',
+    actionHref: '/dashboard/interior/projects/proj-001',
   },
   {
     id: 'u-2',
+    projectId: 'proj-002',
     tag: 'Sắp đến hạn',
     tagClass: 'bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-900',
-    projectName: 'Dubai Luxury Villa',
+    projectName: 'Office Tower Lobby',
     taskTitle: 'Kiểm tra tiến độ xưởng',
     dueTime: '2 ngày',
     timeClass: 'text-amber-700 dark:text-amber-400 font-semibold',
     imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/office-tower-lobby.jpg',
-    actionHref: '/dashboard/interior/production',
+    actionHref: '/dashboard/interior/projects/proj-002',
   },
   {
     id: 'u-3',
+    projectId: 'proj-003',
     tag: 'Chờ duyệt',
     tagClass: 'bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-900',
-    projectName: 'Penthouse Metropolis',
+    projectName: 'Skyline Residence',
     taskTitle: 'Biên bản nghiệm thu',
     dueTime: '3 ngày',
     timeClass: 'text-blue-600 dark:text-blue-400 font-semibold',
     imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/skyline-residence.jpg',
-    actionHref: '/dashboard/interior/qc-handover',
+    actionHref: '/dashboard/interior/projects/proj-003',
   },
 ];
+
+const DEFAULT_BUSINESS_CHAIN_PROGRESS: BusinessChainProgressOverview = {
+  defaultPeriod: 'this_month',
+  periods: {
+    this_month: {
+      periodKey: 'this_month',
+      periodLabel: 'Tháng này',
+      stages: [
+        { key: 'design', label: 'Thiết kế', percent: 92 },
+        { key: 'commercial', label: 'Thương mại', percent: 85 },
+        { key: 'production', label: 'Sản xuất', percent: 70 },
+        { key: 'handover', label: 'Bàn giao', percent: 45 },
+      ],
+      overallPercent: 65,
+      statusLabel: 'Đúng tiến độ',
+    },
+    last_month: {
+      periodKey: 'last_month',
+      periodLabel: 'Tháng trước',
+      stages: [
+        { key: 'design', label: 'Thiết kế', percent: 88 },
+        { key: 'commercial', label: 'Thương mại', percent: 80 },
+        { key: 'production', label: 'Sản xuất', percent: 62 },
+        { key: 'handover', label: 'Bàn giao', percent: 38 },
+      ],
+      overallPercent: 58,
+      statusLabel: 'Đúng tiến độ',
+    },
+    this_quarter: {
+      periodKey: 'this_quarter',
+      periodLabel: 'Quý này (Q4)',
+      stages: [
+        { key: 'design', label: 'Thiết kế', percent: 94 },
+        { key: 'commercial', label: 'Thương mại', percent: 89 },
+        { key: 'production', label: 'Sản xuất', percent: 75 },
+        { key: 'handover', label: 'Bàn giao', percent: 52 },
+      ],
+      overallPercent: 72,
+      statusLabel: 'Vượt tiến độ +3%',
+    },
+    all: {
+      periodKey: 'all',
+      periodLabel: 'Toàn bộ thời gian',
+      stages: [
+        { key: 'design', label: 'Thiết kế', percent: 90 },
+        { key: 'commercial', label: 'Thương mại', percent: 84 },
+        { key: 'production', label: 'Sản xuất', percent: 68 },
+        { key: 'handover', label: 'Bàn giao', percent: 48 },
+      ],
+      overallPercent: 66,
+      statusLabel: 'Đúng tiến độ',
+    },
+  },
+};
 
 export default function InteriorDashboardPage() {
   const [projects, setProjects] = useState<MockProject[]>(INITIAL_PROJECTS);
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedWorkspaceProject, setSelectedWorkspaceProject] = useState<MockProject | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState<BusinessChainPeriodKey>('this_month');
+  const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
+  const [businessChainOverview, setBusinessChainOverview] = useState<BusinessChainProgressOverview>(DEFAULT_BUSINESS_CHAIN_PROGRESS);
 
   useEffect(() => {
     // Canonical read through API endpoint without direct DB access
@@ -211,11 +278,17 @@ export default function InteriorDashboardPage() {
           });
           setProjects(merged);
         }
+        if (data?.data?.businessChainProgress) {
+          setBusinessChainOverview(data.data.businessChainProgress);
+        }
       })
       .catch(() => {
         // Safe fallback maintains uninterrupted UI
       });
   }, []);
+
+  const currentPeriodData: BusinessChainPeriodData =
+    businessChainOverview.periods[selectedPeriod] || businessChainOverview.periods.this_month;
 
   const filteredProjects = projects.filter((p) => {
     if (activeTab === 'design') return p.status === 'design';
@@ -434,41 +507,55 @@ export default function InteriorDashboardPage() {
           </div>
 
           <div className="space-y-3 pt-1">
-            {URGENT_ITEMS.map((item) => (
-              <Link
-                key={item.id}
-                href={item.actionHref}
-                className="p-3.5 rounded-2xl bg-slate-50/70 hover:bg-slate-100/80 dark:bg-slate-800/40 dark:hover:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-3 transition-all group"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <img
-                    src={item.imageUrl}
-                    alt={item.projectName}
-                    className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-1 ring-slate-200 dark:ring-slate-700"
-                  />
-                  <div className="min-w-0 space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${item.tagClass}`}>
-                        {item.tag}
-                      </span>
-                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                        {item.projectName}
+            {URGENT_ITEMS.map((item) => {
+              const matchedProject = projects.find((p) => p.id === item.projectId || p.code === item.projectId);
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => {
+                    if (matchedProject) {
+                      setSelectedWorkspaceProject(matchedProject);
+                    }
+                  }}
+                  className="p-3.5 rounded-2xl bg-slate-50/70 hover:bg-slate-100/80 dark:bg-slate-800/40 dark:hover:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-3 transition-all group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src={matchedProject?.imageUrl || item.imageUrl}
+                      alt={item.projectName}
+                      className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-1 ring-slate-200 dark:ring-slate-700"
+                    />
+                    <div className="min-w-0 space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${item.tagClass}`}>
+                          {item.tag}
+                        </span>
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                          {matchedProject?.name || item.projectName}
+                        </p>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                        {item.taskTitle}
                       </p>
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                      {item.taskTitle}
-                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-shrink-0 text-right">
+                    <span className={`text-xs ${item.timeClass}`}>
+                      {item.dueTime}
+                    </span>
+                    <Link
+                      href={item.actionHref}
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                      title="Mở chi tiết dự án"
+                    >
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2 flex-shrink-0 text-right">
-                  <span className={`text-xs ${item.timeClass}`}>
-                    {item.dueTime}
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-                </div>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -483,19 +570,79 @@ export default function InteriorDashboardPage() {
                 Tiến độ chuỗi nghiệp vụ
               </h2>
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-              Tháng này ▾
-            </span>
+
+            {/* Interactive Period Filter Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsPeriodDropdownOpen((prev) => !prev)}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer border border-slate-200/60 dark:border-slate-700/60"
+              >
+                <span>{currentPeriodData.periodLabel}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+              </button>
+
+              {isPeriodDropdownOpen && (
+                <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-20 animate-in fade-in zoom-in-95 duration-100">
+                  {(['this_month', 'last_month', 'this_quarter', 'all'] as BusinessChainPeriodKey[]).map((key) => {
+                    const periodItem = businessChainOverview.periods[key];
+                    const isSelected = selectedPeriod === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPeriod(key);
+                          setIsPeriodDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between transition-colors ${
+                          isSelected
+                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 font-bold'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        <span>{periodItem?.periodLabel || key}</span>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Stepper with 4 Steps */}
           <div className="grid grid-cols-4 gap-2 pt-2">
             {[
-              { label: 'Thiết kế', pct: 92, icon: Layers, color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/60 dark:text-blue-400' },
-              { label: 'Thương mại', pct: 85, icon: FileText, color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/60 dark:text-purple-400' },
-              { label: 'Sản xuất', pct: 70, icon: Wrench, color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/60 dark:text-amber-400' },
-              { label: 'Bàn giao', pct: 45, icon: Award, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 dark:text-emerald-400' },
-            ].map((step, idx) => {
+              {
+                key: 'design',
+                label: 'Thiết kế',
+                pct: currentPeriodData.stages.find((s) => s.key === 'design')?.percent ?? 92,
+                icon: Layers,
+                color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/60 dark:text-blue-400',
+              },
+              {
+                key: 'commercial',
+                label: 'Thương mại',
+                pct: currentPeriodData.stages.find((s) => s.key === 'commercial')?.percent ?? 85,
+                icon: FileText,
+                color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/60 dark:text-purple-400',
+              },
+              {
+                key: 'production',
+                label: 'Sản xuất',
+                pct: currentPeriodData.stages.find((s) => s.key === 'production')?.percent ?? 70,
+                icon: Wrench,
+                color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/60 dark:text-amber-400',
+              },
+              {
+                key: 'handover',
+                label: 'Bàn giao',
+                pct: currentPeriodData.stages.find((s) => s.key === 'handover')?.percent ?? 45,
+                icon: Award,
+                color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 dark:text-emerald-400',
+              },
+            ].map((step) => {
               const StepIcon = step.icon;
               return (
                 <div key={step.label} className="text-center space-y-2">
@@ -521,13 +668,13 @@ export default function InteriorDashboardPage() {
               <span className="text-slate-700 dark:text-slate-300">Tiến độ tổng thể dự án</span>
               <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                 <Check className="w-3.5 h-3.5" />
-                Đúng tiến độ · 65%
+                {currentPeriodData.statusLabel} · {currentPeriodData.overallPercent}%
               </span>
             </div>
             <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-blue-600 to-[#1B365D] dark:to-blue-400 rounded-full transition-all duration-500"
-                style={{ width: '65%' }}
+                style={{ width: `${currentPeriodData.overallPercent}%` }}
               />
             </div>
           </div>
@@ -859,7 +1006,7 @@ export default function InteriorDashboardPage() {
                 <div className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900">
                   {/* Module 1: Design */}
                   <Link
-                    href="/dashboard/interior/design"
+                    href={`/dashboard/interior/design?projectId=${selectedWorkspaceProject.id}`}
                     className="p-4 flex items-center justify-between hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
@@ -876,7 +1023,7 @@ export default function InteriorDashboardPage() {
 
                   {/* Module 2: BOQ */}
                   <Link
-                    href="/dashboard/interior/boq"
+                    href={`/dashboard/interior/boq?projectId=${selectedWorkspaceProject.id}`}
                     className="p-4 flex items-center justify-between hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
@@ -893,7 +1040,7 @@ export default function InteriorDashboardPage() {
 
                   {/* Module 3: Production */}
                   <Link
-                    href="/dashboard/interior/production"
+                    href={`/dashboard/interior/production?projectId=${selectedWorkspaceProject.id}`}
                     className="p-4 flex items-center justify-between hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
@@ -910,7 +1057,7 @@ export default function InteriorDashboardPage() {
 
                   {/* Module 4: QC & Handover */}
                   <Link
-                    href="/dashboard/interior/qc-handover"
+                    href={`/dashboard/interior/qc-handover?projectId=${selectedWorkspaceProject.id}`}
                     className="p-4 flex items-center justify-between hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">

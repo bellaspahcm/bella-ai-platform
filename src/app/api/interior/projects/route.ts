@@ -112,6 +112,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         progressOverview: overview.progressOverview,
         financialSummary: overview.financialSummary,
         actionAlerts: overview.actionAlerts,
+        businessChainProgress: overview.businessChainProgress,
         total: overview.projects.length,
       },
     });
