@@ -20,6 +20,7 @@ import type {
   UpcomingTaskItem,
   ProjectScheduleProgressItem,
   ScheduleActionSuggestion,
+  ScheduleActionItem,
   ScheduleTaskCategory,
   CreateScheduledTaskInput,
 } from '../domain/schedule-overview.types';
@@ -263,6 +264,7 @@ export class InteriorScheduleAnalyticsService {
         categoryLabel: 'Thiết kế',
         categoryClass: 'bg-blue-50 text-blue-700 border-blue-200',
         assigneeAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop',
+        calendarEventId: 'evt-1',
       },
       {
         id: 'up-2',
@@ -273,6 +275,7 @@ export class InteriorScheduleAnalyticsService {
         categoryLabel: 'Thiết kế',
         categoryClass: 'bg-blue-50 text-blue-700 border-blue-200',
         assigneeAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop',
+        calendarEventId: 'evt-2',
       },
       {
         id: 'up-3',
@@ -283,6 +286,7 @@ export class InteriorScheduleAnalyticsService {
         categoryLabel: 'Sản xuất',
         categoryClass: 'bg-amber-50 text-amber-700 border-amber-200',
         assigneeAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop',
+        calendarEventId: 'evt-4',
       },
       {
         id: 'up-4',
@@ -293,6 +297,7 @@ export class InteriorScheduleAnalyticsService {
         categoryLabel: 'Thi công',
         categoryClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
         assigneeAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop',
+        calendarEventId: 'evt-5',
       },
     ];
 
@@ -343,6 +348,32 @@ export class InteriorScheduleAnalyticsService {
         'Ưu tiên xử lý 3 công việc quá hạn (đặc biệt: nghiệm thu Duplex Aqua Bay)',
         'Kiểm tra nguồn lực cho tuần tới (2 lịch có nguy cơ trùng)',
         'Báo cáo tiến độ dự án chậm 15% (Office Tower Lobby)',
+      ],
+      actions: [
+        {
+          id: 'act-1',
+          text: 'Ưu tiên xử lý 3 công việc quá hạn (đặc biệt: nghiệm thu Duplex Aqua Bay)',
+          actionLabel: 'Xử lý ngay',
+          actionType: 'open_task',
+          targetId: 'evt-5',
+          badgeColorClass: 'text-rose-600 bg-rose-50 hover:bg-rose-100 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300',
+        },
+        {
+          id: 'act-2',
+          text: 'Kiểm tra nguồn lực cho tuần tới (2 lịch có nguy cơ trùng)',
+          actionLabel: 'Kiểm tra',
+          actionType: 'switch_tab',
+          targetId: 'resource',
+          badgeColorClass: 'text-amber-600 bg-amber-50 hover:bg-amber-100 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300',
+        },
+        {
+          id: 'act-3',
+          text: 'Báo cáo tiến độ dự án chậm 15% (Office Tower Lobby)',
+          actionLabel: 'Xem báo cáo',
+          actionType: 'view_project',
+          targetId: 'prog-2',
+          badgeColorClass: 'text-blue-600 bg-blue-50 hover:bg-blue-100 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300',
+        },
       ],
     };
 
