@@ -33,6 +33,11 @@ export interface SaveBOQOptions {
   readonly idempotencyKey?: string;
   readonly requestHash?: string;
   readonly auditActorId?: string;
+  /**
+   * Only permitted in non-production unit test harness where DB RPC is mocked or not deployed.
+   * In production, this must remain false/undefined to enforce Fail-Closed atomic persistence.
+   */
+  readonly allowSequentialFallback?: boolean;
 }
 
 export interface IInteriorRepository {

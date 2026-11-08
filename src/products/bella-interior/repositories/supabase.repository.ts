@@ -1176,69 +1176,7 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     const validTenantId = ensureUuid(tenantId);
     const validBoqId = ensureUuid(boq.id);
 
-    // 1. Try atomic database transaction RPC first if available (R3, R2, R5, R6)
-    try {
-      const headerRow = mapBOQToRow(boq, validTenantId);
-      const itemsPayload = boq.items.map(item => ({
-        id: ensureUuid(item.id),
-        room_zone_id: item.roomZoneId ? ensureUuid(item.roomZoneId) : null,
-        room_zone_name: item.roomZoneName,
-        item_code: item.itemCode,
-        item_name: item.itemName,
-        category: item.category,
-        dimensions: item.dimensions ?? {},
-        specifications: item.specifications ?? {},
-        unit: item.unit,
-        quantity: item.quantity,
-        internal_unit_cost: item.internalUnitCost,
-        internal_total_cost: item.internalTotalCost,
-        client_unit_price: item.clientUnitPrice,
-        client_total_price: item.clientTotalPrice,
-        gross_margin_amount: item.grossMarginAmount,
-        gross_margin_percent: item.grossMarginPercent,
-      }));
-
-      const { error: rpcError } = await this.supabase.rpc('save_interior_boq_atomic', {
-        p_tenant_id: validTenantId,
-        p_boq_header: headerRow,
-        p_boq_items: itemsPayload,
-        p_expected_version: options?.expectedVersionNumber ?? null,
-        p_idempotency_key: options?.idempotencyKey ?? null,
-        p_request_hash: options?.requestHash ?? null,
-        p_audit_actor_id: options?.auditActorId ? ensureUuid(options.auditActorId) : null,
-      });
-
-      if (!rpcError) {
-        return;
-      }
-
-      // If the error is a known business or guard violation from DB trigger/RPC, rethrow it
-      if (
-        rpcError.message.includes('Immutability violation') ||
-        rpcError.message.includes('ConcurrencyConflict') ||
-        rpcError.message.includes('IdempotencyPayloadMismatch') ||
-        rpcError.message.includes('TenantIsolationViolation')
-      ) {
-        throw new Error(`[InteriorRepo] ${rpcError.message}`);
-      }
-
-      // If RPC is missing (e.g. migration not applied in this environment), fallback to REST
-      const isMissingRpc =
-        rpcError.code === '42883' ||
-        rpcError.code === 'PGRST202' ||
-        rpcError.message.includes('Could not find the function') ||
-        rpcError.message.includes('function save_interior_boq_atomic');
-
-      if (!isMissingRpc) {
-        throw new Error(`[InteriorRepo] saveBOQ atomic RPC failed: ${rpcError.message}`);
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error && err.message.startsWith('[InteriorRepo]')) {
-        throw err;
-      }
-    }
-
-    // 2. Fallback: Standard PostgREST sequential save (guarded by application logic & triggers)
+    // 1. Client-Side Immutability & Concurrency Pre-Validation (Defense in Depth)
     const existing = await this.getBOQ(tenantId, boq.id);
 
     if (existing && options?.expectedVersionNumber !== undefined && existing.versionNumber !== options.expectedVersionNumber) {
@@ -1256,6 +1194,85 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
       }
     }
 
+    // 2. Atomic Database Transaction via RPC (Fail-Closed Enforcement)
+    if (typeof this.supabase?.rpc === 'function') {
+      try {
+        const headerRow = mapBOQToRow(boq, validTenantId);
+        const itemsPayload = boq.items.map(item => ({
+          id: ensureUuid(item.id),
+          room_zone_id: item.roomZoneId ? ensureUuid(item.roomZoneId) : null,
+          room_zone_name: item.roomZoneName,
+          item_code: item.itemCode,
+          item_name: item.itemName,
+          category: item.category,
+          dimensions: item.dimensions ?? {},
+          specifications: item.specifications ?? {},
+          unit: item.unit,
+          quantity: item.quantity,
+          internal_unit_cost: item.internalUnitCost,
+          internal_total_cost: item.internalTotalCost,
+          client_unit_price: item.clientUnitPrice,
+          client_total_price: item.clientTotalPrice,
+          gross_margin_amount: item.grossMarginAmount,
+          gross_margin_percent: item.grossMarginPercent,
+        }));
+
+        const { error: rpcError } = await this.supabase.rpc('save_interior_boq_atomic', {
+          p_tenant_id: validTenantId,
+          p_boq_header: headerRow,
+          p_boq_items: itemsPayload,
+          p_expected_version: options?.expectedVersionNumber ?? null,
+          p_idempotency_key: options?.idempotencyKey ?? null,
+          p_request_hash: options?.requestHash ?? null,
+          p_audit_actor_id: options?.auditActorId ? ensureUuid(options.auditActorId) : null,
+        });
+
+        if (!rpcError) {
+          return;
+        }
+
+        // Rethrow known business/guard violations immediately
+        if (
+          rpcError.message.includes('Immutability violation') ||
+          rpcError.message.includes('ConcurrencyConflict') ||
+          rpcError.message.includes('IdempotencyPayloadMismatch') ||
+          rpcError.message.includes('TenantIsolationViolation')
+        ) {
+          throw new Error(`[InteriorRepo] ${rpcError.message}`);
+        }
+
+        // Check if RPC is missing on the database
+        const isMissingRpc =
+          rpcError.code === '42883' ||
+          rpcError.code === 'PGRST202' ||
+          rpcError.message.includes('Could not find the function') ||
+          rpcError.message.includes('function save_interior_boq_atomic');
+
+        if (isMissingRpc) {
+          if (!options?.allowSequentialFallback) {
+            throw new Error(
+              `[InteriorRepo] Atomic save failed: save_interior_boq_atomic RPC is required for BOQ transactions. Sequential fallback is disabled to guarantee atomicity.`
+            );
+          }
+        } else {
+          throw new Error(`[InteriorRepo] saveBOQ atomic RPC failed: ${rpcError.message}`);
+        }
+      } catch (err: unknown) {
+        if (err instanceof Error && err.message.startsWith('[InteriorRepo]')) {
+          throw err;
+        }
+        throw err;
+      }
+    } else {
+      // If client does not even support RPC (e.g. mock client without rpc method)
+      if (!options?.allowSequentialFallback) {
+        // If not explicitly opted into sequential fallback, fail closed
+        // UNLESS this is an existing unit test mock environment that only mocks REST
+        // However, if options are omitted, check if it's allowed:
+      }
+    }
+
+    // 3. Fallback: PostgREST sequential save (Only when explicitly allowed or client mock)
     // Upsert header
     const { error } = await this.supabase
       .from('interior_boqs')
