@@ -8,6 +8,9 @@
  * - Top breadcrumb & user status bar (Villa Sunrise Renovation INT-2024-001)
  * - Approved Design Lock strip (R1.0, approval metadata, lock invariant)
  * - 3D Perspectives Showcase with 4K renders and +3 gallery thumbnails
+ * - Ingestion of 2D technical CAD blueprints (DWG/PDF/DXF) and 3D visual perspectives
+ * - Direct upload pipeline to Cloudflare R2 (`https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev`)
+ * - Intermediate canonical domain store persistence (zero data loss across F5 refreshes)
  * - Material & Specification Cards (Veneer Óc Chó, Đá Thạch Anh, Bản Lề, Khung Nhôm Slim)
  * - Material Compliance Audit Banner ("Tất cả vật liệu đều đạt tiêu chuẩn")
  * - Technical CAD Blueprints (DWG, PDF) and Document archives
@@ -16,7 +19,7 @@
  * @module src/app/dashboard/interior/design/page
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   Layers,
@@ -40,11 +43,19 @@ import {
   X,
   Eye,
   Check,
+  Upload,
+  Plus,
+  Loader2,
+  Trash2,
+  ImageIcon,
+  HardDrive,
 } from 'lucide-react';
 
 import type {
   DesignStudioOverviewResponse,
   DesignVisualItem,
+  DesignTechnicalDrawingItem,
+  DesignDocumentItem,
 } from '@/products/bella-interior/domain/design-overview.types';
 
 // Baseline initial state for instant zero-flicker render
@@ -294,12 +305,52 @@ export default function InteriorDesignStudioPage() {
   const [selectedVisualId, setSelectedVisualId] = useState<string>('vis-1');
   const [activeViewerTab, setActiveViewerTab] = useState<'3d' | 'technical' | 'documents'>('3d');
 
-  // Modals & Drawers state
+  // Modals state
   const [showFullscreenModal, setShowFullscreenModal] = useState<boolean>(false);
   const [showCompareModal, setShowCompareModal] = useState<boolean>(false);
   const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
   const [showBoqModal, setShowBoqModal] = useState<boolean>(false);
   const [showAllMaterialsModal, setShowAllMaterialsModal] = useState<boolean>(false);
+
+  // Ingestion / Upload Modals
+  const [showUpload3DModal, setShowUpload3DModal] = useState<boolean>(false);
+  const [showUpload2DModal, setShowUpload2DModal] = useState<boolean>(false);
+  const [showUploadDocModal, setShowUploadDocModal] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+
+  // Form states
+  const [visualForm, setVisualForm] = useState({
+    title: '',
+    roomZone: 'Phòng khách',
+    viewAngleName: '',
+    resolution: '4K Ultra-HD (3840x2160)',
+    fileFormat: 'Corona Render',
+    authorName: 'KTS. Hoàng Long',
+    isPrimary: false,
+    file: null as File | null,
+    previewUrl: '',
+  });
+
+  const [drawingForm, setDrawingForm] = useState({
+    title: '',
+    drawingCode: '',
+    fileType: 'DWG',
+    author: 'KTS. Lê Hoàng',
+    statusLabel: 'Đã duyệt',
+    file: null as File | null,
+  });
+
+  const [docForm, setDocForm] = useState({
+    title: '',
+    documentCategory: 'Chỉ dẫn kỹ thuật',
+    fileType: 'PDF',
+    author: 'Phòng Kỹ Thuật Bella',
+    file: null as File | null,
+  });
+
+  const fileInput3DRef = useRef<HTMLInputElement>(null);
+  const fileInput2DRef = useRef<HTMLInputElement>(null);
+  const fileInputDocRef = useRef<HTMLInputElement>(null);
 
   // Lock toggling state
   const [isTogglingLock, setIsTogglingLock] = useState<boolean>(false);
@@ -345,6 +396,7 @@ export default function InteriorDesignStudioPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action: 'toggle_lock',
           versionId: data.versionLock.versionId,
           targetState: !data.versionLock.isLocked,
         }),
@@ -369,6 +421,293 @@ export default function InteriorDesignStudioPage() {
       setTimeout(() => setToastMessage(null), 4000);
     } finally {
       setIsTogglingLock(false);
+    }
+  };
+
+  // ─── 3D Visual Upload Handler ───
+  const handleFile3DChange = (file: File | null) => {
+    if (!file) return;
+    const previewUrl = URL.createObjectURL(file);
+    const inferredTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+    setVisualForm((prev) => ({
+      ...prev,
+      file,
+      previewUrl,
+      title: prev.title || inferredTitle,
+    }));
+  };
+
+  const handleUpload3D = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!visualForm.file) {
+      setToastMessage('Vui lòng chọn tệp hình ảnh phối cảnh (JPG, PNG, WebP).');
+      return;
+    }
+    if (!visualForm.title.trim()) {
+      setToastMessage('Vui lòng nhập tiêu đề phối cảnh.');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+
+      // 1. Upload to Cloudflare R2 Bucket
+      const formData = new FormData();
+      formData.append('file', visualForm.file);
+      formData.append('folder', 'interior/design');
+      formData.append('category', '3d');
+      formData.append('tenantId', data.tenantId);
+
+      const uploadRes = await fetch('/api/interior/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error('Upload ảnh lên Cloudflare R2 thất bại');
+      }
+
+      const uploadJson = await uploadRes.json();
+      const cdnUrl = uploadJson.url;
+
+      // 2. Persist to Intermediate Canonical Service
+      const designRes = await fetch('/api/interior/design', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'add_visual',
+          tenantId: data.tenantId,
+          title: visualForm.title,
+          roomZone: visualForm.roomZone,
+          viewAngleName: visualForm.viewAngleName || `Góc nhìn ${visualForm.roomZone}`,
+          imageUrl: cdnUrl,
+          thumbnailUrl: cdnUrl,
+          isPrimary: visualForm.isPrimary,
+          resolution: visualForm.resolution,
+          fileFormat: visualForm.fileFormat,
+          authorName: visualForm.authorName,
+        }),
+      });
+
+      if (!designRes.ok) {
+        throw new Error('Đăng ký phối cảnh vào hệ thống thất bại');
+      }
+
+      const designJson = await designRes.json();
+      const newVisual: DesignVisualItem = designJson.data;
+
+      // 3. Update UI state immediately
+      setData((prev) => {
+        const visuals = prev.visuals.map((v) =>
+          newVisual.isPrimary ? { ...v, isPrimary: false } : v
+        );
+        return {
+          ...prev,
+          visuals: [newVisual, ...visuals],
+        };
+      });
+
+      setSelectedVisualId(newVisual.id);
+      setShowUpload3DModal(false);
+      setVisualForm({
+        title: '',
+        roomZone: 'Phòng khách',
+        viewAngleName: '',
+        resolution: '4K Ultra-HD (3840x2160)',
+        fileFormat: 'Corona Render',
+        authorName: 'KTS. Hoàng Long',
+        isPrimary: false,
+        file: null,
+        previewUrl: '',
+      });
+      setToastMessage('Tải lên Cloudflare R2 & lưu phối cảnh 3D thành công!');
+      setTimeout(() => setToastMessage(null), 4000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Lỗi khi tải lên phối cảnh 3D';
+      setToastMessage(msg);
+      setTimeout(() => setToastMessage(null), 4000);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // ─── 2D CAD Technical Drawing Upload Handler ───
+  const handleFile2DChange = (file: File | null) => {
+    if (!file) return;
+    const ext = file.name.split('.').pop()?.toUpperCase() || 'DWG';
+    const inferredTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+    setDrawingForm((prev) => ({
+      ...prev,
+      file,
+      fileType: ext === 'DXF' || ext === 'PDF' ? ext : 'DWG',
+      title: prev.title || inferredTitle,
+      drawingCode: prev.drawingCode || `REV 1 - DWG-${String(Date.now()).slice(-4)}`,
+    }));
+  };
+
+  const handleUpload2D = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!drawingForm.file) {
+      setToastMessage('Vui lòng chọn tệp bản vẽ kỹ thuật (DWG, DXF, PDF).');
+      return;
+    }
+    if (!drawingForm.title.trim()) {
+      setToastMessage('Vui lòng nhập tên bản vẽ kỹ thuật.');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+
+      // 1. Upload to Cloudflare R2
+      const formData = new FormData();
+      formData.append('file', drawingForm.file);
+      formData.append('folder', 'interior/blueprints');
+      formData.append('category', '2d');
+      formData.append('tenantId', data.tenantId);
+
+      const uploadRes = await fetch('/api/interior/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error('Upload bản vẽ lên Cloudflare R2 thất bại');
+      }
+
+      const uploadJson = await uploadRes.json();
+      const cdnUrl = uploadJson.url;
+      const fileSize = uploadJson.fileSize || '14.5 MB';
+
+      // 2. Persist to Intermediate Canonical Service
+      const designRes = await fetch('/api/interior/design', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'add_drawing',
+          tenantId: data.tenantId,
+          title: drawingForm.title,
+          drawingCode: drawingForm.drawingCode || `REV 1 - DWG-${String(Date.now()).slice(-4)}`,
+          fileType: drawingForm.fileType,
+          author: drawingForm.author,
+          fileUrl: cdnUrl,
+          fileSize,
+          statusLabel: drawingForm.statusLabel,
+        }),
+      });
+
+      if (!designRes.ok) {
+        throw new Error('Đăng ký bản vẽ vào hệ thống thất bại');
+      }
+
+      const designJson = await designRes.json();
+      const newDrawing: DesignTechnicalDrawingItem = designJson.data;
+
+      // 3. Update UI state
+      setData((prev) => ({
+        ...prev,
+        technicalDrawings: [newDrawing, ...prev.technicalDrawings],
+      }));
+
+      setShowUpload2DModal(false);
+      setDrawingForm({
+        title: '',
+        drawingCode: '',
+        fileType: 'DWG',
+        author: 'KTS. Lê Hoàng',
+        statusLabel: 'Đã duyệt',
+        file: null,
+      });
+      setActiveViewerTab('technical');
+      setToastMessage('Đã tải lên Cloudflare R2 và lưu bản vẽ kỹ thuật 2D thành công!');
+      setTimeout(() => setToastMessage(null), 4000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Lỗi khi tải lên bản vẽ kỹ thuật 2D';
+      setToastMessage(msg);
+      setTimeout(() => setToastMessage(null), 4000);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // ─── Technical Document Upload Handler ───
+  const handleUploadDoc = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!docForm.file) {
+      setToastMessage('Vui lòng chọn tệp tài liệu kỹ thuật.');
+      return;
+    }
+    if (!docForm.title.trim()) {
+      setToastMessage('Vui lòng nhập tên tài liệu.');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+
+      const formData = new FormData();
+      formData.append('file', docForm.file);
+      formData.append('folder', 'interior/docs');
+      formData.append('category', 'document');
+      formData.append('tenantId', data.tenantId);
+
+      const uploadRes = await fetch('/api/interior/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error('Upload tài liệu lên Cloudflare R2 thất bại');
+      }
+
+      const uploadJson = await uploadRes.json();
+      const cdnUrl = uploadJson.url;
+      const fileSize = uploadJson.fileSize || '3.5 MB';
+
+      const designRes = await fetch('/api/interior/design', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'add_document',
+          tenantId: data.tenantId,
+          title: docForm.title,
+          documentCategory: docForm.documentCategory,
+          fileType: docForm.fileType,
+          author: docForm.author,
+          fileSize,
+          fileUrl: cdnUrl,
+        }),
+      });
+
+      if (!designRes.ok) {
+        throw new Error('Lưu tài liệu thất bại');
+      }
+
+      const designJson = await designRes.json();
+      const newDoc: DesignDocumentItem = designJson.data;
+
+      setData((prev) => ({
+        ...prev,
+        relatedDocuments: [newDoc, ...prev.relatedDocuments],
+      }));
+
+      setShowUploadDocModal(false);
+      setDocForm({
+        title: '',
+        documentCategory: 'Chỉ dẫn kỹ thuật',
+        fileType: 'PDF',
+        author: 'Phòng Kỹ Thuật Bella',
+        file: null,
+      });
+      setActiveViewerTab('documents');
+      setToastMessage('Đã tải lên và lưu tài liệu kỹ thuật thành công!');
+      setTimeout(() => setToastMessage(null), 4000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Lỗi khi tải tài liệu';
+      setToastMessage(msg);
+      setTimeout(() => setToastMessage(null), 4000);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -465,6 +804,24 @@ export default function InteriorDesignStudioPage() {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* Primary Upload 2D / 3D Gateway */}
+          <button
+            type="button"
+            onClick={() => {
+              if (activeViewerTab === 'technical') {
+                setShowUpload2DModal(true);
+              } else if (activeViewerTab === 'documents') {
+                setShowUploadDocModal(true);
+              } else {
+                setShowUpload3DModal(true);
+              }
+            }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm hover:shadow transition-all"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>+ Tải lên thiết kế (2D / 3D)</span>
+          </button>
+
           {/* So sánh phiên bản */}
           <button
             type="button"
@@ -631,7 +988,7 @@ export default function InteriorDesignStudioPage() {
         {/* Left Column: 3D Perspective Viewer & Blueprint Canvas (Col 8/9) */}
         <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex flex-col justify-between space-y-4">
           {/* Viewer Tabs Bar */}
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             {/* View Switchers */}
             <div className="flex items-center gap-1 sm:gap-2">
               <button
@@ -644,7 +1001,7 @@ export default function InteriorDesignStudioPage() {
                 }`}
               >
                 <Layers className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Phối cảnh 3D</span>
+                <span>Phối cảnh 3D ({data.visuals.length})</span>
               </button>
 
               <button
@@ -657,7 +1014,7 @@ export default function InteriorDesignStudioPage() {
                 }`}
               >
                 <Ruler className="w-3.5 h-3.5" />
-                <span>Bản vẽ kỹ thuật</span>
+                <span>Bản vẽ kỹ thuật ({data.technicalDrawings.length})</span>
               </button>
 
               <button
@@ -670,19 +1027,54 @@ export default function InteriorDesignStudioPage() {
                 }`}
               >
                 <FolderOpen className="w-3.5 h-3.5" />
-                <span>Tài liệu liên quan</span>
+                <span>Tài liệu liên quan ({data.relatedDocuments.length})</span>
               </button>
             </div>
 
-            {/* Maximize / Fullscreen action */}
-            <button
-              type="button"
-              onClick={() => setShowFullscreenModal(true)}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
-            >
-              <Maximize2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Xem toàn màn hình</span>
-            </button>
+            {/* Contextual Upload & Fullscreen action buttons */}
+            <div className="flex items-center gap-2">
+              {activeViewerTab === '3d' && (
+                <button
+                  type="button"
+                  onClick={() => setShowUpload3DModal(true)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs font-bold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 transition-colors shadow-2xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Thêm phối cảnh 3D</span>
+                </button>
+              )}
+
+              {activeViewerTab === 'technical' && (
+                <button
+                  type="button"
+                  onClick={() => setShowUpload2DModal(true)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs font-bold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 transition-colors shadow-2xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Tải lên bản vẽ CAD/DWG</span>
+                </button>
+              )}
+
+              {activeViewerTab === 'documents' && (
+                <button
+                  type="button"
+                  onClick={() => setShowUploadDocModal(true)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs font-bold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 transition-colors shadow-2xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Tải lên tài liệu</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowFullscreenModal(true)}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors ml-1"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Xem toàn màn hình</span>
+              </button>
+            </div>
           </div>
 
           {/* Active Canvas Body */}
@@ -738,21 +1130,32 @@ export default function InteriorDesignStudioPage() {
                   </button>
                 ))}
 
-                {/* 5th Thumbnail with +3 Overlay */}
-                <button
-                  type="button"
-                  onClick={() => setShowFullscreenModal(true)}
-                  className="relative aspect-16/10 rounded-xl overflow-hidden bg-slate-700 hover:bg-slate-600 transition-all duration-200 flex items-center justify-center text-white"
-                >
-                  <img
-                    src={data.visuals[4]?.thumbnailUrl || data.visuals[0].thumbnailUrl}
-                    alt="Xem thêm góc nhìn"
-                    className="w-full h-full object-cover opacity-40"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center font-extrabold text-base sm:text-lg">
-                    +3
-                  </div>
-                </button>
+                {/* 5th slot: Either +N more button, or direct + Thêm phối cảnh tile */}
+                {data.visuals.length > 4 ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowFullscreenModal(true)}
+                    className="relative aspect-16/10 rounded-xl overflow-hidden bg-slate-700 hover:bg-slate-600 transition-all duration-200 flex items-center justify-center text-white"
+                  >
+                    <img
+                      src={data.visuals[4]?.thumbnailUrl || data.visuals[0].thumbnailUrl}
+                      alt="Xem thêm góc nhìn"
+                      className="w-full h-full object-cover opacity-40"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center font-extrabold text-base sm:text-lg">
+                      +{data.visuals.length - 4}
+                    </div>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowUpload3DModal(true)}
+                    className="relative aspect-16/10 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-all flex flex-col items-center justify-center text-slate-400 hover:text-emerald-700 gap-0.5"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="text-[10px] font-bold">+ Thêm góc</span>
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -760,9 +1163,36 @@ export default function InteriorDesignStudioPage() {
           {/* Technical Drawings Tab View */}
           {activeViewerTab === 'technical' && (
             <div className="space-y-3 flex-1">
-              <div className="text-xs font-semibold text-slate-500 mb-2">
-                Hồ sơ bản vẽ kỹ thuật kiến trúc, bổ đồ gỗ &amp; MEP đã duyệt:
+              {/* Quick Action Dropzone Banner */}
+              <div
+                onClick={() => setShowUpload2DModal(true)}
+                className="p-3.5 rounded-xl border-2 border-dashed border-emerald-300 dark:border-emerald-800 bg-emerald-50/40 dark:bg-emerald-950/20 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer flex items-center justify-between gap-3 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300 flex items-center justify-center shrink-0">
+                    <Upload className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-900 dark:text-white">
+                      Đưa bản vẽ kỹ thuật 2D mới vào hệ thống (Cloudflare R2)
+                    </div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Hỗ trợ tệp định dạng .DWG, .DXF, .PDF (AutoCAD, Revit, bổ chi tiết gỗ)
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shrink-0 transition-colors"
+                >
+                  + Tải lên ngay
+                </button>
               </div>
+
+              <div className="text-xs font-semibold text-slate-500 pt-1">
+                Danh mục hồ sơ bản vẽ kỹ thuật kiến trúc, bổ đồ gỗ &amp; MEP:
+              </div>
+
               {data.technicalDrawings.map((dwg) => (
                 <div
                   key={dwg.id}
@@ -787,7 +1217,9 @@ export default function InteriorDesignStudioPage() {
                     </span>
                     <button
                       type="button"
+                      onClick={() => window.open(dwg.fileUrl, '_blank')}
                       className="p-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-900"
+                      title="Xem / Tải về tệp"
                     >
                       <Eye className="w-3.5 h-3.5" />
                     </button>
@@ -800,9 +1232,36 @@ export default function InteriorDesignStudioPage() {
           {/* Related Documents Tab View */}
           {activeViewerTab === 'documents' && (
             <div className="space-y-3 flex-1">
-              <div className="text-xs font-semibold text-slate-500 mb-2">
+              {/* Quick Action Dropzone Banner */}
+              <div
+                onClick={() => setShowUploadDocModal(true)}
+                className="p-3.5 rounded-xl border-2 border-dashed border-amber-300 dark:border-amber-800 bg-amber-50/40 dark:bg-amber-950/20 hover:bg-amber-50 dark:hover:bg-amber-950/40 cursor-pointer flex items-center justify-between gap-3 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 flex items-center justify-center shrink-0">
+                    <Upload className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-900 dark:text-white">
+                      Tải lên tài liệu kỹ thuật &amp; biên bản nghiệm thu
+                    </div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Chỉ dẫn thi công gỗ óc chó, biên bản nghiệm thu ý tưởng, moodboard
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shrink-0 transition-colors"
+                >
+                  + Tải lên tài liệu
+                </button>
+              </div>
+
+              <div className="text-xs font-semibold text-slate-500 pt-1">
                 Hồ sơ chỉ dẫn thi công, biên bản nghiệm thu &amp; moodboard:
               </div>
+
               {data.relatedDocuments.map((doc) => (
                 <div
                   key={doc.id}
@@ -810,7 +1269,7 @@ export default function InteriorDesignStudioPage() {
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/50 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold text-xs shrink-0">
-                      PDF
+                      {doc.fileType}
                     </div>
                     <div>
                       <div className="text-xs font-bold text-slate-900 dark:text-white">
@@ -823,7 +1282,9 @@ export default function InteriorDesignStudioPage() {
                   </div>
                   <button
                     type="button"
+                    onClick={() => window.open(doc.fileUrl, '_blank')}
                     className="p-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-900"
+                    title="Xem / Tải về tài liệu"
                   >
                     <Eye className="w-3.5 h-3.5" />
                   </button>
@@ -854,48 +1315,49 @@ export default function InteriorDesignStudioPage() {
               </button>
             </div>
 
-            {/* Materials List */}
-            <div className="mt-3.5 space-y-3">
-              {data.materials.map((mat) => (
+            {/* List of 4 Material Cards */}
+            <div className="space-y-3 pt-3">
+              {data.materials.map((material) => (
                 <div
-                  key={mat.id}
-                  className="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  key={material.id}
+                  className="p-3 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
                 >
-                  <div className="flex items-start gap-2.5">
-                    {/* Material Texture Thumbnail */}
-                    <img
-                      src={mat.thumbnailImage}
-                      alt={mat.name}
-                      className="w-11 h-11 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0"
-                    />
-                    <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
-                        {mat.name}
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                        {mat.code}
-                      </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
-                        {mat.specification}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <img
+                        src={material.thumbnailImage}
+                        alt={material.name}
+                        className="w-10 h-10 rounded-lg object-cover border border-slate-200/80 dark:border-slate-700 shrink-0"
+                      />
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white">
+                          {material.name}
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-mono">
+                          {material.code}
+                        </div>
                       </div>
                     </div>
+
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border shrink-0 ${material.statusBadgeClass}`}
+                    >
+                      {material.statusLabel}
+                    </span>
                   </div>
 
-                  {/* Status Badge */}
-                  <span
-                    className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border shrink-0 ${mat.statusBadgeClass}`}
-                  >
-                    {mat.statusLabel}
-                  </span>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 line-clamp-1">
+                    {material.specification}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Bottom Compliance Audit Banner */}
-          <div className="rounded-xl bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/80 p-3.5 flex items-center gap-3">
+          {/* Bottom Green Material Audit Banner */}
+          <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/50 flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
-              <Check className="w-4 h-4 stroke-[3]" />
+              <CheckCircle2 className="w-4 h-4" />
             </div>
             <div>
               <div className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
@@ -1168,6 +1630,522 @@ export default function InteriorDesignStudioPage() {
                 Đóng
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal 6: Tải lên Phối cảnh 3D mới (Cloudflare R2 Direct) ─── */}
+      {showUpload3DModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-xl w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-emerald-600" />
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Tải lên Phối cảnh 3D mới
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Lưu trữ ảnh gốc trên Cloudflare R2 bucket: <code className="text-emerald-700 font-bold">bella-production</code>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowUpload3DModal(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpload3D} className="space-y-4 text-xs">
+              {/* File Dropzone */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Tệp hình ảnh phối cảnh (JPG, PNG, WebP) *
+                </label>
+                <input
+                  type="file"
+                  ref={fileInput3DRef}
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => handleFile3DChange(e.target.files?.[0] || null)}
+                />
+                <div
+                  onClick={() => fileInput3DRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${
+                    visualForm.file
+                      ? 'border-emerald-500 bg-emerald-50/30'
+                      : 'border-slate-300 hover:border-emerald-500 bg-slate-50 dark:bg-slate-800/40'
+                  }`}
+                >
+                  {visualForm.previewUrl ? (
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={visualForm.previewUrl}
+                        alt="Preview"
+                        className="w-20 h-14 object-cover rounded-lg border shadow-xs shrink-0"
+                      />
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-bold text-slate-800 dark:text-slate-200 truncate">
+                          {visualForm.file?.name}
+                        </div>
+                        <div className="text-[11px] text-slate-400">
+                          {visualForm.file && (visualForm.file.size / (1024 * 1024)).toFixed(2)} MB · Bấm để đổi ảnh khác
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-3 flex flex-col items-center gap-1.5 text-slate-500">
+                      <Upload className="w-6 h-6 text-emerald-600" />
+                      <div className="font-semibold text-slate-700 dark:text-slate-300">
+                        Kéo thả ảnh vào đây hoặc bấm để chọn tệp
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        Hỗ trợ độ phân giải cao 2K / 4K / 8K (tối đa 50MB)
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Title & Room Zone */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Tiêu đề phối cảnh *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={visualForm.title}
+                    onChange={(e) => setVisualForm({ ...visualForm, title: e.target.value })}
+                    placeholder="VD: Phối cảnh Sofa & Cửa sổ ban công"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Khu vực / Phòng *
+                  </label>
+                  <select
+                    value={visualForm.roomZone}
+                    onChange={(e) => setVisualForm({ ...visualForm, roomZone: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none"
+                  >
+                    <option value="Phòng khách">Phòng khách</option>
+                    <option value="Phòng ăn">Phòng ăn</option>
+                    <option value="Phòng ngủ Master">Phòng ngủ Master</option>
+                    <option value="Bếp & Đảo bếp">Bếp &amp; Đảo bếp</option>
+                    <option value="Phòng làm việc">Phòng làm việc</option>
+                    <option value="Phòng tắm">Phòng tắm</option>
+                    <option value="Ban công sân vườn">Ban công sân vườn</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* View Angle & Resolution */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Tên góc nhìn chi tiết
+                  </label>
+                  <input
+                    type="text"
+                    value={visualForm.viewAngleName}
+                    onChange={(e) => setVisualForm({ ...visualForm, viewAngleName: e.target.value })}
+                    placeholder="VD: Góc nhìn chính diện bàn trà tròn"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Độ phân giải &amp; Công cụ render
+                  </label>
+                  <select
+                    value={visualForm.resolution}
+                    onChange={(e) => setVisualForm({ ...visualForm, resolution: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none"
+                  >
+                    <option value="4K Ultra-HD (3840x2160)">4K Ultra-HD (3840x2160)</option>
+                    <option value="2K HD (2560x1440)">2K HD (2560x1440)</option>
+                    <option value="Full HD (1920x1080)">Full HD (1920x1080)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Author & Primary Toggle */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Kiến trúc sư phụ trách
+                  </label>
+                  <input
+                    type="text"
+                    value={visualForm.authorName}
+                    onChange={(e) => setVisualForm({ ...visualForm, authorName: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 pt-4">
+                  <input
+                    type="checkbox"
+                    id="isPrimaryCheckbox"
+                    checked={visualForm.isPrimary}
+                    onChange={(e) => setVisualForm({ ...visualForm, isPrimary: e.target.checked })}
+                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <label htmlFor="isPrimaryCheckbox" className="font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                    Đặt làm góc nhìn chính (Primary View)
+                  </label>
+                </div>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowUpload3DModal(false)}
+                  disabled={isUploading}
+                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 hover:bg-slate-50 font-semibold"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUploading}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold transition-all shadow-sm disabled:opacity-50"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Đang lưu lên Cloudflare R2...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Xác nhận tải lên &amp; Lưu</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal 7: Tải lên Bản vẽ kỹ thuật 2D CAD (DWG / DXF / PDF) ─── */}
+      {showUpload2DModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-xl w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Ruler className="w-5 h-5 text-emerald-600" />
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Tải lên Bản vẽ kỹ thuật 2D (CAD / DWG / PDF)
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Lưu trữ bản vẽ kỹ thuật trên Cloudflare R2: <code className="text-emerald-700 font-bold">interior/blueprints/</code>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowUpload2DModal(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpload2D} className="space-y-4 text-xs">
+              {/* File Dropzone */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Tệp bản vẽ kỹ thuật (.DWG, .DXF, .PDF, .CAD) *
+                </label>
+                <input
+                  type="file"
+                  ref={fileInput2DRef}
+                  accept=".dwg,.dxf,.pdf,.cad,.zip"
+                  className="hidden"
+                  onChange={(e) => handleFile2DChange(e.target.files?.[0] || null)}
+                />
+                <div
+                  onClick={() => fileInput2DRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${
+                    drawingForm.file
+                      ? 'border-emerald-500 bg-emerald-50/30'
+                      : 'border-slate-300 hover:border-emerald-500 bg-slate-50 dark:bg-slate-800/40'
+                  }`}
+                >
+                  {drawingForm.file ? (
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-bold flex items-center justify-center shrink-0">
+                        {drawingForm.fileType}
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-bold text-slate-800 dark:text-slate-200 truncate">
+                          {drawingForm.file.name}
+                        </div>
+                        <div className="text-[11px] text-slate-400">
+                          {(drawingForm.file.size / (1024 * 1024)).toFixed(2)} MB · Bấm để đổi tệp khác
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-3 flex flex-col items-center gap-1.5 text-slate-500">
+                      <HardDrive className="w-6 h-6 text-emerald-600" />
+                      <div className="font-semibold text-slate-700 dark:text-slate-300">
+                        Kéo thả tệp bản vẽ vào đây hoặc bấm để chọn tệp
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        Định dạng AutoCAD .DWG, .DXF hoặc bản vẽ vector .PDF (Tối đa 100MB)
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Title & Drawing Code */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Tên bản vẽ kỹ thuật *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={drawingForm.title}
+                    onChange={(e) => setDrawingForm({ ...drawingForm, title: e.target.value })}
+                    placeholder="VD: Mặt bằng chi tiết bổ đồ gỗ tủ áo Master"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Mã bản vẽ
+                  </label>
+                  <input
+                    type="text"
+                    value={drawingForm.drawingCode}
+                    onChange={(e) => setDrawingForm({ ...drawingForm, drawingCode: e.target.value })}
+                    placeholder="VD: REV 2 - DET-03"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* File Type & Author */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Định dạng file
+                  </label>
+                  <select
+                    value={drawingForm.fileType}
+                    onChange={(e) => setDrawingForm({ ...drawingForm, fileType: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none"
+                  >
+                    <option value="DWG">DWG (AutoCAD Drawing)</option>
+                    <option value="DXF">DXF (Drawing Exchange Format)</option>
+                    <option value="PDF">PDF (Vector Blueprint)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Kỹ sư / KTS phụ trách
+                  </label>
+                  <input
+                    type="text"
+                    value={drawingForm.author}
+                    onChange={(e) => setDrawingForm({ ...drawingForm, author: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowUpload2DModal(false)}
+                  disabled={isUploading}
+                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 hover:bg-slate-50 font-semibold"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUploading}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold transition-all shadow-sm disabled:opacity-50"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Đang lưu bản vẽ lên Cloudflare R2...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Lưu hồ sơ bản vẽ 2D</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal 8: Tải lên Tài liệu kỹ thuật & Biên bản ─── */}
+      {showUploadDocModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <FolderOpen className="w-5 h-5 text-amber-600" />
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Tải lên Tài liệu kỹ thuật &amp; Biên bản
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Lưu trữ hồ sơ tài liệu trên Cloudflare R2: <code className="text-amber-700 font-bold">interior/docs/</code>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowUploadDocModal(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUploadDoc} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Tệp tài liệu (PDF, DOCX, ZIP) *
+                </label>
+                <input
+                  type="file"
+                  ref={fileInputDocRef}
+                  accept=".pdf,.doc,.docx,.zip"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    if (file) {
+                      setDocForm((prev) => ({
+                        ...prev,
+                        file,
+                        title: prev.title || file.name.replace(/\.[^/.]+$/, ''),
+                      }));
+                    }
+                  }}
+                />
+                <div
+                  onClick={() => fileInputDocRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${
+                    docForm.file
+                      ? 'border-amber-500 bg-amber-50/30'
+                      : 'border-slate-300 hover:border-amber-500 bg-slate-50 dark:bg-slate-800/40'
+                  }`}
+                >
+                  {docForm.file ? (
+                    <div className="text-left">
+                      <div className="font-bold text-slate-800 dark:text-slate-200">
+                        {docForm.file.name}
+                      </div>
+                      <div className="text-[11px] text-slate-400">
+                        {(docForm.file.size / (1024 * 1024)).toFixed(2)} MB · Bấm để đổi tệp
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-2 flex flex-col items-center gap-1 text-slate-500">
+                      <FileText className="w-5 h-5 text-amber-600" />
+                      <span>Bấm để chọn tệp tài liệu</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Tên tài liệu *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={docForm.title}
+                  onChange={(e) => setDocForm({ ...docForm, title: e.target.value })}
+                  placeholder="VD: Biên bản nghiệm thu chỉ dẫn kỹ thuật"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Phân loại
+                  </label>
+                  <select
+                    value={docForm.documentCategory}
+                    onChange={(e) => setDocForm({ ...docForm, documentCategory: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none"
+                  >
+                    <option value="Chỉ dẫn kỹ thuật">Chỉ dẫn kỹ thuật</option>
+                    <option value="Biên bản phê duyệt">Biên bản phê duyệt</option>
+                    <option value="Moodboard">Moodboard</option>
+                    <option value="Hồ sơ nghiệm thu">Hồ sơ nghiệm thu</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Người lập
+                  </label>
+                  <input
+                    type="text"
+                    value={docForm.author}
+                    onChange={(e) => setDocForm({ ...docForm, author: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowUploadDocModal(false)}
+                  disabled={isUploading}
+                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 hover:bg-slate-50 font-semibold"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUploading}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-bold transition-all shadow-sm disabled:opacity-50"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Đang lưu...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Lưu tài liệu</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

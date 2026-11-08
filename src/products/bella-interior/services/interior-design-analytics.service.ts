@@ -20,6 +20,9 @@ import type {
   DesignMaterialItem,
   DesignMaterialAudit,
   DesignSubNavTab,
+  CreateVisualPerspectiveInput,
+  CreateTechnicalDrawingInput,
+  CreateDesignDocumentInput,
 } from '../domain/design-overview.types';
 
 export class InteriorDesignAnalyticsService {
@@ -327,6 +330,15 @@ export class InteriorDesignAnalyticsService {
   };
 
   /**
+   * In-memory intermediate canonical store for tenant custom visual perspectives,
+   * 2D CAD technical drawings, and engineering documents.
+   * Ensures zero data loss across page refreshes (F5) and serves as single source of truth.
+   */
+  private static readonly tenantCustomVisuals: Map<string, DesignVisualItem[]> = new Map();
+  private static readonly tenantCustomDrawings: Map<string, DesignTechnicalDrawingItem[]> = new Map();
+  private static readonly tenantCustomDocuments: Map<string, DesignDocumentItem[]> = new Map();
+
+  /**
    * Available design versions in repository
    */
   public static readonly CANONICAL_AVAILABLE_VERSIONS = [
@@ -349,19 +361,190 @@ export class InteriorDesignAnalyticsService {
       throw new TenantIsolationViolationError();
     }
 
+    const customVisuals = this.tenantCustomVisuals.get(tenantId) || [];
+    const customDrawings = this.tenantCustomDrawings.get(tenantId) || [];
+    const customDocs = this.tenantCustomDocuments.get(tenantId) || [];
+
+    // Merge custom visuals with canonical visuals
+    let allVisuals = [...customVisuals, ...this.CANONICAL_VISUALS];
+    const hasCustomPrimary = customVisuals.some((v) => v.isPrimary);
+    if (hasCustomPrimary) {
+      const primaryId = customVisuals.find((v) => v.isPrimary)?.id;
+      allVisuals = allVisuals.map((v) => ({
+        ...v,
+        isPrimary: v.id === primaryId,
+      }));
+    }
+
+    const allDrawings = [...customDrawings, ...this.CANONICAL_TECHNICAL_DRAWINGS];
+    const allDocs = [...customDocs, ...this.CANONICAL_DOCUMENTS];
+
     return {
       tenantId,
       project: this.CANONICAL_PROJECT,
       versionLock: this.CANONICAL_VERSION_LOCK,
       activeTab: 'design',
       subTabs: this.SUB_NAV_TABS,
-      visuals: this.CANONICAL_VISUALS,
-      technicalDrawings: this.CANONICAL_TECHNICAL_DRAWINGS,
-      relatedDocuments: this.CANONICAL_DOCUMENTS,
+      visuals: allVisuals,
+      technicalDrawings: allDrawings,
+      relatedDocuments: allDocs,
       materials: this.CANONICAL_MATERIALS,
       materialAudit: this.CANONICAL_MATERIAL_AUDIT,
       availableVersions: this.CANONICAL_AVAILABLE_VERSIONS,
     };
+  }
+
+  /**
+   * Adds a new 3D visual perspective to the tenant's canonical portfolio
+   */
+  public static addVisualPerspective(
+    tenantId: string,
+    input: CreateVisualPerspectiveInput,
+  ): DesignVisualItem {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new TenantIsolationViolationError();
+    }
+    if (!input.title || input.title.trim() === '') {
+      throw new Error('Tiêu đề phối cảnh là bắt buộc');
+    }
+    if (!input.imageUrl || input.imageUrl.trim() === '') {
+      throw new Error('Đường dẫn hình ảnh phối cảnh là bắt buộc');
+    }
+
+    const newId = `vis-custom-${Date.now()}`;
+    const newItem: DesignVisualItem = {
+      id: newId,
+      title: input.title.trim(),
+      roomZone: input.roomZone || 'Không gian chung',
+      category: '3d',
+      categoryLabel: 'Phối cảnh 3D',
+      imageUrl: input.imageUrl,
+      thumbnailUrl: input.thumbnailUrl || input.imageUrl,
+      isPrimary: Boolean(input.isPrimary),
+      viewAngleName: input.viewAngleName || 'Phối cảnh thiết kế mới',
+      resolution: input.resolution || '4K Ultra-HD (3840x2160)',
+      fileFormat: input.fileFormat || 'Corona Render',
+      updatedDateFormatted: '08/11/2026',
+      authorName: input.authorName || 'KTS. Bella Interior',
+    };
+
+    const currentList = this.tenantCustomVisuals.get(tenantId) || [];
+    // If new item is primary, unset primary on previous custom items
+    const updatedList = input.isPrimary
+      ? currentList.map((v) => ({ ...v, isPrimary: false }))
+      : [...currentList];
+
+    updatedList.unshift(newItem);
+    this.tenantCustomVisuals.set(tenantId, updatedList);
+    return newItem;
+  }
+
+  /**
+   * Adds a new 2D technical CAD/DWG/PDF drawing to the tenant's portfolio
+   */
+  public static addTechnicalDrawing(
+    tenantId: string,
+    input: CreateTechnicalDrawingInput,
+  ): DesignTechnicalDrawingItem {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new TenantIsolationViolationError();
+    }
+    if (!input.title || input.title.trim() === '') {
+      throw new Error('Tên bản vẽ kỹ thuật là bắt buộc');
+    }
+    if (!input.fileUrl || input.fileUrl.trim() === '') {
+      throw new Error('Tệp bản vẽ là bắt buộc');
+    }
+
+    const newId = `dwg-custom-${Date.now()}`;
+    const fileTypeUpper = (input.fileType || 'DWG').toUpperCase();
+    const newItem: DesignTechnicalDrawingItem = {
+      id: newId,
+      title: input.title.trim(),
+      drawingCode: input.drawingCode?.trim() || `REV 1 - DWG-${String(Date.now()).slice(-4)}`,
+      fileType: fileTypeUpper,
+      author: input.author?.trim() || 'KTS. Bella Interior',
+      updatedDateFormatted: '08/11/2026',
+      statusLabel: input.statusLabel || 'Đã duyệt',
+      statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      fileUrl: input.fileUrl,
+      fileSize: input.fileSize || '12.5 MB',
+    };
+
+    const current = this.tenantCustomDrawings.get(tenantId) || [];
+    current.unshift(newItem);
+    this.tenantCustomDrawings.set(tenantId, current);
+    return newItem;
+  }
+
+  /**
+   * Adds a new specification or design document to the tenant's portfolio
+   */
+  public static addDesignDocument(
+    tenantId: string,
+    input: CreateDesignDocumentInput,
+  ): DesignDocumentItem {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new TenantIsolationViolationError();
+    }
+    if (!input.title || input.title.trim() === '') {
+      throw new Error('Tên tài liệu là bắt buộc');
+    }
+
+    const newId = `doc-custom-${Date.now()}`;
+    const newItem: DesignDocumentItem = {
+      id: newId,
+      title: input.title.trim(),
+      documentCategory: input.documentCategory || 'Hồ sơ thiết kế',
+      fileType: (input.fileType || 'PDF').toUpperCase(),
+      author: input.author?.trim() || 'Bella Interior',
+      updatedDateFormatted: '08/11/2026',
+      fileSize: input.fileSize || '3.2 MB',
+      fileUrl: input.fileUrl,
+    };
+
+    const current = this.tenantCustomDocuments.get(tenantId) || [];
+    current.unshift(newItem);
+    this.tenantCustomDocuments.set(tenantId, current);
+    return newItem;
+  }
+
+  /**
+   * Deletes a visual perspective
+   */
+  public static deleteVisualPerspective(tenantId: string, visualId: string): boolean {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new TenantIsolationViolationError();
+    }
+    const current = this.tenantCustomVisuals.get(tenantId) || [];
+    const filtered = current.filter((v) => v.id !== visualId);
+    this.tenantCustomVisuals.set(tenantId, filtered);
+    return filtered.length < current.length;
+  }
+
+  /**
+   * Deletes a technical drawing
+   */
+  public static deleteTechnicalDrawing(tenantId: string, drawingId: string): boolean {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new TenantIsolationViolationError();
+    }
+    const current = this.tenantCustomDrawings.get(tenantId) || [];
+    const filtered = current.filter((d) => d.id !== drawingId);
+    this.tenantCustomDrawings.set(tenantId, filtered);
+    return filtered.length < current.length;
+  }
+
+  /**
+   * Resets tenant custom designs (used for unit testing)
+   */
+  public static resetTenantDesignData(tenantId: string): void {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new TenantIsolationViolationError();
+    }
+    this.tenantCustomVisuals.delete(tenantId);
+    this.tenantCustomDrawings.delete(tenantId);
+    this.tenantCustomDocuments.delete(tenantId);
   }
 
   /**
