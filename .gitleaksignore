@@ -64,3 +64,12 @@ b202bf0cb0cb4e24e63ef219e236656f5d09dd6e:docs/audits/preschool-main-20261101/att
 b202bf0cb0cb4e24e63ef219e236656f5d09dd6e:docs/audits/preschool-main-20261101/attendance-attempt2-receipt.json:generic-api-key:615
 b202bf0cb0cb4e24e63ef219e236656f5d09dd6e:docs/audits/preschool-main-20261101/attendance-attempt3-acceptance-receipt.json:generic-api-key:392
 b202bf0cb0cb4e24e63ef219e236656f5d09dd6e:docs/audits/preschool-main-20261101/attendance-attempt3-receipt.json:generic-api-key:633
+
+# PR #515: two idempotency key test fixture strings in takeoff-service.test.ts.
+# These are plain-text deduplication keys used in a Jest describe block testing
+# retry semantics. No authentication, no entropy beyond a readable slug. Not credentials.
+# Rule: generic-api-key / Entropy: 3.653757. Reviewed 2026-11-08.
+73c3ba3a86c87672bbb234a2e3957f25a33eceb5:src/products/bella-interior/__tests__/takeoff-service.test.ts:generic-api-key:711
+73c3ba3a86c87672bbb234a2e3957f25a33eceb5:src/products/bella-interior/__tests__/takeoff-service.test.ts:generic-api-key:720
+3248c8056bbebec341b45d68f8ba91780e18f5fb:src/products/bella-interior/__tests__/takeoff-service.test.ts:generic-api-key:711
+3248c8056bbebec341b45d68f8ba91780e18f5fb:src/products/bella-interior/__tests__/takeoff-service.test.ts:generic-api-key:720
