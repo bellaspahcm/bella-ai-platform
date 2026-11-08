@@ -67,7 +67,7 @@ const INITIAL_PROJECTS: MockProject[] = [
     leadArchitect: 'KTS. Hoàng Long',
     progressPercent: 65,
     nextAction: 'Hoàn thiện sản xuất',
-    imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80',
+    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
     architectAvatar: 'L',
     roomsCount: 6,
   },
@@ -86,7 +86,7 @@ const INITIAL_PROJECTS: MockProject[] = [
     leadArchitect: 'KTS. Lê Hoàng Sơn',
     progressPercent: 82,
     nextAction: 'Thi công phòng khách',
-    imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80',
+    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/office-tower-lobby.jpg',
     architectAvatar: 'S',
     roomsCount: 8,
   },
@@ -105,7 +105,7 @@ const INITIAL_PROJECTS: MockProject[] = [
     leadArchitect: 'KTS. Phan Hải',
     progressPercent: 30,
     nextAction: 'Duyệt bản vẽ',
-    imageUrl: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80',
+    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/skyline-residence.jpg',
     architectAvatar: 'H',
     roomsCount: 5,
   },
@@ -124,7 +124,7 @@ const INITIAL_PROJECTS: MockProject[] = [
     leadArchitect: 'KTS. Hoàng Long',
     progressPercent: 100,
     nextAction: 'Kích hoạt bảo hành',
-    imageUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=600&q=80',
+    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/installation/site-progress-main.jpg',
     architectAvatar: 'L',
     roomsCount: 3,
   },
@@ -151,7 +151,7 @@ const URGENT_ITEMS: UrgentItem[] = [
     taskTitle: 'Thiếu duyệt bản vẽ',
     dueTime: 'Hôm nay',
     timeClass: 'text-rose-600 dark:text-rose-400 font-semibold',
-    imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=200&q=80',
+    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
     actionHref: '/dashboard/interior/design',
   },
   {
@@ -162,7 +162,7 @@ const URGENT_ITEMS: UrgentItem[] = [
     taskTitle: 'Kiểm tra tiến độ xưởng',
     dueTime: '2 ngày',
     timeClass: 'text-amber-700 dark:text-amber-400 font-semibold',
-    imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=200&q=80',
+    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/office-tower-lobby.jpg',
     actionHref: '/dashboard/interior/production',
   },
   {
@@ -173,7 +173,7 @@ const URGENT_ITEMS: UrgentItem[] = [
     taskTitle: 'Biên bản nghiệm thu',
     dueTime: '3 ngày',
     timeClass: 'text-blue-600 dark:text-blue-400 font-semibold',
-    imageUrl: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=200&q=80',
+    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/skyline-residence.jpg',
     actionHref: '/dashboard/interior/qc-handover',
   },
 ];
@@ -253,7 +253,7 @@ export default function InteriorDashboardPage() {
         {/* Hero living room viewport image matching demo */}
         <div className="relative z-10 w-full md:w-80 lg:w-96 flex-shrink-0 rounded-2xl overflow-hidden shadow-lg border border-white/20 group">
           <img
-            src={'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80'}
+            src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/installation/site-progress-main.jpg'}
             alt="Bella Interior Living Room"
             className="w-full h-36 sm:h-40 object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -760,7 +760,7 @@ export default function InteriorDashboardPage() {
         {/* Right Card: Banner Promo Bella Interior OS */}
         <div className="relative rounded-3xl overflow-hidden shadow-sm border border-slate-200/80 dark:border-slate-800 min-h-[260px] flex flex-col justify-end p-6 sm:p-8 group">
           <img
-            src={'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1000&q=80'}
+            src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/finance/financial-report-cover.jpg'}
             alt="Bella Interior OS Promo"
             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />

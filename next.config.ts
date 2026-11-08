@@ -123,12 +123,31 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // Allow next/image to load from Unsplash (used in demo/placeholder UI components)
+  // Allow next/image to load from Unsplash (demo placeholders) and Cloudflare R2 (production CDN)
   images: {
     remotePatterns: [
+      // Unsplash — kept during migration period; remove once all images are on R2
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
+      // Cloudflare R2 — private endpoint (upload/admin access)
+      {
+        protocol: 'https',
+        hostname: '3c8d589a1d10e0c3a2167a27abd354ab.r2.cloudflarestorage.com',
+        pathname: '/bella-production/**',
+      },
+      // Cloudflare R2 — r2.dev public access (before custom domain is configured)
+      {
+        protocol: 'https',
+        hostname: '*.r2.dev',
+        pathname: '/**',
+      },
+      // Custom CDN domain (once configured in Cloudflare R2 → Settings → Custom Domains)
+      {
+        protocol: 'https',
+        hostname: 'cdn.bella-interior.com',
         pathname: '/**',
       },
     ],
