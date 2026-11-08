@@ -272,3 +272,21 @@ Additive migration file: `supabase/migrations/20261106150000_create_interior_os_
 
 The architectural separation, domain boundaries, ownership model, and phased roadmap for **Bella Interior OS** satisfy all platform constitutional rules. Implementation is authorized.
 
+---
+
+## 9. Addendum (2026-11-08) — Contract Financial Integrity Seal & Payment Ledger Architecture Roadmap
+
+**Status:** `SEALED & PASS` (PR #519, Commit `e8d78e69467908a33519eb261ff847454408519b`)  
+**Detailed Specification:** See `docs/architecture/BELLA_INTERIOR_FINANCIAL_INTEGRITY_SEAL_2026_11_08.md`
+
+### Key Verified Architectural Closures:
+1. **DB-First Resolution & Zero Fallback Leakage:** Eliminated hardcoded Dubai mockup contracts from live DB queries. The `/dashboard/interior/contracts` route and analytics service query PostgreSQL via repository; uncontracted projects render explicit, actionable Empty States.
+2. **SSOT Financial Integrity:** Independent lifecycle for BOQ (pre-contract estimate) and Executed Contract (legally binding snapshot). Dynamic unclamped calculation for outstanding balance (`contractValue - netCollected`), surfacing overcollection clearly.
+3. **PostgreSQL Ground Truth:** Confirmed 1 active contract row in database (`HD-NT-2026/08` for `INT-THD-2026`, 1.35B value, 50% paid). Villa Sunrise (`INT-2024-001`) holds 1.68B in BOQ with explicit Empty State for contract. Zero fake contracts fabricated.
+
+### Architectural Roadmap for Next Stage:
+- **Payment Transaction Ledger:** Migration for `interior_payment_transactions` immutable cash receipt table.
+- **Milestone Allocations:** N:1 and 1:N mapping (`interior_milestone_allocations`) between physical receipts and contractual milestone tranches.
+- **Bank Reconciliation:** Automated matching against bank statement feeds and ERP outbox dispatch.
+
+
