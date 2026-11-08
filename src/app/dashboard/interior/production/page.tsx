@@ -867,7 +867,7 @@ export default function ProductionDashboardPage() {
                     <span className="font-mono font-medium">4 bộ</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>• Cánh kính khung nhôm Anodized & Ray trượt</span>
+                    <span>• Cánh kính khung nhôm Anodized &amp; Ray trượt</span>
                     <span className="font-mono font-medium">2 cánh</span>
                   </div>
                 </div>
