@@ -138,9 +138,11 @@ DECLARE
 BEGIN
     v_target_boq_id := CASE WHEN TG_OP = 'DELETE' THEN OLD.boq_id ELSE NEW.boq_id END;
 
+    -- Acquire FOR SHARE lock on parent row to serialize against concurrent approval transactions
     SELECT status INTO v_parent_status
     FROM public.interior_boqs
-    WHERE id = v_target_boq_id;
+    WHERE id = v_target_boq_id
+    FOR SHARE;
 
     IF v_parent_status IN ('approved', 'locked_for_contract') THEN
         RAISE EXCEPTION 'Immutability violation: Cannot % item on parent BOQ % with status %.', TG_OP, v_target_boq_id, v_parent_status;
