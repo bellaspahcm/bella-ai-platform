@@ -10,6 +10,7 @@ import type {
   ProjectRoomZone,
   DesignRevision,
 } from '../domain/design-specification/types';
+import type { DesignTakeoffRun } from '../domain/takeoff/types';
 import type {
   InteriorBOQ,
   InteriorQuotation,
@@ -27,6 +28,18 @@ import type {
   WarrantyServiceTicket,
 } from '../domain/delivery-aftercare/types';
 
+export interface SaveBOQOptions {
+  readonly expectedVersionNumber?: number;
+  readonly idempotencyKey?: string;
+  readonly requestHash?: string;
+  readonly auditActorId?: string;
+  /**
+   * Only permitted in non-production unit test harness where DB RPC is mocked or not deployed.
+   * In production, this must remain false/undefined to enforce Fail-Closed atomic persistence.
+   */
+  readonly allowSequentialFallback?: boolean;
+}
+
 export interface IInteriorRepository {
   // Design & Specification
   saveProject(tenantId: string, project: InteriorProject): Promise<void>;
@@ -38,10 +51,16 @@ export interface IInteriorRepository {
   getDesignRevision(tenantId: string, revisionId: string): Promise<DesignRevision | null>;
   listDesignRevisions(tenantId: string, projectId: string): Promise<DesignRevision[]>;
 
+  // Design Takeoff Staging & Review (Phase 2A)
+  saveTakeoffRun(tenantId: string, run: DesignTakeoffRun): Promise<void>;
+  getTakeoffRun(tenantId: string, runId: string): Promise<DesignTakeoffRun | null>;
+  listTakeoffRuns(tenantId: string, projectId: string): Promise<DesignTakeoffRun[]>;
+
   // Commercial & Costing
-  saveBOQ(tenantId: string, boq: InteriorBOQ): Promise<void>;
+  saveBOQ(tenantId: string, boq: InteriorBOQ, options?: SaveBOQOptions): Promise<void>;
   getBOQ(tenantId: string, boqId: string): Promise<InteriorBOQ | null>;
   getBOQByProject(tenantId: string, projectId: string): Promise<InteriorBOQ | null>;
+  listBOQRevisions(tenantId: string, projectId: string): Promise<InteriorBOQ[]>;
   saveQuotation(tenantId: string, quotation: InteriorQuotation): Promise<void>;
   getQuotation(tenantId: string, quotationId: string): Promise<InteriorQuotation | null>;
   saveContract(tenantId: string, contract: InteriorContract): Promise<void>;

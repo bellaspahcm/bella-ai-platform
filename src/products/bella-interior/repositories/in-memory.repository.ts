@@ -7,13 +7,14 @@
  * @module src/products/bella-interior/repositories
  */
 
-import { TenantIsolationViolationError } from '../domain/errors';
-import type { IInteriorRepository } from './interior-repository.interface';
+import { TenantIsolationViolationError, TakeoffRunImmutableError } from '../domain/errors';
+import type { IInteriorRepository, SaveBOQOptions } from './interior-repository.interface';
 import type {
   InteriorProject,
   ProjectRoomZone,
   DesignRevision,
 } from '../domain/design-specification/types';
+import type { DesignTakeoffRun } from '../domain/takeoff/types';
 import type {
   InteriorBOQ,
   InteriorQuotation,
@@ -35,6 +36,7 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
   private readonly projects = new Map<string, InteriorProject>();
   private readonly roomZones = new Map<string, ProjectRoomZone>();
   private readonly designRevisions = new Map<string, DesignRevision>();
+  private readonly takeoffRuns = new Map<string, DesignTakeoffRun>();
   private readonly boqs = new Map<string, InteriorBOQ>();
   private readonly quotations = new Map<string, InteriorQuotation>();
   private readonly contracts = new Map<string, InteriorContract>();
@@ -107,25 +109,84 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
     return result.sort((a, b) => a.versionNumber - b.versionNumber);
   }
 
+  // --- Design Takeoff Staging & Review (Phase 2A) ---
+
+  async saveTakeoffRun(tenantId: string, run: DesignTakeoffRun): Promise<void> {
+    if (run.tenantId !== tenantId) throw new TenantIsolationViolationError();
+    const key = this.makeKey(tenantId, run.id);
+    const existing = this.takeoffRuns.get(key);
+    if (existing && existing.isImmutable) {
+      throw new TakeoffRunImmutableError(run.id, existing.status);
+    }
+    // Deep clone snapshot so external in-memory references cannot mutate stored state
+    this.takeoffRuns.set(key, JSON.parse(JSON.stringify(run)) as DesignTakeoffRun);
+  }
+
+  async getTakeoffRun(tenantId: string, runId: string): Promise<DesignTakeoffRun | null> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    const run = this.takeoffRuns.get(this.makeKey(tenantId, runId));
+    if (!run) return null;
+    return JSON.parse(JSON.stringify(run)) as DesignTakeoffRun;
+  }
+
+  async listTakeoffRuns(tenantId: string, projectId: string): Promise<DesignTakeoffRun[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    const result: DesignTakeoffRun[] = [];
+    for (const [key, val] of this.takeoffRuns.entries()) {
+      if (key.startsWith(`${tenantId}::`) && val.projectId === projectId) {
+        result.push(JSON.parse(JSON.stringify(val)) as DesignTakeoffRun);
+      }
+    }
+    return result.sort((a, b) => a.runNumber - b.runNumber);
+  }
+
   // --- Commercial & Costing ---
 
-  async saveBOQ(tenantId: string, boq: InteriorBOQ): Promise<void> {
+  async saveBOQ(tenantId: string, boq: InteriorBOQ, options?: SaveBOQOptions): Promise<void> {
     if (boq.tenantId !== tenantId) throw new TenantIsolationViolationError();
-    this.boqs.set(this.makeKey(tenantId, boq.id), boq);
+    const key = this.makeKey(tenantId, boq.id);
+    const existing = this.boqs.get(key);
+
+    if (existing && options?.expectedVersionNumber !== undefined && existing.versionNumber !== options.expectedVersionNumber) {
+      throw new Error(
+        `[InteriorRepo] ConcurrencyConflict: Expected version ${options.expectedVersionNumber}, but found ${existing.versionNumber}`
+      );
+    }
+
+    if (existing && (existing.status === 'approved' || existing.status === 'locked_for_contract')) {
+      const isStatusTransitionToLocked =
+        existing.status === 'approved' && boq.status === 'locked_for_contract';
+      if (!isStatusTransitionToLocked) {
+        throw new Error(
+          `[InteriorRepo] Immutability violation: BOQ ${boq.id} is '${existing.status}' and cannot be modified. Create a new revision.`
+        );
+      }
+    }
+    // Deep-copy snapshot to prevent external in-memory references from mutating stored state
+    this.boqs.set(key, JSON.parse(JSON.stringify(boq)) as InteriorBOQ);
   }
 
   async getBOQ(tenantId: string, boqId: string): Promise<InteriorBOQ | null> {
-    return this.boqs.get(this.makeKey(tenantId, boqId)) ?? null;
+    const boq = this.boqs.get(this.makeKey(tenantId, boqId));
+    if (!boq) return null;
+    return JSON.parse(JSON.stringify(boq)) as InteriorBOQ;
   }
 
   async getBOQByProject(tenantId: string, projectId: string): Promise<InteriorBOQ | null> {
     if (!tenantId) throw new TenantIsolationViolationError();
+    const revisions = await this.listBOQRevisions(tenantId, projectId);
+    return revisions.length > 0 ? revisions[0] : null;
+  }
+
+  async listBOQRevisions(tenantId: string, projectId: string): Promise<InteriorBOQ[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    const result: InteriorBOQ[] = [];
     for (const [key, val] of this.boqs.entries()) {
       if (key.startsWith(`${tenantId}::`) && val.projectId === projectId) {
-        return val;
+        result.push(JSON.parse(JSON.stringify(val)) as InteriorBOQ);
       }
     }
-    return null;
+    return result.sort((a, b) => b.versionNumber - a.versionNumber);
   }
 
   async saveQuotation(tenantId: string, quotation: InteriorQuotation): Promise<void> {
