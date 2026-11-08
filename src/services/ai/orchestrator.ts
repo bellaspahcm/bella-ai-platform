@@ -496,7 +496,8 @@ Bạn phải trả về DUY NHẤT một chuỗi JSON hợp lệ (không chứa 
     analysis: {
       executiveSummary,
       anomaliesFound,
-      fullData: subAgentResponse.data ? (Array.isArray(subAgentResponse.data) ? subAgentResponse.data as unknown[] : [subAgentResponse.data]) : []
+      fullData: subAgentResponse.data ? (Array.isArray(subAgentResponse.data) ? subAgentResponse.data as unknown[] : [subAgentResponse.data]) : [],
+      executiveDeepReport: subAgentResponse.executiveDeepReport
     },
     draftActions,
     strategicRecommendations
