@@ -101,4 +101,11 @@ export class TakeoffIncompleteReviewError extends Error {
   }
 }
 
+export class TakeoffDiffRunMismatchError extends Error {
+  constructor(reason: string) {
+    super(`Takeoff Diff computation failed: ${reason}`);
+    this.name = 'TakeoffDiffRunMismatchError';
+  }
+}
+
 

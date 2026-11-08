@@ -76,6 +76,9 @@ export * from './services/interior-finance-analytics.service';
 export * from './domain/takeoff';
 export * from './services/interior-takeoff.service';
 
+// Takeoff Diff Engine (Phase 2B)
+export * from './services/interior-takeoff-diff.service';
+
 // Manifest
 export * from './manifest';
 
