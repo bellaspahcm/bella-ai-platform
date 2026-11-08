@@ -13,6 +13,7 @@
  * @module src/products/bella-interior/__tests__/boq-analytics.test.ts
  */
 
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { InteriorBOQAnalyticsService } from '../services/interior-boq-analytics.service';
 import { TenantIsolationViolationError } from '../domain/errors';
 
@@ -153,6 +154,318 @@ describe('InteriorBOQAnalyticsService', () => {
       expect(overview.audit.versionLabel).toBe('R1.0 - Approved');
       expect(overview.audit.approvalDateFormatted).toBe('06/11/2026');
       expect(overview.audit.approvedBy).toBe('Trần Thị Mai');
+    });
+  });
+
+  describe('BOQ Manual Workspace Mutations & Immutability (Phase 1)', () => {
+    const MUTATION_TENANT = 'tenant-boq-workspace-mutation-test';
+
+    beforeEach(() => {
+      InteriorBOQAnalyticsService.resetTenantBOQData(MUTATION_TENANT);
+    });
+
+    it('should enforce Immutability on Approved BOQ: modifications fail closed', async () => {
+      const overview = await InteriorBOQAnalyticsService.getBOQOverview(MUTATION_TENANT);
+      expect(overview.status).toBe('approved');
+
+      // Attempting to add an item to an approved revision must throw
+      await expect(
+        InteriorBOQAnalyticsService.addItem(MUTATION_TENANT, {
+          zoneId: 'zone-living',
+          itemName: 'Đèn chùm pha lê',
+          specifications: 'Pha lê Tiệp Khắc',
+          unit: 'Bộ',
+          quantity: 1,
+          internalUnitCost: 20_000_000,
+          clientUnitPrice: 35_000_000,
+        }),
+      ).rejects.toThrow(/bất biến|Revision mới/);
+
+      // Attempting to add zone to approved revision must throw
+      await expect(
+        InteriorBOQAnalyticsService.addZone(MUTATION_TENANT, 'Phòng rượu'),
+      ).rejects.toThrow(/bất biến|Revision mới/);
+    });
+
+    it('should fork a new revision (R2.0 Draft) from Approved BOQ, allowing mutations', async () => {
+      // 1. Fork revision
+      const rev2 = await InteriorBOQAnalyticsService.createRevision(MUTATION_TENANT, {
+        actorName: 'Kỹ sư Dự toán',
+      });
+
+      expect(rev2.versionNumber).toBe(2);
+      expect(rev2.status).toBe('draft');
+      expect(rev2.audit.versionLabel).toContain('R2.0 - Draft');
+
+      // 2. Add new zone
+      const withZone = await InteriorBOQAnalyticsService.addZone(MUTATION_TENANT, 'Phòng làm việc VIP');
+      const addedZone = withZone.zoneGroups.find((z) => z.zoneName === 'Phòng làm việc VIP');
+      expect(addedZone).toBeDefined();
+      expect(addedZone?.items).toHaveLength(0);
+
+      // 3. Add new line item with financial calculations
+      const withItem = await InteriorBOQAnalyticsService.addItem(MUTATION_TENANT, {
+        zoneId: addedZone!.zoneId,
+        itemName: 'Bàn giám đốc gỗ gõ đỏ',
+        specifications: 'Gỗ gõ đỏ Pachy tự nhiên sơn bóng',
+        unit: 'Bộ',
+        quantity: 2,
+        internalUnitCost: 50_000_000, // 2 * 50M = 100M COGS
+        clientUnitPrice: 80_000_000,   // 2 * 80M = 160M Price -> 60M Profit -> Margin 37.5%, Markup 60%
+      });
+
+      const updatedZone = withItem.zoneGroups.find((z) => z.zoneId === addedZone!.zoneId);
+      expect(updatedZone?.items).toHaveLength(1);
+      const item = updatedZone!.items[0];
+      expect(item.internalTotalCost).toBe(100_000_000);
+      expect(item.clientTotalPrice).toBe(160_000_000);
+      expect(item.grossMarginAmount).toBe(60_000_000);
+      expect(item.grossMarginPercent).toBe(37.5);
+      expect(item.markupPercent).toBe(60);
+
+      // 4. Verify project KPIs updated accurately
+      expect(withItem.kpis.totalCogs.rawValue).toBe(1_250_000_000 + 100_000_000);
+      expect(withItem.kpis.totalClientPrice.rawValue).toBe(1_680_000_000 + 160_000_000);
+    });
+
+    it('should support item update, duplication, and deletion with sequential re-indexing', async () => {
+      await InteriorBOQAnalyticsService.createRevision(MUTATION_TENANT);
+
+      // 1. Update existing item
+      const updated = await InteriorBOQAnalyticsService.updateItem(MUTATION_TENANT, {
+        itemId: 'item-sofa',
+        quantity: 2, // was 1 -> total cost becomes 160M, price becomes 220M
+      });
+
+      const sofa = updated.zoneGroups[0].items.find((i) => i.id === 'item-sofa');
+      expect(sofa?.quantity).toBe(2);
+      expect(sofa?.internalTotalCost).toBe(160_000_000);
+      expect(sofa?.clientTotalPrice).toBe(220_000_000);
+
+      // 2. Duplicate item
+      const duplicated = await InteriorBOQAnalyticsService.duplicateItem(MUTATION_TENANT, {
+        itemId: 'item-sofa',
+        targetZoneId: 'zone-living',
+      });
+      const living = duplicated.zoneGroups.find((z) => z.zoneId === 'zone-living');
+      const copyItem = living?.items.find((i) => i.itemName.includes('(Copy)'));
+      expect(copyItem).toBeDefined();
+
+      // 3. Delete item & verify sequential re-indexing
+      const deleted = await InteriorBOQAnalyticsService.deleteItem(MUTATION_TENANT, copyItem!.id);
+      const livingAfterDelete = deleted.zoneGroups.find((z) => z.zoneId === 'zone-living');
+      expect(livingAfterDelete?.items.some((i) => i.id === copyItem!.id)).toBe(false);
+
+      // Check item numbers are 1, 2, 3...
+      const allItemNumbers = deleted.zoneGroups.flatMap((z) => z.items.map((i) => i.itemNumber));
+      for (let i = 0; i < allItemNumbers.length; i++) {
+        expect(allItemNumbers[i]).toBe(i + 1);
+      }
+    });
+
+    it('should enforce strict 4-stage lifecycle state machine', async () => {
+      await InteriorBOQAnalyticsService.createRevision(MUTATION_TENANT); // status: draft
+
+      // 1. Draft -> Under Review
+      const underReview = await InteriorBOQAnalyticsService.transitionStatus(MUTATION_TENANT, {
+        targetStatus: 'under_review',
+        actorName: 'Trưởng phòng Dự toán',
+      });
+      expect(underReview.status).toBe('under_review');
+      expect(underReview.audit.versionLabel).toContain('Under Review');
+
+      // In Under Review, edits must be blocked
+      await expect(
+        InteriorBOQAnalyticsService.deleteItem(MUTATION_TENANT, 'item-sofa'),
+      ).rejects.toThrow(/Chờ duyệt/);
+
+      // 2. Under Review -> Draft (Reject)
+      const returnedToDraft = await InteriorBOQAnalyticsService.transitionStatus(MUTATION_TENANT, {
+        targetStatus: 'draft',
+      });
+      expect(returnedToDraft.status).toBe('draft');
+
+      // 3. Draft -> Under Review -> Approved
+      await InteriorBOQAnalyticsService.transitionStatus(MUTATION_TENANT, {
+        targetStatus: 'under_review',
+      });
+      const approved = await InteriorBOQAnalyticsService.transitionStatus(MUTATION_TENANT, {
+        targetStatus: 'approved',
+        actorName: 'Ban Giám Đốc',
+      });
+      expect(approved.status).toBe('approved');
+      expect(approved.audit.versionLabel).toContain('Approved');
+
+      // 4. Approved -> Locked for Contract
+      const locked = await InteriorBOQAnalyticsService.transitionStatus(MUTATION_TENANT, {
+        targetStatus: 'locked_for_contract',
+        actorName: 'Bộ phận Hợp đồng',
+      });
+      expect(locked.status).toBe('locked_for_contract');
+      expect(locked.audit.versionLabel).toContain('Locked for Contract');
+
+      // Illegal transition: Locked -> Draft directly is forbidden
+      await expect(
+        InteriorBOQAnalyticsService.transitionStatus(MUTATION_TENANT, {
+          targetStatus: 'draft',
+        }),
+      ).rejects.toThrow(/không hợp lệ/);
+    });
+
+    it('should reject invalid input: negative price or zero quantity', async () => {
+      await InteriorBOQAnalyticsService.createRevision(MUTATION_TENANT);
+
+      await expect(
+        InteriorBOQAnalyticsService.addItem(MUTATION_TENANT, {
+          zoneId: 'zone-living',
+          itemName: 'Lỗi số lượng',
+          specifications: 'Test',
+          unit: 'Cái',
+          quantity: 0,
+          internalUnitCost: 10_000_000,
+          clientUnitPrice: 15_000_000,
+        }),
+      ).rejects.toThrow(/Số lượng cấu kiện phải lớn hơn 0/);
+
+      await expect(
+        InteriorBOQAnalyticsService.addItem(MUTATION_TENANT, {
+          zoneId: 'zone-living',
+          itemName: 'Lỗi đơn giá',
+          specifications: 'Test',
+          unit: 'Cái',
+          quantity: 1,
+          internalUnitCost: -5_000_000,
+          clientUnitPrice: 10_000_000,
+        }),
+      ).rejects.toThrow(/không được âm/);
+    });
+
+    it('should preserve immutable historical snapshots across revisions (Snapshot Isolation)', async () => {
+      // Baseline is R1.0 (Approved) with 7 items, 1.25B COGS, 1.68B Price
+      const overviewR1 = await InteriorBOQAnalyticsService.getBOQOverview(MUTATION_TENANT);
+      expect(overviewR1.versionNumber).toBe(1);
+      expect(overviewR1.status).toBe('approved');
+      expect(overviewR1.kpis.totalClientPrice.rawValue).toBe(1_680_000_000);
+
+      // Fork to R2.0 (Draft)
+      await InteriorBOQAnalyticsService.createRevision(MUTATION_TENANT, { actorName: 'KTS. Lê Hoàng' });
+
+      // Mutate R2.0: Add a high-value item
+      await InteriorBOQAnalyticsService.addItem(MUTATION_TENANT, {
+        zoneId: 'zone-living',
+        itemName: 'Bàn console mạ PVD',
+        specifications: 'Khung inox mạ vàng PVD, mặt đá tự nhiên',
+        unit: 'Cái',
+        quantity: 1,
+        internalUnitCost: 50_000_000,
+        clientUnitPrice: 80_000_000,
+      });
+
+      const overviewR2 = await InteriorBOQAnalyticsService.getBOQOverview(MUTATION_TENANT);
+      expect(overviewR2.versionNumber).toBe(2);
+      expect(overviewR2.status).toBe('draft');
+      const r2TotalItems = overviewR2.zoneGroups.reduce((acc, zg) => acc + zg.items.length, 0);
+      expect(r2TotalItems).toBe(8); // 7 original + 1 added console table
+
+      // Verify that Snapshot of R1.0 is preserved unchanged!
+      const snapR1 = InteriorBOQAnalyticsService.getHistoricalSnapshot(MUTATION_TENANT, 1);
+      expect(snapR1).toBeDefined();
+      expect(snapR1?.versionNumber).toBe(1);
+      expect(snapR1?.status).toBe('approved');
+      const r1TotalItems = snapR1?.zoneGroups.reduce((acc, zg) => acc + zg.items.length, 0);
+      expect(r1TotalItems).toBe(7); // Exactly 7 original items, unpolluted by R2.0 additions!
+    });
+
+    it('should enforce repository-level immutability guard against unauthorized writes to approved BOQ', async () => {
+      // Mock Supabase client to test repository immutability guard
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: {
+          id: 'boq-imm-001',
+          tenant_id: MUTATION_TENANT,
+          project_id: 'proj-001',
+          design_revision_id: 'rev-001',
+          boq_number: 'BOQ-TEST-001',
+          version_number: 1,
+          status: 'approved', // ALREADY APPROVED
+          total_internal_cost: 100_000_000,
+          total_client_price: 150_000_000,
+          total_gross_margin: 50_000_000,
+          gross_margin_percent: 33.3,
+          prepared_by: 'QA Architect',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        error: null,
+      });
+
+      const mockSupabase = {
+        from: jest.fn().mockImplementation((table: string) => {
+          if (table === 'interior_boqs') {
+            return {
+              select: jest.fn().mockReturnThis(),
+              eq: jest.fn().mockReturnThis(),
+              single: mockSingle,
+              upsert: jest.fn().mockResolvedValue({ error: null }),
+            };
+          }
+          if (table === 'interior_boq_items') {
+            return {
+              select: jest.fn().mockReturnThis(),
+              eq: jest.fn().mockReturnThis(),
+              delete: jest.fn().mockReturnThis(),
+              insert: jest.fn().mockResolvedValue({ error: null }),
+            };
+          }
+          return {
+            insert: jest.fn().mockResolvedValue({ error: null }),
+          };
+        }),
+      };
+
+      // Import repository dynamically
+      const { SupabaseInteriorRepository } = await import(
+        '../repositories/supabase.repository'
+      );
+      const repo = new SupabaseInteriorRepository(mockSupabase as unknown as SupabaseClient);
+
+      // Attempt to save modifications to the approved BOQ without creating a new revision
+      const tamperingBOQ = {
+        id: 'boq-imm-001',
+        tenantId: MUTATION_TENANT,
+        projectId: 'proj-001',
+        designRevisionId: 'rev-001',
+        boqNumber: 'BOQ-TEST-001',
+        versionNumber: 1,
+        status: 'draft' as const, // Attempting to downgrade back to draft
+        totalInternalCost: 120_000_000,
+        totalClientPrice: 180_000_000,
+        totalGrossMargin: 60_000_000,
+        grossMarginPercent: 33.3,
+        items: [],
+        preparedBy: 'Hacker',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await expect(repo.saveBOQ(MUTATION_TENANT, tamperingBOQ)).rejects.toThrow(
+        /Immutability violation/,
+      );
+    });
+
+    it('should prevent cross-tenant tampering and reject item operations on non-existent items', async () => {
+      await InteriorBOQAnalyticsService.createRevision(MUTATION_TENANT);
+
+      // Tenant A cannot update or delete item from Tenant B
+      await expect(
+        InteriorBOQAnalyticsService.updateItem(MUTATION_TENANT, {
+          itemId: 'item-foreign-tenant-xyz',
+          quantity: 99,
+        }),
+      ).rejects.toThrow(/không tồn tại/);
+
+      await expect(
+        InteriorBOQAnalyticsService.deleteItem(MUTATION_TENANT, 'item-foreign-tenant-xyz'),
+      ).rejects.toThrow(/không tồn tại/);
     });
   });
 });

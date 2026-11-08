@@ -1172,6 +1172,17 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   // ─── Commercial & Costing ──────────────────────────────────────────────────
 
   async saveBOQ(tenantId: string, boq: InteriorBOQ): Promise<void> {
+    // Immutability Guard: Reject unauthorized modifications to Approved / Locked BOQs
+    const existing = await this.getBOQ(tenantId, boq.id);
+    if (existing && (existing.status === 'approved' || existing.status === 'locked_for_contract')) {
+      const isStatusTransitionToLocked = existing.status === 'approved' && boq.status === 'locked_for_contract';
+      if (!isStatusTransitionToLocked) {
+        throw new Error(
+          `[InteriorRepo] Immutability violation: BOQ ${boq.id} is '${existing.status}' and cannot be modified. Create a new revision.`
+        );
+      }
+    }
+
     // Upsert header
     const { error } = await this.supabase
       .from('interior_boqs')
@@ -1213,6 +1224,56 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     }
   }
 
+  async getBOQRevisionsByProject(tenantId: string, projectId: string): Promise<InteriorBOQ[]> {
+    const { data, error } = await this.supabase
+      .from('interior_boqs')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('project_id', projectId)
+      .order('version_number', { ascending: false });
+    if (error) throw new Error(`[InteriorRepo] getBOQRevisionsByProject failed: ${error.message}`);
+    if (!data || data.length === 0) return [];
+
+    const revisions: InteriorBOQ[] = [];
+    for (const row of data as InteriorBOQRow[]) {
+      const { data: itemData, error: itemErr } = await this.supabase
+        .from('interior_boq_items')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('boq_id', row.id);
+      if (itemErr) throw new Error(`[InteriorRepo] getBOQRevisionsByProject (items) failed: ${itemErr.message}`);
+      const items = ((itemData || []) as BOQItemRow[]).map(mapRowToBOQItem);
+      revisions.push(mapRowToBOQ(row, items));
+    }
+    return revisions;
+  }
+
+  async recordAuditLog(
+    tenantId: string,
+    params: {
+      userId?: string | null;
+      action: string;
+      module: string;
+      targetId: string;
+      oldData?: Record<string, unknown> | null;
+      newData?: Record<string, unknown> | null;
+    }
+  ): Promise<void> {
+    try {
+      await this.supabase.from('audit_logs').insert({
+        tenant_id: tenantId,
+        user_id: params.userId || null,
+        action: params.action,
+        module: params.module,
+        target_id: params.targetId,
+        old_data: params.oldData || null,
+        new_data: params.newData || null,
+      });
+    } catch {
+      // Graceful fallback: Do not fail business transaction if audit log encounters transient issue
+    }
+  }
+
   async getBOQ(tenantId: string, boqId: string): Promise<InteriorBOQ | null> {
     const { data, error } = await this.supabase
       .from('interior_boqs')
@@ -1230,7 +1291,7 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
       .eq('boq_id', boqId);
     if (itemErr) throw new Error(`[InteriorRepo] getBOQ (items) failed: ${itemErr.message}`);
 
-    const items = (itemData as BOQItemRow[]).map(mapRowToBOQItem);
+    const items = ((itemData || []) as BOQItemRow[]).map(mapRowToBOQItem);
     return mapRowToBOQ(data as InteriorBOQRow, items);
   }
 
@@ -1254,7 +1315,7 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
       .eq('boq_id', boqRow.id);
     if (itemErr) throw new Error(`[InteriorRepo] getBOQByProject (items) failed: ${itemErr.message}`);
 
-    const items = (itemData as BOQItemRow[]).map(mapRowToBOQItem);
+    const items = ((itemData || []) as BOQItemRow[]).map(mapRowToBOQItem);
     return mapRowToBOQ(boqRow, items);
   }
 
