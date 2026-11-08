@@ -26,15 +26,24 @@ import http from 'http';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..', '..');
 
-// ─── Load env from .env.local ────────────────────────────────────────────────
-function loadEnv() {
-  const envPath = join(ROOT, '.env.local');
-  if (!existsSync(envPath)) return;
-  const raw = (await readFile(envPath, 'utf-8').catch(() => '')).split('\n');
-  for (const line of raw) {
-    const [key, ...rest] = line.split('=');
-    if (key && rest.length && !process.env[key.trim()]) {
-      process.env[key.trim()] = rest.join('=').trim().replace(/^["']|["']$/g, '');
+// ─── Load env from .env.production, .env.local, .env ─────────────────────────
+async function loadEnv() {
+  const envFiles = ['.env.production', '.env.local', '.env'];
+  for (const file of envFiles) {
+    const envPath = join(ROOT, file);
+    if (!existsSync(envPath)) continue;
+    const content = await readFile(envPath, 'utf-8').catch(() => '');
+    const lines = content.split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const [key, ...rest] = trimmed.split('=');
+      if (key && rest.length) {
+        const val = rest.join('=').trim().replace(/^["']|["']$/g, '');
+        if (!process.env[key.trim()] && val) {
+          process.env[key.trim()] = val;
+        }
+      }
     }
   }
 }
@@ -192,3 +201,4 @@ async function main() {
 }
 
 main().catch((err) => { console.error(err); process.exit(1); });
+
