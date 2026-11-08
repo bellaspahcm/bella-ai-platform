@@ -31,6 +31,40 @@ export interface BOQItemSpecifications {
   readonly stoneOrGlassSpec?: string;  // Đá/Kính (nếu có)
 }
 
+/**
+ * Commercial sync lifecycle status for BOQ items synced from Design Takeoff.
+ * - 'active': Item is active and included in commercial estimate
+ * - 'marked_for_deletion': Component removed from design, proposed for deletion in BOQ
+ * - 'deletion_approved': Estimator confirmed removal from client quotation
+ * - 'retained_as_deduction': Retained as a deductive addendum item in contract negotiation
+ */
+export type BOQItemSyncStatus =
+  | 'active'
+  | 'marked_for_deletion'
+  | 'deletion_approved'
+  | 'retained_as_deduction';
+
+/**
+ * End-to-end 7-field Lineage traceability contract for BOQ Items.
+ * Traces every commercial line back to its source technical design and diff.
+ */
+export interface BOQItemLineage {
+  /** Source approved design revision ID */
+  readonly sourceDesignRevisionId: string;
+  /** Source takeoff extraction run ID */
+  readonly sourceTakeoffRunId: string;
+  /** Stable persistent component identity across versions */
+  readonly sourceStableComponentId: string;
+  /** Diff change classification applied to this line */
+  readonly diffChangeType: 'added' | 'modified' | 'removed' | 'unchanged' | 'manual';
+  /** Timestamp when sync was executed (ISO-8601) */
+  readonly syncedAt: string;
+  /** Source Diff computation run / fingerprint ID */
+  readonly sourceDiffRunId: string;
+  /** Source BOQ revision ID that this line originated from */
+  readonly sourceBOQRevisionId: string;
+}
+
 export interface BOQItem {
   readonly id: string;
   readonly tenantId: string;
@@ -52,6 +86,13 @@ export interface BOQItem {
   readonly clientTotalPrice: number;  // clientUnitPrice * quantity
   readonly grossMarginAmount: number; // clientTotalPrice - internalTotalCost
   readonly grossMarginPercent: number;// (grossMarginAmount / clientTotalPrice) * 100
+
+  // Phase 2C Takeoff-to-BOQ Lineage & Workflow Controls
+  readonly stableComponentId?: string;
+  readonly syncStatus?: BOQItemSyncStatus;
+  readonly lineage?: BOQItemLineage;
+  readonly pricingPending?: boolean;     // true if added without verified unit price
+  readonly priceReviewNeeded?: boolean;  // true if modified specs require estimator review
 }
 
 export type BOQStatus =

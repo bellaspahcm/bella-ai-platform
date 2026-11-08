@@ -8,6 +8,8 @@
  * @module src/products/bella-interior/domain/boq-overview.types
  */
 
+import type { BOQStatus } from './commercial-costing/types';
+
 export interface BOQProjectHeader {
   readonly id: string;
   readonly code: string; // e.g. "INT-2024-001"
@@ -43,6 +45,11 @@ export interface BOQFinancialKPIs {
     readonly label: string;
     readonly sparklineTrend: readonly number[];
   };
+  readonly markup?: {
+    readonly rawPercentage: number;
+    readonly formattedPercentage: string; // "34.4%"
+    readonly label: string;
+  };
 }
 
 export interface BOQLineItem {
@@ -65,6 +72,8 @@ export interface BOQLineItem {
   readonly grossMarginFormatted: string; // "30,000,000"
   readonly grossMarginPercent: number;
   readonly grossMarginPercentFormatted: string; // "27.3%"
+  readonly markupPercent?: number;
+  readonly markupPercentFormatted?: string; // "37.5%"
 }
 
 export interface BOQZoneGroup {
@@ -78,6 +87,8 @@ export interface BOQZoneGroup {
   readonly subtotalProfitFormatted: string; // "140,000,000"
   readonly subtotalMarginPercent: number;
   readonly subtotalMarginPercentFormatted: string; // "30.4%"
+  readonly subtotalMarkupPercent?: number;
+  readonly subtotalMarkupPercentFormatted?: string; // "43.8%"
   readonly items: readonly BOQLineItem[];
 }
 
@@ -105,6 +116,7 @@ export interface BOQVersionAudit {
   readonly approvedBy: string; // "Trần Thị Mai"
 }
 
+
 export interface BOQOverviewResponse {
   readonly tenantId: string;
   readonly project: BOQProjectHeader;
@@ -113,5 +125,60 @@ export interface BOQOverviewResponse {
   readonly zoneGroups: readonly BOQZoneGroup[];
   readonly bomMaterials: readonly BOMMaterialItem[];
   readonly audit: BOQVersionAudit;
+  readonly status?: BOQStatus;
+  readonly versionNumber?: number;
 }
+
+// ─── Mutation Inputs for BOQ Manual Workspace (Phase 1) ───────────────────────
+
+export interface CreateBOQItemInput {
+  readonly zoneId: string;
+  readonly zoneName?: string;
+  readonly itemName: string;
+  readonly specifications: string;
+  readonly unit: string;
+  readonly quantity: number;
+  readonly internalUnitCost: number;
+  readonly clientUnitPrice: number;
+}
+
+export interface UpdateBOQItemInput {
+  readonly itemId: string;
+  readonly itemName?: string;
+  readonly specifications?: string;
+  readonly unit?: string;
+  readonly quantity?: number;
+  readonly internalUnitCost?: number;
+  readonly clientUnitPrice?: number;
+}
+
+export interface CreateBOQZoneInput {
+  readonly zoneName: string;
+}
+
+export interface DuplicateBOQItemInput {
+  readonly itemId: string;
+  readonly targetZoneId?: string;
+}
+
+export interface TransitionBOQStatusInput {
+  readonly targetStatus: BOQStatus;
+  readonly actorName?: string;
+}
+
+export interface CreateBOQRevisionInput {
+  readonly actorName?: string;
+}
+
+export type BOQActionPayload =
+  | { readonly action: 'add_zone'; readonly zoneName: string }
+  | { readonly action: 'delete_zone'; readonly zoneId: string }
+  | { readonly action: 'add_item'; readonly item: CreateBOQItemInput }
+  | { readonly action: 'update_item'; readonly item: UpdateBOQItemInput }
+  | { readonly action: 'delete_item'; readonly itemId: string }
+  | { readonly action: 'duplicate_item'; readonly duplicate: DuplicateBOQItemInput }
+  | { readonly action: 'update_status'; readonly transition: TransitionBOQStatusInput }
+  | { readonly action: 'create_revision'; readonly revision: CreateBOQRevisionInput }
+  | { readonly action: 'reset'; readonly projectId?: string };
+
 

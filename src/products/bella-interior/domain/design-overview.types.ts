@@ -111,6 +111,37 @@ export interface DesignSubNavTab {
   readonly badge?: string;
 }
 
+export interface CreateVisualPerspectiveInput {
+  readonly title: string;
+  readonly roomZone: string;
+  readonly imageUrl: string;
+  readonly thumbnailUrl?: string;
+  readonly isPrimary?: boolean;
+  readonly viewAngleName?: string;
+  readonly resolution?: string;
+  readonly fileFormat?: string;
+  readonly authorName?: string;
+}
+
+export interface CreateTechnicalDrawingInput {
+  readonly title: string;
+  readonly drawingCode: string; // e.g. "REV 3 - ARCH-02"
+  readonly fileType: string; // "DWG" | "PDF" | "CAD" | "DXF"
+  readonly author: string;
+  readonly fileUrl: string;
+  readonly fileSize?: string;
+  readonly statusLabel?: string;
+}
+
+export interface CreateDesignDocumentInput {
+  readonly title: string;
+  readonly documentCategory: string;
+  readonly fileType: string;
+  readonly author: string;
+  readonly fileUrl: string;
+  readonly fileSize?: string;
+}
+
 export interface DesignStudioOverviewResponse {
   readonly tenantId: string;
   readonly project: DesignProjectHeader;

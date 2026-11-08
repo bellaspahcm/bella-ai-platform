@@ -266,6 +266,16 @@ These are separate claims. A hook for one AI tool does not prove interception in
 
 Reuse existing controls before proposing additions. Verify the actual path and required-check configuration before claiming enforcement. Validate guard/policy changes in their separately authorized scope. For an authorized pilot, use existing task evidence to assess repeated questions, approval waits, delivery time, detected architecture errors, and gates with valid evidence; no new telemetry framework is required.
 
+### Credential Exposure & Security Closure Policy
+
+1. **Compromised Status**: Credential từng được xác nhận hoạt động và xuất hiện trong Git phải được xem là compromised vô điều kiện.
+2. **Revocation Supremacy**: Xóa credential khỏi source code và Git History không thay thế việc revoke/rotate tại nhà cung cấp dịch vụ (Cloudflare, Supabase, AWS, etc.).
+3. **Scanner Limitation**: Gitleaks / Secret Scanner PASS chỉ chứng minh diff hiện tại không chứa pattern bí mật; không đồng nghĩa credential đã bị vô hiệu hóa.
+4. **Scope-Bound Merge Gate**: Không cho phép merge hoặc deploy phạm vi (scope/PR) trực tiếp sử dụng credential bị compromise khi chưa xác nhận rotation thành công.
+5. **Business Decoupling**: Các module độc lập về nghiệp vụ được phép tiếp tục phát triển, kiểm thử, review và merge trên Non-Production, không bị phong tỏa bởi sự cố hạ tầng không liên quan.
+6. **No Spurious Blockers**: Không được lấy một security blocker của module này làm lý do đóng băng những module không có quan hệ phụ thuộc mã nguồn hoặc dữ liệu.
+7. **Production Database Sanctity**: Production Database phải tuân thủ quyền thay đổi và phạm vi triển khai đã được phê duyệt riêng (`READ-ONLY` mặc định, freeze lock, zero unverified migrations).
+
 ## 0. Truth -> Canonical -> Consumer
 
 Before modifying code, distinguish these three concepts.

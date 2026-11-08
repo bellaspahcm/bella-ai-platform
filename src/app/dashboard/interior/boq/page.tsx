@@ -43,12 +43,28 @@ import {
   FileText,
   MapPin,
   Maximize2,
+  Plus,
+  Pencil,
+  Copy,
+  Trash2,
+  Lock,
+  Unlock,
+  Send,
+  Check,
+  RotateCcw,
+  FilePlus,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 
 import type {
   BOQOverviewResponse,
   BOQLineItem,
+  BOQZoneGroup,
+  CreateBOQItemInput,
+  UpdateBOQItemInput,
 } from '@/products/bella-interior/domain/boq-overview.types';
+import type { BOQStatus } from '@/products/bella-interior/domain/commercial-costing/types';
 
 // Baseline initial state for instant zero-flicker render
 const INITIAL_BOQ_OVERVIEW: BOQOverviewResponse = {
@@ -363,6 +379,8 @@ const INITIAL_BOQ_OVERVIEW: BOQOverviewResponse = {
     approvalDateFormatted: '06/11/2026',
     approvedBy: 'Trần Thị Mai',
   },
+  status: 'approved',
+  versionNumber: 1,
 };
 
 export default function InteriorBOQPage() {
@@ -377,6 +395,234 @@ export default function InteriorBOQPage() {
   const [showQuoteModal, setShowQuoteModal] = useState<boolean>(false);
   const [showFilterBar, setShowFilterBar] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // Manual Workspace Modals & Form State
+  const [showAddItemModal, setShowAddItemModal] = useState<boolean>(false);
+  const [showEditItemModal, setShowEditItemModal] = useState<boolean>(false);
+  const [showAddZoneModal, setShowAddZoneModal] = useState<boolean>(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+
+  // Form Fields
+  const [formZoneId, setFormZoneId] = useState<string>('');
+  const [formItemName, setFormItemName] = useState<string>('');
+  const [formSpecs, setFormSpecs] = useState<string>('');
+  const [formUnit, setFormUnit] = useState<string>('Bộ');
+  const [formQuantity, setFormQuantity] = useState<number>(1);
+  const [formInternalCost, setFormInternalCost] = useState<number>(10_000_000);
+  const [formClientPrice, setFormClientPrice] = useState<number>(15_000_000);
+
+  // Zone State
+  const [newZoneName, setNewZoneName] = useState<string>('');
+
+  const boqStatus = (data.status as BOQStatus) || 'approved';
+  const isEditable = boqStatus === 'draft';
+
+  const showNotification = (msg: string, type: 'success' | 'error' = 'success') => {
+    setToastType(type);
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3800);
+  };
+
+  const executeBOQAction = async (payload: unknown, successMsg?: string) => {
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/interior/boq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Thao tác không thành công');
+      }
+      setData(json.data);
+      if (successMsg) {
+        showNotification(successMsg, 'success');
+      }
+      return json.data;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Có lỗi xảy ra khi cập nhật BOQ';
+      showNotification(msg, 'error');
+      throw err;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenAddItem = (zoneId?: string) => {
+    const targetZone = zoneId || data.zoneGroups[0]?.zoneId || '';
+    setFormZoneId(targetZone);
+    setFormItemName('');
+    setFormSpecs('');
+    setFormUnit('Bộ');
+    setFormQuantity(1);
+    setFormInternalCost(10_000_000);
+    setFormClientPrice(15_000_000);
+    setShowAddItemModal(true);
+  };
+
+  const handleSaveAddItem = async () => {
+    if (!formItemName.trim()) {
+      showNotification('Vui lòng nhập tên cấu kiện', 'error');
+      return;
+    }
+    if (!formZoneId) {
+      showNotification('Vui lòng chọn khu vực', 'error');
+      return;
+    }
+    await executeBOQAction(
+      {
+        action: 'add_item',
+        item: {
+          zoneId: formZoneId,
+          itemName: formItemName.trim(),
+          specifications: formSpecs.trim() || 'Theo thiết kế 3D chi tiết',
+          unit: formUnit,
+          quantity: Math.max(0.01, formQuantity),
+          internalUnitCost: Math.max(0, formInternalCost),
+          clientUnitPrice: Math.max(0, formClientPrice),
+        },
+      },
+      `Đã thêm cấu kiện "${formItemName.trim()}" thành công`
+    );
+    setShowAddItemModal(false);
+  };
+
+  const handleOpenEditItem = (item: BOQLineItem, zoneId: string) => {
+    setEditingItemId(item.id);
+    setFormZoneId(zoneId);
+    setFormItemName(item.itemName);
+    setFormSpecs(item.specifications);
+    setFormUnit(item.unit);
+    setFormQuantity(item.quantity);
+    setFormInternalCost(item.internalUnitCost);
+    setFormClientPrice(item.clientUnitPrice);
+    setShowEditItemModal(true);
+  };
+
+  const handleSaveEditItem = async () => {
+    if (!editingItemId) return;
+    if (!formItemName.trim()) {
+      showNotification('Vui lòng nhập tên cấu kiện', 'error');
+      return;
+    }
+    await executeBOQAction(
+      {
+        action: 'update_item',
+        item: {
+          itemId: editingItemId,
+          itemName: formItemName.trim(),
+          specifications: formSpecs.trim(),
+          unit: formUnit,
+          quantity: Math.max(0.01, formQuantity),
+          internalUnitCost: Math.max(0, formInternalCost),
+          clientUnitPrice: Math.max(0, formClientPrice),
+        },
+      },
+      `Đã cập nhật cấu kiện "${formItemName.trim()}" thành công`
+    );
+    setShowEditItemModal(false);
+    setEditingItemId(null);
+  };
+
+  const handleDuplicateItem = async (itemId: string, itemName: string) => {
+    await executeBOQAction(
+      {
+        action: 'duplicate_item',
+        duplicate: { itemId },
+      },
+      `Đã nhân bản cấu kiện "${itemName}"`
+    );
+  };
+
+  const handleDeleteItem = async (itemId: string, itemName: string) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa cấu kiện "${itemName}" khỏi dự toán?`)) {
+      return;
+    }
+    await executeBOQAction(
+      {
+        action: 'delete_item',
+        itemId,
+      },
+      `Đã xóa cấu kiện "${itemName}"`
+    );
+  };
+
+  const handleSaveAddZone = async () => {
+    if (!newZoneName.trim()) {
+      showNotification('Vui lòng nhập tên khu vực', 'error');
+      return;
+    }
+    await executeBOQAction(
+      {
+        action: 'add_zone',
+        zoneName: newZoneName.trim(),
+      },
+      `Đã thêm khu vực "${newZoneName.trim()}"`
+    );
+    setNewZoneName('');
+    setShowAddZoneModal(false);
+  };
+
+  const handleDeleteZone = async (zoneId: string, zoneName: string) => {
+    if (!window.confirm(`Xác nhận xóa khu vực "${zoneName}" và tất cả cấu kiện liên quan?`)) {
+      return;
+    }
+    await executeBOQAction(
+      {
+        action: 'delete_zone',
+        zoneId,
+      },
+      `Đã xóa khu vực "${zoneName}"`
+    );
+  };
+
+  const handleStatusTransition = async (targetStatus: BOQStatus) => {
+    const statusLabels: Record<BOQStatus, string> = {
+      draft: 'Bản nháp (Draft)',
+      under_review: 'Gửi duyệt (Under Review)',
+      approved: 'Phê duyệt chính thức (Approved)',
+      locked_for_contract: 'Khóa theo Hợp đồng (Locked)',
+    };
+    if (
+      targetStatus === 'approved' &&
+      !window.confirm('Xác nhận phê duyệt BOQ? Sau khi duyệt, dự toán sẽ trở thành BẤT BIẾN, mọi sửa đổi phải tạo Revision mới.')
+    ) {
+      return;
+    }
+    await executeBOQAction(
+      {
+        action: 'update_status',
+        transition: { targetStatus },
+      },
+      `Trạng thái dự toán đã chuyển sang: ${statusLabels[targetStatus]}`
+    );
+  };
+
+  const handleCreateRevision = async () => {
+    if (!window.confirm('Tạo Revision dự thảo mới? Hệ thống sẽ giữ nguyên phiên bản đã duyệt và mở phiên bản mới ở trạng thái Nháp để bạn hiệu chỉnh.')) {
+      return;
+    }
+    await executeBOQAction(
+      {
+        action: 'create_revision',
+        revision: {},
+      },
+      'Đã khởi tạo Revision mới thành công! Hiện bạn có thể chỉnh sửa dự toán.'
+    );
+  };
+
+  const handleResetBOQ = async () => {
+    if (!window.confirm('Khôi phục lại dữ liệu BOQ mẫu ban đầu?')) {
+      return;
+    }
+    await executeBOQAction(
+      { action: 'reset' },
+      'Đã khôi phục dữ liệu mẫu ban đầu'
+    );
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -482,7 +728,7 @@ export default function InteriorBOQPage() {
           {/* User Profile */}
           <div className="flex items-center gap-2 pl-1 cursor-pointer">
             <img
-              src={'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=faces'}
+              src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg'}
               alt="Nguyễn Văn Quang"
               className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700"
             />
@@ -497,20 +743,50 @@ export default function InteriorBOQPage() {
       </div>
 
       {/* ─── Project Title & Metadata & Action Buttons Row ─── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          {/* Title & Status Badge */}
+          {/* Title & Status Badges */}
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               {data.project.name}
             </h1>
-            <button
-              type="button"
-              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${data.project.statusBadgeClass} transition-colors`}
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
+                boqStatus === 'draft'
+                  ? 'bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-700'
+                  : boqStatus === 'under_review'
+                  ? 'bg-blue-50 text-blue-800 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-700'
+                  : boqStatus === 'approved'
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-700'
+                  : 'bg-purple-50 text-purple-800 border-purple-300 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-700'
+              }`}
             >
-              <span>{data.project.statusLabel}</span>
-              <ChevronDown className="w-3 h-3 ml-0.5" />
-            </button>
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  boqStatus === 'draft'
+                    ? 'bg-amber-500'
+                    : boqStatus === 'under_review'
+                    ? 'bg-blue-500'
+                    : boqStatus === 'approved'
+                    ? 'bg-emerald-500'
+                    : 'bg-purple-500'
+                }`}
+              />
+              <span>
+                {boqStatus === 'draft'
+                  ? 'Bản nháp (Draft)'
+                  : boqStatus === 'under_review'
+                  ? 'Đang duyệt (Under Review)'
+                  : boqStatus === 'approved'
+                  ? 'Đã duyệt (Approved)'
+                  : 'Khóa hợp đồng (Locked)'}
+              </span>
+            </span>
+
+            {/* Revision Tag */}
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+              {data.audit.versionLabel}
+            </span>
           </div>
 
           {/* Metadata line */}
@@ -537,40 +813,153 @@ export default function InteriorBOQPage() {
                 {data.project.location}
               </span>
             </div>
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <div className="flex items-center gap-1 font-medium">
+              {isEditable ? (
+                <span className="text-amber-600 font-bold flex items-center gap-1">
+                  <Unlock className="w-3 h-3" />
+                  Chế độ: Đang soạn thảo
+                </span>
+              ) : (
+                <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                  <Lock className="w-3 h-3" />
+                  Chế độ: Bất biến (Đã khóa)
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* So sánh phiên bản */}
+        {/* Action Buttons: Lifecycle & Workspace Controls */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Draft Mode Actions */}
+          {boqStatus === 'draft' && (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowAddZoneModal(true)}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 shadow-2xs transition-all cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 text-slate-500" />
+                <span>+ Thêm khu vực</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleOpenAddItem()}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Thêm cấu kiện</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleStatusTransition('under_review')}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>Gửi duyệt (Submit)</span>
+              </button>
+            </>
+          )}
+
+          {/* Under Review Actions */}
+          {boqStatus === 'under_review' && (
+            <>
+              <button
+                type="button"
+                onClick={() => handleStatusTransition('approved')}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Phê duyệt BOQ (Approve)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleStatusTransition('draft')}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-800 text-xs font-semibold text-amber-700 dark:text-amber-400 hover:bg-amber-50 shadow-2xs transition-all cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Trả về Draft</span>
+              </button>
+            </>
+          )}
+
+          {/* Approved & Locked Actions */}
+          {(boqStatus === 'approved' || boqStatus === 'locked_for_contract') && (
+            <>
+              <button
+                type="button"
+                onClick={handleCreateRevision}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold shadow-sm transition-all cursor-pointer"
+                title="Tạo phiên bản dự thảo mới (R2.0) từ dữ liệu đã duyệt để tiếp tục chỉnh sửa"
+              >
+                <FilePlus className="w-3.5 h-3.5" />
+                <span>Tạo Revision mới (Chỉnh sửa)</span>
+              </button>
+
+              {boqStatus === 'approved' && (
+                <button
+                  type="button"
+                  onClick={() => handleStatusTransition('locked_for_contract')}
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
+                  title="Khóa dự toán gắn kết với hợp đồng chính thức"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Khóa Hợp đồng</span>
+                </button>
+              )}
+            </>
+          )}
+
+          {/* Standard Navigation & History Modals */}
           <button
             type="button"
             onClick={() => setShowCompareModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-all cursor-pointer"
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
-            <span>So sánh phiên bản</span>
+            <span className="hidden sm:inline">So sánh</span>
           </button>
 
-          {/* Lịch sử */}
           <button
             type="button"
             onClick={() => setShowHistoryModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-all cursor-pointer"
           >
             <History className="w-3.5 h-3.5 text-slate-500" />
-            <span>Lịch sử</span>
+            <span className="hidden sm:inline">Lịch sử</span>
           </button>
 
-          {/* Lập Báo giá / Dự toán */}
+          {/* Lập Báo giá / Hợp đồng */}
           <button
             type="button"
             onClick={() => setShowQuoteModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-semibold shadow-sm hover:shadow transition-all"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer"
           >
             <FileSpreadsheet className="w-3.5 h-3.5" />
-            <span>Lập Báo giá / Dự toán</span>
+            <span>Lập Báo giá</span>
             <ChevronDown className="w-3.5 h-3.5 ml-0.5 opacity-80" />
+          </button>
+
+          {/* Reset button */}
+          <button
+            type="button"
+            onClick={handleResetBOQ}
+            disabled={isSubmitting}
+            className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 shadow-2xs transition-all cursor-pointer"
+            title="Khôi phục dữ liệu mẫu ban đầu"
+          >
+            <RotateCcw className={`w-3.5 h-3.5 ${isSubmitting ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
@@ -818,8 +1207,11 @@ export default function InteriorBOQPage() {
                   <th colSpan={2} className="py-2.5 px-3 border-r border-slate-100 dark:border-slate-800 text-center">
                     Giá vốn
                   </th>
-                  <th colSpan={4} className="py-2.5 px-3 text-center">
+                  <th colSpan={4} className="py-2.5 px-3 border-r border-slate-100 dark:border-slate-800 text-center">
                     Thương mại
+                  </th>
+                  <th className="py-2.5 px-2 text-center w-24">
+                    Thao tác
                   </th>
                 </tr>
 
@@ -842,6 +1234,7 @@ export default function InteriorBOQPage() {
                   <th className="py-2 px-3 text-right">Thành tiền bán</th>
                   <th className="py-2 px-3 text-right">Lợi nhuận</th>
                   <th className="py-2 px-3 text-center w-18">Biên LN</th>
+                  <th className="py-2 px-2 text-center w-24">{isEditable ? 'Thao tác' : 'Trạng thái'}</th>
                 </tr>
               </thead>
 
@@ -858,9 +1251,32 @@ export default function InteriorBOQPage() {
                         />
                       </td>
                       <td colSpan={5} className="py-2.5 px-3">
-                        <div className="flex items-center gap-2 text-emerald-900 dark:text-emerald-300">
-                          <Folder className="w-4 h-4 text-emerald-600" />
-                          <span>{group.zoneName}</span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-emerald-900 dark:text-emerald-300">
+                            <Folder className="w-4 h-4 text-emerald-600" />
+                            <span>{group.zoneName}</span>
+                            <span className="text-[10px] font-normal text-slate-400">({group.items.length} cấu kiện)</span>
+                          </div>
+                          {isEditable && (
+                            <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenAddItem(group.zoneId)}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-800 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 shadow-2xs cursor-pointer"
+                              >
+                                <Plus className="w-3 h-3" />
+                                <span>Thêm cấu kiện</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteZone(group.zoneId, group.zoneName)}
+                                className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                                title="Xóa khu vực"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="py-2.5 px-3 text-right font-extrabold text-slate-800 dark:text-slate-200">
@@ -876,6 +1292,7 @@ export default function InteriorBOQPage() {
                       <td className="py-2.5 px-3 text-center font-extrabold text-emerald-600 dark:text-emerald-400">
                         {group.subtotalMarginPercentFormatted}
                       </td>
+                      <td className="py-2.5 px-2 text-center text-slate-400 text-[10px] font-semibold">—</td>
                     </tr>
 
                     {/* Zone Line Items */}
@@ -931,12 +1348,73 @@ export default function InteriorBOQPage() {
                         <td className="py-2.5 px-3 text-center font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
                           {item.grossMarginPercentFormatted}
                         </td>
+                        {/* 12th Column: Row Actions */}
+                        <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                          {isEditable ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditItem(item, group.zoneId)}
+                                className="p-1 rounded-md text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
+                                title="Chỉnh sửa cấu kiện"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDuplicateItem(item.id, item.itemName)}
+                                className="p-1 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors cursor-pointer"
+                                title="Nhân bản cấu kiện"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteItem(item.id, item.itemName)}
+                                className="p-1 rounded-md text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                                title="Xóa cấu kiện"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center text-slate-400" title="Dự toán đã khóa bất biến">
+                              <Lock className="w-3.5 h-3.5" />
+                            </div>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </React.Fragment>
                 ))}
               </tbody>
             </table>
+            {/* Quick Add Row in Draft Mode */}
+            {isEditable && (
+              <div className="p-3 bg-slate-50/70 dark:bg-slate-800/40 border-t border-slate-200/70 dark:border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAddItem()}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Thêm cấu kiện mới</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddZoneModal(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold shadow-2xs hover:bg-slate-50 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Thêm khu vực mới</span>
+                  </button>
+                </div>
+                <div className="text-[11px] text-slate-400 italic">
+                  * Mọi thay đổi về đơn giá hoặc số lượng sẽ được máy chủ tự động tính toán lại tức thời.
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           /* Production BOM Materials Table */
@@ -1035,8 +1513,8 @@ export default function InteriorBOQPage() {
         <div className="flex items-center gap-3 shrink-0">
           <button
             type="button"
-            onClick={() => setSelectedDrawerItem(data.zoneGroups[0].items[0])}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 shadow-2xs transition-all"
+            onClick={() => setSelectedDrawerItem(data.zoneGroups[0]?.items[0] || null)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 shadow-2xs transition-all cursor-pointer"
           >
             <Eye className="w-3.5 h-3.5 text-slate-500" />
             <span>Xem chi tiết</span>
@@ -1251,9 +1729,421 @@ export default function InteriorBOQPage() {
               <button
                 type="button"
                 onClick={() => setShowHistoryModal(false)}
-                className="px-4 py-2 rounded-xl bg-slate-100 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+                className="px-4 py-2 rounded-xl bg-slate-100 text-xs font-semibold text-slate-700 hover:bg-slate-200 cursor-pointer"
               >
                 Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal 4: Thêm Cấu Kiện Mới ─── */}
+      {showAddItemModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Plus className="w-4 h-4 text-emerald-600" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Thêm Cấu Kiện Dự Toán Mới
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddItemModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs">
+              {/* Chọn khu vực */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Khu vực / Phòng <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={formZoneId}
+                  onChange={(e) => setFormZoneId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  {data.zoneGroups.map((z) => (
+                    <option key={z.zoneId} value={z.zoneId}>
+                      {z.zoneName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Tên cấu kiện */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Tên cấu kiện / Hạng mục <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formItemName}
+                  onChange={(e) => setFormItemName(e.target.value)}
+                  placeholder="Ví dụ: Tủ giày cánh kính, Sofa băng, Kệ tivi..."
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              {/* Quy cách kỹ thuật */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Quy cách kỹ thuật &amp; Vật liệu
+                </label>
+                <input
+                  type="text"
+                  value={formSpecs}
+                  onChange={(e) => setFormSpecs(e.target.value)}
+                  placeholder="Ví dụ: Thùng MDF lõi xanh chống ẩm, cánh Acrylic bóng gương..."
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              {/* Grid: ĐVT & Số lượng */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Đơn vị tính (ĐVT)
+                  </label>
+                  <select
+                    value={formUnit}
+                    onChange={(e) => setFormUnit(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="Bộ">Bộ</option>
+                    <option value="Cái">Cái</option>
+                    <option value="Mét dài">Mét dài</option>
+                    <option value="m²">m²</option>
+                    <option value="m3">m3</option>
+                    <option value="Gói">Gói</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Số lượng
+                  </label>
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="0.5"
+                    value={formQuantity}
+                    onChange={(e) => setFormQuantity(parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Grid: Đơn giá vốn & Đơn giá bán */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Đơn giá vốn nội bộ (COGS)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="500000"
+                    value={formInternalCost}
+                    onChange={(e) => setFormInternalCost(parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Đơn giá bán khách hàng
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="500000"
+                    value={formClientPrice}
+                    onChange={(e) => setFormClientPrice(parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Live Financial Calculation Preview */}
+              {(() => {
+                const cogs = Math.max(0, formQuantity * formInternalCost);
+                const price = Math.max(0, formQuantity * formClientPrice);
+                const profit = price - cogs;
+                const margin = price > 0 ? (profit / price) * 100 : 0;
+                const markup = cogs > 0 ? (profit / cogs) * 100 : 0;
+                return (
+                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1.5 text-[11px]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">Thành tiền vốn (COGS):</span>
+                      <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                        {cogs.toLocaleString('vi-VN')} đ
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">Thành tiền bán:</span>
+                      <span className="font-mono font-extrabold text-slate-900 dark:text-white">
+                        {price.toLocaleString('vi-VN')} đ
+                      </span>
+                    </div>
+                    <div className="pt-1 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                      <span className="font-bold text-emerald-700 dark:text-emerald-400">Lợi nhuận gộp cấu kiện:</span>
+                      <span className="font-mono font-extrabold text-emerald-600 dark:text-emerald-400">
+                        {profit.toLocaleString('vi-VN')} đ
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-slate-500">
+                      <span>Gross Margin: <strong className="text-emerald-600">{margin.toFixed(1)}%</strong></span>
+                      <span>Markup: <strong className="text-blue-600">{markup.toFixed(1)}%</strong></span>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setShowAddItemModal(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 cursor-pointer"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAddItem}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isSubmitting ? 'Đang lưu...' : 'Lưu cấu kiện'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal 5: Chỉnh Sửa Cấu Kiện ─── */}
+      {showEditItemModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Pencil className="w-4 h-4 text-blue-600" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Chỉnh Sửa Cấu Kiện Dự Toán
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEditItemModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs">
+              {/* Tên cấu kiện */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Tên cấu kiện / Hạng mục <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formItemName}
+                  onChange={(e) => setFormItemName(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Quy cách kỹ thuật */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Quy cách kỹ thuật &amp; Vật liệu
+                </label>
+                <input
+                  type="text"
+                  value={formSpecs}
+                  onChange={(e) => setFormSpecs(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Grid: ĐVT & Số lượng */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Đơn vị tính (ĐVT)
+                  </label>
+                  <select
+                    value={formUnit}
+                    onChange={(e) => setFormUnit(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="Bộ">Bộ</option>
+                    <option value="Cái">Cái</option>
+                    <option value="Mét dài">Mét dài</option>
+                    <option value="m²">m²</option>
+                    <option value="m3">m3</option>
+                    <option value="Gói">Gói</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Số lượng
+                  </label>
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="0.5"
+                    value={formQuantity}
+                    onChange={(e) => setFormQuantity(parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Grid: Đơn giá vốn & Đơn giá bán */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Đơn giá vốn nội bộ (COGS)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="500000"
+                    value={formInternalCost}
+                    onChange={(e) => setFormInternalCost(parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Đơn giá bán khách hàng
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="500000"
+                    value={formClientPrice}
+                    onChange={(e) => setFormClientPrice(parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Live Financial Calculation Preview */}
+              {(() => {
+                const cogs = Math.max(0, formQuantity * formInternalCost);
+                const price = Math.max(0, formQuantity * formClientPrice);
+                const profit = price - cogs;
+                const margin = price > 0 ? (profit / price) * 100 : 0;
+                const markup = cogs > 0 ? (profit / cogs) * 100 : 0;
+                return (
+                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1.5 text-[11px]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">Thành tiền vốn (COGS):</span>
+                      <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                        {cogs.toLocaleString('vi-VN')} đ
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">Thành tiền bán:</span>
+                      <span className="font-mono font-extrabold text-slate-900 dark:text-white">
+                        {price.toLocaleString('vi-VN')} đ
+                      </span>
+                    </div>
+                    <div className="pt-1 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                      <span className="font-bold text-emerald-700 dark:text-emerald-400">Lợi nhuận gộp cấu kiện:</span>
+                      <span className="font-mono font-extrabold text-emerald-600 dark:text-emerald-400">
+                        {profit.toLocaleString('vi-VN')} đ
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-slate-500">
+                      <span>Gross Margin: <strong className="text-emerald-600">{margin.toFixed(1)}%</strong></span>
+                      <span>Markup: <strong className="text-blue-600">{markup.toFixed(1)}%</strong></span>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setShowEditItemModal(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 cursor-pointer"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEditItem}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isSubmitting ? 'Đang lưu...' : 'Cập nhật cấu kiện'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal 6: Thêm Khu Vực Mới ─── */}
+      {showAddZoneModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Folder className="w-4 h-4 text-emerald-600" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Thêm Khu Vực Dự Toán Mới
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddZoneModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Tên khu vực / Không gian <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newZoneName}
+                  onChange={(e) => setNewZoneName(e.target.value)}
+                  placeholder="Ví dụ: Phòng làm việc, Ban công, Phòng ngủ trẻ em..."
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setShowAddZoneModal(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 cursor-pointer"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAddZone}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isSubmitting ? 'Đang tạo...' : 'Tạo khu vực'}
               </button>
             </div>
           </div>

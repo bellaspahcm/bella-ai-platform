@@ -72,6 +72,16 @@ export * from './services/interior-contract-analytics.service';
 export * from './domain/finance-overview.types';
 export * from './services/interior-finance-analytics.service';
 
+// Takeoff Staging & Review (Phase 2A)
+export * from './domain/takeoff';
+export * from './services/interior-takeoff.service';
+
+// Takeoff Diff Engine (Phase 2B)
+export * from './services/interior-takeoff-diff.service';
+
+// Takeoff-to-BOQ Sync (Phase 2C)
+export * from './services/interior-takeoff-sync.service';
+
 // Manifest
 export * from './manifest';
 
