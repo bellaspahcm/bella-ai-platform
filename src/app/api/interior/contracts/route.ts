@@ -49,13 +49,13 @@ interface StoredContract {
   createdAt: string;
 }
 
-// In-memory store (demo fallback)
+// In-memory store (demo fallback with truthful project linking)
 const contractStore: StoredContract[] = [
   {
     id: 'CON-DUBAI-001',
     tenantId: '00000000-0000-0000-0000-000000000001',
-    projectId: 'proj-villa-sunrise',
-    boqId: 'boq-001',
+    projectId: 'INT-2024-002',
+    boqId: 'boq-dubai-001',
     contractValue: 418_000_000,
     clientPartyId: 'Sheikh Al-Maktoum Office',
     status: 'active',
@@ -68,14 +68,33 @@ const contractStore: StoredContract[] = [
       { id: 'm-5', name: 'Đợt 5: Nghiệm thu bàn giao & bảo hành', percentageOfTotal: 5, amount: 20_900_000, dueDate: '2024-03-30', status: 'pending' },
     ],
   },
+  {
+    id: 'HD-NT-2026/08',
+    tenantId: '00000000-0000-0000-0000-000000000001',
+    projectId: 'INT-THD-2026',
+    boqId: 'BOQ-THD-2026-01',
+    contractValue: 1_350_000_000,
+    clientPartyId: 'Trần Minh Quân',
+    status: 'active',
+    createdAt: '2026-11-06T15:11:13Z',
+    milestones: [
+      { id: 'thd-m-1', name: 'Đợt 1: Tạm ứng ký hợp đồng', percentageOfTotal: 30, amount: 405_000_000, dueDate: '2026-11-01', status: 'paid' },
+      { id: 'thd-m-2', name: 'Đợt 2: Khóa thiết kế & Chuyển xưởng sản xuất', percentageOfTotal: 20, amount: 270_000_000, dueDate: '2026-11-05', status: 'paid' },
+      { id: 'thd-m-3', name: 'Đợt 3: Gia công xong & Chuẩn bị xuất xưởng', percentageOfTotal: 30, amount: 405_000_000, dueDate: '2026-12-01', status: 'pending' },
+      { id: 'thd-m-4', name: 'Đợt 4: Hoàn thành lắp đặt hiện trường', percentageOfTotal: 15, amount: 202_500_000, dueDate: '2026-12-25', status: 'pending' },
+      { id: 'thd-m-5', name: 'Đợt 5: Nghiệm thu bàn giao & Bảo hành', percentageOfTotal: 5, amount: 67_500_000, dueDate: '2027-01-10', status: 'pending' },
+    ],
+  },
 ];
 
 export async function GET(request: Request): Promise<NextResponse> {
   let tenantId = '00000000-0000-0000-0000-000000000001';
+  let repo: SupabaseInteriorRepository | undefined = undefined;
   try {
     const ctx = await resolveInteriorContext(request);
     if (ctx.ok) {
       tenantId = ctx.tenantId;
+      repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
     }
   } catch {
     // default tenant
@@ -85,11 +104,16 @@ export async function GET(request: Request): Promise<NextResponse> {
   const projectId = searchParams.get('projectId') || undefined;
 
   // Canonical Single Source of Truth
-  const overview = await InteriorContractAnalyticsService.getContractOverview(tenantId, projectId);
+  const overview = await InteriorContractAnalyticsService.getContractOverview(tenantId, projectId, repo);
 
   const results = contractStore.filter((c) => {
     const tenantMatch = c.tenantId === tenantId || c.tenantId === '00000000-0000-0000-0000-000000000001';
-    const projectMatch = projectId ? c.projectId === projectId : true;
+    const projectMatch = projectId
+      ? c.projectId === projectId ||
+        (projectId === 'f6b027ee-494c-4c42-a6cd-01b18626c043' && c.projectId === 'INT-2024-001') ||
+        (projectId === '7044e341-0a0b-4b10-a240-be5cb40b2fe0' && c.projectId === 'INT-2024-002') ||
+        (projectId === '77a11111-2222-3333-4444-555566667777' && c.projectId === 'INT-THD-2026')
+      : true;
     return tenantMatch && projectMatch;
   });
 
@@ -97,6 +121,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     success: true,
     data: {
       overview,
+      hasContract: overview.hasContract,
       contracts: results,
       total: results.length,
     },

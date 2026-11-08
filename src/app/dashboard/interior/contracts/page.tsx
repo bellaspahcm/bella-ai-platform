@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
@@ -31,6 +32,7 @@ import {
   Eye,
   ArrowRight,
   ExternalLink,
+  FolderOpen,
 } from 'lucide-react';
 import type {
   ContractOverviewResponse,
@@ -42,9 +44,28 @@ import type {
   WorkshopReleaseCriterion,
 } from '@/products/bella-interior/domain/contract-overview.types';
 
+/** Project selector options — mirrors INITIAL_PROJECTS on the dashboard */
+const PROJECT_OPTIONS = [
+  { id: 'INT-THD-2026',  label: 'Villa Riverside Thảo Điền (INT-THD-2026)',       hasContract: true  },
+  { id: 'INT-2024-002',  label: 'Dubai Luxury Villa Fitout (INT-2024-002)',         hasContract: true  },
+  { id: 'INT-2024-001',  label: 'Villa Sunrise Renovation (INT-2024-001)',          hasContract: false },
+  { id: 'INT-2024-003',  label: 'Penthouse Metropolis (INT-2024-003)',              hasContract: false },
+  { id: 'INT-2024-004',  label: 'Duplex Aqua Bay Ecopark (INT-2024-004)',           hasContract: false },
+] as const;
+
+type ProjectId = (typeof PROJECT_OPTIONS)[number]['id'];
+
 export default function InteriorContractsPage() {
+  const searchParams = useSearchParams();
+  const initialProjectId = (searchParams.get('projectId') as ProjectId | null) ?? 'INT-THD-2026';
+
+  const [selectedProjectId, setSelectedProjectId] = useState<ProjectId>(initialProjectId);
+  const [showProjectDropdown, setShowProjectDropdown] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const [data, setData] = useState<ContractOverviewResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'info' | 'addenda' | 'audit' | 'analysis'>('info');
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
@@ -57,30 +78,62 @@ export default function InteriorContractsPage() {
   const [releaseSuccessOrder, setReleaseSuccessOrder] = useState<string | null>(null);
   const [releasing, setReleasing] = useState<boolean>(false);
 
-  // Fetch canonical contract data
-  const loadData = useCallback(async () => {
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowProjectDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Fetch contract data for the selected project
+  const loadData = useCallback(async (projectId: ProjectId) => {
     try {
       setLoading(true);
-      const res = await fetch('/api/interior/contracts');
+      setFetchError(null);
+      const res = await fetch(`/api/interior/contracts?projectId=${projectId}`);
+      if (!res.ok) {
+        setFetchError(`HTTP ${res.status}`);
+        setData(null);
+        return;
+      }
       const json = await res.json();
       if (json.success && json.data?.overview) {
         setData(json.data.overview);
+      } else {
+        setData(null);
+        setFetchError('Không thể tải dữ liệu hợp đồng');
       }
     } catch (err) {
       console.error('Failed to load contract overview', err);
+      setFetchError('Lỗi kết nối máy chủ');
+      setData(null);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
 
+  // Load data whenever project selection changes (also covers initial mount)
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    loadData(selectedProjectId);
+  }, [loadData, selectedProjectId]);
+
+  const handleSelectProject = (id: ProjectId) => {
+    setSelectedProjectId(id);
+    setShowProjectDropdown(false);
+    // Update URL param without hard navigation
+    const url = new URL(window.location.href);
+    url.searchParams.set('projectId', id);
+    window.history.replaceState({}, '', url.toString());
+  };
 
   const handleRefresh = () => {
     setRefreshing(true);
-    loadData();
+    loadData(selectedProjectId);
   };
 
   const handleConfirmWorkshopRelease = async () => {
@@ -106,7 +159,7 @@ export default function InteriorContractsPage() {
     }
   };
 
-  if (loading || !data) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -119,6 +172,159 @@ export default function InteriorContractsPage() {
     );
   }
 
+  // ── ERROR STATE ─────────────────────────────────────────────────────────────
+  if (fetchError && !data) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 mb-6">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Quản lý Báo giá, Hợp đồng &amp; Tiến độ Thu tiền</h1>
+        </div>
+        <div className="mt-10 flex flex-col items-center gap-4">
+          <AlertTriangle className="w-10 h-10 text-red-500" />
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{fetchError}</p>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-lg font-medium"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── EMPTY STATE (project has no signed contract) ─────────────────────────────
+  if (!loading && (!data || !data.hasContract)) {
+    const selectedProject = PROJECT_OPTIONS.find((p) => p.id === selectedProjectId);
+    const boqRef = data?.referenceBOQValueFormatted;
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 space-y-6">
+        {/* Header bar */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Quản lý Báo giá, Hợp đồng &amp; Tiến độ Thu tiền
+            </h1>
+            <div className="flex items-center gap-2 mt-1 text-sm text-slate-600 dark:text-slate-400">
+              <span className="font-medium text-slate-700 dark:text-slate-300">Dự án:</span>
+              <div className="relative inline-block" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowProjectDropdown((v) => !v)}
+                  className="flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors"
+                >
+                  <span>{selectedProject?.label ?? selectedProjectId}</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                </button>
+                {showProjectDropdown && (
+                  <div className="absolute top-full left-0 mt-1 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 py-1 overflow-hidden">
+                    {PROJECT_OPTIONS.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => handleSelectProject(p.id)}
+                        className={`w-full text-left px-4 py-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-between gap-2 ${
+                          p.id === selectedProjectId ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 font-semibold' : 'text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <span>{p.label}</span>
+                        {p.hasContract ? (
+                          <span className="shrink-0 px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-[10px] rounded font-medium">HĐ</span>
+                        ) : (
+                          <span className="shrink-0 px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] rounded font-medium">Chưa HĐ</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={handleRefresh} disabled={refreshing}
+              className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-medium transition-colors shadow-sm">
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+              <span>Làm mới</span>
+            </button>
+            <button type="button" onClick={() => setShowNewContractModal(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold shadow-sm">
+              <Plus className="w-4 h-4" />
+              <span>+ Tạo Hợp Đồng Mới</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Empty state card */}
+        <div className="bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-10 flex flex-col items-center gap-5 text-center max-w-xl mx-auto mt-8">
+          <div className="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center">
+            <FolderOpen className="w-8 h-8 text-amber-500" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+              Chưa có hợp đồng kinh tế được ký kết
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              {selectedProject?.label ?? selectedProjectId} chưa có hợp đồng thương mại.
+              {boqRef && (
+                <span className="block mt-1 font-medium text-slate-600 dark:text-slate-300">
+                  Giá trị BOQ tham chiếu:{' '}
+                  <span className="text-emerald-600 dark:text-emerald-400">{boqRef}</span>
+                </span>
+              )}
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 mt-2">
+            <button
+              type="button"
+              onClick={() => setShowNewContractModal(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-semibold shadow-sm transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              Lập Báo giá &amp; Ký hợp đồng
+            </button>
+            <Link
+              href={`/dashboard/interior/boq?projectId=${selectedProjectId}`}
+              className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium transition-colors"
+            >
+              <FileText className="w-4 h-4" />
+              Xem BOQ &amp; Dự toán
+            </Link>
+          </div>
+        </div>
+
+        {/* New Contract Modal (empty-state entry point) */}
+        {showNewContractModal && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">Tạo Hợp Đồng Mới</h2>
+                <button type="button" onClick={() => setShowNewContractModal(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Dự án: <span className="font-semibold text-slate-700 dark:text-slate-300">{selectedProject?.label ?? selectedProjectId}</span>
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg">
+                Chức năng lập hợp đồng từ BOQ đang được phát triển. Vui lòng liên hệ Trưởng phòng Thương mại để tạo hợp đồng thủ công.
+              </p>
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={() => setShowNewContractModal(false)}
+                  className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg font-medium">
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
   const { header, kpis, progressStepper, milestones, alerts, quickActions, detailedTabs, projectSummary, workshopReleaseGating } = data;
 
   return (
@@ -129,16 +335,39 @@ export default function InteriorContractsPage() {
           <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
             Quản lý Báo giá, Hợp đồng &amp; Tiến độ Thu tiền
           </h1>
+          {/* Interactive Project Selector */}
           <div className="flex items-center gap-2 mt-1 text-sm text-slate-600 dark:text-slate-400">
             <span className="font-medium text-slate-700 dark:text-slate-300">Dự án:</span>
-            <div className="relative inline-block">
+            <div className="relative inline-block" ref={dropdownRef}>
               <button
                 type="button"
+                onClick={() => setShowProjectDropdown((v) => !v)}
                 className="flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors"
               >
                 <span>{header.selectorLabel}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
               </button>
+              {showProjectDropdown && (
+                <div className="absolute top-full left-0 mt-1 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 py-1 overflow-hidden">
+                  {PROJECT_OPTIONS.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => handleSelectProject(p.id)}
+                      className={`w-full text-left px-4 py-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-between gap-2 ${
+                        p.id === selectedProjectId ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 font-semibold' : 'text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <span>{p.label}</span>
+                      {p.hasContract ? (
+                        <span className="shrink-0 px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-[10px] rounded font-medium">HĐ</span>
+                      ) : (
+                        <span className="shrink-0 px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] rounded font-medium">Chưa HĐ</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
