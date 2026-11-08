@@ -11,8 +11,8 @@
  *   --dry-run   Preview changes without writing files
  */
 
-import { readFile, writeFile, readdir, stat } from 'fs/promises';
-import { join, dirname, extname } from 'path';
+import { readFile, writeFile, readdir } from 'fs/promises';
+import { join, resolve, dirname, extname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -27,10 +27,26 @@ const TARGET_DIRS = [
 const TARGET_EXTS = new Set(['.ts', '.tsx', '.json']);
 
 // ─── Walk directory recursively ───────────────────────────────────────────────
+/**
+ * Walk a directory tree, yielding absolute paths of matching files.
+ * Entry names are validated to prevent path-traversal: each segment must be a
+ * plain filename with no directory separators or leading dots that would escape
+ * the starting directory.
+ *
+ * @param {string} dir  Absolute directory to walk (must already be under ROOT)
+ */
 async function* walk(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
   for (const entry of entries) {
-    const full = join(dir, entry.name);
+    // Guard: entry.name must be a plain filename — no slashes or traversal sequences
+    if (entry.name.includes('/') || entry.name.includes('\\') || entry.name === '..') {
+      continue;
+    }
+    // Build the absolute path and confirm it stays within ROOT (defense-in-depth)
+    const full = resolve(dir, entry.name);
+    if (!full.startsWith(ROOT + '/') && !full.startsWith(ROOT + '\\') && full !== ROOT) {
+      continue;
+    }
     if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules' && entry.name !== '__tests__') {
       yield* walk(full);
     } else if (entry.isFile() && TARGET_EXTS.has(extname(entry.name))) {
