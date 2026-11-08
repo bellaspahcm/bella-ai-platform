@@ -28,37 +28,7 @@ interface CreateRevisionBody {
   projectId: string;
   revisionName: string;
   revisionNumber: string;
-  designedByUserId: string;
 }
-
-// ─── Mock In-Memory Store ─────────────────────────────────────────────────────
-
-export const mockRevisions: DesignRevision[] = [
-  {
-    id: 'rev-001',
-    projectId: 'proj-001',
-    revisionName: 'Initial Concept',
-    revisionNumber: 'R1.0',
-    status: 'approved',
-    designedByUserId: 'user-designer-01',
-    approvedByUserId: 'user-pm-01',
-    approvedAt: '2024-02-01T10:00:00.000Z',
-    createdAt: '2024-01-20T08:00:00.000Z',
-    updatedAt: '2024-02-01T10:00:00.000Z',
-  },
-  {
-    id: 'rev-002',
-    projectId: 'proj-001',
-    revisionName: 'Client Feedback Round 1',
-    revisionNumber: 'R1.1',
-    status: 'draft',
-    designedByUserId: 'user-designer-01',
-    approvedByUserId: null,
-    approvedAt: null,
-    createdAt: '2024-02-10T09:00:00.000Z',
-    updatedAt: '2024-02-10T09:00:00.000Z',
-  },
-];
 
 // ─── GET /api/interior/design/revisions ──────────────────────────────────────
 
@@ -70,12 +40,14 @@ export async function GET(request: Request): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get('projectId');
 
+  if (!projectId) {
+    return NextResponse.json({ success: false, error: 'projectId query parameter is required' }, { status: 400 });
+  }
+
   try {
     const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-    if (projectId) {
-      const dbRevs = await repo.listDesignRevisions(tenantId, projectId);
-      if (dbRevs && dbRevs.length > 0) {
-        const mapped: DesignRevision[] = dbRevs.map((r) => ({
+    const dbRevs = await repo.listDesignRevisions(tenantId, projectId);
+    const mapped: DesignRevision[] = dbRevs.map((r) => ({
           id: r.id,
           projectId: r.projectId,
           revisionName: r.title,
@@ -87,24 +59,13 @@ export async function GET(request: Request): Promise<NextResponse> {
           createdAt: r.submittedAt || new Date().toISOString(),
           updatedAt: r.approvedAt || r.submittedAt || new Date().toISOString(),
         }));
-        return NextResponse.json({
-          success: true,
-          data: { revisions: mapped, total: mapped.length },
-        });
-      }
-    }
+    return NextResponse.json({
+      success: true,
+      data: { revisions: mapped, total: mapped.length },
+    });
   } catch {
-    // Fall back to mock store if DB call fails
+    return NextResponse.json({ success: false, error: 'INTERIOR_DESIGN_REVISION_READ_FAILED' }, { status: 503 });
   }
-
-  const filtered = projectId
-    ? mockRevisions.filter((r) => r.projectId === projectId)
-    : mockRevisions;
-
-  return NextResponse.json({
-    success: true,
-    data: { revisions: filtered, total: filtered.length },
-  });
 }
 
 // ─── POST /api/interior/design/revisions ─────────────────────────────────────
@@ -144,17 +105,13 @@ export async function POST(request: Request): Promise<NextResponse> {
       { status: 422 }
     );
   }
-  if (!parsed.designedByUserId || typeof parsed.designedByUserId !== 'string') {
-    return NextResponse.json(
-      { success: false, error: 'Field "designedByUserId" is required and must be a string' },
-      { status: 422 }
-    );
-  }
-
   const now = new Date().toISOString();
   const revId = randomUUID();
   const numParsed = parseInt(parsed.revisionNumber.replace(/[^0-9]/g, ''), 10);
-  const versionNumber = Number.isFinite(numParsed) && numParsed > 0 ? numParsed : mockRevisions.length + 1;
+  if (!Number.isFinite(numParsed) || numParsed <= 0) {
+    return NextResponse.json({ success: false, error: 'revisionNumber must contain a positive revision number' }, { status: 422 });
+  }
+  const versionNumber = numParsed;
 
   const domainRevision: DomainDesignRevision = {
     id: revId,
@@ -163,61 +120,21 @@ export async function POST(request: Request): Promise<NextResponse> {
     versionNumber,
     title: parsed.revisionName,
     status: 'draft',
-    submittedBy: parsed.designedByUserId || actor.id,
+    submittedBy: actor.id,
     submittedAt: now,
-    assets: [
-      {
-        id: randomUUID(),
-        tenantId,
-        revisionId: revId,
-        type: 'concept_3d',
-        title: `${parsed.revisionName} - Phối cảnh 3D`,
-        fileUrl: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80',
-        notes: 'Phối cảnh 3D tổng thể sơ bộ',
-      },
-      {
-        id: randomUUID(),
-        tenantId,
-        revisionId: revId,
-        type: 'technical_2d',
-        title: `${parsed.revisionName} - Mặt bằng bố trí kỹ thuật`,
-        fileUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-        notes: 'Bản vẽ CAD 2D bố trí thiết bị',
-      },
-    ],
-    materialSpecs: [
-      {
-        id: randomUUID(),
-        tenantId,
-        revisionId: revId,
-        itemCategory: 'wood_board',
-        brand: 'An Cường',
-        code: 'MS 440 EV',
-        name: 'Veneer Óc Chó Bắc Mỹ',
-        colorTone: 'Walnut Deep Brown',
-        specDescription: 'Hoàn thiện sơn bóng mờ 50% PU cao cấp',
-        approvedForUse: true,
-      },
-      {
-        id: randomUUID(),
-        tenantId,
-        revisionId: revId,
-        itemCategory: 'hardware',
-        brand: 'Blum Austria',
-        code: 'Clip Top 110 BLUMOTION',
-        name: 'Bản lề giảm chấn thép mạ Niken',
-        colorTone: 'Nikel Silver',
-        specDescription: 'Bản lề giảm chấn đóng êm, góc mở 110 độ',
-        approvedForUse: true,
-      },
-    ],
+    assets: [],
+    materialSpecs: [],
   };
 
   try {
     const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+    const project = await repo.getProject(tenantId, parsed.projectId);
+    if (!project) {
+      return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
+    }
     await repo.saveDesignRevision(tenantId, domainRevision);
   } catch {
-    // Fall back to mock store if DB call fails
+    return NextResponse.json({ success: false, error: 'INTERIOR_DESIGN_REVISION_PERSISTENCE_FAILED' }, { status: 503 });
   }
 
   const newRevision: DesignRevision = {
@@ -226,14 +143,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     revisionName: parsed.revisionName,
     revisionNumber: parsed.revisionNumber,
     status: 'draft',
-    designedByUserId: parsed.designedByUserId,
+    designedByUserId: actor.id,
     approvedByUserId: null,
     approvedAt: null,
     createdAt: now,
     updatedAt: now,
   };
-
-  mockRevisions.push(newRevision);
 
   return NextResponse.json(
     { success: true, data: { revision: newRevision } },

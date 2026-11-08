@@ -3,6 +3,9 @@ import { createClient } from "@/lib/supabase-server";
 import { runCOOOrchestrator } from "@/services/ai-coo-service";
 import { canUseAiCopilotRole } from "@/lib/business-rules/permissions";
 import { withTenantContext, type NextRequestWithContext } from "@/core/middleware/tenantContext";
+import { SupabasePlatformActionAuthorization } from "@/platform/authorization";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database.types";
 
 // Cấu trúc yêu cầu của CEO
 interface COORequest {
@@ -40,13 +43,16 @@ export const POST = withTenantContext(async (request: NextRequestWithContext) =>
     // 3. Fetch user profile for role and full_name (tenant_id already validated by middleware)
     const { data: userData, error: userError } = await supabase
       .from("users")
-      .select("id, role, full_name")
+      .select("id, role, full_name, tenant_id, status")
       .eq("id", authUser.id)
       .single();
 
     if (userError || !userData) {
       console.error("[AI COO Orchestrator] Không tìm thấy hồ sơ người dùng trong hệ thống:", userError);
       return NextResponse.json({ error: "Tài khoản của bạn không tồn tại trong hệ thống Bella EIP." }, { status: 403 });
+    }
+    if (userData.tenant_id !== tenantId || userData.status !== 'active') {
+      return NextResponse.json({ error: "Tài khoản không hoạt động trong tenant hiện tại." }, { status: 403 });
     }
 
     // 4. Validate user has permission to use AI COO
@@ -55,12 +61,27 @@ export const POST = withTenantContext(async (request: NextRequestWithContext) =>
       return NextResponse.json({ error: "Quyền hạn không hợp lệ. Chỉ có Ban điều hành (Admin/Super Admin), Quản lý dự án, KTS trưởng và Kế toán mới có quyền điều phối AI Copilot." }, { status: 403 });
     }
 
-    // 5. Parse request body
-    const body: COORequest = await request.json();
-    const { command, monthYear } = body;
+    const authorization = new SupabasePlatformActionAuthorization(supabase as unknown as SupabaseClient<Database>);
+    const decision = await authorization.authorize({ permissionId: 'interior:reports:read', tenantId });
+    if (decision.status === 'DENY') {
+      return NextResponse.json({ error: "Không có quyền xem báo cáo Interior qua AI COO." }, { status: 403 });
+    }
+    if (decision.status === 'UNAVAILABLE') {
+      return NextResponse.json({ error: "Không thể xác thực quyền AI COO." }, { status: 503 });
+    }
 
-    if (!command || command.trim() === "") {
+    // 5. Parse request body
+    const body: unknown = await request.json();
+    if (typeof body !== 'object' || body === null) {
+      return NextResponse.json({ error: "Request body must be an object." }, { status: 400 });
+    }
+    const { command, monthYear } = body as Partial<COORequest>;
+
+    if (typeof command !== 'string' || command.trim() === '' || command.length > 4000) {
       return NextResponse.json({ error: "Vui lòng cung cấp câu lệnh phân tích cho AI." }, { status: 400 });
+    }
+    if (monthYear !== undefined && (typeof monthYear !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])(?:-(0[1-9]|[12]\d|3[01]))?$/.test(monthYear))) {
+      return NextResponse.json({ error: "monthYear must use YYYY-MM or YYYY-MM-DD." }, { status: 400 });
     }
 
     console.log(`[AI COO Orchestrator] CEO ${userData.full_name} gửi lệnh: "${command}"`);

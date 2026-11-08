@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   Building2,
   Calendar,
-  CheckCircle2,
   Clock,
   Compass,
   FileSpreadsheet,
@@ -31,18 +30,16 @@ interface ProjectDetail {
   code: string;
   name: string;
   status: string;
-  customerId: string;
-  customerName: string;
+  customerName: string | null;
   customerPhone?: string;
   customerEmail?: string;
-  siteAddress: string;
+  siteAddress: string | null;
   projectType: string;
   totalFloorAreaSquareMeters: number;
-  contractValue: number;
+  estimatedBudget: number | null;
   targetCompletionDate: string;
   leadArchitectId: string;
   leadArchitectName: string;
-  activeApprovedRevisionId?: string | null;
   rooms: Array<{
     id: string;
     code: string;
@@ -55,13 +52,13 @@ interface ProjectDetail {
     brand: string;
     name: string;
     spec: string;
-  }>;
+  }> | null;
   progress: {
     designPercent: number;
     workshopPercent: number;
     installPercent: number;
     overallPercent: number;
-  };
+  } | null;
 }
 
 export default function ProjectDetailPage({
@@ -223,12 +220,14 @@ export default function ProjectDetailPage({
         {/* ── KPI Row ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-            <div className="text-xs text-slate-500 font-medium">Giá trị hợp đồng</div>
+            <div className="text-xs text-slate-500 font-medium">Ngân sách dự kiến</div>
             <div className="text-lg font-bold text-slate-900 dark:text-white mt-1">
-              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(project.contractValue)}
+              {project.estimatedBudget === null
+                ? 'Chưa có dữ liệu'
+                : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(project.estimatedBudget)}
             </div>
-            <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" /> Đã ký & giải ngân đợt 1
+            <div className="text-[11px] text-slate-500 mt-1">
+              {project.estimatedBudget === null ? 'Không có quyền xem hoặc chưa ghi nhận ngân sách' : 'Theo hồ sơ dự án'}
             </div>
           </div>
 
@@ -245,14 +244,16 @@ export default function ProjectDetailPage({
           <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
             <div className="text-xs text-slate-500 font-medium">Tiến độ tổng thể</div>
             <div className="text-lg font-bold text-slate-900 dark:text-white mt-1">
-              {project.progress.overallPercent}%
+              {project.progress ? `${project.progress.overallPercent}%` : 'Chưa có dữ liệu'}
             </div>
-            <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div
-                className="bg-amber-600 h-full rounded-full transition-all duration-500"
-                style={{ width: `${project.progress.overallPercent}%` }}
-              />
-            </div>
+            {project.progress && (
+              <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div
+                  className="bg-amber-600 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${project.progress.overallPercent}%` }}
+                />
+              </div>
+            )}
           </div>
 
           <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
@@ -261,7 +262,7 @@ export default function ProjectDetailPage({
               {new Date(project.targetCompletionDate).toLocaleDateString('vi-VN')}
             </div>
             <div className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
-              <Clock className="w-3 h-3" /> Đúng tiến độ cam kết
+              <Clock className="w-3 h-3" /> Theo lịch dự án
             </div>
           </div>
         </div>
@@ -287,7 +288,7 @@ export default function ProjectDetailPage({
               : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          Vật Liệu & Thiết Bị ({project.materials.length})
+          Vật Liệu & Thiết Bị ({project.materials?.length ?? '—'})
         </button>
         <button
           onClick={() => setActiveTab('timeline')}
@@ -368,7 +369,7 @@ export default function ProjectDetailPage({
                 <div>
                   <div className="text-slate-400 font-medium">Chủ đầu tư</div>
                   <div className="font-semibold text-slate-900 dark:text-white text-sm mt-0.5">
-                    {project.customerName}
+                    {project.customerName || 'Không có quyền xem hoặc chưa có thông tin'}
                   </div>
                 </div>
                 {project.customerPhone && (
@@ -382,7 +383,7 @@ export default function ProjectDetailPage({
                 <div>
                   <div className="text-slate-400 font-medium">Địa chỉ công trình</div>
                   <div className="text-slate-700 dark:text-slate-300 mt-0.5">
-                    {project.siteAddress}
+                    {project.siteAddress || 'Không có quyền xem thông tin địa chỉ'}
                   </div>
                 </div>
               </div>
@@ -406,7 +407,7 @@ export default function ProjectDetailPage({
             Chủng loại vật liệu & Thương hiệu chỉ định (Spec Lock)
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {project.materials.map((mat, idx) => (
+            {(project.materials ?? []).map((mat, idx) => (
               <div
                 key={idx}
                 className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-start gap-3.5"
@@ -427,6 +428,9 @@ export default function ProjectDetailPage({
                 </div>
               </div>
             ))}
+            {!project.materials && (
+              <p className="text-sm text-slate-500">Chưa có nguồn dữ liệu vật liệu cho hồ sơ này.</p>
+            )}
           </div>
         </div>
       )}
@@ -439,18 +443,18 @@ export default function ProjectDetailPage({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
               <div className="text-xs font-semibold text-slate-500 mb-1">Giai đoạn thiết kế</div>
-              <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">100% Hoàn thành</div>
-              <p className="text-xs text-slate-500 mt-1">Đã ký duyệt Approved Design Lock</p>
+              <div className="text-lg font-bold text-slate-500">{project.progress ? `${project.progress.designPercent}%` : 'Chưa có dữ liệu'}</div>
+              <p className="text-xs text-slate-500 mt-1">Chưa có read model tiến độ thiết kế</p>
             </div>
             <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
               <div className="text-xs font-semibold text-slate-500 mb-1">Giai đoạn xưởng sản xuất</div>
-              <div className="text-lg font-bold text-amber-600 dark:text-amber-400">{project.progress.workshopPercent}% Tiến độ</div>
-              <p className="text-xs text-slate-500 mt-1">Cắt CNC, Dán cạnh PUR & Lắp ráp cụm</p>
+              <div className="text-lg font-bold text-slate-500">{project.progress ? `${project.progress.workshopPercent}%` : 'Chưa có dữ liệu'}</div>
+              <p className="text-xs text-slate-500 mt-1">Chưa có read model tiến độ xưởng</p>
             </div>
             <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
               <div className="text-xs font-semibold text-slate-500 mb-1">Giai đoạn thi công hiện trường</div>
-              <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{project.progress.installPercent}% Tiến độ</div>
-              <p className="text-xs text-slate-500 mt-1">Lắp dựng khung & Hoàn thiện phụ kiện</p>
+              <div className="text-lg font-bold text-slate-500">{project.progress ? `${project.progress.installPercent}%` : 'Chưa có dữ liệu'}</div>
+              <p className="text-xs text-slate-500 mt-1">Chưa có read model tiến độ lắp đặt</p>
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">

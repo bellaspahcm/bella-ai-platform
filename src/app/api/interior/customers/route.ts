@@ -20,49 +20,35 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  InteriorCustomerAnalyticsService,
-  TenantIsolationViolationError,
-} from '@/products/bella-interior';
+import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
+import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const tenantId =
-      searchParams.get('tenantId') ||
-      request.headers.get('x-tenant-id') ||
-      'tenant-bella-interior-default';
+    const ctx = await resolveInteriorContext(request);
+    if (!ctx.ok) return ctx.response;
 
-    const overview = InteriorCustomerAnalyticsService.getCustomerOverview(tenantId);
-
-    return NextResponse.json(overview, {
-      status: 200,
-      headers: {
-        'Cache-Control': 'no-store, max-age=0',
-      },
-    });
-  } catch (error: unknown) {
-    if (error instanceof TenantIsolationViolationError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'TENANT_ISOLATION_VIOLATION',
-          message: error.message,
-        },
-        { status: 403 },
-      );
+    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+    const projects = await repo.listProjects(ctx.tenantId);
+    const customerMap = new Map<string, { id: string; name: string; projectCount: number }>();
+    for (const project of projects) {
+      const current = customerMap.get(project.customerId);
+      if (current) current.projectCount += 1;
+      else customerMap.set(project.customerId, {
+        id: project.customerId,
+        name: project.customerName,
+        projectCount: 1,
+      });
     }
-
-    const message = error instanceof Error ? error.message : 'Unknown internal server error';
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'INTERNAL_SERVER_ERROR',
-        message,
-      },
-      { status: 500 },
-    );
+    const customers = [...customerMap.values()];
+    return NextResponse.json({ success: true, data: { customers, total: customers.length } }, {
+      status: 200,
+      headers: { 'Cache-Control': 'no-store, max-age=0' },
+    });
+  } catch {
+    return NextResponse.json({ success: false, error: 'INTERIOR_CUSTOMER_LOOKUP_FAILED' }, { status: 503 });
   }
 }

@@ -1,39 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { InteriorWarrantyAnalyticsService } from '@/products/bella-interior/services/interior-warranty-analytics.service';
+import { NextResponse } from 'next/server';
+import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 
-/**
- * GET /api/interior/warranty/analytics
- * 
- * Canonical API endpoint for Bella Interior Warranty & Aftercare Dashboard.
- * Returns pre-computed KPIs, certificate rows, expiration alerts, calendar items,
- * and aftercare roadmap.
- */
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenantId') || 'tenant-bella-interior-001';
-    const projectId = searchParams.get('projectId') || undefined;
+export const dynamic = 'force-dynamic';
 
-    const overview = await InteriorWarrantyAnalyticsService.getWarrantyOverview(tenantId, projectId);
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        tenantId,
-        overview,
-      },
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error('[API] /api/interior/warranty/analytics error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to retrieve warranty & aftercare analytics data',
-        message: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 }
-    );
-  }
+export async function GET(request: Request): Promise<NextResponse> {
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  return NextResponse.json({ success: false, error: 'INTERIOR_WARRANTY_ANALYTICS_READ_MODEL_UNAVAILABLE' }, { status: 503 });
 }
-

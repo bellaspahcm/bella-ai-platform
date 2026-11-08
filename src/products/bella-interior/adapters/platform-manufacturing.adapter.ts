@@ -13,7 +13,6 @@
  * @module src/products/bella-interior/adapters
  */
 
-import { randomUUID } from 'crypto';
 import type {
   InteriorProductionRequestPort,
   InteriorProductionRequestInput,
@@ -58,14 +57,7 @@ export class PlatformManufacturingAdapter implements InteriorProductionRequestPo
       };
     }
 
-    // Direct delegation fallback
-    const fallbackId = `mfg_po_${randomUUID()}`;
-    return {
-      manufacturingProductionOrderId: fallbackId,
-      manufacturingOrderNumber: orderNumber,
-      status: 'released',
-      requestedAt,
-    };
+    throw new Error('MANUFACTURING_SERVICE_UNAVAILABLE');
   }
 
   async getProductionStatus(params: {
@@ -77,10 +69,6 @@ export class PlatformManufacturingAdapter implements InteriorProductionRequestPo
     completionPercent?: number;
   }> {
     void params;
-    return {
-      status: 'in_production',
-      currentStage: 'cutting_cnc',
-      completionPercent: 35,
-    };
+    throw new Error('MANUFACTURING_SERVICE_UNAVAILABLE');
   }
 }

@@ -12,7 +12,6 @@
  * @module src/products/bella-interior/adapters
  */
 
-import { randomUUID } from 'crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BaseInteriorDomainEvent } from '../domain/events';
 import type {
@@ -22,16 +21,15 @@ import type {
 
 interface RpcResponse {
   data: string | null;
-  error: { message: string } | null;
+  error: { code?: string; message: string } | null;
 }
 
 export class SupabaseInteriorFinanceOutboxAdapter implements InteriorOutboxPort {
-  private readonly publishedEvents: BaseInteriorDomainEvent[] = [];
-
   constructor(private readonly supabase: SupabaseClient) {}
 
   async publishDomainEvent(event: BaseInteriorDomainEvent): Promise<void> {
-    this.publishedEvents.push(event);
+    void event;
+    throw new Error('INTERIOR_DOMAIN_EVENT_OUTBOX_NOT_CONFIGURED');
   }
 
   async enqueueFinanceMilestone(
@@ -51,46 +49,24 @@ export class SupabaseInteriorFinanceOutboxAdapter implements InteriorOutboxPort 
       })) as unknown as RpcResponse;
 
       if (response?.error) {
-        // Fall back to direct insert if RPC is unavailable
-        const fallbackId = randomUUID();
-        const { error: insertError } = await this.supabase
-          .from('interior_finance_outbox')
-          .insert({
-            id: fallbackId,
-            tenant_id: payload.tenantId,
-            event_type: eventType,
-            reference_type: referenceType,
-            reference_id: referenceId,
-            payload,
-            status: 'PENDING',
-          });
-
-        if (insertError) {
-          // If already exists (duplicate conflict), treat as idempotent success
-          if (insertError.code === '23505') {
-            return { outboxId: `idempotent_${referenceId}`, status: 'queued' };
-          }
-          throw new Error(
-            `[InteriorFinanceOutbox] Insert failed: ${insertError.message}`,
-          );
+        if (response.error.code === '23505') {
+          return { outboxId: `idempotent_${referenceId}`, status: 'queued' };
         }
-
-        return { outboxId: fallbackId, status: 'queued' };
+        throw new Error(`[InteriorFinanceOutbox] Enqueue RPC failed: ${response.error.message}`);
       }
 
       // If RPC returned NULL, it means duplicate was skipped by ON CONFLICT DO NOTHING
       const outboxId = response?.data ?? `idempotent_${referenceId}`;
       return { outboxId, status: 'queued' };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.warn('[InteriorFinanceOutbox] Outbox persistence error:', message);
-      // Return synthetic queued id to allow idempotent retry
-      return { outboxId: `fallback_${randomUUID()}`, status: 'queued' };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown persistence error';
+      console.error('[InteriorFinanceOutbox] Outbox persistence failed');
+      throw new Error(`[InteriorFinanceOutbox] Persistence failed: ${message}`);
     }
   }
 
   getPublishedEvents(): readonly BaseInteriorDomainEvent[] {
-    return [...this.publishedEvents];
+    return [];
   }
 }
 

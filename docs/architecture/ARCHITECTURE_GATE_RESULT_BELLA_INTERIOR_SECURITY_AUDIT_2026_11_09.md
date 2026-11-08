@@ -1,0 +1,100 @@
+# Bella Interior Production Security Audit — Architecture Gate
+
+Date: 2026-11-09
+Result: `PASS` for bounded deny-by-default hardening; `PROPOSED` for the least-privilege role matrix; `DEFER` for role-to-user assignments and direct-table read/write enablement.
+
+## Bella OS / Product Process Gate
+
+The request is an audit and repair of Bella Interior, with explicit user authority to operate on Production and its Production database. Scope is limited to Bella Interior APIs, Interior-owned tables/functions, and the minimum extension of the existing Platform Action Authorization permission identifier catalog needed to secure Interior routes and RPCs. No Healthcare/Education behavior, frozen Kernel, Finance ledger, or unrelated product is in scope.
+
+The target Production project is `lvnvkpyxtuilhrabtlwv` in `ap-southeast-1`, active, Postgres 17.6.1.121. Read-only preflight observed 21 `public.interior_*` tables with RLS enabled and tenant policies; `anon` and `authenticated` have no direct table CRUD grants. The old policies trusted `auth.jwt()->>'tenant_id'`. The current project is on the Supabase Free plan, with no managed project backup. Planned DDL changes only function definitions/execute ACLs, an allow-list constraint, and RLS policies; no business rows are changed. No Production write probe or failure injection is allowed.
+
+The existing action grant system supports direct per-user grants only. Production has no Interior action grants and no Interior-specific roles in the shared `users.role` values. The user selected a proposed least-privilege, deny-by-default matrix below. No assignment is inferred from shared roles such as `admin`, `admin_staff`, or `accountant`, and no user grant is created by this gate. Direct table privileges stay revoked; the existing route/repository calls that depend on direct table reads/writes must continue to fail closed until field-scoped read projections and action-aware command RPCs are available.
+
+## Product Manifest and Scope
+
+Product: Bella Interior OS (`bella-interior`, key `bella_interior`). Bounded contexts: Design & Specification; Commercial & Costing; Manufacturing & Installation; Delivery & Aftercare. Surfaces include 23 API route files, the Interior Supabase repository, finance outbox adapter, 21 Interior tables, and the Interior security-definer RPCs.
+
+## Ownership Map — Who Owns This Data?
+
+| Data / capability | Owner | Change boundary |
+| --- | --- | --- |
+| Interior projects, designs, BOQs, contracts, production, delivery, warranty, idempotency, and finance outbox | Bella Interior Product | Product routes, Product RPCs, tenant RLS, and product-owned service behavior |
+| Action authorization contract and grant store | Bella Platform Authorization | Reuse the existing direct-user action contract; extend only named Interior permission identifiers |
+| Finance ledger and accounting records | Finance OS | No direct access or write; preserve the outbox contract |
+| `hc_*` Healthcare Kernel, Education, and Logistics frozen kernels | Their owning kernels | Not touched |
+
+## Contract Dependency Map
+
+`Bella Interior API → Platform Action Authorization → canonical active actor/tenant → tenant-owned Interior data`
+`Bella Interior milestone → Interior finance outbox → Finance OS consumer`
+
+The current Platform Action Authorization contract is reusable but the Production direct-grant catalog accepts only five `construction:*` identifiers. It is per-user direct-action authorization, not role-based inheritance. No grants will be added for Interior until the owner supplies an approved role/user matrix and assignment authority.
+
+## Proposed Interior Role Matrix — Least Privilege, Deny by Default
+
+This is the proposed business-role mapping requested by the user. A role receives only its listed action IDs; unlisted actions are denied. These role names are not present in Production today, and the current Platform contract cannot expand a role into action grants. Enacting this proposal requires an authoritative mapping of named Interior users to these roles and an approved assignment path. Do not map shared `admin`, `admin_staff`, or `accountant` values to these roles implicitly.
+
+Use [BELLA_INTERIOR_ROLE_ASSIGNMENT_TEMPLATE.csv](templates/BELLA_INTERIOR_ROLE_ASSIGNMENT_TEMPLATE.csv) to submit the account → role → tenant roster. Its email addresses are examples only; replace them with verified active Production accounts. Do not apply grants while any `REPLACE_*` placeholder remains or before each account's tenant and approver are confirmed.
+
+| Proposed role | Proposed action IDs |
+| --- | --- |
+| `interior_project_manager` | `interior:project:read`, `interior:project:write`, `interior:customer:read`, `interior:design:read`, `interior:boq:read`, `interior:contract:read`, `interior:schedule:read`, `interior:schedule:write`, `interior:production:read`, `interior:installation:read`, `interior:qc:read`, `interior:delivery:read`, `interior:delivery:write`, `interior:reports:read`, `interior:warranty:read` |
+| `interior_designer` | `interior:project:read`, `interior:design:read`, `interior:design:write`, `interior:boq:read`, `interior:schedule:read`, `interior:design:upload`* |
+| `interior_design_approver` | `interior:project:read`, `interior:design:read`, `interior:design:approve` |
+| `interior_estimator` | `interior:project:read`, `interior:design:read`, `interior:boq:read`, `interior:boq:write`, `interior:contract:read` |
+| `interior_contracts_officer` | `interior:project:read`, `interior:customer:read`, `interior:boq:read`, `interior:contract:read`, `interior:contract:write` |
+| `interior_finance` | `interior:project:read`, `interior:boq:read`, `interior:contract:read`, `interior:finance:read`, `interior:finance:write` |
+| `interior_workshop_manager` | `interior:project:read`, `interior:design:read`, `interior:boq:read`, `interior:schedule:read`, `interior:production:read`, `interior:production:write` |
+| `interior_site_supervisor` | `interior:project:read`, `interior:schedule:read`, `interior:schedule:write`, `interior:production:read`, `interior:installation:read`, `interior:installation:write`, `interior:qc:read`, `interior:qc:write`, `interior:delivery:read`, `interior:delivery:write`, `interior:warranty:read` |
+| `interior_qc_inspector` | `interior:project:read`, `interior:qc:read`, `interior:qc:write`, `interior:delivery:read` |
+| `interior_warranty_agent` | `interior:project:read`, `interior:delivery:read`, `interior:warranty:read`, `interior:warranty:write` |
+| `interior_executive_approver` | `interior:project:read`, `interior:contract:read`, `interior:finance:read`, `interior:reports:read`, `interior:executive:approve` |
+
+`interior:design:upload` remains unusable until private storage, tenant-scoped object paths, and signed download authorization are configured. No proposed role receives both design approval and design write, and executive approval is separate from finance write. There is no wildcard, global-admin inheritance, or implicit owner bypass.
+
+## Change Authority
+
+Authorized by the user: audit and repair Bella Interior directly on Production and the Production database. Bounded changes:
+
+- Require verified auth, canonical active actor/tenant, and a mapped direct action for Interior APIs; unknown routes/actions fail closed.
+- Remove shared demo data, false persistence success, and public design-file upload; keep upload unavailable until private storage and signed downloads are configured.
+- Validate caller tenant/actor/action and source records in the Interior Finance and BOQ RPCs; revoke anonymous/public execution and restrict cross-tenant cleanup to `service_role`.
+- Replace JWT-claim-based tenant policies with restrictive policies that derive tenant from the active canonical actor profile. No direct table grants are added.
+- Extend only the permission identifier allow-list for the named Interior actions. Keep assignments unconfigured until named-user membership is authoritative; do not infer access from role/job title.
+- Remove the BOQ sequential-write fallback; BOQ writes require the atomic RPC and authenticated audit actor.
+
+No broad authenticated table grants, role assignment, general Platform RBAC redesign, Finance ledger mutation, unrelated product changes, secret rotation, or unverified public file access is included.
+
+## UI → Contract Reconciliation
+
+No UI redesign is planned. The project detail view now withholds customer/address fields without `customer:read`, withholds estimated budget without `finance:read` or `contract:read`, and shows unknown progress/material data as unavailable instead of inventing values. Unsupported reads/writes and unconfigured private upload return explicit failures rather than mock or synthetic success data.
+
+## Migration Applicability and Recovery
+
+One additive migration is applicable. It is catalog/ACL/policy-only: extend the action-ID constraint, harden RPC definitions/execute grants, and update 21 tenant policies. It does not add a table/index or alter business rows. Before execution, the migration verifies the reviewed Production policy/grant/function preconditions and aborts on drift. Recovery is a forward migration restoring captured function bodies, prior ACLs, and prior policy/constraint definitions. Managed point-in-time/project backup is unavailable on the current Free plan.
+
+## Verification Plan
+
+- Static source checks: all Interior routes resolve a mapped action; client-supplied tenant/actor/role headers are rejected; no mock fallback after auth or DB failure; no sequential BOQ persistence fallback.
+- Database catalog checks after migration: fixed function search paths, expected security-definer status/owners/execute ACLs, anonymous execution denied, cleanup service-role-only, all 21 RLS policies use canonical active actor tenant and are restrictive, no direct table grants.
+- Run read-only authorization/catalog/advisor checks after applying DDL. Do not perform Production write probes or synthetic business events.
+- Report local source verification, Production DB verification, and deployed application evidence separately. Production source changes are not considered deployed until the approved release pipeline reports the exact SHA promoted and health verification passes.
+
+## Production Verification Results
+
+Read-only checks after applying migration `20261108224216_bella_interior_production_security_hardening` confirmed:
+
+- 21/21 Interior tables have RLS enabled; zero have RLS disabled; anon/authenticated have zero direct CRUD grants.
+- 21/21 Interior policies are `RESTRICTIVE`; each `USING` and `WITH CHECK` references `platform_current_actor_profile()`; none relies on a JWT tenant claim.
+- `platform_direct_user_action_grants` currently has zero rows, including zero Interior grants. Production `users.role` contains shared `accountant`, `admin`, `admin_staff`, `ktv`, `ktv_lead`, and `parent` values; no Interior role/membership is present.
+- All 27 Interior permission IDs appear in both the Production allow-list constraint and `platform_grant_direct_user_action`.
+- `save_interior_boq_atomic` and `enqueue_interior_finance_event` have fixed empty search paths and execute grants for `authenticated` plus `service_role`, with `anon` denied. `cleanup_expired_interior_idempotency` has a fixed empty search path and is executable only by `service_role` (aside from its owner).
+- The Security Advisor still reports the two authenticated `SECURITY DEFINER` Interior RPCs above. This is a generic execute warning; these functions were reviewed to enforce canonical active tenant and action checks, and the warning remains because the advisor does not inspect those function-body checks. Other project-wide advisor findings remain outside this Interior-scoped change.
+- The project-wide Security Advisor also reports 8 security-definer views, 27 public tables with RLS disabled, 218 functions with mutable search paths, and leaked-password protection disabled. The Interior-specific policy/function checks above do not show these findings on Interior tables/functions; the global findings were not changed by this product-scoped audit.
+- At the time of this catalog verification, the application source edits had not been deployed. Local `npm run typecheck:changed` passed with zero diagnostics; `git diff --check` passed after report cleanup. Production app deployment must be evidenced by the exact-SHA release workflow and health verification, separately from this DB result. No Production user grants were added, so authorization remains deny-by-default until approved Interior membership assignments are provided. No managed backup is available on the current Free plan; the applied DDL did not modify business rows.
+
+## Gate Decision
+
+`PASS` for the bounded deny-by-default hardening described above.
+`PROPOSED` for the least-privilege Interior role matrix above. `DEFER` for role-to-user assignments, a Platform role-to-permission contract, per-context data projections, and direct-table access. Until those are approved and implemented, direct action decisions deny by default, and direct table access remains closed.
