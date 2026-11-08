@@ -254,7 +254,9 @@ export class InteriorContractAnalyticsService {
     const netCollected = collectedFromMilestones + unallocatedCollected;
 
     // 3. Outstanding = Contract Value - Net Collected
-    const outstandingAmount = Math.max(0, contractValue - netCollected);
+    // Do not clamp to 0; if Net Collected > Contract Value, system reports overcollection
+    const outstandingAmount = contractValue - netCollected;
+    const isOvercollected = outstandingAmount < 0;
 
     // 4. Payment progress = Net Collected / Contract Value
     const paymentProgressPercent =
@@ -289,10 +291,14 @@ export class InteriorContractAnalyticsService {
       },
       remainingAmount: {
         rawValue: outstandingAmount,
-        formattedValue: this.formatVND(outstandingAmount),
-        label: 'Còn phải thu',
-        subtext: 'Trong đó: 0 đ quá hạn',
-        subtextVariant: 'warning',
+        formattedValue: isOvercollected
+          ? `-${this.formatVND(Math.abs(outstandingAmount))}`
+          : this.formatVND(outstandingAmount),
+        label: isOvercollected ? 'Thu vượt hợp đồng' : 'Còn phải thu',
+        subtext: isOvercollected
+          ? `Khoản thu vượt: ${this.formatVND(Math.abs(outstandingAmount))}`
+          : 'Trong đó: 0 đ quá hạn',
+        subtextVariant: isOvercollected ? 'neutral' : 'warning',
         iconName: 'Wallet',
         iconBgClass: 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400',
       },
@@ -534,7 +540,7 @@ export class InteriorContractAnalyticsService {
         dbContract = await repository.getContractByProject(tenantId, uuid);
       } catch (err) {
         // Log but do not swallow — let caller handle
-        console.error(`[ContractAnalytics] DB lookup failed for project ${uuid}:`, err);
+        console.error('[ContractAnalytics] DB lookup failed for project:', uuid, err);
         throw err;
       }
 

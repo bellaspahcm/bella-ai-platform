@@ -214,13 +214,16 @@ describe('InteriorContractAnalyticsService – computeFinancialTruth', () => {
     expect(result.outstandingAmount).toBe(159_000_000);
   });
 
-  it('outstanding is never negative', () => {
+  it('detects and reports overcollection accurately when net collected exceeds contract value', () => {
     const milestones = InteriorContractAnalyticsService.CANONICAL_MILESTONES;
     const result = InteriorContractAnalyticsService.computeFinancialTruth({
-      contractValue: 100_000, // tiny contract
+      contractValue: 200_000_000, // less than 259M collected
       milestones,
     });
-    expect(result.outstandingAmount).toBeGreaterThanOrEqual(0);
+    // 200M - 259M = -59M (negative outstanding = overcollected)
+    expect(result.outstandingAmount).toBe(-59_000_000);
+    expect(result.kpis.remainingAmount.label).toBe('Thu vượt hợp đồng');
+    expect(result.kpis.remainingAmount.formattedValue).toBe('-59.000.000 đ');
   });
 });
 
