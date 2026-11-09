@@ -59,6 +59,23 @@ def notification_path(message):
     return source_path
 
 
+def notification_summary(notification):
+    if not isinstance(notification, dict):
+        return {"descriptor_id": None, "message": ""}
+    descriptor = notification.get("descriptor")
+    descriptor_id = descriptor.get("id") if isinstance(descriptor, dict) else None
+    message = notification.get("message")
+    text = message.get("text", "") if isinstance(message, dict) else ""
+    if not isinstance(text, str):
+        text = ""
+    text = re.sub(r"\s+", " ", text).strip()
+    text = re.sub(r"(?i)\b(api[_ -]?key|secret|token|password)\b\s*[:=]\s*[^\s,;]+", r"\1=[redacted]", text)
+    text = re.sub(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]+", "Bearer [redacted]", text)
+    text = re.sub(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b", "[redacted-email]", text)
+    text = re.sub(r"\b(?:eyJ[A-Za-z0-9_-]+\.){2}[A-Za-z0-9_-]+\b", "[redacted-token]", text)
+    return {"descriptor_id": descriptor_id, "message": text[:200]}
+
+
 def is_approved_code_scanning_suppression(result):
     if not isinstance(result, dict):
         return False
@@ -161,7 +178,11 @@ def scan(path, baseline=None, changed_files=None, base_files=None):
                         else:
                             classification = "not_in_base"
                         evidence = json.dumps(
-                            {"classification": classification, "path": source_path},
+                            {
+                                "classification": classification,
+                                "path": source_path,
+                                "warning": notification_summary(notification),
+                            },
                             sort_keys=True,
                         )
                         raise ValueError(

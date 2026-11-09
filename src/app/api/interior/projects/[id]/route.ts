@@ -16,7 +16,6 @@ interface ProjectDetailResponse {
   totalFloorAreaSquareMeters: number;
   estimatedBudget: number | null;
   targetCompletionDate: string;
-  leadArchitectId: string;
   leadArchitectName: string;
   rooms: Array<{
     id: string;
@@ -84,7 +83,6 @@ export async function GET(
           ? Number.isFinite(dbProject.estimatedBudget) ? dbProject.estimatedBudget : null
           : null,
         targetCompletionDate: dbProject.targetCompletionDate,
-        leadArchitectId: dbProject.leadArchitectId,
         leadArchitectName: dbProject.leadArchitectName,
         rooms,
         materials: null,

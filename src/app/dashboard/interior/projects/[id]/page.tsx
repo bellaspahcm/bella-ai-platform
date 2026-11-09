@@ -15,7 +15,6 @@ import {
   Layers,
   MapPin,
   Maximize2,
-  Phone,
   RefreshCw,
   Shield,
   ShieldCheck,
@@ -31,14 +30,11 @@ interface ProjectDetail {
   name: string;
   status: string;
   customerName: string | null;
-  customerPhone?: string;
-  customerEmail?: string;
   siteAddress: string | null;
   projectType: string;
   totalFloorAreaSquareMeters: number;
   estimatedBudget: number | null;
   targetCompletionDate: string;
-  leadArchitectId: string;
   leadArchitectName: string;
   rooms: Array<{
     id: string;
@@ -372,14 +368,6 @@ export default function ProjectDetailPage({
                     {project.customerName || 'Không có quyền xem hoặc chưa có thông tin'}
                   </div>
                 </div>
-                {project.customerPhone && (
-                  <div>
-                    <div className="text-slate-400 font-medium">Điện thoại liên hệ</div>
-                    <div className="font-mono text-slate-700 dark:text-slate-300 mt-0.5 flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-slate-400" /> {project.customerPhone}
-                    </div>
-                  </div>
-                )}
                 <div>
                   <div className="text-slate-400 font-medium">Địa chỉ công trình</div>
                   <div className="text-slate-700 dark:text-slate-300 mt-0.5">
