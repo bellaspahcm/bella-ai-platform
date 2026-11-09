@@ -211,8 +211,12 @@ def run_gate():
 if __name__ == "__main__":
     try:
         sys.exit(run_gate())
-    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
+    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
         # Missing evidence, transport/Git/scanner errors never count as no findings.
-        Path("semgrep-gate.json").write_text('{"gate":"FAIL_EXECUTION_OR_EVIDENCE"}\n', encoding="utf-8")
-        print("SEMGREP_GATE_EXECUTION_OR_EVIDENCE_FAILED", file=sys.stderr)
+        detail = f"{type(error).__name__}: {error}"
+        Path("semgrep-gate.json").write_text(
+            json.dumps({"gate": "FAIL_EXECUTION_OR_EVIDENCE", "error": detail}, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        print(f"SEMGREP_GATE_EXECUTION_OR_EVIDENCE_FAILED: {detail}", file=sys.stderr)
         sys.exit(2)
