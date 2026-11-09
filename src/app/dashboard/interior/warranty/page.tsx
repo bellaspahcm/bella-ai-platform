@@ -88,7 +88,7 @@ export default function WarrantyDashboardPage() {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center space-y-4">
         <RotateCw className="w-8 h-8 text-emerald-600 animate-spin" />
-        <p className="text-sm font-medium text-slate-600">Đang tải dữ liệu Bảo hành & Chăm sóc sau bàn giao...</p>
+        <p className="text-sm font-medium text-slate-600">Đang tải dữ liệu Bảo hành &amp; Chăm sóc sau bàn giao...</p>
       </div>
     );
   }
@@ -215,7 +215,7 @@ export default function WarrantyDashboardPage() {
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
-              Warranty & Aftercare
+              Warranty &amp; Aftercare
             </h1>
             <p className="text-xs md:text-sm text-slate-500 mt-0.5 max-w-2xl">
               Manage warranty certificates, track service tickets, and coordinate aftercare for completed interior projects.
@@ -822,7 +822,7 @@ export default function WarrantyDashboardPage() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">Tạo Phiếu Yêu Cầu Dịch Vụ (Service Ticket)</h3>
-                  <p className="text-xs text-slate-500">Tiếp nhận yêu cầu bảo hành & sửa chữa sau bàn giao</p>
+                  <p className="text-xs text-slate-500">Tiếp nhận yêu cầu bảo hành &amp; sửa chữa sau bàn giao</p>
                 </div>
               </div>
               <button
