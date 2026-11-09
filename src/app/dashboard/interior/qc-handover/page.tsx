@@ -21,7 +21,6 @@ import type {
   QCHandoverOverviewResponse,
   PunchListTableRow,
 } from '@/products/bella-interior/domain/qc-handover-overview.types';
-import { InteriorQCHandoverAnalyticsService } from '@/products/bella-interior/services/interior-qc-handover-analytics.service';
 
 // ─── Inline Clean Icons (Zero External Bundle Overhead) ──────────────────────
 
@@ -183,6 +182,7 @@ function IconX({ className }: { className?: string }) {
 
 export default function InteriorQCHandoverPage() {
   const [data, setData] = useState<QCHandoverOverviewResponse | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -199,7 +199,7 @@ export default function InteriorQCHandoverPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch('/api/interior/qc-handover/analytics');
+      const res = await fetch('/api/interior/qc-handover/analytics', { cache: 'no-store' });
       if (res.ok) {
         const json = (await res.json()) as { success: boolean; data: { overview: QCHandoverOverviewResponse } };
         if (json.success && json.data?.overview) {
@@ -207,10 +207,12 @@ export default function InteriorQCHandoverPage() {
           return;
         }
       }
+      setData(null);
     } catch {
-      // Fallback to static domain service
+      setData(null);
+    } finally {
+      setHasLoaded(true);
     }
-    setData(InteriorQCHandoverAnalyticsService.getQCHandoverOverview());
   }, []);
 
   useEffect(() => {
@@ -218,22 +220,62 @@ export default function InteriorQCHandoverPage() {
   }, [fetchData]);
 
   // Handle Create Punch List
-  const handleCreatePunch = (e: React.FormEvent) => {
+  const handleCreatePunch = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowNewPunchModal(false);
-    setFeedback({ type: 'success', message: 'Đã lập biên bản Punch List mới thành công!' });
+    if (!data || !punchDesc.trim()) return;
+    try {
+      const normalizedCategory = punchCategory.toLocaleLowerCase('vi');
+      const category = normalizedCategory.includes('điện')
+        ? 'electrical_coordination'
+        : normalizedCategory.includes('kết cấu')
+          ? 'structural'
+          : normalizedCategory.includes('đồ nội thất')
+            ? 'furniture_fit'
+            : normalizedCategory.includes('sơn')
+              ? 'painting'
+              : 'finishing';
+      const response = await fetch('/api/interior/delivery/punch-list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: data.projectHeader.id,
+          description: punchDesc.trim(),
+          category,
+          severity: punchSeverity,
+        }),
+      });
+      const result = await response.json() as { success?: boolean; error?: string };
+      if (!response.ok || !result.success) {
+        setFeedback({ type: 'error', message: result.error || 'Không thể lưu punch list.' });
+        return;
+      }
+      setShowNewPunchModal(false);
+      setFeedback({ type: 'success', message: 'Đã lưu punch list.' });
+      await fetchData();
+    } catch {
+      setFeedback({ type: 'error', message: 'Không thể kết nối để lưu punch list.' });
+    }
   };
 
   // Handle Confirm Handover
   const handleConfirmHandover = () => {
-    setShowHandoverModal(false);
-    setFeedback({ type: 'success', message: 'Đã xác nhận biên bản nghiệm thu & kích hoạt chứng thư bảo hành!' });
+    setFeedback({ type: 'error', message: 'Cần gửi yêu cầu bàn giao qua API và xác nhận lưu thành công trước khi hoàn tất.' });
   };
 
-  if (!data) {
+  if (!hasLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#F8FAFC]">
         <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#10b981] border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] p-8">
+        <p role="alert" className="max-w-lg text-center text-sm text-slate-600">
+          Dữ liệu QC và bàn giao chưa khả dụng hoặc bạn chưa được cấp quyền đọc.
+        </p>
       </div>
     );
   }

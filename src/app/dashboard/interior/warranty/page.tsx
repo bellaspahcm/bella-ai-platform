@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   ShieldCheck,
   AlertTriangle,
@@ -35,9 +36,10 @@ import {
 } from '@/products/bella-interior/domain/warranty-overview.types';
 
 export default function WarrantyDashboardPage() {
+  const searchParams = useSearchParams();
   const [data, setData] = useState<WarrantyOverviewResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('INT-2024-001');
+  const selectedProjectId = searchParams.get('projectId');
   const [activeTab, setActiveTab] = useState<'certificates' | 'tickets'>('certificates');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('all');
@@ -49,57 +51,37 @@ export default function WarrantyDashboardPage() {
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const fetchOverview = async (projectId?: string) => {
+  const fetchOverview = useCallback(async (projectId?: string) => {
     try {
       setLoading(true);
       const url = `/api/interior/warranty/analytics${projectId ? `?projectId=${projectId}` : ''}`;
-      const res = await fetch(url);
-      const json = await res.json();
+      const res = await fetch(url, { cache: 'no-store' });
+      const json = await res.json() as { success?: boolean; data?: { overview?: WarrantyOverviewResponse } };
       if (json.success && json.data?.overview) {
         setData(json.data.overview);
+      } else {
+        setData(null);
       }
     } catch (err) {
+      setData(null);
       console.error('Failed to fetch warranty overview:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchOverview(selectedProjectId);
-  }, [selectedProjectId]);
+    if (selectedProjectId) void fetchOverview(selectedProjectId);
+    else setLoading(false);
+  }, [fetchOverview, selectedProjectId]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleCreateWarrantyTicket = async () => {
-    try {
-      const res = await fetch('/api/interior/delivery/warranty', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          warrantyId: 'WAR-001',
-          projectId: selectedProjectId || 'proj-001',
-          reportedByClientContact: '0903 123 456',
-          issueCategory: 'finishing',
-          description: 'Khách báo kiểm tra căn chỉnh bản lề cánh tủ bếp',
-          priority: 'medium',
-        }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        showToast('Đã tạo thành công Phiếu dịch vụ bảo hành!');
-        fetchOverview(selectedProjectId);
-      } else {
-        showToast('Đã tạo thành công Phiếu dịch vụ #ST-2026-012');
-      }
-    } catch {
-      showToast('Đã ghi nhận yêu cầu bảo hành');
-    } finally {
-      setIsNewTicketModalOpen(false);
-    }
+  const handleCreateWarrantyTicket = () => {
+    showToast('Chưa có form/API gắn phiếu với chứng thư thật; không có yêu cầu nào được ghi nhận.');
   };
 
   if (loading && !data) {
@@ -116,7 +98,7 @@ export default function WarrantyDashboardPage() {
       <div className="p-8 text-center bg-[#F8FAFC]">
         <p className="text-red-500 font-medium">Không thể tải dữ liệu bảo hành.</p>
         <button
-          onClick={() => fetchOverview(selectedProjectId)}
+          onClick={() => fetchOverview(selectedProjectId ?? undefined)}
           className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium"
         >
           Thử lại
@@ -197,8 +179,7 @@ export default function WarrantyDashboardPage() {
         <div className="flex items-center space-x-3">
           <button
             onClick={() => {
-              fetchOverview(selectedProjectId);
-              showToast('Dữ liệu đã được làm mới từ máy chủ');
+              void fetchOverview(selectedProjectId ?? undefined);
             }}
             className="flex items-center space-x-2 px-3.5 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition"
           >
@@ -819,7 +800,7 @@ export default function WarrantyDashboardPage() {
               <button
                 onClick={() => {
                   setSelectedCertificate(null);
-                  showToast(`Đã xuất PDF chứng thư ${selectedCertificate.certificateNo}`);
+                  showToast('Chức năng xuất chứng thư PDF chưa khả dụng; không có tệp nào được tạo.');
                 }}
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs"
               >
@@ -858,16 +839,13 @@ export default function WarrantyDashboardPage() {
                 <input
                   type="text"
                   readOnly
-                  value="The Horizon Residence (INT-2024-001)"
+                  value={`${data.project.name} (${data.project.code})`}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800"
                 />
               </div>
               <div>
                 <label className="block text-slate-600 font-semibold mb-1">Chứng thư liên quan:</label>
-                <select className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
-                  <option>WC-2024-001 (Nội thất tổng thể — Đang hiệu lực)</option>
-                  <option>WC-2024-002 (Nội thất & Thiết bị — Sắp hết hạn)</option>
-                </select>
+                <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-900">Không thể tạo phiếu cho tới khi chứng thư thật và form lưu được kết nối.</p>
               </div>
               <div>
                 <label className="block text-slate-600 font-semibold mb-1">Mô tả sự cố:</label>
@@ -888,7 +866,9 @@ export default function WarrantyDashboardPage() {
               </button>
               <button
                 onClick={handleCreateWarrantyTicket}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs"
+                disabled
+                title="Tạo phiếu chưa được kết nối với chứng thư và dữ liệu thật"
+                className="px-4 py-2 bg-slate-400 text-white rounded-lg text-xs font-semibold opacity-70 cursor-not-allowed"
               >
                 Tạo Phiếu Dịch Vụ
               </button>

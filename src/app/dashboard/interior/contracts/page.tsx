@@ -44,22 +44,19 @@ import type {
   WorkshopReleaseCriterion,
 } from '@/products/bella-interior/domain/contract-overview.types';
 
-/** Project selector options — mirrors INITIAL_PROJECTS on the dashboard */
-const PROJECT_OPTIONS = [
-  { id: 'INT-THD-2026',  label: 'Villa Riverside Thảo Điền (INT-THD-2026)',       hasContract: true  },
-  { id: 'INT-2024-002',  label: 'Dubai Luxury Villa Fitout (INT-2024-002)',         hasContract: true  },
-  { id: 'INT-2024-001',  label: 'Villa Sunrise Renovation (INT-2024-001)',          hasContract: false },
-  { id: 'INT-2024-003',  label: 'Penthouse Metropolis (INT-2024-003)',              hasContract: false },
-  { id: 'INT-2024-004',  label: 'Duplex Aqua Bay Ecopark (INT-2024-004)',           hasContract: false },
-] as const;
-
-type ProjectId = (typeof PROJECT_OPTIONS)[number]['id'];
+interface InteriorProjectOption {
+  id: string;
+  code: string;
+  name: string;
+  status: string;
+}
 
 export default function InteriorContractsPage() {
   const searchParams = useSearchParams();
-  const initialProjectId = (searchParams.get('projectId') as ProjectId | null) ?? 'INT-THD-2026';
+  const initialProjectId = searchParams.get('projectId');
 
-  const [selectedProjectId, setSelectedProjectId] = useState<ProjectId>(initialProjectId);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [projectOptions, setProjectOptions] = useState<InteriorProjectOption[]>([]);
   const [showProjectDropdown, setShowProjectDropdown] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -90,11 +87,11 @@ export default function InteriorContractsPage() {
   }, []);
 
   // Fetch contract data for the selected project
-  const loadData = useCallback(async (projectId: ProjectId) => {
+  const loadData = useCallback(async (projectId: string) => {
     try {
       setLoading(true);
       setFetchError(null);
-      const res = await fetch(`/api/interior/contracts?projectId=${projectId}`);
+      const res = await fetch(`/api/interior/contracts?projectId=${encodeURIComponent(projectId)}`, { cache: 'no-store' });
       if (!res.ok) {
         setFetchError(`HTTP ${res.status}`);
         setData(null);
@@ -117,12 +114,50 @@ export default function InteriorContractsPage() {
     }
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    const loadProjects = async () => {
+      try {
+        const response = await fetch('/api/interior/projects', { cache: 'no-store' });
+        const body = await response.json() as { success?: unknown; data?: { projects?: unknown } };
+        const projects = body?.success && Array.isArray(body.data?.projects)
+          ? body.data.projects.filter((project: unknown): project is InteriorProjectOption => {
+              if (!project || typeof project !== 'object') return false;
+              const candidate = project as Partial<InteriorProjectOption>;
+              return typeof candidate.id === 'string' && typeof candidate.code === 'string'
+                && typeof candidate.name === 'string' && typeof candidate.status === 'string';
+            })
+          : [];
+        if (!active) return;
+        setProjectOptions(projects);
+        if (!projects.length) {
+          setData(null);
+          setFetchError(response.status === 403 ? 'Bạn chưa được cấp quyền đọc dự án.' : 'Không có dự án nào khả dụng trong tenant hiện tại.');
+          setLoading(false);
+          return;
+        }
+        const selected = projects.find((project) => project.id === initialProjectId) ?? projects[0];
+        setSelectedProjectId(selected.id);
+      } catch {
+        if (!active) return;
+        setProjectOptions([]);
+        setData(null);
+        setFetchError('Không thể tải danh sách dự án được cấp quyền.');
+        setLoading(false);
+      }
+    };
+    void loadProjects();
+    return () => { active = false; };
+  }, [initialProjectId]);
+
   // Load data whenever project selection changes (also covers initial mount)
   useEffect(() => {
-    loadData(selectedProjectId);
+    if (selectedProjectId) {
+      loadData(selectedProjectId);
+    }
   }, [loadData, selectedProjectId]);
 
-  const handleSelectProject = (id: ProjectId) => {
+  const handleSelectProject = (id: string) => {
     setSelectedProjectId(id);
     setShowProjectDropdown(false);
     // Update URL param without hard navigation
@@ -133,7 +168,8 @@ export default function InteriorContractsPage() {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    loadData(selectedProjectId);
+    if (selectedProjectId) loadData(selectedProjectId);
+    else setRefreshing(false);
   };
 
   const handleConfirmWorkshopRelease = async () => {
@@ -148,12 +184,19 @@ export default function InteriorContractsPage() {
           projectId: data.header.projectId,
         }),
       });
+      if (!res.ok) {
+        const error = await res.json().catch(() => null);
+        throw new Error(typeof error?.error === 'string' ? error.error : 'Chưa lưu được lệnh chuyển xưởng.');
+      }
       const json = await res.json();
       if (json.success && json.orderCode) {
         setReleaseSuccessOrder(json.orderCode);
+      } else {
+        toast.error('Lệnh chuyển xưởng chưa được lưu.');
       }
     } catch (err) {
       console.error('Failed to release to workshop', err);
+      toast.error(err instanceof Error ? err.message : 'Không thể lưu lệnh chuyển xưởng.');
     } finally {
       setReleasing(false);
     }
@@ -196,7 +239,7 @@ export default function InteriorContractsPage() {
 
   // ── EMPTY STATE (project has no signed contract) ─────────────────────────────
   if (!loading && (!data || !data.hasContract)) {
-    const selectedProject = PROJECT_OPTIONS.find((p) => p.id === selectedProjectId);
+    const selectedProject = projectOptions.find((p) => p.id === selectedProjectId);
     const boqRef = data?.referenceBOQValueFormatted;
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 space-y-6">
@@ -214,12 +257,12 @@ export default function InteriorContractsPage() {
                   onClick={() => setShowProjectDropdown((v) => !v)}
                   className="flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors"
                 >
-                  <span>{selectedProject?.label ?? selectedProjectId}</span>
+                  <span>{selectedProject ? `${selectedProject.name} (${selectedProject.code})` : selectedProjectId}</span>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
                 </button>
                 {showProjectDropdown && (
                   <div className="absolute top-full left-0 mt-1 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 py-1 overflow-hidden">
-                    {PROJECT_OPTIONS.map((p) => (
+                    {projectOptions.map((p) => (
                       <button
                         key={p.id}
                         type="button"
@@ -228,12 +271,7 @@ export default function InteriorContractsPage() {
                           p.id === selectedProjectId ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 font-semibold' : 'text-slate-700 dark:text-slate-300'
                         }`}
                       >
-                        <span>{p.label}</span>
-                        {p.hasContract ? (
-                          <span className="shrink-0 px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-[10px] rounded font-medium">HĐ</span>
-                        ) : (
-                          <span className="shrink-0 px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] rounded font-medium">Chưa HĐ</span>
-                        )}
+                        <span>{p.name} ({p.code})</span>
                       </button>
                     ))}
                   </div>
@@ -265,7 +303,7 @@ export default function InteriorContractsPage() {
               Chưa có hợp đồng kinh tế được ký kết
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              {selectedProject?.label ?? selectedProjectId} chưa có hợp đồng thương mại.
+              {selectedProject ? `${selectedProject.name} (${selectedProject.code})` : 'Dự án đã chọn'} chưa có hợp đồng thương mại.
               {boqRef && (
                 <span className="block mt-1 font-medium text-slate-600 dark:text-slate-300">
                   Giá trị BOQ tham chiếu:{' '}
@@ -305,7 +343,7 @@ export default function InteriorContractsPage() {
                 </button>
               </div>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Dự án: <span className="font-semibold text-slate-700 dark:text-slate-300">{selectedProject?.label ?? selectedProjectId}</span>
+                Dự án: <span className="font-semibold text-slate-700 dark:text-slate-300">{selectedProjectId}</span>
               </p>
               <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg">
                 Chức năng lập hợp đồng từ BOQ đang được phát triển. Vui lòng liên hệ Trưởng phòng Thương mại để tạo hợp đồng thủ công.
@@ -349,7 +387,7 @@ export default function InteriorContractsPage() {
               </button>
               {showProjectDropdown && (
                 <div className="absolute top-full left-0 mt-1 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 py-1 overflow-hidden">
-                  {PROJECT_OPTIONS.map((p) => (
+                  {projectOptions.map((p) => (
                     <button
                       key={p.id}
                       type="button"
@@ -358,12 +396,7 @@ export default function InteriorContractsPage() {
                         p.id === selectedProjectId ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 font-semibold' : 'text-slate-700 dark:text-slate-300'
                       }`}
                     >
-                      <span>{p.label}</span>
-                      {p.hasContract ? (
-                        <span className="shrink-0 px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-[10px] rounded font-medium">HĐ</span>
-                      ) : (
-                        <span className="shrink-0 px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] rounded font-medium">Chưa HĐ</span>
-                      )}
+                      <span>{p.name} ({p.code})</span>
                     </button>
                   ))}
                 </div>
@@ -776,7 +809,7 @@ export default function InteriorContractsPage() {
               <button
                 type="button"
                 onClick={() => {
-                  toast.success('Báo cáo công nợ & tiến độ thu tiền đang được trích xuất PDF...');
+                  toast.error('Chức năng xuất báo cáo chưa khả dụng; không có tệp nào được tạo.');
                 }}
                 className="w-full flex items-center gap-3 p-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-800/80 rounded-lg transition-colors group border border-transparent hover:border-emerald-200 dark:hover:border-slate-700 text-left"
               >
@@ -925,7 +958,7 @@ export default function InteriorContractsPage() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => toast.info('Tính năng tạo phụ lục đang đồng bộ với thay đổi BOQ...')}
+                  onClick={() => toast.error('API lưu phụ lục chưa khả dụng; không có thay đổi nào được lưu.')}
                   className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -1333,7 +1366,7 @@ export default function InteriorContractsPage() {
               <button
                 type="button"
                 onClick={() => {
-                  toast.success('Đang tạo và tải bản scan hợp đồng PDF...');
+                  toast.info('Đang mở hộp thoại in của trình duyệt; đây không phải bản scan có chữ ký số.');
                   if (typeof window !== 'undefined') window.print();
                 }}
                 className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm"
@@ -1422,7 +1455,7 @@ export default function InteriorContractsPage() {
                 </label>
                 <input
                   type="text"
-                  defaultValue="Sheikh Al-Maktoum Office"
+                  placeholder="Chưa có dữ liệu khách hàng"
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 />
               </div>
@@ -1433,7 +1466,7 @@ export default function InteriorContractsPage() {
                 </label>
                 <input
                   type="text"
-                  defaultValue="418000000"
+                  placeholder="Chưa nhập giá trị"
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 />
               </div>
@@ -1454,8 +1487,7 @@ export default function InteriorContractsPage() {
               <button
                 type="button"
                 onClick={() => {
-                  toast.success('Hợp đồng mới đã được tạo và đồng bộ với bảng BOQ R1.0.');
-                  setShowNewContractModal(false);
+                  toast.error('API tạo hợp đồng chưa khả dụng; không có hợp đồng hoặc đồng bộ BOQ nào được tạo.');
                 }}
                 className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold shadow-sm"
               >

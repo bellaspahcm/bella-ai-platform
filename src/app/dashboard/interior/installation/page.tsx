@@ -23,7 +23,6 @@ import type {
   InstallationAlertActivityItem,
   InstallationQuickActionCard,
 } from '@/products/bella-interior/domain/installation-overview.types';
-import { InteriorInstallationAnalyticsService } from '@/products/bella-interior/services/interior-installation-analytics.service';
 
 // ─── Inline Clean Icons (Zero External Bundle Overhead) ──────────────────────
 
@@ -151,22 +150,23 @@ function IconX({ className }: { className?: string }) {
 
 export default function InteriorInstallationPage() {
   const [data, setData] = useState<InstallationOverviewResponse | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<'rooms' | 'diaries'>('rooms');
   const [showNewDiaryModal, setShowNewDiaryModal] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Diary Form State
-  const [diaryDate, setDiaryDate] = useState('2026-11-09');
-  const [diarySupervisor, setDiarySupervisor] = useState('Chỉ huy trưởng Nguyễn Hoàng');
-  const [diaryWorkers, setDiaryWorkers] = useState('8');
-  const [diaryWeather, setDiaryWeather] = useState('Nắng ráo');
-  const [diaryActivities, setDiaryActivities] = useState('Lắp ráp hệ tủ bếp trên & cân chỉnh ray âm Blum');
-  const [diaryIssues, setDiaryIssues] = useState('Ổ cắm nguồn góc đảo bếp bị lệch 2cm so với cốt bản vẽ');
-  const [diaryNotes, setDiaryNotes] = useState('Đã phối hợp thợ điện dời ổ cắm ngay trong ca sáng');
+  const [diaryDate, setDiaryDate] = useState(new Date().toISOString().slice(0, 10));
+  const [diarySupervisor, setDiarySupervisor] = useState('');
+  const [diaryWorkers, setDiaryWorkers] = useState('');
+  const [diaryWeather, setDiaryWeather] = useState('');
+  const [diaryActivities, setDiaryActivities] = useState('');
+  const [diaryIssues, setDiaryIssues] = useState('');
+  const [diaryNotes, setDiaryNotes] = useState('');
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch('/api/interior/installation/analytics');
+      const res = await fetch('/api/interior/installation/analytics', { cache: 'no-store' });
       if (res.ok) {
         const json = (await res.json()) as { success: boolean; data: { overview: InstallationOverviewResponse } };
         if (json.success && json.data?.overview) {
@@ -174,10 +174,12 @@ export default function InteriorInstallationPage() {
           return;
         }
       }
+      setData(null);
     } catch {
-      // Fallback to canonical static service
+      setData(null);
+    } finally {
+      setHasLoaded(true);
     }
-    setData(InteriorInstallationAnalyticsService.getInstallationOverview());
   }, []);
 
   useEffect(() => {
@@ -187,12 +189,13 @@ export default function InteriorInstallationPage() {
   // Handle Create Diary Submission
   const handleCreateDiary = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!data) return;
     try {
       const res = await fetch('/api/interior/delivery/site-diary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          projectId: data?.projectHeader.id || 'NT-2024-001',
+          projectId: data.projectHeader.id,
           date: diaryDate,
           supervisorUserId: diarySupervisor,
           workersPresent: parseInt(diaryWorkers, 10) || 8,
@@ -203,24 +206,31 @@ export default function InteriorInstallationPage() {
         }),
       });
       const json = (await res.json()) as { success?: boolean; error?: string };
-      if (json.success) {
+      if (res.ok && json.success) {
         setShowNewDiaryModal(false);
         setFeedback({ type: 'success', message: 'Đã lưu nhật ký thi công công trình hôm nay!' });
       } else {
-        setShowNewDiaryModal(false);
-        // Fallback optimistic success for UI demo
-        setFeedback({ type: 'success', message: 'Đã ghi nhận nhật ký thi công công trình!' });
+        setFeedback({ type: 'error', message: json.error || 'Không thể lưu nhật ký thi công.' });
       }
     } catch {
-      setShowNewDiaryModal(false);
-      setFeedback({ type: 'success', message: 'Đã ghi nhận nhật ký thi công công trình (chế độ ngoại tuyến).' });
+      setFeedback({ type: 'error', message: 'Không thể kết nối để lưu nhật ký thi công.' });
     }
   };
 
-  if (!data) {
+  if (!hasLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#F8FAFC]">
         <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#10b981] border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] p-8">
+        <p role="alert" className="max-w-lg text-center text-sm text-slate-600">
+          Dữ liệu lắp đặt chưa khả dụng hoặc bạn chưa được cấp quyền đọc.
+        </p>
       </div>
     );
   }
