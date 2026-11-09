@@ -403,7 +403,7 @@ export default function InteriorRoleManagementPage() {
   if (!catalog) {
     return (
       <section className="mx-auto max-w-4xl space-y-4 p-6">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Vai trò & phân quyền Interior</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Vai trò &amp; phân quyền Interior</h1>
         <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100">
           <div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" /><div>
             <strong>Chưa thể tải RBAC.</strong>
@@ -420,7 +420,7 @@ export default function InteriorRoleManagementPage() {
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">Bella Interior</p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">Role & Permission Matrix</h1>
+          <h1 className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">Role &amp; Permission Matrix</h1>
           <p className="mt-1 max-w-3xl text-sm text-slate-500">Vai trò, action permission và project scope được kiểm tra lại ở database. Quyền ghi không tự cấp quyền duyệt hoặc thực hiện nghiệp vụ nhạy cảm.</p>
         </div>
         <button disabled={loading} onClick={() => void refresh()} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200">

@@ -2314,7 +2314,7 @@ BEGIN
   v_definition:=replace(v_definition,v_service_branch_needle,v_service_branch_replacement);
   v_definition:=replace(v_definition,
     'TenantIsolationViolation: Revision % does not belong to Project % under Tenant %',
-    'BOQPreconditionViolation: design revision must belong to project and tenant and be approved');
+    'BOQPreconditionViolation: design revision % must belong to project % and tenant % and be approved');
   EXECUTE v_definition;
 END
 $boq_rpc$;
