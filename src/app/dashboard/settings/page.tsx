@@ -86,6 +86,24 @@ function isSettingsTabId(value: string | null): value is SettingsTabId {
   return TABS.some((tab) => "id" in tab && tab.id === value);
 }
 
+function InteriorRbacSettingsNotice() {
+  return (
+    <section className="rounded-2xl border border-violet-200 bg-white p-6 shadow-sm dark:border-violet-900 dark:bg-slate-950">
+      <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Quản trị nhân sự và phân quyền Interior</h2>
+      <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
+        Vai trò, quyền theo hành động, phạm vi dự án và lịch sử thay đổi được quản lý trong RBAC Bella Interior.
+        Cấu hình quyền legacy trong Settings không còn là nguồn phân quyền cho Interior.
+      </p>
+      <a
+        href="/dashboard/interior/roles"
+        className="mt-5 inline-flex min-h-11 items-center rounded-xl bg-violet-700 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-800 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
+      >
+        Mở quản trị vai trò và nhân sự
+      </a>
+    </section>
+  );
+}
+
 function SettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -447,11 +465,11 @@ function SettingsContent() {
                 )}
 
                 {activeTab === "staff" && (
-                  <StaffManagementTab isInterior={isInterior} />
+                  isInterior ? <InteriorRbacSettingsNotice /> : <StaffManagementTab />
                 )}
 
                 {activeTab === "permissions" && (
-                  <PermissionsTab isInterior={isInterior} />
+                  isInterior ? <InteriorRbacSettingsNotice /> : <PermissionsTab />
                 )}
 
                 {activeTab === "security" && (

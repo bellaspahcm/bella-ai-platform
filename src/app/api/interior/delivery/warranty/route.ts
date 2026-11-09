@@ -58,6 +58,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     const customerDecision = await ctx.authorization.authorize({
       permissionId: 'interior:customer:read',
       tenantId: ctx.tenantId,
+      ...(projectId ? { projectId } : {}),
     });
     const certificates = rows.map((certificate) => ({
       id: certificate.id,

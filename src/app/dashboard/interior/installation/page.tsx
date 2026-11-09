@@ -24,6 +24,17 @@ import type {
   InstallationQuickActionCard,
 } from '@/products/bella-interior/domain/installation-overview.types';
 
+interface InstallationSiteDiary {
+  id: string;
+  date: string;
+  supervisorName: string;
+  workersPresent: number;
+  weatherCondition: 'sunny' | 'cloudy' | 'rainy' | 'stormy';
+  activitiesCompleted: string[];
+  issuesEncountered: string[];
+  notes: string;
+}
+
 // ─── Inline Clean Icons (Zero External Bundle Overhead) ──────────────────────
 
 function IconArrowLeft({ className }: { className?: string }) {
@@ -154,10 +165,12 @@ export default function InteriorInstallationPage() {
   const [activeTab, setActiveTab] = useState<'rooms' | 'diaries'>('rooms');
   const [showNewDiaryModal, setShowNewDiaryModal] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [siteDiaries, setSiteDiaries] = useState<InstallationSiteDiary[]>([]);
+  const [diariesLoading, setDiariesLoading] = useState(false);
+  const [diariesUnavailable, setDiariesUnavailable] = useState(false);
 
   // Diary Form State
   const [diaryDate, setDiaryDate] = useState(new Date().toISOString().slice(0, 10));
-  const [diarySupervisor, setDiarySupervisor] = useState('');
   const [diaryWorkers, setDiaryWorkers] = useState('');
   const [diaryWeather, setDiaryWeather] = useState('');
   const [diaryActivities, setDiaryActivities] = useState('');
@@ -186,6 +199,37 @@ export default function InteriorInstallationPage() {
     void fetchData();
   }, [fetchData]);
 
+  const fetchSiteDiaries = useCallback(async (projectId: string) => {
+    setDiariesLoading(true);
+    setDiariesUnavailable(false);
+    try {
+      const response = await fetch(
+        `/api/interior/delivery/site-diary?projectId=${encodeURIComponent(projectId)}`,
+        { cache: 'no-store' },
+      );
+      const result = (await response.json()) as {
+        success?: boolean;
+        data?: InstallationSiteDiary[];
+      };
+      if (!response.ok || !result.success || !Array.isArray(result.data)) {
+        setSiteDiaries([]);
+        setDiariesUnavailable(true);
+        return;
+      }
+      setSiteDiaries(result.data);
+    } catch {
+      setSiteDiaries([]);
+      setDiariesUnavailable(true);
+    } finally {
+      setDiariesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab !== 'diaries' || !data?.projectHeader.id) return;
+    void fetchSiteDiaries(data.projectHeader.id);
+  }, [activeTab, data?.projectHeader.id, fetchSiteDiaries]);
+
   // Handle Create Diary Submission
   const handleCreateDiary = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -197,8 +241,7 @@ export default function InteriorInstallationPage() {
         body: JSON.stringify({
           projectId: data.projectHeader.id,
           date: diaryDate,
-          supervisorUserId: diarySupervisor,
-          workersPresent: parseInt(diaryWorkers, 10) || 8,
+          workersPresent: Number(diaryWorkers),
           weatherCondition: diaryWeather,
           activitiesCompleted: diaryActivities.split('\n').filter((a) => a.trim().length > 0),
           issuesEncountered: diaryIssues.split('\n').filter((i) => i.trim().length > 0),
@@ -209,6 +252,7 @@ export default function InteriorInstallationPage() {
       if (res.ok && json.success) {
         setShowNewDiaryModal(false);
         setFeedback({ type: 'success', message: 'Đã lưu nhật ký thi công công trình hôm nay!' });
+        await fetchSiteDiaries(data.projectHeader.id);
       } else {
         setFeedback({ type: 'error', message: json.error || 'Không thể lưu nhật ký thi công.' });
       }
@@ -351,8 +395,8 @@ export default function InteriorInstallationPage() {
         >
           <IconCalendar className="w-4 h-4 text-slate-400" />
           <span>Nhật Ký Thi Công Hiện Trường (Site Diary)</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
-            2
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
+            {siteDiaries.length}
           </span>
         </button>
       </div>
@@ -691,54 +735,61 @@ export default function InteriorInstallationPage() {
             </button>
           </div>
 
-          <div className="space-y-4">
-            {/* Sample site diaries */}
-            <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/60 space-y-2.5">
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    2026-11-09
-                  </span>
-                  <span className="text-slate-600 font-medium">8 nhân công</span>
-                  <span className="text-slate-400">•</span>
-                  <span className="text-slate-600">Thời tiết Nắng ráo</span>
-                </div>
-                <span className="text-slate-400 text-[11px]">Chỉ huy trưởng: Nguyễn Hoàng</span>
-              </div>
-              <div className="text-xs text-slate-700 space-y-1">
-                <p className="font-semibold text-slate-800">Công việc đã hoàn thành:</p>
-                <ul className="list-disc pl-5 text-slate-600 space-y-0.5">
-                  <li>Lắp ráp hệ tủ bếp trên &amp; cân chỉnh ray âm Blum</li>
-                  <li>Ốp vách trang trí nan gỗ phòng khách R01_LIVING</li>
-                </ul>
-              </div>
-              <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800">
-                <span className="font-bold">Tồn đọng &amp; Vướng mắc: </span>
-                Ổ cắm nguồn góc đảo bếp bị lệch 2cm so với cốt bản vẽ. Đã điều chỉnh.
-              </div>
+          {diariesLoading ? (
+            <div role="status" className="rounded-xl border border-slate-100 bg-slate-50/60 p-4 text-sm text-slate-500">
+              Đang tải nhật ký đã lưu…
             </div>
-
-            <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/60 space-y-2.5">
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    2026-11-08
-                  </span>
-                  <span className="text-slate-600 font-medium">6 nhân công</span>
-                  <span className="text-slate-400">•</span>
-                  <span className="text-slate-600">Thời tiết Mát mẻ</span>
-                </div>
-                <span className="text-slate-400 text-[11px]">Chỉ huy trưởng: Nguyễn Hoàng</span>
-              </div>
-              <div className="text-xs text-slate-700 space-y-1">
-                <p className="font-semibold text-slate-800">Công việc đã hoàn thành:</p>
-                <ul className="list-disc pl-5 text-slate-600 space-y-0.5">
-                  <li>Tiếp nhận lô hàng module xuất xưởng đợt 2</li>
-                  <li>Bốc dỡ an toàn lên tầng 1, kiểm tra KCS không trầy xước</li>
-                </ul>
-              </div>
+          ) : diariesUnavailable ? (
+            <div role="alert" className="rounded-xl border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700">
+              Không thể tải nhật ký. Hãy thử làm mới.
+              <button
+                type="button"
+                onClick={() => void fetchSiteDiaries(projectHeader.id)}
+                className="ml-2 font-semibold underline"
+              >
+                Thử lại
+              </button>
             </div>
-          </div>
+          ) : siteDiaries.length === 0 ? (
+            <div role="status" className="rounded-xl border border-slate-100 bg-slate-50/60 p-4 text-sm text-slate-500">
+              Chưa có nhật ký được lưu cho dự án này.
+            </div>
+          ) : (
+            <ul className="space-y-4" aria-label="Nhật ký thi công đã lưu">
+              {siteDiaries.map((diary) => (
+                <li key={diary.id} className="space-y-2.5 rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <time dateTime={diary.date} className="rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-mono font-bold text-emerald-700">
+                        {diary.date}
+                      </time>
+                      <span className="font-medium text-slate-600">{diary.workersPresent} nhân công</span>
+                      <span className="text-slate-400" aria-hidden="true">•</span>
+                      <span className="text-slate-600">Thời tiết: {diary.weatherCondition}</span>
+                    </div>
+                    <span className="text-[11px] text-slate-500">Người ghi: {diary.supervisorName}</span>
+                  </div>
+                  <div className="space-y-1 text-xs text-slate-700">
+                    <p className="font-semibold text-slate-800">Công việc đã hoàn thành:</p>
+                    <ul className="list-disc space-y-0.5 pl-5 text-slate-600">
+                      {diary.activitiesCompleted.map((activity, index) => (
+                        <li key={`${diary.id}-activity-${index}`}>{activity}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  {diary.issuesEncountered.length > 0 && (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800">
+                      <span className="font-bold">Tồn đọng / vướng mắc: </span>
+                      {diary.issuesEncountered.join('; ')}
+                    </div>
+                  )}
+                  {diary.notes && diary.issuesEncountered.length === 0 && (
+                    <p className="text-xs text-slate-600">Ghi chú: {diary.notes}</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
@@ -777,6 +828,8 @@ export default function InteriorInstallationPage() {
                   <label className="block text-slate-600 font-semibold mb-1">Số lượng nhân công</label>
                   <input
                     type="number"
+                    min={0}
+                    step={1}
                     value={diaryWorkers}
                     onChange={(e) => setDiaryWorkers(e.target.value)}
                     className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
@@ -785,27 +838,20 @@ export default function InteriorInstallationPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-600 font-semibold mb-1">Chỉ huy trưởng</label>
-                  <input
-                    type="text"
-                    value={diarySupervisor}
-                    onChange={(e) => setDiarySupervisor(e.target.value)}
-                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-600 font-semibold mb-1">Thời tiết</label>
-                  <input
-                    type="text"
-                    value={diaryWeather}
-                    onChange={(e) => setDiaryWeather(e.target.value)}
-                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    required
-                  />
-                </div>
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1">Thời tiết</label>
+                <select
+                  value={diaryWeather}
+                  onChange={(e) => setDiaryWeather(e.target.value)}
+                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  required
+                >
+                  <option value="" disabled>Chọn thời tiết</option>
+                  <option value="sunny">Nắng</option>
+                  <option value="cloudy">Nhiều mây</option>
+                  <option value="rainy">Mưa</option>
+                  <option value="stormy">Dông bão</option>
+                </select>
               </div>
 
               <div>

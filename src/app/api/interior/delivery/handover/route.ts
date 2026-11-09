@@ -23,9 +23,9 @@ export async function GET(request: Request): Promise<NextResponse> {
   try {
     const handovers = await repo.listHandoverDossiers(ctx.tenantId, projectId);
     const [financeDecision, contractDecision, customerDecision] = await Promise.all([
-      ctx.authorization.authorize({ permissionId: 'interior:finance:read', tenantId: ctx.tenantId }),
-      ctx.authorization.authorize({ permissionId: 'interior:contract:read', tenantId: ctx.tenantId }),
-      ctx.authorization.authorize({ permissionId: 'interior:customer:read', tenantId: ctx.tenantId }),
+      ctx.authorization.authorize({ permissionId: 'interior:finance:read', tenantId: ctx.tenantId, ...(projectId ? { projectId } : {}) }),
+      ctx.authorization.authorize({ permissionId: 'interior:contract:read', tenantId: ctx.tenantId, ...(projectId ? { projectId } : {}) }),
+      ctx.authorization.authorize({ permissionId: 'interior:customer:read', tenantId: ctx.tenantId, ...(projectId ? { projectId } : {}) }),
     ]);
     const canReadSettlement = financeDecision.status === 'ALLOW' || contractDecision.status === 'ALLOW';
     const canReadCustomer = customerDecision.status === 'ALLOW';
@@ -111,8 +111,8 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   const [financeDecision, contractDecision] = await Promise.all([
-    ctx.authorization.authorize({ permissionId: 'interior:finance:read', tenantId: ctx.tenantId }),
-    ctx.authorization.authorize({ permissionId: 'interior:contract:read', tenantId: ctx.tenantId }),
+    ctx.authorization.authorize({ permissionId: 'interior:finance:read', tenantId: ctx.tenantId, projectId: payload.projectId }),
+    ctx.authorization.authorize({ permissionId: 'interior:contract:read', tenantId: ctx.tenantId, projectId: payload.projectId }),
   ]);
   const canReadSettlement = financeDecision.status === 'ALLOW' || contractDecision.status === 'ALLOW';
   let responseDossier: typeof dossier | Omit<typeof dossier, 'finalSettlementValue'> = dossier;

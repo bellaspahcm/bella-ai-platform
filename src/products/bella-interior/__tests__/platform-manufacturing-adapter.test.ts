@@ -1,47 +1,22 @@
 /**
  * Test: Platform Manufacturing Adapter
  *
- * Verifies that InteriorProductionRequestPort implementation delegates
- * correctly to Platform Manufacturing OS (ManufacturingSlice1Service).
+ * Verifies fail-closed behavior until the Product can provide canonical
+ * Manufacturing authorization context and persisted BOM references.
  *
  * @module src/products/bella-interior/__tests__
  */
 
 import { PlatformManufacturingAdapter } from '../adapters/platform-manufacturing.adapter';
-import type { ManufacturingSlice1Service } from '@/platform/manufacturing/manufacturing-slice1.service';
-import type { ProductionOrder } from '@/platform/manufacturing/domain/types';
 
 describe('Bella Interior OS — Platform Manufacturing Adapter', () => {
   const tenantId = '00000000-0000-0000-0000-000000000001';
   const actorUserId = 'user-arch-01';
 
-  it('delegates production order creation to ManufacturingSlice1Service', async () => {
-    const mockOrder: ProductionOrder = {
-      id: 'mfg_po_12345',
-      tenantId,
-      factoryOrgUnitId: 'org-interior-factory-01',
-      orderNumber: 'PO-MFG-INT-DUBAI-001',
-      finishedGoodItemId: 'fg-interior-rev-001',
-      targetQuantity: 8,
-      uom: 'set',
-      status: 'draft',
-      lines: [],
-      createdBy: actorUserId,
-      createdAt: new Date().toISOString(),
-    };
+  it('fails closed without a canonical Manufacturing actor and persisted BOM context', async () => {
+    const adapter = new PlatformManufacturingAdapter();
 
-    const mockManufacturingService = {
-      createProductionOrder: jest.fn().mockResolvedValue({
-        value: mockOrder,
-        isDuplicate: false,
-      }),
-    };
-
-    const adapter = new PlatformManufacturingAdapter(
-      mockManufacturingService as unknown as ManufacturingSlice1Service,
-    );
-
-    const result = await adapter.requestProduction({
+    await expect(adapter.requestProduction({
       tenantId,
       actorUserId,
       designRevisionId: 'rev-001-approved',
@@ -63,20 +38,7 @@ describe('Bella Interior OS — Platform Manufacturing Adapter', () => {
           estimatedProductionHours: 16,
         },
       ],
-    });
-
-    expect(result.manufacturingProductionOrderId).toBe('mfg_po_12345');
-    expect(result.status).toBe('draft');
-    expect(mockManufacturingService.createProductionOrder).toHaveBeenCalledWith(
-      expect.objectContaining({
-        tenantId,
-        userId: actorUserId,
-      }),
-      expect.objectContaining({
-        targetQuantity: 8,
-        uom: 'set',
-      }),
-    );
+    })).rejects.toThrow('MANUFACTURING_AUTHORIZATION_CONTEXT_UNAVAILABLE');
   });
 
   it('fails closed when no persisted Manufacturing status provider is configured', async () => {
@@ -87,4 +49,3 @@ describe('Bella Interior OS — Platform Manufacturing Adapter', () => {
     })).rejects.toThrow('MANUFACTURING_SERVICE_UNAVAILABLE');
   });
 });
-

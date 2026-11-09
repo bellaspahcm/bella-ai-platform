@@ -13,10 +13,9 @@ type WeatherCondition = 'sunny' | 'cloudy' | 'rainy' | 'stormy';
 
 interface SiteDiaryEntry {
   id: string;
-  tenantId: string;
   projectId: string;
   date: string;
-  supervisorUserId: string;
+  supervisorName: string;
   workersPresent: number;
   weatherCondition: WeatherCondition;
   activitiesCompleted: string[];
@@ -44,11 +43,16 @@ function isValidWeather(value: unknown): value is WeatherCondition {
 }
 
 function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((v) => typeof v === 'string');
+  return Array.isArray(value)
+    && value.length <= 50
+    && value.every((v) => typeof v === 'string' && v.trim().length > 0 && v.length <= 2_000);
 }
 
 function isValidIsoDate(value: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !isNaN(Date.parse(value));
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  if (Number(value.slice(0, 4)) < 1) return false;
+  const parsed = new Date(value);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
 
 // ─── GET /api/interior/delivery/site-diary ────────────────────────────────────
@@ -73,10 +77,9 @@ export async function GET(request: Request): Promise<NextResponse> {
     const dbDiaries = await repo.listSiteDiaries(tenantId, projectId);
     const mapped: SiteDiaryEntry[] = dbDiaries.map((d) => ({
       id: d.id,
-      tenantId: d.tenantId,
       projectId: d.projectId,
       date: d.date,
-      supervisorUserId: d.supervisorName,
+      supervisorName: d.supervisorName,
       workersPresent: d.laborHeadcount,
       weatherCondition: (d.weather === 'cloudy' ? 'cloudy' : d.weather === 'rainy' ? 'rainy' : d.weather === 'stormy' ? 'stormy' : 'sunny') as WeatherCondition,
       activitiesCompleted: d.activitiesCompleted,
@@ -84,7 +87,9 @@ export async function GET(request: Request): Promise<NextResponse> {
       notes: d.issuesNoted || '',
       createdAt: d.date,
     }));
-    return NextResponse.json({ success: true, data: mapped });
+    return NextResponse.json({ success: true, data: mapped }, {
+      headers: { 'Cache-Control': 'no-store, max-age=0' },
+    });
   } catch {
     return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_READ_FAILED' }, { status: 503 });
   }
@@ -123,9 +128,15 @@ export async function POST(request: Request): Promise<NextResponse> {
       { status: 400 },
     );
   }
-  if (workersPresent === undefined || typeof workersPresent !== 'number' || workersPresent < 0) {
+  if (
+    workersPresent === undefined
+    || typeof workersPresent !== 'number'
+    || !Number.isSafeInteger(workersPresent)
+    || workersPresent < 0
+    || workersPresent > 2_147_483_647
+  ) {
     return NextResponse.json(
-      { success: false, error: 'workersPresent is required and must be a non-negative number' },
+      { success: false, error: 'workersPresent is required and must be a non-negative whole number in range' },
       { status: 400 },
     );
   }
@@ -145,6 +156,12 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (issuesEncountered !== undefined && !isStringArray(issuesEncountered)) {
     return NextResponse.json(
       { success: false, error: 'issuesEncountered must be an array of strings' },
+      { status: 400 },
+    );
+  }
+  if (typeof notes === 'string' && notes.length > 5_000) {
+    return NextResponse.json(
+      { success: false, error: 'notes must not exceed 5000 characters' },
       { status: 400 },
     );
   }
@@ -177,10 +194,9 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   const newEntry: SiteDiaryEntry = {
     id: entryId,
-    tenantId,
     projectId,
     date,
-    supervisorUserId: actor.id,
+    supervisorName: actor.full_name || actor.email,
     workersPresent,
     weatherCondition: raw.weatherCondition as WeatherCondition,
     activitiesCompleted,
@@ -189,5 +205,8 @@ export async function POST(request: Request): Promise<NextResponse> {
     createdAt: now,
   };
 
-  return NextResponse.json({ success: true, data: newEntry }, { status: 201 });
+  return NextResponse.json({ success: true, data: newEntry }, {
+    status: 201,
+    headers: { 'Cache-Control': 'no-store, max-age=0' },
+  });
 }
