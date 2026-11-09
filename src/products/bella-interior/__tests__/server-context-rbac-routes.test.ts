@@ -17,6 +17,12 @@ describe('Interior route action and scope mapping', () => {
     expect(requiredInteriorPermission(request, null)).toBe(INTERIOR_PERMISSIONS.designApprove);
   });
 
+  it('requires QC approval for verification and ordinary QC update for rectification', () => {
+    const request = new Request('https://bella.example/api/interior/delivery/punch-list/123e4567-e89b-42d3-a456-426614174000', { method: 'PATCH' });
+    expect(requiredInteriorPermission(request, { status: 'verified' })).toBe(INTERIOR_PERMISSIONS.qcApprove);
+    expect(requiredInteriorPermission(request, { status: 'rectified' })).toBe(INTERIOR_PERMISSIONS.qcUpdate);
+  });
+
   it('resolves camel-case project query IDs before authorization', async () => {
     const result = await requestedProjectScope(new Request(
       'https://bella.example/api/interior/boq?projectId=123e4567-e89b-42d3-a456-426614174000',

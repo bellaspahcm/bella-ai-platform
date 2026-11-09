@@ -171,4 +171,18 @@ describe('Bella Interior RBAC migration contract', () => {
     expect(migrationSql).toContain('INSERT INTO public.interior_site_diaries(');
     expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_create_site_diary(uuid,date,integer,text,text[],text) TO authenticated');
   });
+
+  it('requires qc:approve for punch-list verification and resolves each item to its project', () => {
+    expect(migrationSql).toContain("WHEN 'qc_item' THEN");
+    expect(migrationSql).toContain('ADD COLUMN IF NOT EXISTS room_zone_id uuid');
+    expect(migrationSql).toContain('ADD COLUMN IF NOT EXISTS reported_by_user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL');
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_list_qc_items(p_project_id uuid)');
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_read_qc_item(p_item_id uuid)');
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_create_qc_item(');
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_update_qc_item(');
+    expect(migrationSql).toContain("CASE WHEN p_status='verified' THEN 'interior:qc:approve' ELSE 'interior:qc:update' END");
+    expect(migrationSql).toContain('QC_ITEM_MUST_BE_RECTIFIED_BEFORE_VERIFICATION');
+    expect(migrationSql).toContain("VALUES(v_tenant,p_project_id,p_room_zone_id,v_actor,v_room_name");
+    expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_update_qc_item(uuid,text,text) TO authenticated');
+  });
 });

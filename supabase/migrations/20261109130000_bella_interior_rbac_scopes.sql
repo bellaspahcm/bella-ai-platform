@@ -61,6 +61,11 @@ BEGIN
 END
 $preflight$;
 
+ALTER TABLE public.interior_qc_punch_list_items
+  ADD COLUMN IF NOT EXISTS room_zone_id uuid,
+  ADD COLUMN IF NOT EXISTS reported_by_user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT statement_timestamp();
+
 CREATE TABLE public.interior_roles (
   role_key text PRIMARY KEY,
   display_name text NOT NULL,
@@ -448,6 +453,8 @@ BEGIN
       SELECT project_id INTO v_project_id FROM public.interior_design_revisions WHERE id=p_parent_id AND tenant_id=p_tenant_id;
     WHEN 'design_material' THEN
       SELECT project_id INTO v_project_id FROM public.interior_design_revisions WHERE id=p_parent_id AND tenant_id=p_tenant_id;
+    WHEN 'qc_item' THEN
+      SELECT project_id INTO v_project_id FROM public.interior_qc_punch_list_items WHERE id=p_resource_id AND tenant_id=p_tenant_id;
     WHEN 'payment_milestone' THEN
       SELECT project_id INTO v_project_id FROM public.interior_contracts WHERE id=p_parent_id AND tenant_id=p_tenant_id;
     WHEN 'production_item' THEN
@@ -838,7 +845,7 @@ BEGIN
     RETURN QUERY SELECT 'DENIED'::text,'ACTIVE_ACTOR_REQUIRED'::text,NULL::uuid; RETURN;
   END IF;
   IF p_project_id IS NULL OR p_entry_date IS NULL OR p_labor_headcount IS NULL OR p_labor_headcount<0
-    OR p_weather NOT IN ('sunny','cloudy','rainy','stormy')
+    OR p_weather IS NULL OR p_weather NOT IN ('sunny','cloudy','rainy','stormy')
     OR p_activities_completed IS NULL OR cardinality(p_activities_completed)<1 OR cardinality(p_activities_completed)>50
     OR EXISTS (SELECT 1 FROM unnest(p_activities_completed) item WHERE nullif(trim(item),'') IS NULL OR length(item)>2000)
     OR length(coalesce(p_issues_noted,''))>5000 THEN
@@ -864,6 +871,179 @@ BEGIN
     jsonb_build_object('project_id',p_project_id,'date',p_entry_date,'labor_headcount',p_labor_headcount),
     v_actor,statement_timestamp());
   RETURN QUERY SELECT 'COMMITTED'::text,'SITE_DIARY_CREATED'::text,v_entry_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_list_qc_items(p_project_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_tenant uuid:=public.interior_actor_tenant(); v_result jsonb;
+BEGIN
+  IF v_tenant IS NULL OR p_project_id IS NULL THEN
+    RAISE EXCEPTION 'AuthorizationViolation: active Interior tenant and project are required';
+  END IF;
+  IF NOT public.interior_has_permission('interior:qc:read',v_tenant,p_project_id,NULL) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: scoped QC read is required';
+  END IF;
+  SELECT coalesce(jsonb_agg(jsonb_build_object(
+    'id',q.id,'tenantId',q.tenant_id,'projectId',q.project_id,'roomZoneId',q.room_zone_id,
+    'reportedByUserId',q.reported_by_user_id,
+    'roomZoneName',q.room_zone_name,'itemName',q.item_name,'category',q.defect_category,
+    'description',q.description,'severity',q.severity,'photoUrl',q.photo_url,
+    'assignedFixer',q.assigned_fixer,'deadline',q.deadline,'status',q.status,
+    'rectificationNote',q.rectification_note,'verifiedBy',q.verified_by,
+    'verifiedAt',q.verified_at,'createdAt',q.created_at,'updatedAt',q.updated_at
+  ) ORDER BY q.created_at DESC,q.id),'[]'::jsonb)
+  INTO v_result
+  FROM public.interior_qc_punch_list_items q
+  WHERE q.tenant_id=v_tenant AND q.project_id=p_project_id;
+  RETURN v_result;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_read_qc_item(p_item_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_tenant uuid:=public.interior_actor_tenant(); v_item public.interior_qc_punch_list_items%ROWTYPE;
+BEGIN
+  IF v_tenant IS NULL OR p_item_id IS NULL THEN
+    RAISE EXCEPTION 'AuthorizationViolation: active Interior tenant and QC item are required';
+  END IF;
+  SELECT * INTO v_item FROM public.interior_qc_punch_list_items q
+  WHERE q.id=p_item_id AND q.tenant_id=v_tenant;
+  IF NOT FOUND THEN RETURN NULL; END IF;
+  IF NOT public.interior_has_permission('interior:qc:read',v_tenant,v_item.project_id,NULL) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: scoped QC read is required';
+  END IF;
+  RETURN jsonb_build_object(
+    'id',v_item.id,'tenantId',v_item.tenant_id,'projectId',v_item.project_id,'roomZoneId',v_item.room_zone_id,
+    'reportedByUserId',v_item.reported_by_user_id,
+    'roomZoneName',v_item.room_zone_name,'itemName',v_item.item_name,'category',v_item.defect_category,
+    'description',v_item.description,'severity',v_item.severity,'photoUrl',v_item.photo_url,
+    'assignedFixer',v_item.assigned_fixer,'deadline',v_item.deadline,'status',v_item.status,
+    'rectificationNote',v_item.rectification_note,'verifiedBy',v_item.verified_by,
+    'verifiedAt',v_item.verified_at,'createdAt',v_item.created_at,'updatedAt',v_item.updated_at
+  );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_create_qc_item(
+  p_project_id uuid,p_room_zone_id uuid,p_description text,p_category text,p_severity text
+)
+RETURNS TABLE(status text,reason text,item jsonb)
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE
+  v_tenant uuid:=public.interior_actor_tenant();
+  v_actor uuid:=auth.uid();
+  v_room_name text:='Khu vực chính';
+  v_item public.interior_qc_punch_list_items%ROWTYPE;
+BEGIN
+  IF v_tenant IS NULL OR v_actor IS NULL THEN
+    RETURN QUERY SELECT 'DENIED'::text,'ACTIVE_ACTOR_REQUIRED'::text,NULL::jsonb; RETURN;
+  END IF;
+  IF p_project_id IS NULL OR p_description IS NULL OR length(trim(p_description)) NOT BETWEEN 1 AND 4000
+    OR p_category IS NULL OR p_category NOT IN ('finishing','structural','furniture_fit','electrical_coordination','painting')
+    OR p_severity IS NULL OR p_severity NOT IN ('critical','major','minor') THEN
+    RETURN QUERY SELECT 'DENIED'::text,'INVALID_QC_ITEM_INPUT'::text,NULL::jsonb; RETURN;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.interior_projects p WHERE p.id=p_project_id AND p.tenant_id=v_tenant) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'PROJECT_NOT_FOUND'::text,NULL::jsonb; RETURN;
+  END IF;
+  IF NOT public.interior_has_permission('interior:qc:create',v_tenant,p_project_id,NULL) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'QC_CREATE_PERMISSION_REQUIRED'::text,NULL::jsonb; RETURN;
+  END IF;
+  IF p_room_zone_id IS NOT NULL THEN
+    SELECT z.name INTO v_room_name FROM public.interior_project_room_zones z
+    WHERE z.id=p_room_zone_id AND z.project_id=p_project_id AND z.tenant_id=v_tenant;
+    IF NOT FOUND THEN
+      RETURN QUERY SELECT 'DENIED'::text,'ROOM_ZONE_NOT_FOUND'::text,NULL::jsonb; RETURN;
+    END IF;
+  END IF;
+  INSERT INTO public.interior_qc_punch_list_items(
+    tenant_id,project_id,room_zone_id,reported_by_user_id,room_zone_name,item_name,defect_category,description,severity,
+    assigned_fixer,deadline,status
+  ) VALUES(v_tenant,p_project_id,p_room_zone_id,v_actor,v_room_name,left(trim(p_description),30),p_category,
+    trim(p_description),p_severity,'Chưa phân công',current_date+3,'open')
+  RETURNING * INTO v_item;
+  INSERT INTO public.audit_logs(tenant_id,table_name,record_id,action,old_data,new_data,changed_by_id,created_at)
+  VALUES(v_tenant,'interior_qc_punch_list_items',v_item.id,'CREATE',NULL,
+    jsonb_build_object('project_id',p_project_id,'room_zone_id',p_room_zone_id,'severity',p_severity,'status','open'),
+    v_actor,statement_timestamp());
+  RETURN QUERY SELECT 'COMMITTED'::text,'QC_ITEM_CREATED'::text,
+    jsonb_build_object('id',v_item.id,'tenantId',v_item.tenant_id,'projectId',v_item.project_id,
+      'roomZoneId',v_item.room_zone_id,'reportedByUserId',v_item.reported_by_user_id,
+      'roomZoneName',v_item.room_zone_name,'itemName',v_item.item_name,
+      'category',v_item.defect_category,'description',v_item.description,'severity',v_item.severity,
+      'photoUrl',v_item.photo_url,'assignedFixer',v_item.assigned_fixer,'deadline',v_item.deadline,
+      'status',v_item.status,'rectificationNote',v_item.rectification_note,'verifiedBy',v_item.verified_by,
+      'verifiedAt',v_item.verified_at,'createdAt',v_item.created_at,'updatedAt',v_item.updated_at);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_update_qc_item(
+  p_item_id uuid,p_status text,p_rectification_note text DEFAULT NULL
+)
+RETURNS TABLE(status text,reason text,item jsonb)
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE
+  v_tenant uuid:=public.interior_actor_tenant();
+  v_actor uuid:=auth.uid();
+  v_item public.interior_qc_punch_list_items%ROWTYPE;
+  v_old_item public.interior_qc_punch_list_items%ROWTYPE;
+  v_permission text;
+  v_action text;
+BEGIN
+  IF v_tenant IS NULL OR v_actor IS NULL THEN
+    RETURN QUERY SELECT 'DENIED'::text,'ACTIVE_ACTOR_REQUIRED'::text,NULL::jsonb; RETURN;
+  END IF;
+  IF p_item_id IS NULL OR p_status IS NULL OR p_status NOT IN ('open','in_progress','rectified','verified')
+    OR (p_rectification_note IS NOT NULL AND length(p_rectification_note)>4000) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'INVALID_QC_ITEM_INPUT'::text,NULL::jsonb; RETURN;
+  END IF;
+  SELECT * INTO v_item FROM public.interior_qc_punch_list_items q
+  WHERE q.id=p_item_id AND q.tenant_id=v_tenant FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN QUERY SELECT 'DENIED'::text,'QC_ITEM_NOT_FOUND'::text,NULL::jsonb; RETURN;
+  END IF;
+  v_old_item:=v_item;
+  v_permission:=CASE WHEN p_status='verified' THEN 'interior:qc:approve' ELSE 'interior:qc:update' END;
+  IF NOT public.interior_has_permission(v_permission,v_tenant,v_item.project_id,NULL) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'QC_UPDATE_PERMISSION_REQUIRED'::text,NULL::jsonb; RETURN;
+  END IF;
+  IF p_status IS DISTINCT FROM v_item.status AND NOT (
+    (v_item.status='open' AND p_status='in_progress')
+    OR (v_item.status='in_progress' AND p_status='rectified')
+    OR (v_item.status='rectified' AND p_status='verified')
+  ) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'INVALID_QC_STATE_TRANSITION'::text,NULL::jsonb; RETURN;
+  END IF;
+  IF p_status='verified' AND v_item.status<>'rectified' THEN
+    RETURN QUERY SELECT 'DENIED'::text,'QC_ITEM_MUST_BE_RECTIFIED_BEFORE_VERIFICATION'::text,NULL::jsonb; RETURN;
+  END IF;
+  UPDATE public.interior_qc_punch_list_items q SET
+    status=p_status,
+    rectification_note=coalesce(p_rectification_note,q.rectification_note),
+    verified_by=CASE WHEN p_status='verified' THEN v_actor::text ELSE q.verified_by END,
+    verified_at=CASE WHEN p_status='verified' THEN statement_timestamp() ELSE q.verified_at END,
+    updated_at=statement_timestamp()
+  WHERE q.id=p_item_id AND q.tenant_id=v_tenant
+  RETURNING * INTO v_item;
+  v_action:=CASE WHEN p_status='verified' THEN 'APPROVE' ELSE 'UPDATE' END;
+  INSERT INTO public.audit_logs(tenant_id,table_name,record_id,action,old_data,new_data,changed_by_id,created_at)
+  VALUES(v_tenant,'interior_qc_punch_list_items',v_item.id,v_action,to_jsonb(v_old_item),
+    to_jsonb(v_item),v_actor,statement_timestamp());
+  RETURN QUERY SELECT 'COMMITTED'::text,'QC_ITEM_UPDATED'::text,
+    jsonb_build_object('id',v_item.id,'tenantId',v_item.tenant_id,'projectId',v_item.project_id,
+      'roomZoneId',v_item.room_zone_id,'reportedByUserId',v_item.reported_by_user_id,
+      'roomZoneName',v_item.room_zone_name,'itemName',v_item.item_name,
+      'category',v_item.defect_category,'description',v_item.description,'severity',v_item.severity,
+      'photoUrl',v_item.photo_url,'assignedFixer',v_item.assigned_fixer,'deadline',v_item.deadline,
+      'status',v_item.status,'rectificationNote',v_item.rectification_note,'verifiedBy',v_item.verified_by,
+      'verifiedAt',v_item.verified_at,'createdAt',v_item.created_at,'updatedAt',v_item.updated_at);
 END;
 $$;
 
@@ -1855,6 +2035,10 @@ REVOKE ALL ON FUNCTION public.interior_list_design_revisions(uuid) FROM PUBLIC,a
 REVOKE ALL ON FUNCTION public.interior_list_installation_plans(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_list_site_diaries(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_create_site_diary(uuid,date,integer,text,text[],text) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_list_qc_items(uuid) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_read_qc_item(uuid) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_create_qc_item(uuid,uuid,text,text,text) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_update_qc_item(uuid,text,text) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_read_boqs(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_create_project(text,text,text,text,text,text,text,numeric,date,uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_approve_boq(uuid) FROM PUBLIC,anon,authenticated,service_role;
@@ -1886,6 +2070,10 @@ GRANT EXECUTE ON FUNCTION public.interior_list_design_revisions(uuid) TO authent
 GRANT EXECUTE ON FUNCTION public.interior_list_installation_plans(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_list_site_diaries(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_create_site_diary(uuid,date,integer,text,text[],text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_list_qc_items(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_read_qc_item(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_create_qc_item(uuid,uuid,text,text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_update_qc_item(uuid,text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_read_boqs(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_create_project(text,text,text,text,text,text,text,numeric,date,uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_approve_boq(uuid) TO authenticated;

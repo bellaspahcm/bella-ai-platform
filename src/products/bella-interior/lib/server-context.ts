@@ -299,12 +299,14 @@ export async function requestedProjectScope(request: Request): Promise<ProjectRe
   };
 }
 
-function scopedProjectResource(request: Request): { resourceKey: 'boq' | 'design_revision'; resourceId: string } | null {
+function scopedProjectResource(request: Request): { resourceKey: 'boq' | 'design_revision' | 'qc_item'; resourceId: string } | null {
   const pathname = new URL(request.url).pathname.replace(/\/+$/, '');
   const boq = pathname.match(/^\/api\/interior\/boq\/([^/]+)\/approve$/);
   if (boq) return { resourceKey: 'boq', resourceId: boq[1] };
   const revision = pathname.match(/^\/api\/interior\/design\/revisions\/([^/]+)\/approve$/);
   if (revision) return { resourceKey: 'design_revision', resourceId: revision[1] };
+  const qcItem = pathname.match(/^\/api\/interior\/delivery\/punch-list\/([^/]+)$/);
+  if (qcItem) return { resourceKey: 'qc_item', resourceId: qcItem[1] };
   return null;
 }
 
