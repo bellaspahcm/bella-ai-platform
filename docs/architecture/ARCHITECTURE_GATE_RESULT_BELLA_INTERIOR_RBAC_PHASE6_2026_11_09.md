@@ -7,7 +7,7 @@ Result: `PASS` to implement the Product-local role catalog, permission resolver,
 
 Bella Interior must support a real interior-design business with multiple staff roles and project-level responsibility. A user may hold multiple roles. Requests resolve the Supabase Auth user, canonical active tenant, role permissions, action, and permitted data scope before reading or changing data. Unlisted actions deny by default.
 
-Non-goals: changing shared Platform/OS authorization semantics; granting broad table CRUD; creating test or fake users; auto-assigning users by email domain; implementing business workflows whose persisted command model does not exist (contract signing/amendment, payments/refunds, and production release prerequisites are not proven by the current Interior APIs/schema).
+Non-goals: changing shared Platform/OS authorization semantics; granting broad table CRUD; creating test or fake users; auto-assigning users by email domain; inventing business commands where the persisted transaction model or required server-side gates do not exist (contract creation/signing/amendment, payment recording/approval/refunds, production release, and warranty closure remain unavailable).
 
 ## Truth and Source of Truth
 
@@ -20,7 +20,7 @@ Non-goals: changing shared Platform/OS authorization semantics; granting broad t
 
 ## Product Manifest and Capability Map
 
-Product: Bella Interior OS (`bella-interior`, key `bella_interior`), bounded contexts Design & Specification, Commercial & Costing, Manufacturing & Installation, Project Delivery & Aftercare. The existing manifest advertises those capabilities; several action workflows (contract signing/amendment, payment ledger/refund, production release) are not implemented by current persistence/API contracts and will remain unavailable even when their permission IDs exist.
+Product: Bella Interior OS (`bella-interior`, key `bella_interior`), bounded contexts Design & Specification, Commercial & Costing, Manufacturing & Installation, Project Delivery & Aftercare. The existing manifest advertises those capabilities. The source candidate provides scoped RPC-backed project/customer/design/schedule/site diary/QC/handover/warranty-ticket reads and commands, plus contract reads. It does not make contract creation/signing/amendment, payment recording/approval/refunds, production release, or warranty closure available; those actions remain fail-closed until their transaction models and server-side gates are implemented.
 
 ## Ownership Map
 
@@ -51,6 +51,8 @@ The user explicitly authorized implementing the complete 12-role matrix, API/UI,
 
 `src/app/dashboard/interior/roles/page.tsx` now shows Product-local user/role/scope management through authenticated APIs. The Interior Settings tabs for staff and permissions route to this screen instead of the legacy `tenants.role_permissions` controls, and the Bella Interior sidebar exposes the management route. This conditional UI change leaves the generic Settings permission model and non-Interior tenants unchanged. The screen shows active tenant accounts, effective roles/scopes, explicit role assignment/revocation, OWNER-controlled ADMIN delegation, and audited changes.
 
+The candidate's other data-bearing Interior routes use authenticated scoped RPCs for project, customer, design, installation schedule, site diary, QC punch list, handover dossier, warranty certificate/ticket, BOQ, and contract reads/commands. Contract GET masks finance/customer fields at the database boundary; handover and warranty create commands derive tenant and actor from the database auth context. Unsupported contract/payment/production/warranty-close writes return unavailable errors, and the contract UI keeps contract creation and production release disabled. This describes source behavior only until the migration and matching app release are deployed.
+
 ## Additive Migration Plan
 
 Create Product-local role/permission catalog, fixed baseline role mappings, user-role assignments with lifecycle/audit fields, direct permission grants, explicit project memberships, and per-ADMIN role delegation. Add nullable `interior_projects.branch_id` and a same-tenant scope guard. Add fail-closed permission/scope resolver functions. Keep all 21 Interior table RLS policies and no direct `anon`/`authenticated` table grants; extend row policies with the relevant action and scope predicate. Keep finance outbox service-only. Bootstrap exactly the one real OWNER account explicitly selected by the user; create no other user or assignment.
@@ -68,3 +70,10 @@ All changes are additive or policy/function replacement within Interior. Do not 
 
 `PASS` for source implementation and a bounded additive Product-local Production migration under the current release controls.
 `PASS` to bootstrap the one OWNER explicitly chosen from the verified active Production roster. `DEFER` the staff pilot until real employees are invited, assigned, and test actual role workflows. The database catalog by itself grants no staff access.
+
+## Candidate Verification and Current Deployment State
+
+- Current source verification: `npm run typecheck:full` PASS; targeted Interior RBAC Jest run 10 suites / 44 tests PASS; targeted ESLint PASS; `npm run db:migration:zero-downtime` PASS (1 migration); `npm run db:rpc-grants:check` PASS (36/36); `git diff --check` PASS.
+- These are source/static/unit checks, not Production runtime or tenant-isolation proof. No non-Production database rehearsal was performed, per the user's instruction.
+- Production migration and OWNER bootstrap are NOT_APPLIED. The current Deployment Governance Human GO gate explicitly requires a verified backup, monitoring plan, and scope confirmation before schema deployment. The user waived the backup, but that does not satisfy or amend the repository's mandatory condition. No role assignment or Production schema mutation has been made.
+- Real-user pilot remains DEFERRED: the selected existing account can be bootstrapped as OWNER only after the authorized migration is safely deployable; staff accounts and assignments require actual employee identities and explicit role/scope assignment.

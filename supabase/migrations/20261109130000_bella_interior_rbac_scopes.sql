@@ -66,6 +66,16 @@ ALTER TABLE public.interior_qc_punch_list_items
   ADD COLUMN IF NOT EXISTS reported_by_user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT statement_timestamp();
 
+ALTER TABLE public.interior_handover_dossiers
+  ADD COLUMN IF NOT EXISTS created_by_user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT statement_timestamp();
+
+ALTER TABLE public.interior_warranty_service_tickets
+  ADD COLUMN IF NOT EXISTS reported_by_user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS reported_by_contact text,
+  ADD COLUMN IF NOT EXISTS priority text NOT NULL DEFAULT 'medium',
+  ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT statement_timestamp();
+
 CREATE TABLE public.interior_roles (
   role_key text PRIMARY KEY,
   display_name text NOT NULL,
@@ -1047,6 +1057,264 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.interior_list_handover_dossiers(p_project_id uuid DEFAULT NULL)
+RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_tenant uuid:=public.interior_actor_tenant(); v_result jsonb;
+BEGIN
+  IF v_tenant IS NULL THEN RAISE EXCEPTION 'AuthorizationViolation: active Interior tenant is required'; END IF;
+  IF p_project_id IS NOT NULL AND NOT public.interior_has_permission('interior:delivery:read',v_tenant,p_project_id,NULL) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: scoped handover read is required';
+  END IF;
+  IF p_project_id IS NULL AND NOT public.interior_has_permission('interior:delivery:read',v_tenant,NULL,NULL) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: tenant handover read is required';
+  END IF;
+  SELECT coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
+    'id',h.id,'tenantId',h.tenant_id,'projectId',h.project_id,'contractId',h.contract_id,
+    'handoverDate',h.handover_date,'status',h.status,'totalPunchListItems',h.total_punch_list_items,
+    'openPunchListItems',h.open_punch_list_items,'clientAccepted',h.client_accepted,
+    'clientSignoffName',CASE WHEN public.interior_has_permission('interior:customer:read',v_tenant,h.project_id,NULL) THEN h.client_signoff_name END,
+    'finalSettlementValue',CASE WHEN public.interior_has_permission('interior:finance:read',v_tenant,h.project_id,NULL)
+      OR public.interior_has_permission('interior:contract:read',v_tenant,h.project_id,NULL) THEN h.final_settlement_value END,
+    'dossierDocumentUrl',h.dossier_document_url,'createdByUserId',h.created_by_user_id,'createdAt',h.created_at
+  )) ORDER BY h.handover_date DESC,h.id),'[]'::jsonb)
+  INTO v_result FROM public.interior_handover_dossiers h
+  WHERE h.tenant_id=v_tenant AND (p_project_id IS NULL OR h.project_id=p_project_id)
+    AND public.interior_has_permission('interior:delivery:read',v_tenant,h.project_id,NULL);
+  RETURN v_result;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_create_handover_dossier(p_project_id uuid,p_client_representative text)
+RETURNS TABLE(status text,reason text,dossier jsonb)
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE
+  v_tenant uuid:=public.interior_actor_tenant(); v_actor uuid:=auth.uid();
+  v_contract public.interior_contracts%ROWTYPE; v_dossier public.interior_handover_dossiers%ROWTYPE;
+  v_total integer; v_open integer;
+BEGIN
+  IF v_tenant IS NULL OR v_actor IS NULL THEN RETURN QUERY SELECT 'DENIED'::text,'ACTIVE_ACTOR_REQUIRED'::text,NULL::jsonb; RETURN; END IF;
+  IF p_project_id IS NULL OR nullif(trim(p_client_representative),'') IS NULL OR length(trim(p_client_representative))>200 THEN
+    RETURN QUERY SELECT 'DENIED'::text,'INVALID_HANDOVER_INPUT'::text,NULL::jsonb; RETURN;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.interior_projects p WHERE p.id=p_project_id AND p.tenant_id=v_tenant) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'PROJECT_NOT_FOUND'::text,NULL::jsonb; RETURN;
+  END IF;
+  IF NOT public.interior_has_permission('interior:handover:approve',v_tenant,p_project_id,NULL) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'HANDOVER_APPROVAL_PERMISSION_REQUIRED'::text,NULL::jsonb; RETURN;
+  END IF;
+  PERFORM p.id FROM public.interior_projects p WHERE p.id=p_project_id AND p.tenant_id=v_tenant FOR UPDATE;
+  SELECT * INTO v_contract FROM public.interior_contracts c
+  WHERE c.tenant_id=v_tenant AND c.project_id=p_project_id AND c.status IN ('signed','active')
+  ORDER BY c.signed_date DESC,c.id LIMIT 1;
+  IF NOT FOUND THEN RETURN QUERY SELECT 'DENIED'::text,'SIGNED_ACTIVE_CONTRACT_REQUIRED'::text,NULL::jsonb; RETURN; END IF;
+  IF EXISTS (SELECT 1 FROM public.interior_handover_dossiers h
+    WHERE h.tenant_id=v_tenant AND h.project_id=p_project_id AND h.status='completed') THEN
+    RETURN QUERY SELECT 'DENIED'::text,'HANDOVER_ALREADY_COMPLETED'::text,NULL::jsonb; RETURN;
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.interior_qc_punch_list_items q
+    WHERE q.tenant_id=v_tenant AND q.project_id=p_project_id AND q.severity='critical' AND q.status<>'verified') THEN
+    RETURN QUERY SELECT 'DENIED'::text,'OPEN_CRITICAL_QC_ITEMS_REMAIN'::text,NULL::jsonb; RETURN;
+  END IF;
+  SELECT count(*)::integer,count(*) FILTER (WHERE q.status<>'verified')::integer INTO v_total,v_open
+  FROM public.interior_qc_punch_list_items q WHERE q.tenant_id=v_tenant AND q.project_id=p_project_id;
+  INSERT INTO public.interior_handover_dossiers(
+    tenant_id,project_id,contract_id,handover_date,status,total_punch_list_items,
+    open_punch_list_items,client_accepted,client_signoff_name,final_settlement_value,
+    created_by_user_id,approved_by_user_id,created_at
+  ) VALUES(v_tenant,p_project_id,v_contract.id,statement_timestamp(),'completed',v_total,v_open,true,
+    trim(p_client_representative),v_contract.current_contract_value,v_actor,v_actor,statement_timestamp())
+  RETURNING * INTO v_dossier;
+  INSERT INTO public.audit_logs(tenant_id,table_name,record_id,action,old_data,new_data,changed_by_id,created_at)
+  VALUES(v_tenant,'interior_handover_dossiers',v_dossier.id,'APPROVE',NULL,
+    jsonb_build_object('project_id',p_project_id,'contract_id',v_contract.id,'client_accepted',true,
+      'total_punch_list_items',v_total,'open_punch_list_items',v_open),v_actor,statement_timestamp());
+  RETURN QUERY SELECT 'COMMITTED'::text,'HANDOVER_APPROVED'::text,
+    jsonb_strip_nulls(jsonb_build_object('id',v_dossier.id,'tenantId',v_dossier.tenant_id,'projectId',v_dossier.project_id,
+      'contractId',v_dossier.contract_id,'handoverDate',v_dossier.handover_date,'status',v_dossier.status,
+      'totalPunchListItems',v_dossier.total_punch_list_items,'openPunchListItems',v_dossier.open_punch_list_items,
+      'clientAccepted',v_dossier.client_accepted,
+      'approvedByUserId',v_dossier.approved_by_user_id,
+      'clientSignoffName',CASE WHEN public.interior_has_permission('interior:customer:read',v_tenant,p_project_id,NULL) THEN v_dossier.client_signoff_name END,
+      'finalSettlementValue',CASE WHEN public.interior_has_permission('interior:finance:read',v_tenant,p_project_id,NULL)
+        OR public.interior_has_permission('interior:contract:read',v_tenant,p_project_id,NULL) THEN v_dossier.final_settlement_value END,
+      'createdByUserId',v_actor,'createdAt',v_dossier.created_at));
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_list_warranty_certificates(p_project_id uuid DEFAULT NULL)
+RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_tenant uuid:=public.interior_actor_tenant(); v_result jsonb;
+BEGIN
+  IF v_tenant IS NULL THEN RAISE EXCEPTION 'AuthorizationViolation: active Interior tenant is required'; END IF;
+  IF p_project_id IS NOT NULL AND NOT public.interior_has_permission('interior:warranty:read',v_tenant,p_project_id,NULL) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: scoped warranty read is required';
+  END IF;
+  IF p_project_id IS NULL AND NOT public.interior_has_permission('interior:warranty:read',v_tenant,NULL,NULL) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: tenant warranty read is required';
+  END IF;
+  SELECT coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
+    'id',w.id,'tenantId',w.tenant_id,'projectId',w.project_id,'contractId',w.contract_id,
+    'certificateNumber',w.certificate_number,
+    'customerName',CASE WHEN public.interior_has_permission('interior:customer:read',v_tenant,w.project_id,NULL) THEN w.customer_name END,
+    'siteAddress',CASE WHEN public.interior_has_permission('interior:customer:read',v_tenant,w.project_id,NULL) THEN w.site_address END,
+    'effectiveDate',w.effective_date,'expirationDate',w.expiration_date,
+    'woodworkWarrantyMonths',w.woodwork_warranty_months,'hardwareWarrantyMonths',w.hardware_warranty_months,
+    'stoneWarrantyMonths',w.stone_warranty_months,'termsSummary',w.terms_summary
+  )) ORDER BY w.effective_date DESC,w.id),'[]'::jsonb)
+  INTO v_result FROM public.interior_warranty_certificates w
+  WHERE w.tenant_id=v_tenant AND (p_project_id IS NULL OR w.project_id=p_project_id)
+    AND public.interior_has_permission('interior:warranty:read',v_tenant,w.project_id,NULL);
+  RETURN v_result;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_list_warranty_tickets(p_project_id uuid DEFAULT NULL)
+RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_tenant uuid:=public.interior_actor_tenant(); v_result jsonb;
+BEGIN
+  IF v_tenant IS NULL THEN RAISE EXCEPTION 'AuthorizationViolation: active Interior tenant is required'; END IF;
+  IF p_project_id IS NOT NULL AND NOT public.interior_has_permission('interior:warranty:read',v_tenant,p_project_id,NULL) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: scoped warranty read is required';
+  END IF;
+  IF p_project_id IS NULL AND NOT public.interior_has_permission('interior:warranty:read',v_tenant,NULL,NULL) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: tenant warranty read is required';
+  END IF;
+  SELECT coalesce(jsonb_agg(jsonb_build_object(
+    'id',t.id,'tenantId',t.tenant_id,'warrantyId',t.certificate_id,'projectId',t.project_id,
+    'reportedByUserId',t.reported_by_user_id,'reportedByContact',t.reported_by_contact,
+    'ticketNumber',t.ticket_number,'reportedDate',t.reported_date,'customerReport',t.customer_report,
+    'roomZoneName',t.room_zone_name,'itemName',t.item_name,'defectCategory',t.defect_category,
+    'priority',t.priority,'status',t.status,'assignedTechnician',t.assigned_technician,
+    'scheduledFixDate',t.scheduled_fix_date,'resolvedDate',t.resolved_date,
+    'resolutionDetails',t.resolution_details,'supplierChargebackEligible',t.supplier_chargeback_eligible,
+    'updatedAt',t.updated_at
+  ) ORDER BY t.reported_date DESC,t.id),'[]'::jsonb)
+  INTO v_result FROM public.interior_warranty_service_tickets t
+  WHERE t.tenant_id=v_tenant AND (p_project_id IS NULL OR t.project_id=p_project_id)
+    AND public.interior_has_permission('interior:warranty:read',v_tenant,t.project_id,NULL);
+  RETURN v_result;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_create_warranty_ticket(
+  p_certificate_id uuid,p_project_id uuid,p_reported_by_contact text,
+  p_defect_category text,p_customer_report text,p_priority text
+)
+RETURNS TABLE(status text,reason text,ticket jsonb)
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE
+  v_tenant uuid:=public.interior_actor_tenant(); v_actor uuid:=auth.uid();
+  v_certificate public.interior_warranty_certificates%ROWTYPE;
+  v_ticket public.interior_warranty_service_tickets%ROWTYPE;
+  v_ticket_number text:='WTK-'||upper(substr(replace(gen_random_uuid()::text,'-',''),1,10));
+BEGIN
+  IF v_tenant IS NULL OR v_actor IS NULL THEN RETURN QUERY SELECT 'DENIED'::text,'ACTIVE_ACTOR_REQUIRED'::text,NULL::jsonb; RETURN; END IF;
+  IF p_certificate_id IS NULL OR p_project_id IS NULL OR nullif(trim(p_customer_report),'') IS NULL
+    OR length(trim(p_customer_report))>4000 OR length(coalesce(p_reported_by_contact,''))>200
+    OR p_defect_category IS NULL OR p_defect_category NOT IN ('misaligned_door','scratched_surface','color_mismatch','hardware_defect',
+      'stone_seam_flaw','lighting_failure','missing_accessory','dimensional_error')
+    OR p_priority IS NULL OR p_priority NOT IN ('urgent','high','medium','low') THEN
+    RETURN QUERY SELECT 'DENIED'::text,'INVALID_WARRANTY_TICKET_INPUT'::text,NULL::jsonb; RETURN;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.interior_projects p WHERE p.id=p_project_id AND p.tenant_id=v_tenant) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'PROJECT_NOT_FOUND'::text,NULL::jsonb; RETURN;
+  END IF;
+  IF NOT public.interior_has_permission('interior:warranty:create',v_tenant,p_project_id,NULL) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'WARRANTY_CREATE_PERMISSION_REQUIRED'::text,NULL::jsonb; RETURN;
+  END IF;
+  SELECT * INTO v_certificate FROM public.interior_warranty_certificates w
+  WHERE w.id=p_certificate_id AND w.tenant_id=v_tenant AND w.project_id=p_project_id;
+  IF NOT FOUND THEN RETURN QUERY SELECT 'DENIED'::text,'WARRANTY_CERTIFICATE_NOT_FOUND'::text,NULL::jsonb; RETURN; END IF;
+  INSERT INTO public.interior_warranty_service_tickets(
+    tenant_id,certificate_id,project_id,ticket_number,reported_date,customer_report,
+    room_zone_name,item_name,defect_category,status,reported_by_user_id,reported_by_contact,priority,updated_at
+  ) VALUES(v_tenant,p_certificate_id,p_project_id,v_ticket_number,statement_timestamp(),trim(p_customer_report),
+    'Toàn bộ công trình',left(trim(p_customer_report),30),p_defect_category,'submitted',v_actor,
+    nullif(trim(coalesce(p_reported_by_contact,'')),''),p_priority,statement_timestamp())
+  RETURNING * INTO v_ticket;
+  INSERT INTO public.audit_logs(tenant_id,table_name,record_id,action,old_data,new_data,changed_by_id,created_at)
+  VALUES(v_tenant,'interior_warranty_service_tickets',v_ticket.id,'CREATE',NULL,
+    jsonb_build_object('project_id',p_project_id,'certificate_id',p_certificate_id,
+      'defect_category',p_defect_category,'priority',p_priority,'status','submitted'),v_actor,statement_timestamp());
+  RETURN QUERY SELECT 'COMMITTED'::text,'WARRANTY_TICKET_CREATED'::text,
+    jsonb_build_object('id',v_ticket.id,'tenantId',v_ticket.tenant_id,'warrantyId',v_ticket.certificate_id,
+      'projectId',v_ticket.project_id,'reportedByUserId',v_ticket.reported_by_user_id,
+      'reportedByContact',v_ticket.reported_by_contact,'ticketNumber',v_ticket.ticket_number,
+      'reportedDate',v_ticket.reported_date,'customerReport',v_ticket.customer_report,
+      'roomZoneName',v_ticket.room_zone_name,'itemName',v_ticket.item_name,
+      'defectCategory',v_ticket.defect_category,'priority',v_ticket.priority,'status',v_ticket.status,
+      'assignedTechnician',v_ticket.assigned_technician,'scheduledFixDate',v_ticket.scheduled_fix_date,
+      'resolvedDate',v_ticket.resolved_date,'resolutionDetails',v_ticket.resolution_details,
+      'supplierChargebackEligible',v_ticket.supplier_chargeback_eligible,'updatedAt',v_ticket.updated_at);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_read_contract_project(p_project_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE
+  v_tenant uuid:=public.interior_actor_tenant();
+  v_project public.interior_projects%ROWTYPE;
+  v_contract public.interior_contracts%ROWTYPE;
+  v_milestones jsonb:='[]'::jsonb;
+  v_finance_access boolean;
+  v_customer_access boolean;
+BEGIN
+  IF v_tenant IS NULL OR p_project_id IS NULL THEN
+    RAISE EXCEPTION 'AuthorizationViolation: active tenant and project are required';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.interior_projects p WHERE p.id=p_project_id AND p.tenant_id=v_tenant) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: scoped project was not found';
+  END IF;
+  IF NOT public.interior_has_permission('interior:contract:read',v_tenant,p_project_id,NULL) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: contract read is required';
+  END IF;
+  SELECT * INTO v_project FROM public.interior_projects p WHERE p.id=p_project_id AND p.tenant_id=v_tenant;
+  v_finance_access:=public.interior_has_permission('interior:finance:read',v_tenant,p_project_id,NULL);
+  v_customer_access:=public.interior_has_permission('interior:customer:read',v_tenant,p_project_id,NULL);
+  SELECT * INTO v_contract FROM public.interior_contracts c
+  WHERE c.tenant_id=v_tenant AND c.project_id=p_project_id
+  ORDER BY c.signed_date DESC,c.id DESC LIMIT 1;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('hasContract',false,'financeAccess',v_finance_access,'customerAccess',v_customer_access,
+      'project',jsonb_build_object('id',v_project.id,'code',v_project.code,'name',v_project.name));
+  END IF;
+  IF v_finance_access THEN
+    SELECT coalesce(jsonb_agg(jsonb_build_object(
+      'id',m.id,'tenantId',m.tenant_id,'contractId',m.contract_id,'milestoneOrder',m.milestone_order,
+      'name',m.name,'percentage',m.percentage,'amount',m.amount,'triggerCondition',m.trigger_condition,
+      'status',m.status,'dueDate',m.due_date,'paidAt',m.paid_at
+    ) ORDER BY m.milestone_order,m.id),'[]'::jsonb)
+    INTO v_milestones FROM public.interior_payment_milestones m
+    WHERE m.tenant_id=v_tenant AND m.contract_id=v_contract.id;
+  END IF;
+  RETURN jsonb_build_object(
+    'hasContract',true,'financeAccess',v_finance_access,'customerAccess',v_customer_access,
+    'project',jsonb_build_object('id',v_project.id,'code',v_project.code,'name',v_project.name),
+    'contract',jsonb_strip_nulls(jsonb_build_object(
+      'id',v_contract.id,'tenantId',v_contract.tenant_id,'projectId',v_contract.project_id,
+      'quotationId',v_contract.quotation_id,'contractNumber',v_contract.contract_number,
+      'title',v_contract.title,'status',v_contract.status,
+      'baselineContractValue',CASE WHEN v_finance_access THEN v_contract.baseline_contract_value END,
+      'currentContractValue',CASE WHEN v_finance_access THEN v_contract.current_contract_value END,
+      'signedDate',v_contract.signed_date,
+      'clientRepresentative',CASE WHEN v_customer_access THEN v_contract.client_representative END,
+      'contractorRepresentative',v_contract.contractor_representative,
+      'milestones',CASE WHEN v_finance_access THEN v_milestones ELSE '[]'::jsonb END
+    ))
+  );
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.interior_read_boqs(p_project_id uuid)
 RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
@@ -1717,7 +1985,8 @@ BEGIN
       'interior:company:manage','interior:branch:manage','interior:audit:read','interior:audit:read_limited')
      OR NOT EXISTS (SELECT 1 FROM public.interior_permissions WHERE permission_id=p_permission_id)
      OR p_scope_type IS NULL OR p_scope_type NOT IN ('TENANT','BRANCH','PROJECT','SELF')
-     OR (p_scope_type IN ('TENANT','SELF') AND p_scope_id IS NOT NULL) THEN
+     OR (p_scope_type IN ('TENANT','SELF') AND p_scope_id IS NOT NULL)
+     OR (p_scope_type IN ('BRANCH','PROJECT') AND p_scope_id IS NULL) THEN
     RETURN QUERY SELECT 'DENIED'::text,'INVALID_DIRECT_GRANT'::text,NULL::uuid; RETURN;
   END IF;
   IF NOT EXISTS (SELECT 1 FROM public.users u JOIN auth.users au ON au.id=u.id
@@ -1959,11 +2228,65 @@ CREATE TRIGGER trg_interior_boq_approval
   BEFORE INSERT OR UPDATE ON public.interior_boqs
   FOR EACH ROW EXECUTE FUNCTION public.interior_guard_boq_approval();
 
+CREATE OR REPLACE FUNCTION public.interior_authorize_boq_save(
+  p_tenant_id uuid,p_project_id uuid,p_boq_id uuid,p_target_status text
+)
+RETURNS TABLE(status text,reason text)
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE
+  v_actor_tenant uuid:=public.interior_actor_tenant();
+  v_existing_project uuid;
+  v_permission text;
+BEGIN
+  IF auth.uid() IS NULL OR v_actor_tenant IS NULL THEN
+    RETURN QUERY SELECT 'DENY'::text,'ACTIVE_ACTOR_REQUIRED'::text; RETURN;
+  END IF;
+  IF p_tenant_id IS DISTINCT FROM v_actor_tenant OR p_project_id IS NULL OR p_boq_id IS NULL
+    OR NOT EXISTS (SELECT 1 FROM public.interior_projects p WHERE p.id=p_project_id AND p.tenant_id=v_actor_tenant) THEN
+    RETURN QUERY SELECT 'DENY'::text,'TENANT_OR_PROJECT_MISMATCH'::text; RETURN;
+  END IF;
+  PERFORM pg_advisory_xact_lock(hashtextextended(p_boq_id::text,0));
+
+  IF p_target_status='approved' THEN
+    v_permission:='interior:boq:approve';
+  ELSIF p_target_status='locked_for_contract' THEN
+    IF public.interior_has_permission('interior:contract:create',v_actor_tenant,p_project_id,NULL)
+       OR public.interior_has_permission('interior:contract:update',v_actor_tenant,p_project_id,NULL) THEN
+      RETURN QUERY SELECT 'ALLOW'::text,'CONTRACT_PERMISSION_GRANTED'::text; RETURN;
+    END IF;
+    RETURN QUERY SELECT 'DENY'::text,'CONTRACT_PERMISSION_REQUIRED'::text; RETURN;
+  ELSIF p_target_status NOT IN ('draft','under_review') THEN
+    RETURN QUERY SELECT 'DENY'::text,'INVALID_BOQ_TARGET_STATUS'::text; RETURN;
+  ELSE
+    SELECT b.project_id INTO v_existing_project
+    FROM public.interior_boqs b WHERE b.id=p_boq_id AND b.tenant_id=v_actor_tenant FOR UPDATE;
+    IF FOUND THEN
+      IF v_existing_project IS DISTINCT FROM p_project_id THEN
+        RETURN QUERY SELECT 'DENY'::text,'BOQ_PROJECT_MISMATCH'::text; RETURN;
+      END IF;
+      v_permission:='interior:boq:update';
+    ELSE
+      IF p_target_status<>'draft' THEN
+        RETURN QUERY SELECT 'DENY'::text,'BOQ_MUST_BE_DRAFT_BEFORE_REVIEW_OR_APPROVAL'::text; RETURN;
+      END IF;
+      v_permission:='interior:boq:create';
+    END IF;
+  END IF;
+
+  IF public.interior_has_permission(v_permission,v_actor_tenant,p_project_id,NULL) THEN
+    RETURN QUERY SELECT 'ALLOW'::text,'BOQ_ACTION_GRANTED'::text;
+  ELSE
+    RETURN QUERY SELECT 'DENY'::text,'BOQ_ACTION_PERMISSION_REQUIRED'::text;
+  END IF;
+END;
+$$;
+
 DO $boq_rpc$
 DECLARE
   v_definition text;
   v_needle text := 'public.platform_authorize_action(''interior:boq:write'', p_tenant_id, NULL)';
-  v_replacement text := 'public.interior_authorize_action(''interior:boq:write'', p_tenant_id, (p_boq_header->>''project_id'')::uuid, NULL)';
+  v_replacement text := 'public.interior_authorize_boq_save(p_tenant_id,(p_boq_header->>''project_id'')::uuid,(p_boq_header->>''id'')::uuid,coalesce(p_boq_header->>''status'',''draft''))';
   v_revision_needle text := 'AND project_id = v_project_id';
   v_revision_replacement text := 'AND project_id = v_project_id AND status = ''approved''';
   v_service_branch_needle text := 'ELSIF v_auth_role IS DISTINCT FROM ''service_role'' THEN';
@@ -2009,6 +2332,7 @@ END
 $outbox_rpc$;
 
 REVOKE ALL ON FUNCTION public.interior_actor_tenant() FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_authorize_boq_save(uuid,uuid,uuid,text) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_resolve_project_id(uuid,text,uuid,uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_has_permission(text,uuid,uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_authorize_action(text,uuid,uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
@@ -2039,6 +2363,12 @@ REVOKE ALL ON FUNCTION public.interior_list_qc_items(uuid) FROM PUBLIC,anon,auth
 REVOKE ALL ON FUNCTION public.interior_read_qc_item(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_create_qc_item(uuid,uuid,text,text,text) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_update_qc_item(uuid,text,text) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_list_handover_dossiers(uuid) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_create_handover_dossier(uuid,text) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_list_warranty_certificates(uuid) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_list_warranty_tickets(uuid) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_create_warranty_ticket(uuid,uuid,text,text,text,text) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_read_contract_project(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_read_boqs(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_create_project(text,text,text,text,text,text,text,numeric,date,uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_approve_boq(uuid) FROM PUBLIC,anon,authenticated,service_role;
@@ -2074,6 +2404,12 @@ GRANT EXECUTE ON FUNCTION public.interior_list_qc_items(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_read_qc_item(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_create_qc_item(uuid,uuid,text,text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_update_qc_item(uuid,text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_list_handover_dossiers(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_create_handover_dossier(uuid,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_list_warranty_certificates(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_list_warranty_tickets(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_create_warranty_ticket(uuid,uuid,text,text,text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_read_contract_project(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_read_boqs(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_create_project(text,text,text,text,text,text,text,numeric,date,uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_approve_boq(uuid) TO authenticated;

@@ -132,6 +132,7 @@ describe('Bella Interior RBAC migration contract', () => {
     expect(migrationSql).toContain("interior_has_permission('interior:roles:assign',p_tenant_id,NULL,NULL)");
     expect(migrationSql).toContain('REVOKE ALL ON public.interior_roles,public.interior_permissions,public.interior_role_permissions');
     expect(migrationSql).toContain("CREATE POLICY interior_rbac_select ON public.%I AS PERMISSIVE FOR SELECT TO authenticated");
+    expect(migrationSql).toContain("OR (p_scope_type IN ('BRANCH','PROJECT') AND p_scope_id IS NULL) THEN");
     expect(migrationSql).not.toMatch(/GRANT\s+(SELECT|INSERT|UPDATE|DELETE|ALL)\s+ON\s+TABLE\s+public\.interior_/i);
   });
 
@@ -172,6 +173,16 @@ describe('Bella Interior RBAC migration contract', () => {
     expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_create_site_diary(uuid,date,integer,text,text[],text) TO authenticated');
   });
 
+  it('separates BOQ create, update, approval, and contract locking permissions at the RPC boundary', () => {
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_authorize_boq_save(');
+    expect(migrationSql).toContain("v_permission:='interior:boq:create'");
+    expect(migrationSql).toContain("v_permission:='interior:boq:update'");
+    expect(migrationSql).toContain("v_permission:='interior:boq:approve'");
+    expect(migrationSql).toContain("public.interior_has_permission('interior:contract:create'");
+    expect(migrationSql).toContain('public.interior_authorize_boq_save(p_tenant_id');
+    expect(migrationSql).toContain('REVOKE ALL ON FUNCTION public.interior_authorize_boq_save(uuid,uuid,uuid,text)');
+  });
+
   it('requires qc:approve for punch-list verification and resolves each item to its project', () => {
     expect(migrationSql).toContain("WHEN 'qc_item' THEN");
     expect(migrationSql).toContain('ADD COLUMN IF NOT EXISTS room_zone_id uuid');
@@ -184,5 +195,32 @@ describe('Bella Interior RBAC migration contract', () => {
     expect(migrationSql).toContain('QC_ITEM_MUST_BE_RECTIFIED_BEFORE_VERIFICATION');
     expect(migrationSql).toContain("VALUES(v_tenant,p_project_id,p_room_zone_id,v_actor,v_room_name");
     expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_update_qc_item(uuid,text,text) TO authenticated');
+  });
+
+  it('persists handover and warranty commands through actor-bound scoped RPCs', () => {
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_list_handover_dossiers');
+    expect(migrationSql).toContain("public.interior_has_permission('interior:handover:approve',v_tenant,p_project_id,NULL)");
+    expect(migrationSql).toContain('v_tenant uuid:=public.interior_actor_tenant(); v_actor uuid:=auth.uid()');
+    expect(migrationSql).toContain("h.status='completed'");
+    expect(migrationSql).toContain("q.severity='critical' AND q.status<>'verified'");
+    expect(migrationSql).toContain('created_by_user_id,approved_by_user_id,created_at');
+    expect(migrationSql).toContain("'approvedByUserId',v_dossier.approved_by_user_id");
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_list_warranty_certificates');
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_list_warranty_tickets');
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_create_warranty_ticket');
+    expect(migrationSql).toContain("public.interior_has_permission('interior:warranty:create',v_tenant,p_project_id,NULL)");
+    expect(migrationSql).toContain('reported_by_user_id,reported_by_contact,priority,updated_at');
+    expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_create_handover_dossier(uuid,text) TO authenticated');
+    expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_create_warranty_ticket(uuid,uuid,text,text,text,text) TO authenticated');
+  });
+
+  it('masks contract finance and customer fields at the scoped read boundary', () => {
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_read_contract_project(p_project_id uuid)');
+    expect(migrationSql).toContain("public.interior_has_permission('interior:contract:read',v_tenant,p_project_id,NULL)");
+    expect(migrationSql).toContain("v_finance_access:=public.interior_has_permission('interior:finance:read',v_tenant,p_project_id,NULL)");
+    expect(migrationSql).toContain("v_customer_access:=public.interior_has_permission('interior:customer:read',v_tenant,p_project_id,NULL)");
+    expect(migrationSql).toContain("'baselineContractValue',CASE WHEN v_finance_access THEN v_contract.baseline_contract_value END");
+    expect(migrationSql).toContain("'clientRepresentative',CASE WHEN v_customer_access THEN v_contract.client_representative END");
+    expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_read_contract_project(uuid) TO authenticated');
   });
 });

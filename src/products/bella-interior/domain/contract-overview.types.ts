@@ -192,6 +192,19 @@ export interface WorkshopReleaseGating {
 
 export interface ContractOverviewResponse {
   hasContract: boolean;
+  /** False when contract data is readable but finance fields are permission-masked. */
+  financeAccess?: boolean;
+  contractSummary?: {
+    contractNumber: string;
+    title: string;
+    status: string;
+    signedDate: string | null;
+    clientRepresentative?: string | null;
+  };
+  workflowCommands?: {
+    createContractAvailable: boolean;
+    releaseProductionAvailable: boolean;
+  };
   header: ContractProjectHeader;
   kpis: ContractOverviewKPIs;
   progressStepper: PaymentProgressStepper;
