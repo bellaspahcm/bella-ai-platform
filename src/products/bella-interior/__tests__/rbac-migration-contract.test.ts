@@ -183,6 +183,21 @@ describe('Bella Interior RBAC migration contract', () => {
     expect(migrationSql).toContain('REVOKE ALL ON FUNCTION public.interior_authorize_boq_save(uuid,uuid,uuid,text)');
   });
 
+  it('targets only the design revision guard when the existing BOQ RPC also checks project idempotency', () => {
+    const original = readFileSync(join(process.cwd(), 'supabase/migrations/20261108153000_harden_interior_boq_production_safety.sql'), 'utf8').replace(/\r\n/g, '\n');
+    const match = migrationSql.replace(/\r\n/g, '\n').match(/v_revision_needle text := '((?:''|[^'])*)';/);
+    if (!match?.[1]) throw new Error('BOQ revision guard anchor is missing');
+    const anchor = match[1].replace(/''/g, "'");
+    expect(original.split('AND project_id = v_project_id')).toHaveLength(3);
+    expect(original.split(anchor)).toHaveLength(2);
+    const patched = original.replace(anchor, `${anchor}\n              AND status = 'approved'`);
+    expect(patched).toContain("FROM public.interior_design_revisions\n            WHERE id = (p_boq_header->>'design_revision_id')::UUID\n              AND tenant_id = p_tenant_id\n              AND project_id = v_project_id\n              AND status = 'approved'");
+    expect(patched).toContain('FROM public.interior_sync_idempotency\n        WHERE tenant_id = p_tenant_id\n          AND project_id = v_project_id\n          AND idempotency_key = p_idempotency_key');
+    expect(migrationSql).toContain("v_revision_replacement text := v_revision_needle || E'\\n              AND status = ''approved'''");
+    expect(migrationSql).toContain('Interior BOQ revision guard is ambiguous');
+    expect(migrationSql).toContain('Interior BOQ authorization guard is ambiguous');
+  });
+
   it('requires qc:approve for punch-list verification and resolves each item to its project', () => {
     expect(migrationSql).toContain("WHEN 'qc_item' THEN");
     expect(migrationSql).toContain('ADD COLUMN IF NOT EXISTS room_zone_id uuid');

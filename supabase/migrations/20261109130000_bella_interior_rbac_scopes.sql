@@ -2287,8 +2287,11 @@ DECLARE
   v_definition text;
   v_needle text := 'public.platform_authorize_action(''interior:boq:write'', p_tenant_id, NULL)';
   v_replacement text := 'public.interior_authorize_boq_save(p_tenant_id,(p_boq_header->>''project_id'')::uuid,(p_boq_header->>''id'')::uuid,coalesce(p_boq_header->>''status'',''draft''))';
-  v_revision_needle text := 'AND project_id = v_project_id';
-  v_revision_replacement text := 'AND project_id = v_project_id AND status = ''approved''';
+  v_revision_needle text := 'FROM public.interior_design_revisions
+            WHERE id = (p_boq_header->>''design_revision_id'')::UUID
+              AND tenant_id = p_tenant_id
+              AND project_id = v_project_id';
+  v_revision_replacement text := v_revision_needle || E'\n              AND status = ''approved''';
   v_service_branch_needle text := 'ELSIF v_auth_role IS DISTINCT FROM ''service_role'' THEN';
   v_service_branch_replacement text := 'ELSIF v_auth_role = ''service_role'' THEN
         RAISE EXCEPTION ''AuthorizationViolation: service role cannot bypass Interior BOQ permissions'';
@@ -2301,6 +2304,10 @@ BEGIN
   END IF;
   IF position(v_revision_needle IN substring(v_definition FROM position(v_revision_needle IN v_definition)+1))>0 THEN
     RAISE EXCEPTION 'Interior BOQ revision guard is ambiguous; refusing to alter its authorization boundary';
+  END IF;
+  IF position(v_needle IN substring(v_definition FROM position(v_needle IN v_definition)+1))>0
+     OR position(v_service_branch_needle IN substring(v_definition FROM position(v_service_branch_needle IN v_definition)+1))>0 THEN
+    RAISE EXCEPTION 'Interior BOQ authorization guard is ambiguous; refusing to alter its authorization boundary';
   END IF;
   v_definition:=replace(v_definition,v_needle,v_replacement);
   v_definition:=replace(v_definition,v_revision_needle,v_revision_replacement);
