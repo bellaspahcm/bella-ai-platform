@@ -629,6 +629,28 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.interior_authorize_schedule_list(p_tenant_id uuid)
+RETURNS TABLE(status text,reason text)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_actor_tenant uuid:=public.interior_actor_tenant();
+BEGIN
+  IF auth.uid() IS NULL OR v_actor_tenant IS NULL OR p_tenant_id IS DISTINCT FROM v_actor_tenant THEN
+    RETURN QUERY SELECT 'DENY'::text,'TENANT_MISMATCH'::text;
+    RETURN;
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.interior_projects p
+    WHERE p.tenant_id=p_tenant_id
+      AND public.interior_has_permission('interior:schedule:read',p_tenant_id,p.id,p.branch_id)
+  ) THEN
+    RETURN QUERY SELECT 'ALLOW'::text,'SCOPED_SCHEDULE_LIST'::text;
+  ELSE
+    RETURN QUERY SELECT 'DENY'::text,'NO_GRANT'::text;
+  END IF;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.interior_read_project(p_project_id uuid)
 RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
@@ -732,6 +754,116 @@ BEGIN
   FROM public.interior_design_revisions r
   WHERE r.tenant_id=v_tenant AND r.project_id=p_project_id;
   RETURN v_result;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_list_installation_plans(p_project_id uuid DEFAULT NULL)
+RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_tenant uuid:=public.interior_actor_tenant(); v_result jsonb;
+BEGIN
+  IF v_tenant IS NULL THEN
+    RAISE EXCEPTION 'AuthorizationViolation: active Interior tenant is required';
+  END IF;
+  IF p_project_id IS NOT NULL AND NOT public.interior_has_permission('interior:schedule:read',v_tenant,p_project_id,NULL) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: scoped schedule read is required';
+  END IF;
+  IF p_project_id IS NULL AND NOT EXISTS (
+    SELECT 1 FROM public.interior_projects p WHERE p.tenant_id=v_tenant
+      AND public.interior_has_permission('interior:schedule:read',v_tenant,p.id,p.branch_id)
+  ) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: scoped schedule read is required';
+  END IF;
+  SELECT coalesce(jsonb_agg(jsonb_build_object(
+    'id',i.id,'tenantId',i.tenant_id,'projectId',i.project_id,'planNumber',i.plan_number,
+    'siteSupervisorId',i.site_supervisor_id,'siteSupervisorName',i.site_supervisor_name,
+    'scheduledStartDate',i.scheduled_start_date,'scheduledEndDate',i.scheduled_end_date,
+    'overallProgressPercent',i.overall_progress_percent,
+    'rooms',coalesce((SELECT jsonb_agg(jsonb_build_object(
+      'id',r.id,'tenantId',r.tenant_id,'planId',r.plan_id,'roomZoneId',r.room_zone_id,
+      'roomZoneName',r.room_zone_name,'status',r.status,'installerTeamLeader',r.installer_team_leader,
+      'progressPercent',r.progress_percent,'targetInstallDate',r.target_install_date,'completedDate',r.completed_date
+    ) ORDER BY r.target_install_date,r.id) FROM public.interior_site_room_installations r
+      WHERE r.tenant_id=v_tenant AND r.plan_id=i.id),'[]'::jsonb)
+  ) ORDER BY i.scheduled_start_date,i.id),'[]'::jsonb)
+  INTO v_result
+  FROM public.interior_site_installation_plans i
+  WHERE i.tenant_id=v_tenant
+    AND (p_project_id IS NULL OR i.project_id=p_project_id)
+    AND public.interior_has_permission('interior:schedule:read',v_tenant,i.project_id,NULL);
+  RETURN v_result;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_list_site_diaries(p_project_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_tenant uuid:=public.interior_actor_tenant(); v_result jsonb;
+BEGIN
+  IF v_tenant IS NULL OR p_project_id IS NULL THEN
+    RAISE EXCEPTION 'AuthorizationViolation: active Interior tenant and project are required';
+  END IF;
+  IF NOT public.interior_has_permission('interior:installation:read',v_tenant,p_project_id,NULL) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: scoped installation read is required';
+  END IF;
+  SELECT coalesce(jsonb_agg(jsonb_build_object(
+    'id',d.id,'tenantId',d.tenant_id,'projectId',d.project_id,'date',d.date,'weather',d.weather,
+    'workersPresent',d.labor_headcount,'activitiesCompleted',d.activities_completed,
+    'materialDelivered',d.material_delivered,'issuesNoted',d.issues_noted,
+    'supervisorName',d.supervisor_name,'photoUrls',d.photo_urls,'createdAt',d.created_at
+  ) ORDER BY d.date DESC,d.created_at DESC),'[]'::jsonb)
+  INTO v_result
+  FROM public.interior_site_diaries d
+  WHERE d.tenant_id=v_tenant AND d.project_id=p_project_id;
+  RETURN v_result;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_create_site_diary(
+  p_project_id uuid,p_entry_date date,p_labor_headcount integer,p_weather text,
+  p_activities_completed text[],p_issues_noted text DEFAULT ''
+)
+RETURNS TABLE(status text,reason text,entry_id uuid)
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE
+  v_actor uuid:=auth.uid();
+  v_tenant uuid:=public.interior_actor_tenant();
+  v_supervisor text;
+  v_entry_id uuid;
+BEGIN
+  IF v_actor IS NULL OR v_tenant IS NULL THEN
+    RETURN QUERY SELECT 'DENIED'::text,'ACTIVE_ACTOR_REQUIRED'::text,NULL::uuid; RETURN;
+  END IF;
+  IF p_project_id IS NULL OR p_entry_date IS NULL OR p_labor_headcount IS NULL OR p_labor_headcount<0
+    OR p_weather NOT IN ('sunny','cloudy','rainy','stormy')
+    OR p_activities_completed IS NULL OR cardinality(p_activities_completed)<1 OR cardinality(p_activities_completed)>50
+    OR EXISTS (SELECT 1 FROM unnest(p_activities_completed) item WHERE nullif(trim(item),'') IS NULL OR length(item)>2000)
+    OR length(coalesce(p_issues_noted,''))>5000 THEN
+    RETURN QUERY SELECT 'DENIED'::text,'INVALID_SITE_DIARY_INPUT'::text,NULL::uuid; RETURN;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.interior_projects p
+    WHERE p.id=p_project_id AND p.tenant_id=v_tenant) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'PROJECT_NOT_FOUND'::text,NULL::uuid; RETURN;
+  END IF;
+  IF NOT public.interior_has_permission('interior:installation:create',v_tenant,p_project_id,NULL) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'SITE_DIARY_CREATE_PERMISSION_REQUIRED'::text,NULL::uuid; RETURN;
+  END IF;
+  SELECT coalesce(nullif(trim(a.full_name),''),'Interior staff') INTO v_supervisor
+  FROM public.platform_current_actor_profile() a WHERE a.id=v_actor;
+  INSERT INTO public.interior_site_diaries(
+    tenant_id,project_id,date,weather,labor_headcount,activities_completed,material_delivered,
+    issues_noted,supervisor_name,photo_urls
+  ) VALUES(v_tenant,p_project_id,p_entry_date,p_weather,p_labor_headcount,p_activities_completed,
+    ARRAY[]::text[],nullif(trim(coalesce(p_issues_noted,'')),''),coalesce(v_supervisor,'Interior staff'),ARRAY[]::text[])
+  RETURNING id INTO v_entry_id;
+  INSERT INTO public.audit_logs(tenant_id,table_name,record_id,action,old_data,new_data,changed_by_id,created_at)
+  VALUES(v_tenant,'interior_site_diaries',v_entry_id,'CREATE',NULL,
+    jsonb_build_object('project_id',p_project_id,'date',p_entry_date,'labor_headcount',p_labor_headcount),
+    v_actor,statement_timestamp());
+  RETURN QUERY SELECT 'COMMITTED'::text,'SITE_DIARY_CREATED'::text,v_entry_id;
 END;
 $$;
 
@@ -1702,6 +1834,7 @@ REVOKE ALL ON FUNCTION public.interior_has_permission(text,uuid,uuid,uuid) FROM 
 REVOKE ALL ON FUNCTION public.interior_authorize_action(text,uuid,uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_authorize_project_list(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_authorize_customer_list(uuid) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_authorize_schedule_list(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_list_projects() FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_is_owner(uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_actor_can_manage_roles(uuid) FROM PUBLIC,anon,authenticated,service_role;
@@ -1719,6 +1852,9 @@ REVOKE ALL ON FUNCTION public.interior_permission_audit(integer) FROM PUBLIC,ano
 REVOKE ALL ON FUNCTION public.interior_read_project(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_list_room_zones(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_list_design_revisions(uuid) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_list_installation_plans(uuid) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_list_site_diaries(uuid) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_create_site_diary(uuid,date,integer,text,text[],text) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_read_boqs(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_create_project(text,text,text,text,text,text,text,numeric,date,uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_approve_boq(uuid) FROM PUBLIC,anon,authenticated,service_role;
@@ -1733,6 +1869,7 @@ GRANT EXECUTE ON FUNCTION public.interior_has_permission(text,uuid,uuid,uuid) TO
 GRANT EXECUTE ON FUNCTION public.interior_authorize_action(text,uuid,uuid,uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_authorize_project_list(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_authorize_customer_list(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_authorize_schedule_list(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_list_projects() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_manage_user_role(text,uuid,text,text,uuid,uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_set_admin_role_delegation(uuid,text,text) TO authenticated;
@@ -1746,6 +1883,9 @@ GRANT EXECUTE ON FUNCTION public.interior_permission_audit(integer) TO authentic
 GRANT EXECUTE ON FUNCTION public.interior_read_project(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_list_room_zones(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_list_design_revisions(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_list_installation_plans(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_list_site_diaries(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_create_site_diary(uuid,date,integer,text,text[],text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_read_boqs(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_create_project(text,text,text,text,text,text,text,numeric,date,uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_approve_boq(uuid) TO authenticated;

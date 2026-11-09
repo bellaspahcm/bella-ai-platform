@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
-import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { SiteDiaryEntry as DomainSiteDiaryEntry } from '@/products/bella-interior/domain/delivery-aftercare/types';
+import { interiorMutationRow, interiorRbacRpcClient, isInteriorRbacRecord, validInteriorUuid } from '@/products/bella-interior/lib/rbac-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,7 +57,6 @@ function isValidIsoDate(value: string): boolean {
 export async function GET(request: Request): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
   if (!ctx.ok) return ctx.response;
-  const { tenantId } = ctx;
 
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get('projectId');
@@ -73,20 +69,33 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-    const dbDiaries = await repo.listSiteDiaries(tenantId, projectId);
-    const mapped: SiteDiaryEntry[] = dbDiaries.map((d) => ({
-      id: d.id,
-      projectId: d.projectId,
-      date: d.date,
-      supervisorName: d.supervisorName,
-      workersPresent: d.laborHeadcount,
-      weatherCondition: (d.weather === 'cloudy' ? 'cloudy' : d.weather === 'rainy' ? 'rainy' : d.weather === 'stormy' ? 'stormy' : 'sunny') as WeatherCondition,
-      activitiesCompleted: d.activitiesCompleted,
-      issuesEncountered: d.issuesNoted ? [d.issuesNoted] : [],
-      notes: d.issuesNoted || '',
-      createdAt: d.date,
-    }));
+    const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_list_site_diaries', {
+      p_project_id: projectId,
+    });
+    if (error || !Array.isArray(data)) {
+      return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_READ_FAILED' }, { status: 503 });
+    }
+    const mapped: SiteDiaryEntry[] = data.filter(isInteriorRbacRecord).flatMap((diary) => {
+      if (typeof diary.id !== 'string' || typeof diary.projectId !== 'string'
+        || typeof diary.date !== 'string' || typeof diary.supervisorName !== 'string'
+        || typeof diary.workersPresent !== 'number' || !Array.isArray(diary.activitiesCompleted)
+        || !diary.activitiesCompleted.every((item) => typeof item === 'string')) return [];
+      const weatherCondition: WeatherCondition = diary.weather === 'cloudy' ? 'cloudy'
+        : diary.weather === 'rainy' ? 'rainy' : diary.weather === 'stormy' ? 'stormy' : 'sunny';
+      const issues = typeof diary.issuesNoted === 'string' && diary.issuesNoted ? [diary.issuesNoted] : [];
+      return [{
+        id: diary.id,
+        projectId: diary.projectId,
+        date: diary.date,
+        supervisorName: diary.supervisorName,
+        workersPresent: diary.workersPresent,
+        weatherCondition,
+        activitiesCompleted: diary.activitiesCompleted,
+        issuesEncountered: issues,
+        notes: typeof diary.issuesNoted === 'string' ? diary.issuesNoted : '',
+        createdAt: typeof diary.createdAt === 'string' ? diary.createdAt : diary.date,
+      }];
+    });
     return NextResponse.json({ success: true, data: mapped }, {
       headers: { 'Cache-Control': 'no-store, max-age=0' },
     });
@@ -100,7 +109,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 export async function POST(request: Request): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
   if (!ctx.ok) return ctx.response;
-  const { tenantId, actor } = ctx;
+  const { actor } = ctx;
 
   let body: unknown;
   try {
@@ -119,7 +128,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     raw as Partial<CreateSiteDiaryBody> & Record<string, unknown>;
 
   // Required fields
-  if (!projectId || typeof projectId !== 'string') {
+  if (!validInteriorUuid(projectId)) {
     return NextResponse.json({ success: false, error: 'projectId is required' }, { status: 400 });
   }
   if (!date || typeof date !== 'string' || !isValidIsoDate(date)) {
@@ -166,34 +175,30 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  const entryId = randomUUID();
-  const now = new Date().toISOString();
-
-  const domainEntry: DomainSiteDiaryEntry = {
-    id: entryId,
-    tenantId,
-    projectId,
-    date,
-    weather: raw.weatherCondition as string,
-    laborHeadcount: workersPresent,
-    activitiesCompleted,
-    materialDelivered: [],
-    issuesNoted: Array.isArray(issuesEncountered) && issuesEncountered.length > 0 ? issuesEncountered.join('; ') : typeof notes === 'string' ? notes : undefined,
-    supervisorName: actor.full_name || actor.email,
-    photoUrls: [],
-  };
-
-  try {
-    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-    const project = await repo.getProject(tenantId, projectId);
-    if (!project) return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
-    await repo.saveSiteDiary(tenantId, domainEntry);
-  } catch {
+  const issuesNoted = Array.isArray(issuesEncountered) && issuesEncountered.length > 0
+    ? issuesEncountered.join('; ')
+    : typeof notes === 'string' ? notes : '';
+  const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_create_site_diary', {
+    p_project_id: projectId,
+    p_entry_date: date,
+    p_labor_headcount: workersPresent,
+    p_weather: raw.weatherCondition,
+    p_activities_completed: activitiesCompleted,
+    p_issues_noted: issuesNoted,
+  });
+  if (error) {
     return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_PERSISTENCE_FAILED' }, { status: 503 });
   }
+  const outcome = interiorMutationRow(data);
+  if (!outcome || outcome.status !== 'COMMITTED' || typeof outcome.entry_id !== 'string') {
+    const reason = typeof outcome?.reason === 'string' ? outcome.reason : 'SITE_DIARY_CREATE_DENIED';
+    const status = reason === 'PROJECT_NOT_FOUND' ? 404 : reason === 'INVALID_SITE_DIARY_INPUT' ? 422 : 403;
+    return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_CREATE_DENIED', reason }, { status });
+  }
 
+  const now = new Date().toISOString();
   const newEntry: SiteDiaryEntry = {
-    id: entryId,
+    id: outcome.entry_id,
     projectId,
     date,
     supervisorName: actor.full_name || actor.email,
@@ -201,7 +206,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     weatherCondition: raw.weatherCondition as WeatherCondition,
     activitiesCompleted,
     issuesEncountered: isStringArray(issuesEncountered) ? issuesEncountered : [],
-    notes: typeof notes === 'string' ? notes : '',
+    notes: issuesNoted,
     createdAt: now,
   };
 

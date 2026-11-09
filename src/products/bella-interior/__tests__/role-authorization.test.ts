@@ -60,6 +60,16 @@ describe('SupabaseInteriorRoleAuthorization', () => {
     expect(rpc).toHaveBeenCalledWith('interior_authorize_customer_list', { p_tenant_id: 'tenant-a' });
   });
 
+  it('uses the schedule-specific scope resolver for a cross-project schedule list', async () => {
+    const { authorization, rpc } = createAuthorization({
+      data: [{ status: 'ALLOW', reason: 'SCOPED_SCHEDULE_LIST' }],
+      error: null,
+    });
+    await expect(authorization.authorizeScheduleList('tenant-a'))
+      .resolves.toEqual({ status: 'ALLOW', reason: 'SCOPED_SCHEDULE_LIST' });
+    expect(rpc).toHaveBeenCalledWith('interior_authorize_schedule_list', { p_tenant_id: 'tenant-a' });
+  });
+
   it('fails closed when the database resolver is unavailable', async () => {
     const { authorization } = createAuthorization({ data: null, error: { message: 'offline' } });
     await expect(authorization.authorize({ permissionId: 'interior:project:read', tenantId: 'tenant-a' }))

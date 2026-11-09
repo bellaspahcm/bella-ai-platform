@@ -160,4 +160,15 @@ describe('Bella Interior RBAC migration contract', () => {
     expect(migrationSql).toContain("submitted_by_user_id,submitted_at\n    ) VALUES (v_tenant,p_project_id,p_version_number,trim(p_title),'draft',v_actor::text,v_actor");
     expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_create_design_revision(uuid,text,integer) TO authenticated');
   });
+
+  it('routes schedule and site diary reads/writes through scoped actor-bound RPCs', () => {
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_authorize_schedule_list(p_tenant_id uuid)');
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_list_installation_plans(p_project_id uuid DEFAULT NULL)');
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_list_site_diaries(p_project_id uuid)');
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_create_site_diary(');
+    expect(migrationSql).toContain("public.interior_has_permission('interior:schedule:read',v_tenant");
+    expect(migrationSql).toContain("public.interior_has_permission('interior:installation:create',v_tenant,p_project_id,NULL)");
+    expect(migrationSql).toContain('INSERT INTO public.interior_site_diaries(');
+    expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_create_site_diary(uuid,date,integer,text,text[],text) TO authenticated');
+  });
 });

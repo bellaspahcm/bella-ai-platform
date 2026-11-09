@@ -419,12 +419,17 @@ export async function resolveInteriorContext(
       && request.method.toUpperCase() === 'GET';
     const isCustomerList = new URL(request.url).pathname.replace(/\/+$/, '') === '/api/interior/customers'
       && request.method.toUpperCase() === 'GET';
+    const isScheduleCollection = new URL(request.url).pathname.replace(/\/+$/, '') === '/api/interior/schedule'
+      && request.method.toUpperCase() === 'GET'
+      && projectId === undefined;
     const isAuditRead = new URL(request.url).pathname.replace(/\/+$/, '') === '/api/interior/rbac/audit'
       && request.method.toUpperCase() === 'GET';
     const decision = isProjectList
       ? await authorization_helper.authorizeProjectList(tenantId)
       : isCustomerList
         ? await authorization_helper.authorizeCustomerList(tenantId)
+        : isScheduleCollection
+          ? await authorization_helper.authorizeScheduleList(tenantId)
       : isAuditRead
         ? await (async () => {
           const decisions = await Promise.all([
