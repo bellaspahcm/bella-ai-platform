@@ -1449,7 +1449,7 @@ export class InteriorContractAnalyticsService {
    * Build a full ContractOverviewResponse from a real InteriorContract domain object.
    * This is the DB-first path: data sourced entirely from Supabase.
    */
-  private static buildResponseFromDBContract(
+  public static buildResponseFromDBContract(
     contract: InteriorContract,
     projectCode?: string,
   ): ContractOverviewResponse {
@@ -1490,6 +1490,11 @@ export class InteriorContractAnalyticsService {
       clientName: contract.clientRepresentative,
       contractValue,
       netCollected: financialTruth.netCollected,
+      // Database state does not currently prove design-lock, BOM, or disputes.
+      // Keep production release ineligible until the server can read those gates.
+      designLocked: false,
+      bomReady: false,
+      noOpenDisputes: false,
     });
 
     // Build alerts from overdue / upcoming milestones

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
+import { interiorRbacRpcClient, isInteriorRbacRecord, validInteriorUuid } from '@/products/bella-interior/lib/rbac-api';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { InteriorBOQ as DomainInteriorBOQ, BOQItem as DomainBOQItem, FurnitureItemCategory } from '@/products/bella-interior/domain/commercial-costing/types';
 
@@ -89,69 +90,23 @@ export async function GET(request: Request): Promise<NextResponse> {
     return NextResponse.json({ success: false, error: 'projectId query parameter is required' }, { status: 400 });
   }
 
-  const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-  try {
-    const project = await repo.getProject(ctx.tenantId, requestedProjectId);
-    if (!project) return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
-    const [financeDecision, contractDecision] = await Promise.all([
-      ctx.authorization.authorize({ permissionId: 'interior:finance:read', tenantId: ctx.tenantId }),
-      ctx.authorization.authorize({ permissionId: 'interior:contract:read', tenantId: ctx.tenantId }),
-    ]);
-    const canReadInternalCosts = financeDecision.status === 'ALLOW';
-    const canReadClientPricing = canReadInternalCosts || contractDecision.status === 'ALLOW';
-    const boqs = await repo.listBOQRevisions(ctx.tenantId, project.id);
-    const totals = boqs.reduce((sum, boq) => ({
-      internalCost: sum.internalCost + boq.totalInternalCost,
-      clientPrice: sum.clientPrice + boq.totalClientPrice,
-      grossMargin: sum.grossMargin + boq.totalGrossMargin,
-    }), { internalCost: 0, clientPrice: 0, grossMargin: 0 });
-    const projectedBOQs = boqs.map((boq) => {
-      const {
-        totalInternalCost,
-        totalClientPrice,
-        totalGrossMargin,
-        grossMarginPercent,
-        items,
-        ...visibleBOQ
-      } = boq;
-      return {
-        ...visibleBOQ,
-        items: items.map((item) => {
-          const {
-            internalUnitCost,
-            internalTotalCost,
-            clientUnitPrice,
-            clientTotalPrice,
-            grossMarginAmount,
-            grossMarginPercent: itemGrossMarginPercent,
-            ...visibleItem
-          } = item;
-          return {
-            ...visibleItem,
-            ...(canReadInternalCosts ? {
-              internalUnitCost,
-              internalTotalCost,
-              grossMarginAmount,
-              grossMarginPercent: itemGrossMarginPercent,
-            } : {}),
-            ...(canReadClientPricing ? { clientUnitPrice, clientTotalPrice } : {}),
-          };
-        }),
-        ...(canReadInternalCosts ? { totalInternalCost, totalGrossMargin, grossMarginPercent } : {}),
-        ...(canReadClientPricing ? { totalClientPrice } : {}),
-      };
-    });
-    const visibleTotals = {
-      ...(canReadInternalCosts ? { internalCost: totals.internalCost, grossMargin: totals.grossMargin } : {}),
-      ...(canReadClientPricing ? { clientPrice: totals.clientPrice } : {}),
-    };
-    return NextResponse.json({ success: true, data: { projectId: project.id, boqs: projectedBOQs, total: boqs.length, totals: visibleTotals } }, {
-      status: 200,
+  const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_read_boqs', {
+    p_project_id: requestedProjectId,
+  });
+  if (error) {
+    const denied = error.message?.includes('AuthorizationViolation') === true;
+    return NextResponse.json({ success: false, error: denied ? 'INTERIOR_PERMISSION_DENIED' : 'INTERIOR_BOQ_LOOKUP_FAILED' }, {
+      status: denied ? 403 : 503,
       headers: { 'Cache-Control': 'no-store, max-age=0' },
     });
-  } catch {
+  }
+  if (!isInteriorRbacRecord(data)) {
     return NextResponse.json({ success: false, error: 'INTERIOR_BOQ_LOOKUP_FAILED' }, { status: 503 });
   }
+  return NextResponse.json({ success: true, data }, {
+    status: 200,
+    headers: { 'Cache-Control': 'no-store, max-age=0' },
+  });
 }
 
 // ─── POST /api/interior/boq ───────────────────────────────────────────────────
@@ -192,58 +147,12 @@ export async function POST(request: Request): Promise<NextResponse> {
       { status: 422 }
     );
   }
+  if (!validInteriorUuid(parsed.designRevisionId)) {
+    return NextResponse.json({ success: false, error: 'INTERIOR_DESIGN_REVISION_ID_INVALID' }, { status: 422 });
+  }
   if (!Array.isArray(parsed.items) || parsed.items.length === 0) {
     return NextResponse.json(
       { success: false, error: 'Field "items" must be a non-empty array' },
-      { status: 422 }
-    );
-  }
-
-  // ── Guard: designRevisionId must reference an approved revision ───────────
-  const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-  let dbRevision;
-  try {
-    dbRevision = await repo.getDesignRevision(tenantId, parsed.designRevisionId);
-  } catch {
-    return NextResponse.json(
-      { success: false, error: 'INTERIOR_DESIGN_REVISION_LOOKUP_FAILED' },
-      { status: 503 },
-    );
-  }
-
-  if (!dbRevision) {
-    return NextResponse.json(
-      { success: false, error: `Design revision not found: ${parsed.designRevisionId}` },
-      { status: 404 }
-    );
-  }
-
-  if (dbRevision.projectId !== parsed.projectId) {
-    return NextResponse.json(
-      { success: false, error: 'Design revision does not belong to the requested project' },
-      { status: 422 },
-    );
-  }
-
-  let project;
-  try {
-    project = await repo.getProject(tenantId, parsed.projectId);
-  } catch {
-    return NextResponse.json(
-      { success: false, error: 'INTERIOR_PROJECT_LOOKUP_FAILED' },
-      { status: 503 },
-    );
-  }
-  if (!project) {
-    return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
-  }
-
-  if (dbRevision.status !== 'approved') {
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Design revision must be approved before creating BOQ',
-      },
       { status: 422 }
     );
   }
@@ -334,9 +243,23 @@ export async function POST(request: Request): Promise<NextResponse> {
     updatedAt: now,
   };
 
+  const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
   try {
     await repo.saveBOQ(tenantId, domainBOQ, { auditActorId: actor.id });
-  } catch {
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : '';
+    if (message.includes('AuthorizationViolation')) {
+      return NextResponse.json({ success: false, error: 'INTERIOR_PERMISSION_DENIED' }, { status: 403 });
+    }
+    if (message.includes('BOQPreconditionViolation')) {
+      return NextResponse.json({ success: false, error: 'APPROVED_DESIGN_REVISION_REQUIRED' }, { status: 422 });
+    }
+    if (message.includes('TenantIsolationViolation')) {
+      return NextResponse.json({ success: false, error: 'INTERIOR_PROJECT_OR_REVISION_NOT_FOUND' }, { status: 404 });
+    }
+    if (message.includes('Immutability violation') || message.includes('ConcurrencyConflict')) {
+      return NextResponse.json({ success: false, error: 'INTERIOR_BOQ_STATE_CONFLICT' }, { status: 409 });
+    }
     return NextResponse.json(
       { success: false, error: 'INTERIOR_BOQ_PERSISTENCE_FAILED' },
       { status: 503 },

@@ -49,4 +49,3 @@ describe('Bella Interior OS — Platform Manufacturing Adapter', () => {
     })).rejects.toThrow('MANUFACTURING_SERVICE_UNAVAILABLE');
   });
 });
-

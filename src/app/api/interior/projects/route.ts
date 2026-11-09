@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
-import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { InteriorProject } from '@/products/bella-interior/domain/design-specification/types';
+import { interiorMutationRow, interiorRbacRpcClient, validInteriorUuid } from '@/products/bella-interior/lib/rbac-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +22,8 @@ interface CreateProjectBody {
   clientPartyId: string;
   description?: string;
   estimatedBudget: number;
+  branchId?: string | null;
+  branch_id?: string | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -47,42 +46,16 @@ function validateProjectStatus(status: string): status is ProjectStatus {
 export async function GET(request: Request): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
   if (!ctx.ok) return ctx.response;
-  const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-
-  try {
-    const projects = await repo.listProjects(ctx.tenantId);
-    const [customerDecision, financeDecision, contractDecision] = await Promise.all([
-      ctx.authorization.authorize({ permissionId: 'interior:customer:read', tenantId: ctx.tenantId }),
-      ctx.authorization.authorize({ permissionId: 'interior:finance:read', tenantId: ctx.tenantId }),
-      ctx.authorization.authorize({ permissionId: 'interior:contract:read', tenantId: ctx.tenantId }),
-    ]);
-    const canReadBudget = financeDecision.status === 'ALLOW' || contractDecision.status === 'ALLOW';
-    return NextResponse.json({
-      success: true,
-      data: {
-        projects: projects.map((project) => ({
-          id: project.id,
-          code: project.code,
-          name: project.name,
-          status: project.status,
-          customerName: customerDecision.status === 'ALLOW' ? project.customerName : null,
-          estimatedBudget: canReadBudget && Number.isFinite(project.estimatedBudget)
-            ? project.estimatedBudget
-            : null,
-          targetCompletionDate: project.targetCompletionDate,
-          leadArchitectName: project.leadArchitectName,
-        })),
-        total: projects.length,
-      },
-    }, {
-      headers: { 'Cache-Control': 'no-store, max-age=0' },
-    });
-  } catch {
-    return NextResponse.json(
-      { success: false, error: 'INTERIOR_PROJECT_LOOKUP_FAILED' },
-      { status: 503 }
-    );
+  const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_list_projects');
+  if (error || !Array.isArray(data)) {
+    return NextResponse.json({ success: false, error: 'INTERIOR_PROJECT_LOOKUP_FAILED' }, { status: 503 });
   }
+  const projects = data.filter((value): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value),
+  );
+  return NextResponse.json({ success: true, data: { projects, total: projects.length } }, {
+    headers: { 'Cache-Control': 'no-store, max-age=0' },
+  });
 }
 
 // ─── POST /api/interior/projects ─────────────────────────────────────────────
@@ -90,8 +63,6 @@ export async function GET(request: Request): Promise<NextResponse> {
 export async function POST(request: Request): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
   if (!ctx.ok) return ctx.response;
-  const { tenantId, actor } = ctx;
-
   let body: unknown;
   try {
     body = await request.json();
@@ -128,40 +99,39 @@ export async function POST(request: Request): Promise<NextResponse> {
       { status: 422 }
     );
   }
-
-  const now = new Date().toISOString();
-  const projectId = randomUUID();
-  const domainProject: InteriorProject = {
-    id: projectId,
-    tenantId,
-    code: parsed.code,
-    name: parsed.name,
-    customerId: parsed.clientPartyId,
-    customerName: parsed.clientPartyId,
-    customerPhone: '',
-    siteAddress: parsed.description || '',
-    projectType: 'residential_villa',
-    status: 'concept_design',
-    estimatedBudget: parsed.estimatedBudget,
-    targetCompletionDate: new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10),
-    leadArchitectId: actor.id,
-    leadArchitectName: actor.full_name || actor.email,
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-  try {
-    await repo.saveProject(tenantId, domainProject);
-  } catch {
+  const branchId = parsed.branchId ?? parsed.branch_id ?? null;
+  if (branchId !== null && !validInteriorUuid(branchId)) {
+    return NextResponse.json({ success: false, error: 'INVALID_BRANCH_SCOPE' }, { status: 422 });
+  }
+  const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_create_project', {
+    p_code: parsed.code,
+    p_name: parsed.name,
+    p_customer_id: parsed.clientPartyId,
+    p_customer_name: parsed.clientPartyId,
+    p_customer_phone: '',
+    p_site_address: parsed.description ?? '',
+    p_project_type: 'residential_villa',
+    p_estimated_budget: parsed.estimatedBudget,
+    p_target_completion_date: new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10),
+    p_branch_id: branchId,
+  });
+  if (error) {
     return NextResponse.json(
       { success: false, error: 'INTERIOR_PROJECT_PERSISTENCE_FAILED' },
       { status: 503 },
     );
   }
+  const outcome = interiorMutationRow(data);
+  if (!outcome || outcome.status !== 'COMMITTED' || typeof outcome.project_id !== 'string') {
+    const reason = typeof outcome?.reason === 'string' ? outcome.reason : 'PROJECT_CREATE_DENIED';
+    const status = reason === 'PROJECT_CODE_ALREADY_EXISTS' ? 409
+      : reason === 'INVALID_PROJECT_INPUT' || reason === 'INVALID_BRANCH' ? 422 : 403;
+    return NextResponse.json({ success: false, error: 'INTERIOR_PROJECT_CREATE_DENIED', reason }, { status });
+  }
+  const now = new Date().toISOString();
 
   const newProject = {
-    id: projectId,
+    id: outcome.project_id,
     name: parsed.name,
     code: parsed.code,
     status: 'design',

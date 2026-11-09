@@ -35,4 +35,3 @@ export class PlatformManufacturingAdapter implements InteriorProductionRequestPo
     throw new Error('MANUFACTURING_SERVICE_UNAVAILABLE');
   }
 }
-

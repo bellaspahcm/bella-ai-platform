@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
-import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { DesignRevision as DomainDesignRevision } from '@/products/bella-interior/domain/design-specification/types';
+import { interiorMutationRow, interiorRbacRpcClient, validInteriorUuid } from '@/products/bella-interior/lib/rbac-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,15 +8,6 @@ export const dynamic = 'force-dynamic';
 
 interface ApproveRevisionBody {
   approvalNotes?: string;
-}
-
-class ApprovedDesignLockViolationError extends Error {
-  constructor(revisionId: string) {
-    super(
-      `Approved Design Lock Violation: Revision "${revisionId}" is already approved and locked for production. Re-approval is not permitted.`
-    );
-    this.name = 'ApprovedDesignLockViolationError';
-  }
 }
 
 // ─── POST /api/interior/design/revisions/[id]/approve ────────────────────────
@@ -29,36 +18,9 @@ export async function POST(
 ): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
   if (!ctx.ok) return ctx.response;
-  const { tenantId, actor } = ctx;
-
   const { id } = await params;
-
-  if (!id) {
-    return NextResponse.json(
-      { success: false, error: 'Revision ID is required' },
-      { status: 400 }
-    );
-  }
-
-  const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-  let dbRevision: DomainDesignRevision | null;
-  try {
-    dbRevision = await repo.getDesignRevision(tenantId, id);
-  } catch {
-    return NextResponse.json({ success: false, error: 'INTERIOR_DESIGN_REVISION_LOOKUP_FAILED' }, { status: 503 });
-  }
-
-  if (!dbRevision) {
-    return NextResponse.json(
-      { success: false, error: `Design revision not found: ${id}` },
-      { status: 404 }
-    );
-  }
-
-  // ── Approved Design Lock invariant ────────────────────────────────────────
-  if (dbRevision.status === 'approved') {
-    const err = new ApprovedDesignLockViolationError(id);
-    return NextResponse.json({ success: false, error: err.message }, { status: 409 });
+  if (!validInteriorUuid(id)) {
+    return NextResponse.json({ success: false, error: 'INTERIOR_DESIGN_REVISION_NOT_FOUND' }, { status: 404 });
   }
 
   let body: unknown = {};
@@ -70,43 +32,46 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
     }
   }
-  if (typeof body !== 'object' || body === null) {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
     return NextResponse.json({ success: false, error: 'Request body must be an object' }, { status: 400 });
   }
-
   const parsed = body as Partial<ApproveRevisionBody>;
-
-  if (
-    parsed.approvalNotes !== undefined &&
-    typeof parsed.approvalNotes !== 'string'
-  ) {
+  if (parsed.approvalNotes !== undefined && typeof parsed.approvalNotes !== 'string') {
     return NextResponse.json(
       { success: false, error: 'Field "approvalNotes" must be a string if provided' },
       { status: 422 }
     );
   }
+  const approvalNotes = typeof parsed.approvalNotes === 'string' ? parsed.approvalNotes.trim() : null;
+  if (approvalNotes !== null && approvalNotes.length > 2000) {
+    return NextResponse.json({ success: false, error: 'APPROVAL_NOTES_TOO_LONG' }, { status: 422 });
+  }
 
-  const approvedAt = new Date().toISOString();
-
-  const updatedRevision: DomainDesignRevision = {
-    ...dbRevision,
-    status: 'approved',
-    approvedBy: actor.id,
-    approvedAt,
-    changeSummary: parsed.approvalNotes || dbRevision.changeSummary || 'Approved for production',
-    clientSignoffDate: approvedAt,
-  };
-  try {
-    await repo.saveDesignRevision(tenantId, updatedRevision);
-  } catch {
-    return NextResponse.json({ success: false, error: 'INTERIOR_DESIGN_REVISION_PERSISTENCE_FAILED' }, { status: 503 });
+  const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_approve_design_revision', {
+    p_revision_id: id,
+    p_approval_notes: approvalNotes,
+  });
+  if (error) {
+    const denied = error.message?.includes('AuthorizationViolation') === true;
+    return NextResponse.json({ success: false, error: denied ? 'INTERIOR_PERMISSION_DENIED' : 'INTERIOR_DESIGN_REVISION_APPROVAL_FAILED' }, {
+      status: denied ? 403 : 503,
+      headers: { 'Cache-Control': 'no-store' },
+    });
+  }
+  const outcome = interiorMutationRow(data);
+  if (!outcome || outcome.status !== 'COMMITTED' || typeof outcome.approved_at !== 'string') {
+    const reason = typeof outcome?.reason === 'string' ? outcome.reason : 'DESIGN_APPROVAL_DENIED';
+    const status = reason === 'REVISION_NOT_FOUND' ? 404
+      : reason === 'REVISION_ALREADY_APPROVED' || reason === 'REVISION_STATE_NOT_APPROVABLE' ? 409
+        : reason === 'INVALID_APPROVAL_INPUT' ? 422 : 403;
+    return NextResponse.json({ success: false, error: 'INTERIOR_DESIGN_APPROVAL_DENIED', reason }, { status });
   }
 
   return NextResponse.json({
     success: true,
     data: {
       revisionId: id,
-      approvedAt,
+      approvedAt: outcome.approved_at,
       lockedForProduction: true as const,
     },
   });

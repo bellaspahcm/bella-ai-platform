@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { PunchListStatus } from '@/products/bella-interior/domain/delivery-aftercare/types';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
-import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { interiorMutationRow, interiorRbacRpcClient, isInteriorRbacRecord, validInteriorUuid } from '@/products/bella-interior/lib/rbac-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,16 +12,10 @@ interface PunchListPatchBody {
 
 const VALID_STATUSES: PunchListStatus[] = ['open', 'in_progress', 'rectified', 'verified'];
 
-async function loadItem(request: Request, id: string) {
-  const ctx = await resolveInteriorContext(request);
-  if (!ctx.ok) return { ctx, item: null } as const;
-  const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-  try {
-    const item = await repo.getPunchListItem(ctx.tenantId, id);
-    return { ctx, item, repo } as const;
-  } catch {
-    return { ctx, item: undefined, repo } as const;
-  }
+function mutationStatus(reason: unknown): number {
+  return reason === 'QC_ITEM_NOT_FOUND' ? 404
+    : reason === 'INVALID_QC_ITEM_INPUT' || reason === 'QC_ITEM_MUST_BE_RECTIFIED_BEFORE_VERIFICATION' ? 422
+      : reason === 'INVALID_QC_STATE_TRANSITION' ? 409 : 403;
 }
 
 export async function PATCH(
@@ -30,12 +23,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const { id } = await params;
-  if (!id) return NextResponse.json({ success: false, error: 'Punch list item ID is required' }, { status: 400 });
-
-  const loaded = await loadItem(request, id);
-  if (!loaded.ctx.ok) return loaded.ctx.response;
-  if (loaded.item === undefined) return NextResponse.json({ success: false, error: 'INTERIOR_QC_LOOKUP_FAILED' }, { status: 503 });
-  if (!loaded.item || !loaded.repo) return NextResponse.json({ success: false, error: 'Punch list item not found' }, { status: 404 });
+  if (!validInteriorUuid(id)) return NextResponse.json({ success: false, error: 'Punch list item ID is invalid' }, { status: 400 });
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
 
   let body: unknown;
   try {
@@ -54,35 +44,20 @@ export async function PATCH(
     return NextResponse.json({ success: false, error: 'rectificationNote must be a string' }, { status: 422 });
   }
 
-  const current = loaded.item;
-  const allowedNext: Record<PunchListStatus, PunchListStatus | null> = {
-    open: 'in_progress',
-    in_progress: 'rectified',
-    rectified: 'verified',
-    verified: null,
-  };
-  if (payload.status !== current.status && allowedNext[current.status] !== payload.status) {
-    return NextResponse.json({ success: false, error: `Invalid punch-list transition: ${current.status} -> ${payload.status}` }, { status: 409 });
-  }
-  if (payload.status === 'verified' && current.status !== 'rectified') {
-    return NextResponse.json({ success: false, error: 'Only a rectified item can be verified' }, { status: 422 });
-  }
-
-  const now = new Date().toISOString();
-  const updated = {
-    ...current,
-    status: payload.status,
-    rectificationNote: payload.rectificationNote ?? current.rectificationNote,
-    verifiedBy: payload.status === 'verified' ? loaded.ctx.actor.id : current.verifiedBy,
-    verifiedAt: payload.status === 'verified' ? now : current.verifiedAt,
-  };
-  try {
-    await loaded.repo.savePunchListItem(loaded.ctx.tenantId, updated);
-  } catch {
+  const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_update_qc_item', {
+    p_item_id: id,
+    p_status: payload.status,
+    p_rectification_note: payload.rectificationNote ?? null,
+  });
+  if (error) {
     return NextResponse.json({ success: false, error: 'INTERIOR_QC_PERSISTENCE_FAILED' }, { status: 503 });
   }
-
-  return NextResponse.json({ success: true, data: updated });
+  const outcome = interiorMutationRow(data);
+  if (!outcome || outcome.status !== 'COMMITTED' || !isInteriorRbacRecord(outcome.item)) {
+    const reason = outcome?.reason;
+    return NextResponse.json({ success: false, error: 'INTERIOR_QC_ITEM_UPDATE_DENIED', reason }, { status: mutationStatus(reason) });
+  }
+  return NextResponse.json({ success: true, data: outcome.item });
 }
 
 export async function GET(
@@ -90,11 +65,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const { id } = await params;
-  if (!id) return NextResponse.json({ success: false, error: 'Punch list item ID is required' }, { status: 400 });
-
-  const loaded = await loadItem(request, id);
-  if (!loaded.ctx.ok) return loaded.ctx.response;
-  if (loaded.item === undefined) return NextResponse.json({ success: false, error: 'INTERIOR_QC_LOOKUP_FAILED' }, { status: 503 });
-  if (!loaded.item) return NextResponse.json({ success: false, error: 'Punch list item not found' }, { status: 404 });
-  return NextResponse.json({ success: true, data: loaded.item });
+  if (!validInteriorUuid(id)) return NextResponse.json({ success: false, error: 'Punch list item ID is invalid' }, { status: 400 });
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_read_qc_item', { p_item_id: id });
+  if (error) return NextResponse.json({ success: false, error: 'INTERIOR_QC_LOOKUP_FAILED' }, { status: 503 });
+  if (data === null) return NextResponse.json({ success: false, error: 'Punch list item not found' }, { status: 404 });
+  if (!isInteriorRbacRecord(data)) return NextResponse.json({ success: false, error: 'INTERIOR_QC_LOOKUP_FAILED' }, { status: 503 });
+  return NextResponse.json({ success: true, data });
 }

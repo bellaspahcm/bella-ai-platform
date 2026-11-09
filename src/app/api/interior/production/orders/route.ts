@@ -20,4 +20,3 @@ export async function POST(request: Request): Promise<NextResponse> {
     error: 'INTERIOR_PRODUCTION_COMMAND_PERSISTENCE_UNAVAILABLE',
   }, { status: 503 });
 }
-

@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
-import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { SiteDiaryEntry as DomainSiteDiaryEntry } from '@/products/bella-interior/domain/delivery-aftercare/types';
+import { interiorMutationRow, interiorRbacRpcClient, isInteriorRbacRecord, validInteriorUuid } from '@/products/bella-interior/lib/rbac-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,10 +10,9 @@ type WeatherCondition = 'sunny' | 'cloudy' | 'rainy' | 'stormy';
 
 interface SiteDiaryEntry {
   id: string;
-  tenantId: string;
   projectId: string;
   date: string;
-  supervisorUserId: string;
+  supervisorName: string;
   workersPresent: number;
   weatherCondition: WeatherCondition;
   activitiesCompleted: string[];
@@ -44,11 +40,16 @@ function isValidWeather(value: unknown): value is WeatherCondition {
 }
 
 function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((v) => typeof v === 'string');
+  return Array.isArray(value)
+    && value.length <= 50
+    && value.every((v) => typeof v === 'string' && v.trim().length > 0 && v.length <= 2_000);
 }
 
 function isValidIsoDate(value: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !isNaN(Date.parse(value));
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  if (Number(value.slice(0, 4)) < 1) return false;
+  const parsed = new Date(value);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
 
 // ─── GET /api/interior/delivery/site-diary ────────────────────────────────────
@@ -56,7 +57,6 @@ function isValidIsoDate(value: string): boolean {
 export async function GET(request: Request): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
   if (!ctx.ok) return ctx.response;
-  const { tenantId } = ctx;
 
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get('projectId');
@@ -69,22 +69,36 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-    const dbDiaries = await repo.listSiteDiaries(tenantId, projectId);
-    const mapped: SiteDiaryEntry[] = dbDiaries.map((d) => ({
-      id: d.id,
-      tenantId: d.tenantId,
-      projectId: d.projectId,
-      date: d.date,
-      supervisorUserId: d.supervisorName,
-      workersPresent: d.laborHeadcount,
-      weatherCondition: (d.weather === 'cloudy' ? 'cloudy' : d.weather === 'rainy' ? 'rainy' : d.weather === 'stormy' ? 'stormy' : 'sunny') as WeatherCondition,
-      activitiesCompleted: d.activitiesCompleted,
-      issuesEncountered: d.issuesNoted ? [d.issuesNoted] : [],
-      notes: d.issuesNoted || '',
-      createdAt: d.date,
-    }));
-    return NextResponse.json({ success: true, data: mapped });
+    const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_list_site_diaries', {
+      p_project_id: projectId,
+    });
+    if (error || !Array.isArray(data)) {
+      return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_READ_FAILED' }, { status: 503 });
+    }
+    const mapped: SiteDiaryEntry[] = data.filter(isInteriorRbacRecord).flatMap((diary) => {
+      if (typeof diary.id !== 'string' || typeof diary.projectId !== 'string'
+        || typeof diary.date !== 'string' || typeof diary.supervisorName !== 'string'
+        || typeof diary.workersPresent !== 'number' || !Array.isArray(diary.activitiesCompleted)
+        || !diary.activitiesCompleted.every((item) => typeof item === 'string')) return [];
+      const weatherCondition: WeatherCondition = diary.weather === 'cloudy' ? 'cloudy'
+        : diary.weather === 'rainy' ? 'rainy' : diary.weather === 'stormy' ? 'stormy' : 'sunny';
+      const issues = typeof diary.issuesNoted === 'string' && diary.issuesNoted ? [diary.issuesNoted] : [];
+      return [{
+        id: diary.id,
+        projectId: diary.projectId,
+        date: diary.date,
+        supervisorName: diary.supervisorName,
+        workersPresent: diary.workersPresent,
+        weatherCondition,
+        activitiesCompleted: diary.activitiesCompleted,
+        issuesEncountered: issues,
+        notes: typeof diary.issuesNoted === 'string' ? diary.issuesNoted : '',
+        createdAt: typeof diary.createdAt === 'string' ? diary.createdAt : diary.date,
+      }];
+    });
+    return NextResponse.json({ success: true, data: mapped }, {
+      headers: { 'Cache-Control': 'no-store, max-age=0' },
+    });
   } catch {
     return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_READ_FAILED' }, { status: 503 });
   }
@@ -95,7 +109,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 export async function POST(request: Request): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
   if (!ctx.ok) return ctx.response;
-  const { tenantId, actor } = ctx;
+  const { actor } = ctx;
 
   let body: unknown;
   try {
@@ -114,7 +128,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     raw as Partial<CreateSiteDiaryBody> & Record<string, unknown>;
 
   // Required fields
-  if (!projectId || typeof projectId !== 'string') {
+  if (!validInteriorUuid(projectId)) {
     return NextResponse.json({ success: false, error: 'projectId is required' }, { status: 400 });
   }
   if (!date || typeof date !== 'string' || !isValidIsoDate(date)) {
@@ -123,9 +137,15 @@ export async function POST(request: Request): Promise<NextResponse> {
       { status: 400 },
     );
   }
-  if (workersPresent === undefined || typeof workersPresent !== 'number' || workersPresent < 0) {
+  if (
+    workersPresent === undefined
+    || typeof workersPresent !== 'number'
+    || !Number.isSafeInteger(workersPresent)
+    || workersPresent < 0
+    || workersPresent > 2_147_483_647
+  ) {
     return NextResponse.json(
-      { success: false, error: 'workersPresent is required and must be a non-negative number' },
+      { success: false, error: 'workersPresent is required and must be a non-negative whole number in range' },
       { status: 400 },
     );
   }
@@ -148,46 +168,50 @@ export async function POST(request: Request): Promise<NextResponse> {
       { status: 400 },
     );
   }
-
-  const entryId = randomUUID();
-  const now = new Date().toISOString();
-
-  const domainEntry: DomainSiteDiaryEntry = {
-    id: entryId,
-    tenantId,
-    projectId,
-    date,
-    weather: raw.weatherCondition as string,
-    laborHeadcount: workersPresent,
-    activitiesCompleted,
-    materialDelivered: [],
-    issuesNoted: Array.isArray(issuesEncountered) && issuesEncountered.length > 0 ? issuesEncountered.join('; ') : typeof notes === 'string' ? notes : undefined,
-    supervisorName: actor.full_name || actor.email,
-    photoUrls: [],
-  };
-
-  try {
-    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-    const project = await repo.getProject(tenantId, projectId);
-    if (!project) return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
-    await repo.saveSiteDiary(tenantId, domainEntry);
-  } catch {
-    return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_PERSISTENCE_FAILED' }, { status: 503 });
+  if (typeof notes === 'string' && notes.length > 5_000) {
+    return NextResponse.json(
+      { success: false, error: 'notes must not exceed 5000 characters' },
+      { status: 400 },
+    );
   }
 
+  const issuesNoted = Array.isArray(issuesEncountered) && issuesEncountered.length > 0
+    ? issuesEncountered.join('; ')
+    : typeof notes === 'string' ? notes : '';
+  const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_create_site_diary', {
+    p_project_id: projectId,
+    p_entry_date: date,
+    p_labor_headcount: workersPresent,
+    p_weather: raw.weatherCondition,
+    p_activities_completed: activitiesCompleted,
+    p_issues_noted: issuesNoted,
+  });
+  if (error) {
+    return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_PERSISTENCE_FAILED' }, { status: 503 });
+  }
+  const outcome = interiorMutationRow(data);
+  if (!outcome || outcome.status !== 'COMMITTED' || typeof outcome.entry_id !== 'string') {
+    const reason = typeof outcome?.reason === 'string' ? outcome.reason : 'SITE_DIARY_CREATE_DENIED';
+    const status = reason === 'PROJECT_NOT_FOUND' ? 404 : reason === 'INVALID_SITE_DIARY_INPUT' ? 422 : 403;
+    return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_CREATE_DENIED', reason }, { status });
+  }
+
+  const now = new Date().toISOString();
   const newEntry: SiteDiaryEntry = {
-    id: entryId,
-    tenantId,
+    id: outcome.entry_id,
     projectId,
     date,
-    supervisorUserId: actor.id,
+    supervisorName: actor.full_name || actor.email,
     workersPresent,
     weatherCondition: raw.weatherCondition as WeatherCondition,
     activitiesCompleted,
     issuesEncountered: isStringArray(issuesEncountered) ? issuesEncountered : [],
-    notes: typeof notes === 'string' ? notes : '',
+    notes: issuesNoted,
     createdAt: now,
   };
 
-  return NextResponse.json({ success: true, data: newEntry }, { status: 201 });
+  return NextResponse.json({ success: true, data: newEntry }, {
+    status: 201,
+    headers: { 'Cache-Control': 'no-store, max-age=0' },
+  });
 }

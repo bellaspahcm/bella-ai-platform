@@ -285,8 +285,9 @@ export default function InteriorContractsPage() {
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
               <span>Làm mới</span>
             </button>
-            <button type="button" onClick={() => setShowNewContractModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold shadow-sm">
+            <button type="button" onClick={() => setShowNewContractModal(true)} disabled={!data?.workflowCommands?.createContractAvailable}
+              title="Tạo hợp đồng chưa có backend persistence."
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 text-white rounded-lg text-xs font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-50">
               <Plus className="w-4 h-4" />
               <span>+ Tạo Hợp Đồng Mới</span>
             </button>
@@ -316,7 +317,9 @@ export default function InteriorContractsPage() {
             <button
               type="button"
               onClick={() => setShowNewContractModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-semibold shadow-sm transition-all"
+              disabled={!data?.workflowCommands?.createContractAvailable}
+              title="Tạo hợp đồng chưa có backend persistence."
+              className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 text-white rounded-lg text-sm font-semibold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Plus className="w-4 h-4" />
               Lập Báo giá &amp; Ký hợp đồng
@@ -362,6 +365,34 @@ export default function InteriorContractsPage() {
   }
 
   if (!data) return null;
+
+  if (data.financeAccess === false) {
+    const selectedProject = projectOptions.find((project) => project.id === selectedProjectId);
+    const summary = data.contractSummary;
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 space-y-6">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Thông tin hợp đồng</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            {selectedProject ? `${selectedProject.name} (${selectedProject.code})` : 'Dự án được phân công'}
+          </p>
+        </div>
+        <section className="max-w-2xl bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Chỉ xem thông tin hợp đồng</p>
+          {summary ? (
+            <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div><dt className="text-xs text-slate-500">Số hợp đồng</dt><dd className="mt-1 font-semibold text-slate-900 dark:text-white">{summary.contractNumber}</dd></div>
+              <div><dt className="text-xs text-slate-500">Trạng thái</dt><dd className="mt-1 font-semibold text-slate-900 dark:text-white">{summary.status}</dd></div>
+              <div><dt className="text-xs text-slate-500">Tên hợp đồng</dt><dd className="mt-1 font-semibold text-slate-900 dark:text-white">{summary.title}</dd></div>
+              <div><dt className="text-xs text-slate-500">Ngày ký</dt><dd className="mt-1 font-semibold text-slate-900 dark:text-white">{summary.signedDate ? new Date(summary.signedDate).toLocaleDateString('vi-VN') : 'Chưa ký kết'}</dd></div>
+              {summary.clientRepresentative ? <div><dt className="text-xs text-slate-500">Đại diện khách hàng</dt><dd className="mt-1 font-semibold text-slate-900 dark:text-white">{summary.clientRepresentative}</dd></div> : null}
+            </dl>
+          ) : <p className="mt-3 text-sm text-rose-600">Không tải được thông tin hợp đồng.</p>}
+          <p className="mt-5 text-xs text-slate-500">Khoản tiền và tiến độ thu chỉ hiển thị cho người có quyền Finance Read.</p>
+        </section>
+      </div>
+    );
+  }
 
   const { header, kpis, progressStepper, milestones, alerts, quickActions, detailedTabs, projectSummary, workshopReleaseGating } = data;
 
@@ -419,7 +450,9 @@ export default function InteriorContractsPage() {
           <button
             type="button"
             onClick={() => setShowNewContractModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold shadow-sm transition-all hover:shadow"
+            disabled={!data.workflowCommands?.createContractAvailable}
+            title="Tạo hợp đồng chưa có backend persistence."
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 text-white rounded-lg text-xs font-semibold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
             <span>+ Tạo Hợp Đồng Mới</span>
@@ -428,7 +461,9 @@ export default function InteriorContractsPage() {
           <button
             type="button"
             onClick={() => setShowReleaseModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-all hover:shadow"
+            disabled={!data.workflowCommands?.releaseProductionAvailable || !data.workshopReleaseGating.isEligible}
+            title="Chưa có command backend và gate server đầy đủ để phát hành lệnh sản xuất."
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 text-white rounded-lg text-xs font-semibold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Send className="w-4 h-4" />
             <span>Chuyển lệnh sang xưởng</span>
@@ -1261,8 +1296,8 @@ export default function InteriorContractsPage() {
                       key={crit.id}
                       className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-start gap-3"
                     >
-                      <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 flex items-center justify-center shrink-0 mt-0.5">
-                        <Check className="w-3.5 h-3.5" />
+                      <div className={`w-5 h-5 rounded-full ${crit.satisfied ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300'} flex items-center justify-center shrink-0 mt-0.5`}>
+                        {crit.satisfied ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
                       </div>
                       <div className="text-xs">
                         <div className="font-semibold text-slate-900 dark:text-white">
@@ -1276,13 +1311,13 @@ export default function InteriorContractsPage() {
                   ))}
                 </div>
 
-                <div className="p-3 bg-emerald-50/60 dark:bg-emerald-950/20 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <span>Trạng thái kiểm duyệt: ĐỦ ĐIỀU KIỆN XUẤT XƯỞNG</span>
+                <div className={`p-3 rounded-xl border flex items-center justify-between ${workshopReleaseGating.isEligible ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800' : 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800'}`}>
+                  <div className={`flex items-center gap-2 text-xs font-bold ${workshopReleaseGating.isEligible ? 'text-emerald-800 dark:text-emerald-300' : 'text-amber-800 dark:text-amber-300'}`}>
+                    <ShieldCheck className={`w-4 h-4 ${workshopReleaseGating.isEligible ? 'text-emerald-600' : 'text-amber-600'}`} />
+                    <span>{workshopReleaseGating.isEligible ? 'Trạng thái kiểm duyệt: ĐỦ ĐIỀU KIỆN XUẤT XƯỞNG' : 'Trạng thái kiểm duyệt: CHƯA ĐỦ ĐIỀU KIỆN'}</span>
                   </div>
-                  <span className="text-[10px] font-semibold text-emerald-700 px-2 py-0.5 bg-white dark:bg-slate-800 rounded-md">
-                    5/5 Tiêu chí Đạt
+                  <span className="text-[10px] font-semibold text-slate-700 dark:text-slate-200 px-2 py-0.5 bg-white dark:bg-slate-800 rounded-md">
+                    {workshopReleaseGating.criteria.filter((criterion) => criterion.satisfied).length}/{workshopReleaseGating.criteria.length} Tiêu chí Đạt
                   </span>
                 </div>
 
@@ -1297,8 +1332,8 @@ export default function InteriorContractsPage() {
                   <button
                     type="button"
                     onClick={handleConfirmWorkshopRelease}
-                    disabled={releasing}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-all"
+                    disabled={releasing || !data.workflowCommands?.releaseProductionAvailable || !workshopReleaseGating.isEligible}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>{releasing ? 'Đang chuyển...' : 'Xác nhận Chuyển Lệnh Sang Xưởng'}</span>

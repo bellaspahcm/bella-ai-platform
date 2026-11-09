@@ -426,7 +426,7 @@ export default function ProjectDetailPage({
       {activeTab === 'timeline' && (
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-6">
           <h2 className="text-base font-bold text-slate-900 dark:text-white">
-            Tiến độ sản xuất xưởng &amp; Lắp đặt công trình
+              Tiến độ sản xuất xưởng &amp; Lắp đặt công trình
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">

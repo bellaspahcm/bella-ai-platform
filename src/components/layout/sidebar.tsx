@@ -467,6 +467,7 @@ const bellaInteriorMenuItems: SidebarMenuItem[] = [
   { icon: Award, label: 'Bảo hành', href: '/dashboard/interior/warranty' },
   { type: 'header', label: 'QUẢN TRỊ' },
   { icon: BarChart3, label: 'Báo cáo', href: '/dashboard/interior/reports' },
+  { icon: Users, label: 'Nhân sự & Phân quyền', href: '/dashboard/interior/roles' },
   { icon: Settings, label: 'Cài đặt', href: '/dashboard/settings?product=bella_interior' },
 ];
 
