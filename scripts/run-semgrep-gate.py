@@ -152,7 +152,21 @@ def scan(path, baseline=None, changed_files=None, base_files=None):
                     # tied to unchanged files. Unknown or changed paths fail closed.
                     if (not source_path or changed_files is None or base_files is None
                             or source_path not in base_files or source_path in changed_files):
-                        raise ValueError("SCANNER_WARNING_ON_CHANGED_OR_UNKNOWN_FILE")
+                        if not source_path:
+                            classification = "unlocated"
+                        elif changed_files is None or base_files is None:
+                            classification = "comparison_unavailable"
+                        elif source_path in changed_files:
+                            classification = "changed_file"
+                        else:
+                            classification = "not_in_base"
+                        evidence = json.dumps(
+                            {"classification": classification, "path": source_path},
+                            sort_keys=True,
+                        )
+                        raise ValueError(
+                            f"SCANNER_WARNING_ON_CHANGED_OR_UNKNOWN_FILE: {evidence}"
+                        )
                     preexisting_warnings += 1
         # Rule-specific accepted suppressions stay visible in the full SARIF.
         count += sum(not r.get("suppressions") for r in run["results"])
