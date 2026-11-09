@@ -104,7 +104,7 @@ export default function ProjectDetailPage({
         return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">Hoàn thành &amp; Bảo hành</span>;
       case 'design':
       default:
-        return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">Thiết kế 3D & Duyệt mẫu</span>;
+        return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">Thiết kế 3D &amp; Duyệt mẫu</span>;
     }
   };
 
@@ -202,7 +202,7 @@ export default function ProjectDetailPage({
               href={`/dashboard/interior/boq?projectId=${project.id}`}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition-colors"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5" /> BOQ & Báo Giá
+              <FileSpreadsheet className="w-3.5 h-3.5" /> BOQ &amp; Báo Giá
             </Link>
             <Link
               href={`/dashboard/interior/production?projectId=${project.id}`}
@@ -274,7 +274,7 @@ export default function ProjectDetailPage({
               : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          Mặt Bằng & Phân Khu ({project.rooms.length})
+          Mặt Bằng &amp; Phân Khu ({project.rooms.length})
         </button>
         <button
           onClick={() => setActiveTab('materials')}
@@ -284,7 +284,7 @@ export default function ProjectDetailPage({
               : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          Vật Liệu & Thiết Bị ({project.materials?.length ?? '—'})
+          Vật Liệu &amp; Thiết Bị ({project.materials?.length ?? '—'})
         </button>
         <button
           onClick={() => setActiveTab('timeline')}
@@ -294,7 +294,7 @@ export default function ProjectDetailPage({
               : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          Sản Xuất & Thi Công
+          Sản Xuất &amp; Thi Công
         </button>
         <button
           onClick={() => setActiveTab('handover')}
@@ -304,7 +304,7 @@ export default function ProjectDetailPage({
               : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          Nghiệm Thu & Bảo Hành
+          Nghiệm Thu &amp; Bảo Hành
         </button>
       </div>
 
@@ -314,7 +314,7 @@ export default function ProjectDetailPage({
           <div className="lg:col-span-2 space-y-4">
             <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
               <h2 className="text-base font-bold text-slate-900 dark:text-white mb-4">
-                Danh sách phòng & Phân khu chức năng
+                Danh sách phòng &amp; Phân khu chức năng
               </h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
@@ -392,7 +392,7 @@ export default function ProjectDetailPage({
       {activeTab === 'materials' && (
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
           <h2 className="text-base font-bold text-slate-900 dark:text-white mb-4">
-            Chủng loại vật liệu & Thương hiệu chỉ định (Spec Lock)
+            Chủng loại vật liệu &amp; Thương hiệu chỉ định (Spec Lock)
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {(project.materials ?? []).map((mat, idx) => (
@@ -426,7 +426,7 @@ export default function ProjectDetailPage({
       {activeTab === 'timeline' && (
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-6">
           <h2 className="text-base font-bold text-slate-900 dark:text-white">
-            Tiến độ sản xuất xưởng & Lắp đặt công trình
+            Tiến độ sản xuất xưởng &amp; Lắp đặt công trình
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
@@ -450,7 +450,7 @@ export default function ProjectDetailPage({
               href={`/dashboard/interior/installation?projectId=${project.id}`}
               className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-1.5"
             >
-              <HardHat className="w-4 h-4" /> Xem Nhật Ký Thi Công & Punch List
+              <HardHat className="w-4 h-4" /> Xem Nhật Ký Thi Công &amp; Punch List
             </Link>
           </div>
         </div>
@@ -459,7 +459,7 @@ export default function ProjectDetailPage({
       {activeTab === 'handover' && (
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-4">
           <h2 className="text-base font-bold text-slate-900 dark:text-white">
-            Nghiệm thu bàn giao & Bảo hành sau bàn giao
+            Nghiệm thu bàn giao &amp; Bảo hành sau bàn giao
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Hồ sơ nghiệm thu kỹ thuật theo tiêu chuẩn nghiệm thu 3 bên (KTS - Thợ thi công - Chủ đầu tư).
