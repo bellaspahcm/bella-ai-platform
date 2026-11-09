@@ -94,7 +94,12 @@ describe('Bella Interior OS — Supabase Persistence & Durable Outbox', () => {
       expect(mockSupabase.eq).toHaveBeenCalledWith('tenant_id', tenantId);
     });
 
-    it('handles production order idempotency: skips insert when same revision and project already exists', async () => {
+    it('fails closed before a production order write when tenant-scoped parent reads are unavailable', async () => {
+      mockSupabase.single.mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116', message: 'No row found for tenant-scoped parent' },
+      });
+
       const mockOrder: ProductionOrder = {
         id: 'po-001',
         tenantId,
@@ -110,24 +115,11 @@ describe('Bella Interior OS — Supabase Persistence & Durable Outbox', () => {
         items: [],
       };
 
-      // Case 1: Already exists — should NOT insert
-      mockSupabase.maybeSingle.mockResolvedValue({
-        data: { id: 'po-001' },
-        error: null,
-      });
-
-      await repository.saveProductionOrder(tenantId, mockOrder);
+      // This mock has no tenant-scoped project, revision, or BOQ rows.
+      await expect(repository.saveProductionOrder(tenantId, mockOrder)).rejects.toThrow(
+        'Tenant isolation violation: production order project or revision is not in request tenant',
+      );
       expect(mockSupabase.insert).not.toHaveBeenCalled();
-
-      // Case 2: New order — should insert
-      mockSupabase.maybeSingle.mockResolvedValue({
-        data: null,
-        error: null,
-      });
-      mockSupabase.insert.mockResolvedValue({ error: null });
-
-      await repository.saveProductionOrder(tenantId, mockOrder);
-      expect(mockSupabase.insert).toHaveBeenCalled();
     });
   });
 

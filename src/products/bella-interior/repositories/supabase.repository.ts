@@ -988,6 +988,9 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   // ─── Design & Specification ────────────────────────────────────────────────
 
   async saveProject(tenantId: string, project: InteriorProject): Promise<void> {
+    if (!tenantId || project.tenantId !== tenantId) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: project tenant does not match request tenant');
+    }
     const { error } = await this.supabase
       .from('interior_projects')
       .upsert({ ...mapProjectToRow(project, tenantId), updated_at: new Date().toISOString() })
@@ -1038,6 +1041,12 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   }
 
   async saveRoomZone(tenantId: string, roomZone: ProjectRoomZone): Promise<void> {
+    if (!tenantId || roomZone.tenantId !== tenantId) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: room zone tenant does not match request tenant');
+    }
+    if (!await this.getProject(tenantId, roomZone.projectId)) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: room zone project is not in request tenant');
+    }
     const { error } = await this.supabase
       .from('interior_project_room_zones')
       .upsert({ ...mapRoomZoneToRow(roomZone, tenantId) })
@@ -1057,6 +1066,18 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   }
 
   async saveDesignRevision(tenantId: string, revision: DesignRevision): Promise<void> {
+    if (!tenantId || revision.tenantId !== tenantId) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: design revision tenant does not match request tenant');
+    }
+    const project = await this.getProject(tenantId, revision.projectId);
+    if (!project) throw new Error('[InteriorRepo] Tenant isolation violation: design revision project is not in request tenant');
+    const roomZones = await this.listRoomZones(tenantId, project.id);
+    const roomZoneIds = new Set(roomZones.map((roomZone) => roomZone.id));
+    if (revision.assets.some((asset) => asset.tenantId !== tenantId || asset.revisionId !== revision.id)
+      || revision.assets.some((asset) => asset.roomZoneId && !roomZoneIds.has(asset.roomZoneId))
+      || revision.materialSpecs.some((spec) => spec.tenantId !== tenantId || spec.revisionId !== revision.id)) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: design revision child tenant or parent does not match');
+    }
     // 1. Upsert the revision header
     const { error: revErr } = await this.supabase
       .from('interior_design_revisions')
@@ -1065,11 +1086,12 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     if (revErr) throw new Error(`[InteriorRepo] saveDesignRevision (header) failed: ${revErr.message}`);
 
     // 2. Replace assets for this revision (delete + re-insert)
-    await this.supabase
+    const { error: assetDeleteError } = await this.supabase
       .from('interior_design_assets')
       .delete()
       .eq('tenant_id', tenantId)
       .eq('revision_id', revision.id);
+    if (assetDeleteError) throw new Error(`[InteriorRepo] saveDesignRevision (delete assets) failed: ${assetDeleteError.message}`);
 
     for (const asset of revision.assets) {
       const { error: assetErr } = await this.supabase
@@ -1088,11 +1110,12 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     }
 
     // 3. Replace material specs
-    await this.supabase
+    const { error: specDeleteError } = await this.supabase
       .from('interior_design_material_specs')
       .delete()
       .eq('tenant_id', tenantId)
       .eq('revision_id', revision.id);
+    if (specDeleteError) throw new Error(`[InteriorRepo] saveDesignRevision (delete specs) failed: ${specDeleteError.message}`);
 
     for (const spec of revision.materialSpecs) {
       const { error: specErr } = await this.supabase
@@ -1153,16 +1176,18 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
 
     const revisions: DesignRevision[] = [];
     for (const row of data as DesignRevisionRow[]) {
-      const { data: assetData } = await this.supabase
+      const { data: assetData, error: assetError } = await this.supabase
         .from('interior_design_assets')
         .select('*')
         .eq('tenant_id', tenantId)
         .eq('revision_id', row.id);
-      const { data: specData } = await this.supabase
+      if (assetError) throw new Error(`[InteriorRepo] listDesignRevisions (assets) failed: ${assetError.message}`);
+      const { data: specData, error: specError } = await this.supabase
         .from('interior_design_material_specs')
         .select('*')
         .eq('tenant_id', tenantId)
         .eq('revision_id', row.id);
+      if (specError) throw new Error(`[InteriorRepo] listDesignRevisions (specs) failed: ${specError.message}`);
       const assets = ((assetData ?? []) as DesignAssetRow[]).map(mapRowToDesignAsset);
       const materialSpecs = ((specData ?? []) as DesignMaterialSpecRow[]).map(mapRowToMaterialSpec);
       revisions.push(mapRowToRevision(row, assets, materialSpecs));
@@ -1173,144 +1198,46 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   // ─── Commercial & Costing ──────────────────────────────────────────────────
 
   async saveBOQ(tenantId: string, boq: InteriorBOQ, options?: SaveBOQOptions): Promise<void> {
+    if (!tenantId || boq.tenantId !== tenantId) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: BOQ tenant does not match request tenant');
+    }
     const validTenantId = ensureUuid(tenantId);
-    const validBoqId = ensureUuid(boq.id);
-
-    // 1. Client-Side Immutability & Concurrency Pre-Validation (Defense in Depth)
-    const existing = await this.getBOQ(tenantId, boq.id);
-
-    if (existing && options?.expectedVersionNumber !== undefined && existing.versionNumber !== options.expectedVersionNumber) {
-      throw new Error(
-        `[InteriorRepo] ConcurrencyConflict: Expected version ${options.expectedVersionNumber}, but found ${existing.versionNumber}`
-      );
+    if (typeof this.supabase?.rpc !== 'function') {
+      throw new Error('[InteriorRepo] Atomic save failed: save_interior_boq_atomic RPC is required for BOQ transactions');
     }
 
-    if (existing && (existing.status === 'approved' || existing.status === 'locked_for_contract')) {
-      const isStatusTransitionToLocked = existing.status === 'approved' && boq.status === 'locked_for_contract';
-      if (!isStatusTransitionToLocked) {
-        throw new Error(
-          `[InteriorRepo] Immutability violation: BOQ ${boq.id} is '${existing.status}' and cannot be modified. Create a new revision.`
-        );
-      }
-    }
+    const headerRow = mapBOQToRow(boq, validTenantId);
+    const itemsPayload = boq.items.map((item) => ({
+      id: ensureUuid(item.id),
+      room_zone_id: item.roomZoneId ? ensureUuid(item.roomZoneId) : null,
+      room_zone_name: item.roomZoneName,
+      item_code: item.itemCode,
+      item_name: item.itemName,
+      category: item.category,
+      dimensions: item.dimensions ?? {},
+      specifications: item.specifications ?? {},
+      unit: item.unit,
+      quantity: item.quantity,
+      internal_unit_cost: item.internalUnitCost,
+      internal_total_cost: item.internalTotalCost,
+      client_unit_price: item.clientUnitPrice,
+      client_total_price: item.clientTotalPrice,
+      gross_margin_amount: item.grossMarginAmount,
+      gross_margin_percent: item.grossMarginPercent,
+    }));
 
-    // 2. Atomic Database Transaction via RPC (Fail-Closed Enforcement)
-    if (typeof this.supabase?.rpc === 'function') {
-      try {
-        const headerRow = mapBOQToRow(boq, validTenantId);
-        const itemsPayload = boq.items.map(item => ({
-          id: ensureUuid(item.id),
-          room_zone_id: item.roomZoneId ? ensureUuid(item.roomZoneId) : null,
-          room_zone_name: item.roomZoneName,
-          item_code: item.itemCode,
-          item_name: item.itemName,
-          category: item.category,
-          dimensions: item.dimensions ?? {},
-          specifications: item.specifications ?? {},
-          unit: item.unit,
-          quantity: item.quantity,
-          internal_unit_cost: item.internalUnitCost,
-          internal_total_cost: item.internalTotalCost,
-          client_unit_price: item.clientUnitPrice,
-          client_total_price: item.clientTotalPrice,
-          gross_margin_amount: item.grossMarginAmount,
-          gross_margin_percent: item.grossMarginPercent,
-        }));
+    const { error: rpcError } = await this.supabase.rpc('save_interior_boq_atomic', {
+      p_tenant_id: validTenantId,
+      p_boq_header: headerRow,
+      p_boq_items: itemsPayload,
+      p_expected_version: options?.expectedVersionNumber ?? null,
+      p_idempotency_key: options?.idempotencyKey ?? null,
+      p_request_hash: options?.requestHash ?? null,
+      p_audit_actor_id: options?.auditActorId ? ensureUuid(options.auditActorId) : null,
+    });
 
-        const { error: rpcError } = await this.supabase.rpc('save_interior_boq_atomic', {
-          p_tenant_id: validTenantId,
-          p_boq_header: headerRow,
-          p_boq_items: itemsPayload,
-          p_expected_version: options?.expectedVersionNumber ?? null,
-          p_idempotency_key: options?.idempotencyKey ?? null,
-          p_request_hash: options?.requestHash ?? null,
-          p_audit_actor_id: options?.auditActorId ? ensureUuid(options.auditActorId) : null,
-        });
-
-        if (!rpcError) {
-          return;
-        }
-
-        // Rethrow known business/guard violations immediately
-        if (
-          rpcError.message.includes('Immutability violation') ||
-          rpcError.message.includes('ConcurrencyConflict') ||
-          rpcError.message.includes('IdempotencyPayloadMismatch') ||
-          rpcError.message.includes('TenantIsolationViolation')
-        ) {
-          throw new Error(`[InteriorRepo] ${rpcError.message}`);
-        }
-
-        // Check if RPC is missing on the database
-        const isMissingRpc =
-          rpcError.code === '42883' ||
-          rpcError.code === 'PGRST202' ||
-          rpcError.message.includes('Could not find the function') ||
-          rpcError.message.includes('function save_interior_boq_atomic');
-
-        if (isMissingRpc) {
-          if (!options?.allowSequentialFallback) {
-            throw new Error(
-              `[InteriorRepo] Atomic save failed: save_interior_boq_atomic RPC is required for BOQ transactions. Sequential fallback is disabled to guarantee atomicity.`
-            );
-          }
-        } else {
-          throw new Error(`[InteriorRepo] saveBOQ atomic RPC failed: ${rpcError.message}`);
-        }
-      } catch (err: unknown) {
-        if (err instanceof Error && err.message.startsWith('[InteriorRepo]')) {
-          throw err;
-        }
-        throw err;
-      }
-    } else {
-      // If client does not even support RPC (e.g. mock client without rpc method)
-      if (!options?.allowSequentialFallback) {
-        // If not explicitly opted into sequential fallback, fail closed
-        // UNLESS this is an existing unit test mock environment that only mocks REST
-        // However, if options are omitted, check if it's allowed:
-      }
-    }
-
-    // 3. Fallback: PostgREST sequential save (Only when explicitly allowed or client mock)
-    // Upsert header
-    const { error } = await this.supabase
-      .from('interior_boqs')
-      .upsert({ ...mapBOQToRow(boq, tenantId), updated_at: new Date().toISOString() })
-      .eq('tenant_id', tenantId);
-    if (error) throw new Error(`[InteriorRepo] saveBOQ (header) failed: ${error.message}`);
-
-    // Replace items
-    await this.supabase
-      .from('interior_boq_items')
-      .delete()
-      .eq('tenant_id', tenantId)
-      .eq('boq_id', boq.id);
-
-    for (const item of boq.items) {
-      const { error: itemErr } = await this.supabase
-        .from('interior_boq_items')
-        .insert({
-          id: ensureUuid(item.id),
-          tenant_id: validTenantId,
-          boq_id: validBoqId,
-          room_zone_id: item.roomZoneId ? ensureUuid(item.roomZoneId) : null,
-          room_zone_name: item.roomZoneName,
-          item_code: item.itemCode,
-          item_name: item.itemName,
-          category: item.category,
-          dimensions_json: item.dimensions,
-          specifications_json: item.specifications,
-          unit: item.unit,
-          quantity: item.quantity,
-          internal_unit_cost: item.internalUnitCost,
-          internal_total_cost: item.internalTotalCost,
-          client_unit_price: item.clientUnitPrice,
-          client_total_price: item.clientTotalPrice,
-          gross_margin_amount: item.grossMarginAmount,
-          gross_margin_percent: item.grossMarginPercent,
-        });
-      if (itemErr) throw new Error(`[InteriorRepo] saveBOQ (item) failed: ${itemErr.message}`);
+    if (rpcError) {
+      throw new Error(`[InteriorRepo] Atomic save failed: ${rpcError.message}`);
     }
   }
 
@@ -1353,19 +1280,16 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
       newData?: Record<string, unknown> | null;
     }
   ): Promise<void> {
-    try {
-      await this.supabase.from('audit_logs').insert({
-        tenant_id: tenantId,
-        user_id: params.userId || null,
-        action: params.action,
-        module: params.module,
-        target_id: params.targetId,
-        old_data: params.oldData || null,
-        new_data: params.newData || null,
-      });
-    } catch {
-      // Graceful fallback: Do not fail business transaction if audit log encounters transient issue
-    }
+    const { error } = await this.supabase.from('audit_logs').insert({
+      tenant_id: tenantId,
+      user_id: params.userId || null,
+      action: params.action,
+      module: params.module,
+      target_id: params.targetId,
+      old_data: params.oldData || null,
+      new_data: params.newData || null,
+    });
+    if (error) throw new Error(`[InteriorRepo] recordAuditLog failed: ${error.message}`);
   }
 
   async getBOQ(tenantId: string, boqId: string): Promise<InteriorBOQ | null> {
@@ -1414,6 +1338,16 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   }
 
   async saveQuotation(tenantId: string, quotation: InteriorQuotation): Promise<void> {
+    if (!tenantId || quotation.tenantId !== tenantId) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: quotation tenant does not match request tenant');
+    }
+    const [project, boq] = await Promise.all([
+      this.getProject(tenantId, quotation.projectId),
+      this.getBOQ(tenantId, quotation.boqId),
+    ]);
+    if (!project || !boq || boq.projectId !== project.id || boq.tenantId !== tenantId) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: quotation project/BOQ is not in request tenant');
+    }
     const { error } = await this.supabase
       .from('interior_quotations')
       .upsert({ ...mapQuotationToRow(quotation, tenantId) })
@@ -1434,6 +1368,15 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   }
 
   async saveContract(tenantId: string, contract: InteriorContract): Promise<void> {
+    if (!tenantId || contract.tenantId !== tenantId || contract.milestones.some((milestone) => milestone.tenantId !== tenantId || milestone.contractId !== contract.id)) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: contract or milestone tenant/parent does not match');
+    }
+    const project = await this.getProject(tenantId, contract.projectId);
+    if (!project) throw new Error('[InteriorRepo] Tenant isolation violation: contract project is not in request tenant');
+    const quotation = await this.getQuotation(tenantId, contract.quotationId);
+    if (!quotation || quotation.projectId !== project.id) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: contract quotation is not in the requested project');
+    }
     // Upsert contract header
     const { error } = await this.supabase
       .from('interior_contracts')
@@ -1442,11 +1385,12 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     if (error) throw new Error(`[InteriorRepo] saveContract (header) failed: ${error.message}`);
 
     // Replace milestones
-    await this.supabase
+    const { error: milestoneDeleteError } = await this.supabase
       .from('interior_payment_milestones')
       .delete()
       .eq('tenant_id', tenantId)
       .eq('contract_id', contract.id);
+    if (milestoneDeleteError) throw new Error(`[InteriorRepo] saveContract (delete milestones) failed: ${milestoneDeleteError.message}`);
 
     for (const milestone of contract.milestones) {
       const { error: msErr } = await this.supabase
@@ -1518,14 +1462,35 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   // ─── Manufacturing & Installation ──────────────────────────────────────────
 
   async saveProductionOrder(tenantId: string, order: ProductionOrder): Promise<void> {
+    if (!tenantId || order.tenantId !== tenantId || order.items.some((item) => item.tenantId !== tenantId || item.productionOrderId !== order.id)) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: production order or item tenant/parent does not match');
+    }
+    const [project, revision] = await Promise.all([
+      this.getProject(tenantId, order.projectId),
+      this.getDesignRevision(tenantId, order.designRevisionId),
+    ]);
+    if (!project || !revision || revision.projectId !== project.id) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: production order project or revision is not in request tenant');
+    }
+    if (revision.status !== 'approved') {
+      throw new Error('[InteriorRepo] Production order requires an approved design revision');
+    }
+    const boq = await this.getBOQ(tenantId, order.boqId);
+    if (!boq || boq.projectId !== project.id || !['approved', 'locked_for_contract'].includes(boq.status)) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: production order BOQ is not approved for this project');
+    }
+    if (order.items.some((item) => !boq.items.some((boqItem) => boqItem.id === item.boqItemId))) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: production order item references a BOQ item outside its BOQ');
+    }
     // Idempotency check: same (tenant_id, design_revision_id, project_id)
-    const { data: existing } = await this.supabase
+    const { data: existing, error: existingError } = await this.supabase
       .from('interior_production_orders')
       .select('id')
       .eq('tenant_id', tenantId)
       .eq('design_revision_id', order.designRevisionId)
       .eq('project_id', order.projectId)
       .maybeSingle();
+    if (existingError) throw new Error(`[InteriorRepo] saveProductionOrder (idempotency lookup) failed: ${existingError.message}`);
 
     if (existing) {
       // Already exists — idempotent, skip insert
@@ -1597,11 +1562,12 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
 
     const orders: ProductionOrder[] = [];
     for (const row of data as ProductionOrderRow[]) {
-      const { data: itemData } = await this.supabase
+      const { data: itemData, error: itemError } = await this.supabase
         .from('interior_production_order_items')
         .select('*')
         .eq('tenant_id', tenantId)
         .eq('production_order_id', row.id);
+      if (itemError) throw new Error(`[InteriorRepo] listProductionOrders (items) failed: ${itemError.message}`);
       const items = ((itemData ?? []) as ProductionOrderItemRow[]).map(mapRowToProductionOrderItem);
       orders.push(mapRowToProductionOrder(row, items));
     }
@@ -1609,6 +1575,16 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   }
 
   async saveInstallationPlan(tenantId: string, plan: SiteInstallationPlan): Promise<void> {
+    if (!tenantId || plan.tenantId !== tenantId || plan.rooms.some((room) => room.tenantId !== tenantId || room.planId !== plan.id)) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: installation plan or room tenant/parent does not match');
+    }
+    const project = await this.getProject(tenantId, plan.projectId);
+    if (!project) throw new Error('[InteriorRepo] Tenant isolation violation: installation project is not in request tenant');
+    const roomZones = await this.listRoomZones(tenantId, project.id);
+    const roomZoneIds = new Set(roomZones.map((roomZone) => roomZone.id));
+    if (plan.rooms.some((room) => !roomZoneIds.has(room.roomZoneId))) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: installation room zone is not in request project');
+    }
     const { error } = await this.supabase
       .from('interior_site_installation_plans')
       .upsert({ ...mapInstallationPlanToRow(plan, tenantId) })
@@ -1616,11 +1592,12 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     if (error) throw new Error(`[InteriorRepo] saveInstallationPlan (header) failed: ${error.message}`);
 
     // Replace room installations
-    await this.supabase
+    const { error: roomDeleteError } = await this.supabase
       .from('interior_site_room_installations')
       .delete()
       .eq('tenant_id', tenantId)
       .eq('plan_id', plan.id);
+    if (roomDeleteError) throw new Error(`[InteriorRepo] saveInstallationPlan (delete rooms) failed: ${roomDeleteError.message}`);
 
     for (const room of plan.rooms) {
       const { error: roomErr } = await this.supabase
@@ -1690,9 +1667,38 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     return mapRowToInstallationPlan(planRow, rooms);
   }
 
+  async listInstallationPlans(tenantId: string, projectId?: string): Promise<SiteInstallationPlan[]> {
+    let query = this.supabase
+      .from('interior_site_installation_plans')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .order('scheduled_start_date', { ascending: true });
+    if (projectId) query = query.eq('project_id', projectId);
+    const { data, error } = await query;
+    if (error) throw new Error(`[InteriorRepo] listInstallationPlans failed: ${error.message}`);
+
+    const plans: SiteInstallationPlan[] = [];
+    for (const row of data as SiteInstallationPlanRow[]) {
+      const { data: roomData, error: roomError } = await this.supabase
+        .from('interior_site_room_installations')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('plan_id', row.id);
+      if (roomError) throw new Error(`[InteriorRepo] listInstallationPlans (rooms) failed: ${roomError.message}`);
+      plans.push(mapRowToInstallationPlan(row, (roomData as SiteRoomInstallationRow[]).map(mapRowToRoomInstallation)));
+    }
+    return plans;
+  }
+
   // ─── Delivery & Aftercare ──────────────────────────────────────────────────
 
   async saveSiteDiary(tenantId: string, entry: SiteDiaryEntry): Promise<void> {
+    if (!tenantId || entry.tenantId !== tenantId) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: site diary tenant does not match request tenant');
+    }
+    if (!await this.getProject(tenantId, entry.projectId)) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: site diary project is not in request tenant');
+    }
     const { error } = await this.supabase
       .from('interior_site_diaries')
       .upsert({ ...mapSiteDiaryToRow(entry, tenantId) })
@@ -1712,6 +1718,12 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   }
 
   async savePunchListItem(tenantId: string, item: QCPunchListItem): Promise<void> {
+    if (!tenantId || item.tenantId !== tenantId) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: punch-list tenant does not match request tenant');
+    }
+    if (!await this.getProject(tenantId, item.projectId)) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: punch-list project is not in request tenant');
+    }
     const { error } = await this.supabase
       .from('interior_qc_punch_list_items')
       .upsert({ ...mapPunchListItemToRow(item, tenantId) })
@@ -1730,7 +1742,28 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     return (data as QCPunchListItemRow[]).map(mapRowToPunchListItem);
   }
 
+  async getPunchListItem(tenantId: string, itemId: string): Promise<QCPunchListItem | null> {
+    const { data, error } = await this.supabase
+      .from('interior_qc_punch_list_items')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('id', itemId)
+      .maybeSingle();
+    if (error) throw new Error(`[InteriorRepo] getPunchListItem failed: ${error.message}`);
+    return data ? mapRowToPunchListItem(data as QCPunchListItemRow) : null;
+  }
+
   async saveHandoverDossier(tenantId: string, dossier: HandoverDossier): Promise<void> {
+    if (!tenantId || dossier.tenantId !== tenantId) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: handover tenant does not match request tenant');
+    }
+    const [project, contract] = await Promise.all([
+      this.getProject(tenantId, dossier.projectId),
+      this.getContract(tenantId, dossier.contractId),
+    ]);
+    if (!project || !contract || contract.projectId !== project.id) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: handover contract/project is not in request tenant');
+    }
     const { error } = await this.supabase
       .from('interior_handover_dossiers')
       .upsert({ ...mapHandoverDossierToRow(dossier, tenantId) })
@@ -1750,7 +1783,29 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     return mapRowToHandoverDossier(data as HandoverDossierRow);
   }
 
+  async listHandoverDossiers(tenantId: string, projectId?: string): Promise<HandoverDossier[]> {
+    let query = this.supabase
+      .from('interior_handover_dossiers')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .order('handover_date', { ascending: false });
+    if (projectId) query = query.eq('project_id', projectId);
+    const { data, error } = await query;
+    if (error) throw new Error(`[InteriorRepo] listHandoverDossiers failed: ${error.message}`);
+    return (data as HandoverDossierRow[]).map(mapRowToHandoverDossier);
+  }
+
   async saveWarrantyCertificate(tenantId: string, certificate: WarrantyCertificate): Promise<void> {
+    if (!tenantId || certificate.tenantId !== tenantId) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: warranty certificate tenant does not match request tenant');
+    }
+    const [project, contract] = await Promise.all([
+      this.getProject(tenantId, certificate.projectId),
+      this.getContract(tenantId, certificate.contractId),
+    ]);
+    if (!project || !contract || contract.projectId !== project.id) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: warranty contract/project is not in request tenant');
+    }
     const { error } = await this.supabase
       .from('interior_warranty_certificates')
       .upsert({ ...mapWarrantyCertificateToRow(certificate, tenantId) })
@@ -1773,7 +1828,29 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     return mapRowToWarrantyCertificate(data as WarrantyCertificateRow);
   }
 
+  async listWarrantyCertificates(tenantId: string, projectId?: string): Promise<WarrantyCertificate[]> {
+    let query = this.supabase
+      .from('interior_warranty_certificates')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .order('effective_date', { ascending: false });
+    if (projectId) query = query.eq('project_id', projectId);
+    const { data, error } = await query;
+    if (error) throw new Error(`[InteriorRepo] listWarrantyCertificates failed: ${error.message}`);
+    return (data as WarrantyCertificateRow[]).map(mapRowToWarrantyCertificate);
+  }
+
   async saveWarrantyTicket(tenantId: string, ticket: WarrantyServiceTicket): Promise<void> {
+    if (!tenantId || ticket.tenantId !== tenantId) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: warranty ticket tenant does not match request tenant');
+    }
+    const [project, certificate] = await Promise.all([
+      this.getProject(tenantId, ticket.projectId),
+      this.getWarrantyCertificate(tenantId, ticket.certificateId),
+    ]);
+    if (!project || !certificate || certificate.projectId !== project.id) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: warranty certificate/project is not in request tenant');
+    }
     const { error } = await this.supabase
       .from('interior_warranty_service_tickets')
       .upsert({ ...mapWarrantyTicketToRow(ticket, tenantId) })
@@ -1803,47 +1880,55 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     if (!tenantId || run.tenantId !== tenantId) {
       throw new Error('[InteriorRepo] Tenant isolation violation');
     }
-    try {
-      const { error } = await this.supabase
-        .from('interior_design_takeoff_runs')
-        .upsert({
-          id: ensureUuid(run.id),
-          tenant_id: tenantId,
-          project_id: ensureUuid(run.projectId),
-          design_revision_id: ensureUuid(run.designRevisionId),
-          run_number: run.runNumber,
-          title: run.title,
-          status: run.status,
-          is_immutable: run.isImmutable,
-          prepared_by: run.preparedBy,
-          completed_by: run.completedBy ?? null,
-          completed_at: run.completedAt ?? null,
-          parent_run_id: run.parentRunId ? ensureUuid(run.parentRunId) : null,
-          idempotency_key: run.idempotencyKey ?? null,
-          components_snapshot: run.components,
-          total_components_count: run.totalComponentsCount,
-          pending_review_count: run.pendingReviewCount,
-          verified_count: run.verifiedCount,
-          review_required_count: run.reviewRequiredCount,
-        });
-      if (error && !error.message.includes('relation') && !error.message.includes('does not exist')) {
-        throw new Error(`[InteriorRepo] saveTakeoffRun failed: ${error.message}`);
-      }
-    } catch {
-      // Graceful fallback during Phase 2A before database migration is applied
+    const [project, revision] = await Promise.all([
+      this.getProject(tenantId, run.projectId),
+      this.getDesignRevision(tenantId, run.designRevisionId),
+    ]);
+    if (!project || !revision || revision.projectId !== project.id) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: takeoff project and revision do not match');
     }
+    if (run.parentRunId) {
+      const parent = await this.getTakeoffRun(tenantId, run.parentRunId);
+      if (!parent || parent.id === run.id || parent.projectId !== project.id) {
+        throw new Error('[InteriorRepo] Tenant isolation violation: takeoff parent run is not in the same project');
+      }
+    }
+    const { error } = await this.supabase
+      .from('interior_design_takeoff_runs')
+      .upsert({
+        id: ensureUuid(run.id),
+        tenant_id: tenantId,
+        project_id: ensureUuid(run.projectId),
+        design_revision_id: ensureUuid(run.designRevisionId),
+        run_number: run.runNumber,
+        title: run.title,
+        status: run.status,
+        is_immutable: run.isImmutable,
+        prepared_by: run.preparedBy,
+        completed_by: run.completedBy ?? null,
+        completed_at: run.completedAt ?? null,
+        parent_run_id: run.parentRunId ? ensureUuid(run.parentRunId) : null,
+        idempotency_key: run.idempotencyKey ?? null,
+        components_snapshot: run.components,
+        total_components_count: run.totalComponentsCount,
+        pending_review_count: run.pendingReviewCount,
+        verified_count: run.verifiedCount,
+        review_required_count: run.reviewRequiredCount,
+      });
+    if (error) throw new Error(`[InteriorRepo] saveTakeoffRun failed: ${error.message}`);
   }
 
   async getTakeoffRun(tenantId: string, runId: string): Promise<DesignTakeoffRun | null> {
     if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
-    try {
-      const { data, error } = await this.supabase
-        .from('interior_design_takeoff_runs')
-        .select('*')
-        .eq('tenant_id', tenantId)
-        .eq('id', ensureUuid(runId))
-        .single();
-      if (error || !data) return null;
+    const { data, error } = await this.supabase
+      .from('interior_design_takeoff_runs')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('id', ensureUuid(runId))
+      .maybeSingle();
+    if (error?.code === 'PGRST116') return null;
+    if (error) throw new Error(`[InteriorRepo] getTakeoffRun failed: ${error.message}`);
+    if (!data) return null;
       const row = data as {
         id: string;
         tenant_id: string;
@@ -1888,21 +1973,18 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       };
-    } catch {
-      return null;
-    }
   }
 
   async listTakeoffRuns(tenantId: string, projectId: string): Promise<DesignTakeoffRun[]> {
     if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
-    try {
-      const { data, error } = await this.supabase
-        .from('interior_design_takeoff_runs')
-        .select('*')
-        .eq('tenant_id', tenantId)
-        .eq('project_id', ensureUuid(projectId))
-        .order('run_number', { ascending: true });
-      if (error || !data) return [];
+    const { data, error } = await this.supabase
+      .from('interior_design_takeoff_runs')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('project_id', ensureUuid(projectId))
+      .order('run_number', { ascending: true });
+    if (error) throw new Error(`[InteriorRepo] listTakeoffRuns failed: ${error.message}`);
+    if (!data) return [];
       const rows = data as Array<{
         id: string;
         tenant_id: string;
@@ -1947,8 +2029,5 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       }));
-    } catch {
-      return [];
-    }
   }
 }

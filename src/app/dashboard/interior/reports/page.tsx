@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   Home,
   ChevronDown,
@@ -36,10 +37,11 @@ import {
 } from '@/products/bella-interior/domain/reports-overview.types';
 
 export default function InteriorReportsAnalyticsPage() {
+  const searchParams = useSearchParams();
   const [data, setData] = useState<ReportsOverviewResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('INT-2024-001');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(searchParams.get('projectId') ?? '');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('Tháng 10/2026');
   const [selectedScope, setSelectedScope] = useState<string>('Tất cả dự án');
   const [showProjectDropdown, setShowProjectDropdown] = useState<boolean>(false);
@@ -62,13 +64,10 @@ export default function InteriorReportsAnalyticsPage() {
       else setLoading(true);
 
       try {
-        const queryParams = new URLSearchParams({
-          tenantId: 'tenant-bella-interior-001',
-          projectId: selectedProjectId,
-          period: selectedPeriod,
-        });
+        const queryParams = new URLSearchParams({ period: selectedPeriod });
+        if (selectedProjectId) queryParams.set('projectId', selectedProjectId);
 
-        const res = await fetch(`/api/interior/reports/analytics?${queryParams.toString()}`);
+        const res = await fetch(`/api/interior/reports/analytics?${queryParams.toString()}`, { cache: 'no-store' });
         if (!res.ok) {
           throw new Error(`API returned HTTP ${res.status}`);
         }
@@ -79,6 +78,7 @@ export default function InteriorReportsAnalyticsPage() {
           throw new Error(json.error || 'Invalid API payload');
         }
       } catch (err) {
+        setData(null);
         console.error('Failed to fetch reports analytics:', err);
         showToast('Không thể tải dữ liệu báo cáo từ máy chủ.');
       } finally {
@@ -99,10 +99,7 @@ export default function InteriorReportsAnalyticsPage() {
   };
 
   const handleExportPdf = () => {
-    showToast('Đang tạo và tải xuống bản báo cáo PDF điều hành...');
-    setTimeout(() => {
-      showToast('Bản báo cáo PDF Tháng 10/2026 đã được xuất thành công!');
-    }, 1200);
+    showToast('Chức năng xuất PDF chưa khả dụng; không có tệp nào được tạo.');
   };
 
   if (loading && !data) {

@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   Building2,
   Calendar,
-  CheckCircle2,
   Clock,
   Compass,
   FileSpreadsheet,
@@ -16,7 +15,6 @@ import {
   Layers,
   MapPin,
   Maximize2,
-  Phone,
   RefreshCw,
   Shield,
   ShieldCheck,
@@ -31,18 +29,13 @@ interface ProjectDetail {
   code: string;
   name: string;
   status: string;
-  customerId: string;
-  customerName: string;
-  customerPhone?: string;
-  customerEmail?: string;
-  siteAddress: string;
+  customerName: string | null;
+  siteAddress: string | null;
   projectType: string;
   totalFloorAreaSquareMeters: number;
-  contractValue: number;
+  estimatedBudget: number | null;
   targetCompletionDate: string;
-  leadArchitectId: string;
   leadArchitectName: string;
-  activeApprovedRevisionId?: string | null;
   rooms: Array<{
     id: string;
     code: string;
@@ -55,13 +48,13 @@ interface ProjectDetail {
     brand: string;
     name: string;
     spec: string;
-  }>;
+  }> | null;
   progress: {
     designPercent: number;
     workshopPercent: number;
     installPercent: number;
     overallPercent: number;
-  };
+  } | null;
 }
 
 export default function ProjectDetailPage({
@@ -108,10 +101,10 @@ export default function ProjectDetailPage({
       case 'handover':
         return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">Nghiệm thu bàn giao</span>;
       case 'completed':
-        return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">Hoàn thành & Bảo hành</span>;
+        return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">Hoàn thành &amp; Bảo hành</span>;
       case 'design':
       default:
-        return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">Thiết kế 3D & Duyệt mẫu</span>;
+        return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">Thiết kế 3D &amp; Duyệt mẫu</span>;
     }
   };
 
@@ -209,7 +202,7 @@ export default function ProjectDetailPage({
               href={`/dashboard/interior/boq?projectId=${project.id}`}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-2xs transition-colors"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5" /> BOQ & Báo Giá
+              <FileSpreadsheet className="w-3.5 h-3.5" /> BOQ &amp; Báo Giá
             </Link>
             <Link
               href={`/dashboard/interior/production?projectId=${project.id}`}
@@ -223,12 +216,14 @@ export default function ProjectDetailPage({
         {/* ── KPI Row ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-            <div className="text-xs text-slate-500 font-medium">Giá trị hợp đồng</div>
+            <div className="text-xs text-slate-500 font-medium">Ngân sách dự kiến</div>
             <div className="text-lg font-bold text-slate-900 dark:text-white mt-1">
-              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(project.contractValue)}
+              {project.estimatedBudget === null
+                ? 'Chưa có dữ liệu'
+                : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(project.estimatedBudget)}
             </div>
-            <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" /> Đã ký & giải ngân đợt 1
+            <div className="text-[11px] text-slate-500 mt-1">
+              {project.estimatedBudget === null ? 'Không có quyền xem hoặc chưa ghi nhận ngân sách' : 'Theo hồ sơ dự án'}
             </div>
           </div>
 
@@ -245,14 +240,16 @@ export default function ProjectDetailPage({
           <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
             <div className="text-xs text-slate-500 font-medium">Tiến độ tổng thể</div>
             <div className="text-lg font-bold text-slate-900 dark:text-white mt-1">
-              {project.progress.overallPercent}%
+              {project.progress ? `${project.progress.overallPercent}%` : 'Chưa có dữ liệu'}
             </div>
-            <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div
-                className="bg-amber-600 h-full rounded-full transition-all duration-500"
-                style={{ width: `${project.progress.overallPercent}%` }}
-              />
-            </div>
+            {project.progress && (
+              <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div
+                  className="bg-amber-600 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${project.progress.overallPercent}%` }}
+                />
+              </div>
+            )}
           </div>
 
           <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
@@ -261,7 +258,7 @@ export default function ProjectDetailPage({
               {new Date(project.targetCompletionDate).toLocaleDateString('vi-VN')}
             </div>
             <div className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
-              <Clock className="w-3 h-3" /> Đúng tiến độ cam kết
+              <Clock className="w-3 h-3" /> Theo lịch dự án
             </div>
           </div>
         </div>
@@ -277,7 +274,7 @@ export default function ProjectDetailPage({
               : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          Mặt Bằng & Phân Khu ({project.rooms.length})
+          Mặt Bằng &amp; Phân Khu ({project.rooms.length})
         </button>
         <button
           onClick={() => setActiveTab('materials')}
@@ -287,7 +284,7 @@ export default function ProjectDetailPage({
               : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          Vật Liệu & Thiết Bị ({project.materials.length})
+          Vật Liệu &amp; Thiết Bị ({project.materials?.length ?? '—'})
         </button>
         <button
           onClick={() => setActiveTab('timeline')}
@@ -297,7 +294,7 @@ export default function ProjectDetailPage({
               : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          Sản Xuất & Thi Công
+          Sản Xuất &amp; Thi Công
         </button>
         <button
           onClick={() => setActiveTab('handover')}
@@ -307,7 +304,7 @@ export default function ProjectDetailPage({
               : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          Nghiệm Thu & Bảo Hành
+          Nghiệm Thu &amp; Bảo Hành
         </button>
       </div>
 
@@ -317,7 +314,7 @@ export default function ProjectDetailPage({
           <div className="lg:col-span-2 space-y-4">
             <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
               <h2 className="text-base font-bold text-slate-900 dark:text-white mb-4">
-                Danh sách phòng & Phân khu chức năng
+                Danh sách phòng &amp; Phân khu chức năng
               </h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
@@ -368,21 +365,13 @@ export default function ProjectDetailPage({
                 <div>
                   <div className="text-slate-400 font-medium">Chủ đầu tư</div>
                   <div className="font-semibold text-slate-900 dark:text-white text-sm mt-0.5">
-                    {project.customerName}
+                    {project.customerName || 'Không có quyền xem hoặc chưa có thông tin'}
                   </div>
                 </div>
-                {project.customerPhone && (
-                  <div>
-                    <div className="text-slate-400 font-medium">Điện thoại liên hệ</div>
-                    <div className="font-mono text-slate-700 dark:text-slate-300 mt-0.5 flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-slate-400" /> {project.customerPhone}
-                    </div>
-                  </div>
-                )}
                 <div>
                   <div className="text-slate-400 font-medium">Địa chỉ công trình</div>
                   <div className="text-slate-700 dark:text-slate-300 mt-0.5">
-                    {project.siteAddress}
+                    {project.siteAddress || 'Không có quyền xem thông tin địa chỉ'}
                   </div>
                 </div>
               </div>
@@ -403,10 +392,10 @@ export default function ProjectDetailPage({
       {activeTab === 'materials' && (
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
           <h2 className="text-base font-bold text-slate-900 dark:text-white mb-4">
-            Chủng loại vật liệu & Thương hiệu chỉ định (Spec Lock)
+            Chủng loại vật liệu &amp; Thương hiệu chỉ định (Spec Lock)
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {project.materials.map((mat, idx) => (
+            {(project.materials ?? []).map((mat, idx) => (
               <div
                 key={idx}
                 className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-start gap-3.5"
@@ -427,6 +416,9 @@ export default function ProjectDetailPage({
                 </div>
               </div>
             ))}
+            {!project.materials && (
+              <p className="text-sm text-slate-500">Chưa có nguồn dữ liệu vật liệu cho hồ sơ này.</p>
+            )}
           </div>
         </div>
       )}
@@ -434,23 +426,23 @@ export default function ProjectDetailPage({
       {activeTab === 'timeline' && (
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-6">
           <h2 className="text-base font-bold text-slate-900 dark:text-white">
-            Tiến độ sản xuất xưởng & Lắp đặt công trình
+            Tiến độ sản xuất xưởng &amp; Lắp đặt công trình
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
               <div className="text-xs font-semibold text-slate-500 mb-1">Giai đoạn thiết kế</div>
-              <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">100% Hoàn thành</div>
-              <p className="text-xs text-slate-500 mt-1">Đã ký duyệt Approved Design Lock</p>
+              <div className="text-lg font-bold text-slate-500">{project.progress ? `${project.progress.designPercent}%` : 'Chưa có dữ liệu'}</div>
+              <p className="text-xs text-slate-500 mt-1">Chưa có read model tiến độ thiết kế</p>
             </div>
             <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
               <div className="text-xs font-semibold text-slate-500 mb-1">Giai đoạn xưởng sản xuất</div>
-              <div className="text-lg font-bold text-amber-600 dark:text-amber-400">{project.progress.workshopPercent}% Tiến độ</div>
-              <p className="text-xs text-slate-500 mt-1">Cắt CNC, Dán cạnh PUR & Lắp ráp cụm</p>
+              <div className="text-lg font-bold text-slate-500">{project.progress ? `${project.progress.workshopPercent}%` : 'Chưa có dữ liệu'}</div>
+              <p className="text-xs text-slate-500 mt-1">Chưa có read model tiến độ xưởng</p>
             </div>
             <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
               <div className="text-xs font-semibold text-slate-500 mb-1">Giai đoạn thi công hiện trường</div>
-              <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{project.progress.installPercent}% Tiến độ</div>
-              <p className="text-xs text-slate-500 mt-1">Lắp dựng khung & Hoàn thiện phụ kiện</p>
+              <div className="text-lg font-bold text-slate-500">{project.progress ? `${project.progress.installPercent}%` : 'Chưa có dữ liệu'}</div>
+              <p className="text-xs text-slate-500 mt-1">Chưa có read model tiến độ lắp đặt</p>
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
@@ -458,7 +450,7 @@ export default function ProjectDetailPage({
               href={`/dashboard/interior/installation?projectId=${project.id}`}
               className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-1.5"
             >
-              <HardHat className="w-4 h-4" /> Xem Nhật Ký Thi Công & Punch List
+              <HardHat className="w-4 h-4" /> Xem Nhật Ký Thi Công &amp; Punch List
             </Link>
           </div>
         </div>
@@ -467,7 +459,7 @@ export default function ProjectDetailPage({
       {activeTab === 'handover' && (
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-4">
           <h2 className="text-base font-bold text-slate-900 dark:text-white">
-            Nghiệm thu bàn giao & Bảo hành sau bàn giao
+            Nghiệm thu bàn giao &amp; Bảo hành sau bàn giao
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Hồ sơ nghiệm thu kỹ thuật theo tiêu chuẩn nghiệm thu 3 bên (KTS - Thợ thi công - Chủ đầu tư).

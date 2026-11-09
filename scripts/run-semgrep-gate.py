@@ -59,6 +59,23 @@ def notification_path(message):
     return source_path
 
 
+def notification_summary(notification):
+    if not isinstance(notification, dict):
+        return {"descriptor_id": None, "message": ""}
+    descriptor = notification.get("descriptor")
+    descriptor_id = descriptor.get("id") if isinstance(descriptor, dict) else None
+    message = notification.get("message")
+    text = message.get("text", "") if isinstance(message, dict) else ""
+    if not isinstance(text, str):
+        text = ""
+    text = re.sub(r"\s+", " ", text).strip()
+    text = re.sub(r"(?i)\b(api[_ -]?key|secret|token|password)\b\s*[:=]\s*[^\s,;]+", r"\1=[redacted]", text)
+    text = re.sub(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]+", "Bearer [redacted]", text)
+    text = re.sub(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b", "[redacted-email]", text)
+    text = re.sub(r"\b(?:eyJ[A-Za-z0-9_-]+\.){2}[A-Za-z0-9_-]+\b", "[redacted-token]", text)
+    return {"descriptor_id": descriptor_id, "message": text[:200]}
+
+
 def is_approved_code_scanning_suppression(result):
     if not isinstance(result, dict):
         return False
@@ -152,7 +169,25 @@ def scan(path, baseline=None, changed_files=None, base_files=None):
                     # tied to unchanged files. Unknown or changed paths fail closed.
                     if (not source_path or changed_files is None or base_files is None
                             or source_path not in base_files or source_path in changed_files):
-                        raise ValueError("SCANNER_WARNING_ON_CHANGED_OR_UNKNOWN_FILE")
+                        if not source_path:
+                            classification = "unlocated"
+                        elif changed_files is None or base_files is None:
+                            classification = "comparison_unavailable"
+                        elif source_path in changed_files:
+                            classification = "changed_file"
+                        else:
+                            classification = "not_in_base"
+                        evidence = json.dumps(
+                            {
+                                "classification": classification,
+                                "path": source_path,
+                                "warning": notification_summary(notification),
+                            },
+                            sort_keys=True,
+                        )
+                        raise ValueError(
+                            f"SCANNER_WARNING_ON_CHANGED_OR_UNKNOWN_FILE: {evidence}"
+                        )
                     preexisting_warnings += 1
         # Rule-specific accepted suppressions stay visible in the full SARIF.
         count += sum(not r.get("suppressions") for r in run["results"])
@@ -211,8 +246,12 @@ def run_gate():
 if __name__ == "__main__":
     try:
         sys.exit(run_gate())
-    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
+    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
         # Missing evidence, transport/Git/scanner errors never count as no findings.
-        Path("semgrep-gate.json").write_text('{"gate":"FAIL_EXECUTION_OR_EVIDENCE"}\n', encoding="utf-8")
-        print("SEMGREP_GATE_EXECUTION_OR_EVIDENCE_FAILED", file=sys.stderr)
+        detail = f"{type(error).__name__}: {error}"
+        Path("semgrep-gate.json").write_text(
+            json.dumps({"gate": "FAIL_EXECUTION_OR_EVIDENCE", "error": detail}, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        print(f"SEMGREP_GATE_EXECUTION_OR_EVIDENCE_FAILED: {detail}", file=sys.stderr)
         sys.exit(2)

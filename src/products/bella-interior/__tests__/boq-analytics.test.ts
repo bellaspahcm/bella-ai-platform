@@ -399,6 +399,7 @@ describe('InteriorBOQAnalyticsService', () => {
       });
 
       const mockSupabase = {
+        rpc: jest.fn().mockResolvedValue({ error: { message: 'Immutability violation: approved BOQs cannot be edited' } }),
         from: jest.fn().mockImplementation((table: string) => {
           if (table === 'interior_boqs') {
             return {

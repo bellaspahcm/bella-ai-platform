@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase-server";
 import type { Database } from "@/types/database.types";
 import { canUseAiCopilotRole } from "@/lib/business-rules/permissions";
 import { withTenantContext, type NextRequestWithContext } from "@/core/middleware/tenantContext";
+import { SupabasePlatformActionAuthorization } from "@/platform/authorization";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 type AppNotificationInsert = Database["public"]["Tables"]["app_notifications"]["Insert"];
 type AIAgentLogInsert = Database["public"]["Tables"]["ai_agent_logs"]["Insert"];
@@ -13,6 +15,29 @@ interface ApprovalRequest {
   reason: string;
   draftMessage: string;
 }
+
+const INTERIOR_ACTION_PERMISSIONS: Readonly<Record<string, string>> = {
+  interior_sales_followup: 'interior:contract:write',
+  interior_commercial_upsell: 'interior:contract:write',
+  interior_spec_lock_approval: 'interior:design:approve',
+  interior_workshop_production_order: 'interior:production:write',
+  interior_material_replenish: 'interior:production:write',
+  interior_schedule_recovery: 'interior:schedule:write',
+  interior_site_team_dispatch: 'interior:installation:write',
+  interior_architect_rebalance: 'interior:design:write',
+  interior_workshop_recruitment: 'interior:production:write',
+  interior_boq_variance_review: 'interior:boq:write',
+  interior_milestone_payment_followup: 'interior:finance:write',
+  interior_executive_action: 'interior:executive:approve',
+};
+
+const LEGACY_ACTION_TYPES = new Set([
+  'attendance_warning',
+  'inventory_restock',
+  'customer_apology',
+  'royalty_payment_reminder',
+  'real_estate_release_next_block',
+]);
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -78,18 +103,33 @@ export const POST = withTenantContext(async (request: NextRequestWithContext) =>
       return NextResponse.json({ error: "Tài khoản của bạn không tồn tại trên hệ thống." }, { status: 403 });
     }
 
-    // 4. Validate user has permission to approve AI actions
-    if (!canUseAiCopilotRole(userData.role)) {
-      console.warn(`[AI Action Approval] Người dùng ${userData.full_name} với vai trò ${userData.role} bị từ chối phê duyệt.`);
-      return NextResponse.json({ error: "Quyền hạn không hợp lệ. Chỉ có Ban điều hành (Admin/Super Admin), Quản lý dự án, KTS trưởng và Kế toán mới có quyền phê duyệt hành động của AI." }, { status: 403 });
+    // 4. Parse and validate the approved action type before authorization.
+    const body: unknown = await request.json();
+    if (typeof body !== 'object' || body === null) {
+      return NextResponse.json({ error: "Request body must be an object." }, { status: 400 });
     }
-
-    // 5. Parse request body
-    const body: ApprovalRequest = await request.json();
-    const { type, recipient, reason, draftMessage } = body;
-
-    if (!type || !recipient || !reason || !draftMessage) {
+    const { type, recipient, reason, draftMessage } = body as Partial<ApprovalRequest>;
+    if (typeof type !== 'string' || typeof recipient !== 'string' || typeof reason !== 'string' || typeof draftMessage !== 'string'
+      || !recipient.trim() || !reason.trim() || !draftMessage.trim()
+      || recipient.length > 500 || reason.length > 2000 || draftMessage.length > 5000) {
       return NextResponse.json({ error: "Vui lòng cung cấp đầy đủ thông tin hành động nháp." }, { status: 400 });
+    }
+    const interiorPermission = INTERIOR_ACTION_PERMISSIONS[type];
+    if (interiorPermission) {
+      const authorization = new SupabasePlatformActionAuthorization(supabase as unknown as SupabaseClient<Database>);
+      const decision = await authorization.authorize({ permissionId: interiorPermission, tenantId });
+      if (decision.status === 'DENY') {
+        return NextResponse.json({ error: "Không có quyền phê duyệt hành động Interior này." }, { status: 403 });
+      }
+      if (decision.status === 'UNAVAILABLE') {
+        return NextResponse.json({ error: "Không thể xác thực quyền phê duyệt Interior." }, { status: 503 });
+      }
+    } else if (LEGACY_ACTION_TYPES.has(type)) {
+      if (!canUseAiCopilotRole(userData.role)) {
+        return NextResponse.json({ error: "Quyền hạn không hợp lệ để phê duyệt hành động này." }, { status: 403 });
+      }
+    } else {
+      return NextResponse.json({ error: "Loại hành động không được hỗ trợ." }, { status: 400 });
     }
 
     console.log(`[AI Action Approval] CEO ${userData.full_name} phê duyệt hành động: "${type}" cho "${recipient}"`);
@@ -123,8 +163,8 @@ export const POST = withTenantContext(async (request: NextRequestWithContext) =>
     const logPayload: AIAgentLogInsert = {
       tenant_id: tenantId,
       user_id: userData.id,
-      sender: "ceo",
-      message: `CEO ${userData.full_name} chính thức phê duyệt hành động nháp "${type}" cho "${recipient}". Lý do: ${reason}`,
+      sender: "user",
+      message: `${userData.full_name} đã phê duyệt hành động nháp "${type}" cho "${recipient}". Lý do: ${reason}`,
       metadata: {
         action_type: type,
         recipient: recipient,

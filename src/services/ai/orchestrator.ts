@@ -62,7 +62,7 @@ function cleanAndParseJson(text: string): Record<string, unknown> {
   }
 }
 
-function detectRouting(lowerCommand: string): string {
+export function detectRouting(lowerCommand: string): string {
   const isHrRelated = lowerCommand.includes("nhân sự") ||
     lowerCommand.includes("lương") || lowerCommand.includes("chấm công") ||
     lowerCommand.includes("ktv") || lowerCommand.includes("kpi") ||

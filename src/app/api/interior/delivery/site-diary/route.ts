@@ -28,44 +28,12 @@ interface SiteDiaryEntry {
 interface CreateSiteDiaryBody {
   projectId: string;
   date: string;
-  supervisorUserId: string;
   workersPresent: number;
   weatherCondition: WeatherCondition;
   activitiesCompleted: string[];
   issuesEncountered?: string[];
   notes?: string;
 }
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_SITE_DIARY_ENTRIES: SiteDiaryEntry[] = [
-  {
-    id: 'sde-001',
-    tenantId: 'demo-tenant',
-    projectId: 'proj-interior-001',
-    date: '2026-11-01',
-    supervisorUserId: 'user-supervisor-01',
-    workersPresent: 6,
-    weatherCondition: 'sunny',
-    activitiesCompleted: ['Wardrobe frame installation — master bedroom', 'Electrical conduit routing verified'],
-    issuesEncountered: ['Minor paint touch-up needed behind wardrobe panel'],
-    notes: 'Client visited site at 14:00. Satisfied with progress.',
-    createdAt: '2026-11-01T17:30:00Z',
-  },
-  {
-    id: 'sde-002',
-    tenantId: 'demo-tenant',
-    projectId: 'proj-interior-001',
-    date: '2026-11-03',
-    supervisorUserId: 'user-supervisor-01',
-    workersPresent: 4,
-    weatherCondition: 'cloudy',
-    activitiesCompleted: ['Kitchen lower cabinet installation', 'Plinth fitting'],
-    issuesEncountered: [],
-    notes: 'No issues. On track for handover.',
-    createdAt: '2026-11-03T17:00:00Z',
-  },
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -103,31 +71,23 @@ export async function GET(request: Request): Promise<NextResponse> {
   try {
     const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
     const dbDiaries = await repo.listSiteDiaries(tenantId, projectId);
-    if (dbDiaries && dbDiaries.length > 0) {
-      const mapped: SiteDiaryEntry[] = dbDiaries.map((d) => ({
-        id: d.id,
-        tenantId: d.tenantId,
-        projectId: d.projectId,
-        date: d.date,
-        supervisorUserId: d.supervisorName,
-        workersPresent: d.laborHeadcount,
-        weatherCondition: (d.weather === 'cloudy' ? 'cloudy' : d.weather === 'rainy' ? 'rainy' : d.weather === 'stormy' ? 'stormy' : 'sunny') as WeatherCondition,
-        activitiesCompleted: d.activitiesCompleted,
-        issuesEncountered: d.issuesNoted ? [d.issuesNoted] : [],
-        notes: d.issuesNoted || '',
-        createdAt: d.date,
-      }));
-      return NextResponse.json({ success: true, data: mapped });
-    }
+    const mapped: SiteDiaryEntry[] = dbDiaries.map((d) => ({
+      id: d.id,
+      tenantId: d.tenantId,
+      projectId: d.projectId,
+      date: d.date,
+      supervisorUserId: d.supervisorName,
+      workersPresent: d.laborHeadcount,
+      weatherCondition: (d.weather === 'cloudy' ? 'cloudy' : d.weather === 'rainy' ? 'rainy' : d.weather === 'stormy' ? 'stormy' : 'sunny') as WeatherCondition,
+      activitiesCompleted: d.activitiesCompleted,
+      issuesEncountered: d.issuesNoted ? [d.issuesNoted] : [],
+      notes: d.issuesNoted || '',
+      createdAt: d.date,
+    }));
+    return NextResponse.json({ success: true, data: mapped });
   } catch {
-    // Database query failed; fall back to mock store
+    return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_READ_FAILED' }, { status: 503 });
   }
-
-  const entries = MOCK_SITE_DIARY_ENTRIES.filter(
-    (e) => (e.tenantId === tenantId || e.tenantId === 'demo-tenant') && (e.projectId === projectId || e.projectId === 'proj-interior-001'),
-  );
-
-  return NextResponse.json({ success: true, data: entries });
 }
 
 // ─── POST /api/interior/delivery/site-diary ───────────────────────────────────
@@ -150,7 +110,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   const raw = body as Record<string, unknown>;
 
-  const { projectId, date, supervisorUserId, workersPresent, weatherCondition, activitiesCompleted, issuesEncountered, notes } =
+  const { projectId, date, workersPresent, weatherCondition, activitiesCompleted, issuesEncountered, notes } =
     raw as Partial<CreateSiteDiaryBody> & Record<string, unknown>;
 
   // Required fields
@@ -162,9 +122,6 @@ export async function POST(request: Request): Promise<NextResponse> {
       { success: false, error: 'date is required and must be a valid ISO date string (YYYY-MM-DD)' },
       { status: 400 },
     );
-  }
-  if (!supervisorUserId || typeof supervisorUserId !== 'string') {
-    return NextResponse.json({ success: false, error: 'supervisorUserId is required' }, { status: 400 });
   }
   if (workersPresent === undefined || typeof workersPresent !== 'number' || workersPresent < 0) {
     return NextResponse.json(
@@ -203,17 +160,19 @@ export async function POST(request: Request): Promise<NextResponse> {
     weather: raw.weatherCondition as string,
     laborHeadcount: workersPresent,
     activitiesCompleted,
-    materialDelivered: ['Ván gỗ xuất xưởng', 'Phụ kiện ray trượt Blum'],
+    materialDelivered: [],
     issuesNoted: Array.isArray(issuesEncountered) && issuesEncountered.length > 0 ? issuesEncountered.join('; ') : typeof notes === 'string' ? notes : undefined,
-    supervisorName: supervisorUserId || actor.full_name || 'Chỉ huy trưởng công trình',
+    supervisorName: actor.full_name || actor.email,
     photoUrls: [],
   };
 
   try {
     const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+    const project = await repo.getProject(tenantId, projectId);
+    if (!project) return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
     await repo.saveSiteDiary(tenantId, domainEntry);
   } catch {
-    // Database save failed; proceed with mock store
+    return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_PERSISTENCE_FAILED' }, { status: 503 });
   }
 
   const newEntry: SiteDiaryEntry = {
@@ -221,7 +180,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     tenantId,
     projectId,
     date,
-    supervisorUserId: domainEntry.supervisorName,
+    supervisorUserId: actor.id,
     workersPresent,
     weatherCondition: raw.weatherCondition as WeatherCondition,
     activitiesCompleted,
@@ -229,8 +188,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     notes: typeof notes === 'string' ? notes : '',
     createdAt: now,
   };
-
-  MOCK_SITE_DIARY_ENTRIES.push(newEntry);
 
   return NextResponse.json({ success: true, data: newEntry }, { status: 201 });
 }

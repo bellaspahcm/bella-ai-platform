@@ -4,176 +4,145 @@ import { resolveInteriorContext } from '@/products/bella-interior/lib/server-con
 import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { WarrantyServiceTicket as DomainWarrantyTicket, DefectCategory } from '@/products/bella-interior/domain/delivery-aftercare/types';
-import { ensureUuid } from '@/products/bella-interior/lib/uuid-helper';
 
 export const dynamic = 'force-dynamic';
 
 interface WarrantyTicketBody {
   warrantyId: string;
   projectId: string;
-  reportedByClientContact: string;
+  reportedByClientContact?: string;
   issueCategory: 'structural' | 'finishing' | 'mechanical' | 'electrical';
   description: string;
   priority: 'urgent' | 'high' | 'medium' | 'low';
 }
 
-interface WarrantyCertificate {
-  id: string;
-  tenantId: string;
-  projectId: string;
-  certificateNumber: string;
-  clientName: string;
-  handoverDate: string;
-  warrantyStartDate: string;
-  warrantyEndDate: string;
-  coverageScope: string;
-  status: 'active' | 'expiring_soon' | 'expired';
-}
-
-interface WarrantyTicket {
-  id: string;
-  tenantId: string;
-  warrantyId: string;
-  projectId: string;
-  reportedByClientContact: string;
-  issueCategory: 'structural' | 'finishing' | 'mechanical' | 'electrical';
-  description: string;
-  priority: 'urgent' | 'high' | 'medium' | 'low';
-  status: 'open' | 'scheduled' | 'in_progress' | 'resolved' | 'closed';
-  createdAt: string;
-  scheduledVisit?: string;
-  resolvedAt?: string;
-}
-
-// Demo certificates
-const certStore: WarrantyCertificate[] = [
-  {
-    id: 'WAR-001',
-    tenantId: 'demo-tenant',
-    projectId: 'PRJ-DEMO-003',
-    certificateNumber: 'WAR-INT-MASTER-2026',
-    clientName: 'Công ty TNHH Mastella',
-    handoverDate: '2026-10-10T00:00:00Z',
-    warrantyStartDate: '2026-10-10T00:00:00Z',
-    warrantyEndDate: '2027-10-10T00:00:00Z',
-    coverageScope: 'Toàn bộ nội thất gỗ, phụ kiện, kính cường lực',
-    status: 'active',
-  },
-];
-
-const ticketStore: WarrantyTicket[] = [];
-
-function computeStatus(cert: WarrantyCertificate): 'active' | 'expiring_soon' | 'expired' {
-  const now    = Date.now();
-  const expiry = new Date(cert.warrantyEndDate).getTime();
-  const days90 = 90 * 24 * 60 * 60 * 1000;
-  if (expiry < now) return 'expired';
-  if (expiry - now < days90) return 'expiring_soon';
+function computeStatus(expirationDate: string): 'active' | 'expiring_soon' | 'expired' {
+  const remaining = new Date(expirationDate).getTime() - Date.now();
+  if (remaining < 0) return 'expired';
+  if (remaining < 90 * 24 * 60 * 60 * 1000) return 'expiring_soon';
   return 'active';
 }
 
 export async function GET(request: Request): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
   if (!ctx.ok) return ctx.response;
-  const { tenantId } = ctx;
-
   const { searchParams } = new URL(request.url);
-  const projectId = searchParams.get('projectId');
-  const type      = searchParams.get('type') ?? 'certificates';
+  const projectId = searchParams.get('projectId') || undefined;
+  const type = searchParams.get('type') ?? 'certificates';
+  const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
 
-  if (type === 'tickets') {
-    try {
-      const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-      const dbTickets = await repo.listWarrantyTickets(tenantId, projectId ?? undefined);
-      if (dbTickets && dbTickets.length > 0) {
-        const mappedTickets: WarrantyTicket[] = dbTickets.map((t) => ({
-          id: t.id,
-          tenantId: t.tenantId,
-          warrantyId: t.certificateId,
-          projectId: t.projectId,
-          reportedByClientContact: t.customerReport,
-          issueCategory: t.defectCategory === 'hardware_defect' ? 'mechanical' : 'finishing',
-          description: t.customerReport,
-          priority: 'medium',
-          status: (t.status === 'in_progress' ? 'in_progress' : t.status === 'resolved' ? 'resolved' : 'open') as WarrantyTicket['status'],
-          createdAt: t.reportedDate,
-        }));
-        return NextResponse.json({ success: true, data: { tickets: mappedTickets, total: mappedTickets.length } });
-      }
-    } catch {
-      // DB query failed; fall back to memory
+  try {
+    if (type === 'tickets') {
+      const rows = await repo.listWarrantyTickets(ctx.tenantId, projectId);
+      const tickets = rows.map((ticket) => ({
+        id: ticket.id,
+        tenantId: ticket.tenantId,
+        warrantyId: ticket.certificateId,
+        projectId: ticket.projectId,
+        reportedByClientContact: ticket.assignedTechnician ?? '',
+        issueCategory: ticket.defectCategory === 'hardware_defect' ? 'mechanical' as const : 'finishing' as const,
+        description: ticket.customerReport,
+        priority: 'medium' as const,
+        status: ticket.status === 'in_progress' ? 'in_progress' : ticket.status === 'resolved' ? 'resolved' : 'open',
+        createdAt: ticket.reportedDate,
+      }));
+      return NextResponse.json({ success: true, data: { tickets, total: tickets.length } }, {
+        headers: { 'Cache-Control': 'no-store, max-age=0' },
+      });
+    }
+    if (type !== 'certificates') {
+      return NextResponse.json({ success: false, error: 'Unsupported warranty data type' }, { status: 400 });
     }
 
-    const tickets = ticketStore.filter((t) => {
-      const tenantMatch  = t.tenantId === tenantId;
-      const projectMatch = projectId ? t.projectId === projectId : true;
-      return tenantMatch && projectMatch;
+    const rows = await repo.listWarrantyCertificates(ctx.tenantId, projectId);
+    const customerDecision = await ctx.authorization.authorize({
+      permissionId: 'interior:customer:read',
+      tenantId: ctx.tenantId,
     });
-    return NextResponse.json({ success: true, data: { tickets, total: tickets.length } });
+    const certificates = rows.map((certificate) => ({
+      id: certificate.id,
+      tenantId: certificate.tenantId,
+      projectId: certificate.projectId,
+      certificateNumber: certificate.certificateNumber,
+      clientName: customerDecision.status === 'ALLOW' ? certificate.customerName : null,
+      handoverDate: certificate.effectiveDate,
+      warrantyStartDate: certificate.effectiveDate,
+      warrantyEndDate: certificate.expirationDate,
+      coverageScope: certificate.termsSummary,
+      status: computeStatus(certificate.expirationDate),
+    }));
+    return NextResponse.json({ success: true, data: { certificates, total: certificates.length } }, {
+      headers: { 'Cache-Control': 'no-store, max-age=0' },
+    });
+  } catch {
+    return NextResponse.json({ success: false, error: 'INTERIOR_WARRANTY_LOOKUP_FAILED' }, { status: 503 });
   }
-
-  // Default: certificates
-  const certs = certStore
-    .filter((c) => (c.tenantId === tenantId || c.tenantId === 'demo-tenant' || c.tenantId === '00000000-0000-0000-0000-000000000001') && (!projectId || c.projectId === projectId || c.projectId === 'proj-001'))
-    .map((c) => ({ ...c, status: computeStatus(c) }));
-
-  return NextResponse.json({ success: true, data: { certificates: certs, total: certs.length } });
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
   if (!ctx.ok) return ctx.response;
-  const { tenantId } = ctx;
-
-  let body: WarrantyTicketBody;
+  let body: unknown;
   try {
-    body = (await request.json()) as WarrantyTicketBody;
+    body = await request.json();
   } catch {
     return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
   }
-
-  if (!body.warrantyId || !body.projectId || !body.description || !body.issueCategory || !body.priority) {
-    return NextResponse.json({ success: false, error: 'warrantyId, projectId, description, issueCategory and priority are required' }, { status: 400 });
+  if (typeof body !== 'object' || body === null) {
+    return NextResponse.json({ success: false, error: 'Request body must be an object' }, { status: 400 });
   }
 
-  const ticketId = randomUUID();
-  const now = new Date().toISOString();
+  const payload = body as Partial<WarrantyTicketBody>;
+  const categories = ['structural', 'finishing', 'mechanical', 'electrical'];
+  const priorities = ['urgent', 'high', 'medium', 'low'];
+  if (
+    typeof payload.warrantyId !== 'string' || !payload.warrantyId ||
+    typeof payload.projectId !== 'string' || !payload.projectId ||
+    typeof payload.description !== 'string' || !payload.description.trim() ||
+    typeof payload.issueCategory !== 'string' || !categories.includes(payload.issueCategory) ||
+    typeof payload.priority !== 'string' || !priorities.includes(payload.priority)
+  ) {
+    return NextResponse.json({ success: false, error: 'Invalid warranty ticket fields' }, { status: 400 });
+  }
 
-  const domainTicket: DomainWarrantyTicket = {
-    id: ticketId,
-    tenantId,
-    certificateId: ensureUuid(body.warrantyId),
-    projectId: ensureUuid(body.projectId),
+  const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+  let project;
+  let certificate;
+  try {
+    project = await repo.getProject(ctx.tenantId, payload.projectId);
+    certificate = await repo.getWarrantyCertificate(ctx.tenantId, payload.warrantyId);
+  } catch {
+    return NextResponse.json({ success: false, error: 'INTERIOR_WARRANTY_PRECONDITION_LOOKUP_FAILED' }, { status: 503 });
+  }
+  if (!project || !certificate || certificate.projectId !== payload.projectId) {
+    return NextResponse.json({ success: false, error: 'Warranty certificate or project not found' }, { status: 404 });
+  }
+
+  const now = new Date().toISOString();
+  const categoryMap: Record<WarrantyTicketBody['issueCategory'], DefectCategory> = {
+    structural: 'dimensional_error',
+    finishing: 'scratched_surface',
+    mechanical: 'hardware_defect',
+    electrical: 'lighting_failure',
+  };
+  const ticket: DomainWarrantyTicket = {
+    id: randomUUID(),
+    tenantId: ctx.tenantId,
+    certificateId: certificate.id,
+    projectId: project.id,
     ticketNumber: `WTK-${Date.now().toString().slice(-6)}`,
     reportedDate: now,
-    customerReport: body.description,
+    customerReport: payload.description.trim(),
     roomZoneName: 'Toàn bộ công trình',
-    itemName: body.description.slice(0, 30),
-    defectCategory: (body.issueCategory === 'structural' ? 'finish_defect' : 'hardware_defect') as DefectCategory,
+    itemName: payload.description.trim().slice(0, 30),
+    defectCategory: categoryMap[payload.issueCategory],
     status: 'submitted',
   };
-
   try {
-    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-    await repo.saveWarrantyTicket(tenantId, domainTicket);
+    await repo.saveWarrantyTicket(ctx.tenantId, ticket);
   } catch {
-    // DB save failed, proceed with memory
+    return NextResponse.json({ success: false, error: 'INTERIOR_WARRANTY_TICKET_PERSISTENCE_FAILED' }, { status: 503 });
   }
-
-  const ticket: WarrantyTicket = {
-    id: ticketId,
-    tenantId,
-    warrantyId: body.warrantyId,
-    projectId: body.projectId,
-    reportedByClientContact: body.reportedByClientContact,
-    issueCategory: body.issueCategory,
-    description: body.description,
-    priority: body.priority,
-    status: 'open',
-    createdAt: now,
-  };
-
-  ticketStore.push(ticket);
 
   return NextResponse.json({ success: true, data: ticket }, { status: 201 });
 }

@@ -1,29 +1,20 @@
-import { describe, expect, it, beforeEach } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import { NextRequest } from 'next/server';
 import { GET, POST, PATCH, DELETE } from '../route';
-import { InteriorScheduleAnalyticsService } from '@/products/bella-interior';
 
-describe('API: /api/interior/schedule', () => {
-  const TEST_TENANT = 'tenant-api-test-123';
-
-  beforeEach(() => {
-    InteriorScheduleAnalyticsService.resetTenantTasks(TEST_TENANT);
-  });
-
-  it('GET returns schedule overview with 200', async () => {
-    const req = new NextRequest(`http://localhost:3000/api/interior/schedule?tenantId=${TEST_TENANT}`);
+describe('API: /api/interior/schedule fail-closed boundary', () => {
+  it('GET does not return demo schedules when canonical auth or persistence is unavailable', async () => {
+    const req = new NextRequest('http://localhost:3000/api/interior/schedule');
     const res = await GET(req);
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(503);
 
     const json = await res.json();
-    expect(json.success).toBe(true);
-    expect(json.kpis.totalTasks.value).toBe(48);
-    expect(json.calendarEvents).toHaveLength(6);
+    expect(json.success).toBe(false);
+    expect(json).not.toHaveProperty('calendarEvents');
   });
 
-  it('POST creates a new task and returns 201 with updated overview', async () => {
+  it('POST does not claim a schedule task was persisted', async () => {
     const payload = {
-      tenantId: TEST_TENANT,
       title: 'Thi công vách thạch cao',
       projectName: 'The Garden Villa',
       assignee: 'Đội 3',
@@ -41,20 +32,14 @@ describe('API: /api/interior/schedule', () => {
     });
 
     const res = await POST(req);
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(503);
 
     const json = await res.json();
-    expect(json.success).toBe(true);
-    expect(json.data.task.title).toBe('Thi công vách thạch cao');
-    expect(json.data.task.projectName).toBe('The Garden Villa');
-    expect(json.data.task.categoryLabel).toBe('Lắp đặt');
-    expect(json.data.overview.kpis.totalTasks.value).toBe(49);
-    expect(json.data.overview.calendarEvents).toHaveLength(7);
+    expect(json.success).toBe(false);
   });
 
-  it('POST returns 422 if title is missing', async () => {
+  it('POST rejects before processing when canonical auth is unavailable', async () => {
     const payload = {
-      tenantId: TEST_TENANT,
       title: '',
     };
 
@@ -65,57 +50,32 @@ describe('API: /api/interior/schedule', () => {
     });
 
     const res = await POST(req);
-    expect(res.status).toBe(422);
+    expect(res.status).toBe(503);
     const json = await res.json();
-    expect(json.error).toBe('VALIDATION_FAILED');
+    expect(json.success).toBe(false);
   });
 
-  it('PATCH completes a task and returns 200', async () => {
-    // First create a task
-    const task = InteriorScheduleAnalyticsService.createScheduledTask(TEST_TENANT, {
-      title: 'Nhiệm vụ kiểm thử',
-      projectName: 'Office Tower',
-      assignee: 'PM. Hùng',
-      category: 'handover',
-      dayIndex: 1,
-      timeSlotId: 'slot-2',
-    });
-
+  it('PATCH does not claim a schedule task was persisted', async () => {
     const req = new NextRequest('http://localhost:3000/api/interior/schedule', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tenantId: TEST_TENANT, taskId: task.id }),
+      body: JSON.stringify({ taskId: 'task-1' }),
     });
 
     const res = await PATCH(req);
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(503);
 
     const json = await res.json();
-    expect(json.success).toBe(true);
-    expect(json.data.overview.kpis.completedTasks.value).toBe(33);
+    expect(json.success).toBe(false);
   });
 
-  it('DELETE removes a task and returns 200', async () => {
-    const task = InteriorScheduleAnalyticsService.createScheduledTask(TEST_TENANT, {
-      title: 'Tạm hủy',
-      projectName: 'Villa Sunrise',
-      assignee: 'KTS. Lê Hoàng',
-      category: 'design',
-      dayIndex: 0,
-      timeSlotId: 'slot-1',
-    });
-
-    const req = new NextRequest(
-      `http://localhost:3000/api/interior/schedule?tenantId=${TEST_TENANT}&taskId=${task.id}`,
-      { method: 'DELETE' },
-    );
+  it('DELETE does not claim a schedule task was removed', async () => {
+    const req = new NextRequest('http://localhost:3000/api/interior/schedule?taskId=task-1', { method: 'DELETE' });
 
     const res = await DELETE(req);
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(503);
 
     const json = await res.json();
-    expect(json.success).toBe(true);
-    expect(json.data.overview.calendarEvents).toHaveLength(6);
-    expect(json.data.overview.kpis.totalTasks.value).toBe(48);
+    expect(json.success).toBe(false);
   });
 });

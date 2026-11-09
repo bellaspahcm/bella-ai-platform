@@ -42,60 +42,7 @@ interface CreatePunchListBody {
   description: string;
   category: PunchListCategory;
   severity: PunchListSeverity;
-  reportedByUserId: string;
-  assignedToUserId?: string;
-  photoUrl?: string;
 }
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-export const MOCK_PUNCH_LIST_ITEMS: PunchListItem[] = [
-  {
-    id: 'pli-001',
-    tenantId: '00000000-0000-0000-0000-000000000001',
-    projectId: 'proj-001',
-    roomZoneId: 'zone-master-bedroom',
-    description: 'Wardrobe door alignment off by 3mm — does not close flush',
-    category: 'furniture_fit',
-    severity: 'major',
-    status: 'in_progress',
-    reportedByUserId: 'user-supervisor-01',
-    assignedToUserId: 'user-carpenter-01',
-    photoUrl: null,
-    createdAt: '2026-11-02T10:00:00Z',
-    updatedAt: '2026-11-03T09:00:00Z',
-  },
-  {
-    id: 'pli-002',
-    tenantId: '00000000-0000-0000-0000-000000000001',
-    projectId: 'proj-001',
-    roomZoneId: 'zone-kitchen',
-    description: 'Paint bleed on splashback tile grout line',
-    category: 'painting',
-    severity: 'minor',
-    status: 'open',
-    reportedByUserId: 'user-supervisor-01',
-    assignedToUserId: null,
-    photoUrl: null,
-    createdAt: '2026-11-03T11:30:00Z',
-    updatedAt: '2026-11-03T11:30:00Z',
-  },
-  {
-    id: 'pli-003',
-    tenantId: '00000000-0000-0000-0000-000000000001',
-    projectId: 'proj-001',
-    roomZoneId: 'zone-living-room',
-    description: 'Feature wall structural crack — requires remediation before cladding',
-    category: 'structural',
-    severity: 'critical',
-    status: 'open',
-    reportedByUserId: 'user-supervisor-01',
-    assignedToUserId: 'user-structural-01',
-    photoUrl: 'https://cdn.example.com/punch/pli-003.jpg',
-    createdAt: '2026-11-04T08:00:00Z',
-    updatedAt: '2026-11-04T08:00:00Z',
-  },
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -145,8 +92,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   try {
     const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
     const dbItems = await repo.listPunchListItems(tenantId, projectId);
-    if (dbItems && dbItems.length > 0) {
-      let filtered = dbItems.map((i) => ({
+    let filtered = dbItems.map((i) => ({
         id: i.id,
         tenantId: i.tenantId,
         projectId: i.projectId,
@@ -161,25 +107,13 @@ export async function GET(request: Request): Promise<NextResponse> {
         createdAt: i.deadline,
         updatedAt: i.verifiedAt || i.deadline,
       }));
-      if (status) {
-        filtered = filtered.filter((i) => i.status === status);
-      }
-      return NextResponse.json({ success: true, data: filtered });
+    if (status) {
+      filtered = filtered.filter((i) => i.status === status);
     }
+    return NextResponse.json({ success: true, data: filtered });
   } catch {
-    // Database query failed; fall back to mock store
+    return NextResponse.json({ success: false, error: 'INTERIOR_QC_READ_FAILED' }, { status: 503 });
   }
-
-  let items = MOCK_PUNCH_LIST_ITEMS.filter(
-    (i) => (i.tenantId === tenantId || i.tenantId === '00000000-0000-0000-0000-000000000001') &&
-           (i.projectId === projectId || i.projectId === 'proj-001'),
-  );
-
-  if (status) {
-    items = items.filter((i) => i.status === status);
-  }
-
-  return NextResponse.json({ success: true, data: items });
 }
 
 // ─── POST /api/interior/delivery/punch-list ───────────────────────────────────
@@ -201,12 +135,12 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   const raw = body as Record<string, unknown>;
-  const { projectId, description, reportedByUserId } = raw as Partial<CreatePunchListBody>;
+  const { projectId, description } = raw as Partial<CreatePunchListBody>;
 
   if (!projectId || typeof projectId !== 'string') {
     return NextResponse.json({ success: false, error: 'projectId is required' }, { status: 400 });
   }
-  if (!description || typeof description !== 'string') {
+  if (!description || typeof description !== 'string' || description.trim().length > 4000) {
     return NextResponse.json({ success: false, error: 'description is required' }, { status: 400 });
   }
   if (!isValidCategory(raw.category)) {
@@ -221,32 +155,41 @@ export async function POST(request: Request): Promise<NextResponse> {
       { status: 400 },
     );
   }
-  if (!reportedByUserId || typeof reportedByUserId !== 'string') {
-    return NextResponse.json({ success: false, error: 'reportedByUserId is required' }, { status: 400 });
-  }
-
   const now = new Date().toISOString();
   const pliId = randomUUID();
+  const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+  let roomZoneName = 'Khu vực chính';
+  try {
+    const project = await repo.getProject(tenantId, projectId);
+    if (!project) return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
+    if (typeof raw.roomZoneId === 'string') {
+      const roomZones = await repo.listRoomZones(tenantId, project.id);
+      const roomZone = roomZones.find((zone) => zone.id === raw.roomZoneId);
+      if (!roomZone) return NextResponse.json({ success: false, error: 'Room zone not found in project' }, { status: 404 });
+      roomZoneName = roomZone.name;
+    }
+  } catch {
+    return NextResponse.json({ success: false, error: 'INTERIOR_QC_PRECONDITION_LOOKUP_FAILED' }, { status: 503 });
+  }
 
   const domainItem: DomainPunchItem = {
     id: pliId,
     tenantId,
     projectId,
-    roomZoneName: typeof raw.roomZoneId === 'string' ? raw.roomZoneId : 'Khu vực chính',
+    roomZoneName,
     itemName: description.slice(0, 30),
     defectCategory: 'hardware_defect' as DefectCategory,
     description,
     severity: raw.severity as DefectSeverity,
-    assignedFixer: typeof raw.assignedToUserId === 'string' ? raw.assignedToUserId : 'Đội thợ xưởng',
+    assignedFixer: 'Chưa phân công',
     deadline: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),
     status: 'open',
   };
 
   try {
-    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
     await repo.savePunchListItem(tenantId, domainItem);
   } catch {
-    // Database save failed; proceed with mock store
+    return NextResponse.json({ success: false, error: 'INTERIOR_QC_PERSISTENCE_FAILED' }, { status: 503 });
   }
 
   const newItem: PunchListItem = {
@@ -258,14 +201,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     category: raw.category as PunchListCategory,
     severity: raw.severity as PunchListSeverity,
     status: 'open',
-    reportedByUserId: reportedByUserId || actor.id,
-    assignedToUserId: typeof raw.assignedToUserId === 'string' ? raw.assignedToUserId : null,
-    photoUrl: typeof raw.photoUrl === 'string' ? raw.photoUrl : null,
+    reportedByUserId: actor.id,
+    assignedToUserId: null,
+    photoUrl: null,
     createdAt: now,
     updatedAt: now,
   };
-
-  MOCK_PUNCH_LIST_ITEMS.push(newItem);
 
   return NextResponse.json({ success: true, data: newItem }, { status: 201 });
 }

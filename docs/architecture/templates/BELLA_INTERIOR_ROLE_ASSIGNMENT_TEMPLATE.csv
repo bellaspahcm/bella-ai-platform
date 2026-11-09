@@ -1,0 +1,12 @@
+email,role,tenant_id,requested_by,approved_by,approval_date
+project.manager@bellainterior.vn,interior_project_manager,REPLACE_WITH_TENANT_UUID,REPLACE_ME,REPLACE_ME,YYYY-MM-DD
+designer@bellainterior.vn,interior_designer,REPLACE_WITH_TENANT_UUID,REPLACE_ME,REPLACE_ME,YYYY-MM-DD
+design.approver@bellainterior.vn,interior_design_approver,REPLACE_WITH_TENANT_UUID,REPLACE_ME,REPLACE_ME,YYYY-MM-DD
+estimator@bellainterior.vn,interior_estimator,REPLACE_WITH_TENANT_UUID,REPLACE_ME,REPLACE_ME,YYYY-MM-DD
+contracts@bellainterior.vn,interior_contracts_officer,REPLACE_WITH_TENANT_UUID,REPLACE_ME,REPLACE_ME,YYYY-MM-DD
+finance@bellainterior.vn,interior_finance,REPLACE_WITH_TENANT_UUID,REPLACE_ME,REPLACE_ME,YYYY-MM-DD
+workshop.manager@bellainterior.vn,interior_workshop_manager,REPLACE_WITH_TENANT_UUID,REPLACE_ME,REPLACE_ME,YYYY-MM-DD
+site.supervisor@bellainterior.vn,interior_site_supervisor,REPLACE_WITH_TENANT_UUID,REPLACE_ME,REPLACE_ME,YYYY-MM-DD
+qc.inspector@bellainterior.vn,interior_qc_inspector,REPLACE_WITH_TENANT_UUID,REPLACE_ME,REPLACE_ME,YYYY-MM-DD
+warranty.agent@bellainterior.vn,interior_warranty_agent,REPLACE_WITH_TENANT_UUID,REPLACE_ME,REPLACE_ME,YYYY-MM-DD
+executive.approver@bellainterior.vn,interior_executive_approver,REPLACE_WITH_TENANT_UUID,REPLACE_ME,REPLACE_ME,YYYY-MM-DD

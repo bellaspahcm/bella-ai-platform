@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
-import { mockRevisions } from '../design/revisions/route';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { BOQStatus, InteriorBOQ as DomainInteriorBOQ, BOQItem as DomainBOQItem, FurnitureItemCategory } from '@/products/bella-interior/domain/commercial-costing/types';
-import { InteriorBOQAnalyticsService } from '@/products/bella-interior/services/interior-boq-analytics.service';
+import type { InteriorBOQ as DomainInteriorBOQ, BOQItem as DomainBOQItem, FurnitureItemCategory } from '@/products/bella-interior/domain/commercial-costing/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,73 +59,6 @@ interface CreateBOQBody {
   items: BOQCreateItemInput[];
 }
 
-// ─── Mock In-Memory Store ─────────────────────────────────────────────────────
-
-const mockBOQs: BOQ[] = [
-  {
-    id: 'boq-001',
-    projectId: 'proj-001',
-    designRevisionId: 'rev-001',
-    boqNumber: 'BOQ-DUBAI-001',
-    items: [
-      {
-        id: 'boqi-001',
-        itemCode: 'LIV-PANEL-01',
-        roomName: 'Phòng Khách Luxury',
-        itemName: 'Hệ vách ốp nan gỗ óc chó kết hợp đá Marble',
-        description: 'Hệ vách ốp nan gỗ óc chó kết hợp đá Marble',
-        dimensions: '6000x150x3200 mm',
-        specifications: 'Khung sắt + Plywood + Nan gỗ óc chó tự nhiên sơn bóng mờ 50%',
-        unit: 'bộ',
-        quantity: 1,
-        unitCostInternal: 120_000_000,
-        unitPriceClient: 195_000_000,
-        totalCostInternal: 120_000_000,
-        totalPriceClient: 195_000_000,
-        grossMarginPercent: 38.5,
-      },
-      {
-        id: 'boqi-002',
-        itemCode: 'KIT-ISLAND-01',
-        roomName: 'Bếp Đảo Master',
-        itemName: 'Bàn đảo bếp mặt đá Vicostone và tủ rượu cánh kính',
-        description: 'Bàn đảo bếp mặt đá Vicostone và tủ rượu cánh kính',
-        dimensions: '3200x1100x880 mm',
-        specifications: 'MDF lõi xanh An Cường + Mặt đá Vicostone BQ8628 + Ray Blum Legrabox',
-        unit: 'bộ',
-        quantity: 1,
-        unitCostInternal: 95_000_000,
-        unitPriceClient: 165_000_000,
-        totalCostInternal: 95_000_000,
-        totalPriceClient: 165_000_000,
-        grossMarginPercent: 42.4,
-      },
-      {
-        id: 'boqi-003',
-        itemCode: 'MAS-BED-01',
-        roomName: 'Phòng Ngủ Master',
-        itemName: 'Giường ngủ 2mx2m2 bọc da bò Ý cao cấp',
-        description: 'Giường ngủ 2mx2m2 bọc da bò Ý cao cấp',
-        dimensions: '2000x2200x1100 mm',
-        specifications: 'Khung gỗ sồi tự nhiên + Da bò Mastrotto nhập khẩu Ý + Đệm mút D40',
-        unit: 'cái',
-        quantity: 1,
-        unitCostInternal: 35_000_000,
-        unitPriceClient: 58_000_000,
-        totalCostInternal: 35_000_000,
-        totalPriceClient: 58_000_000,
-        grossMarginPercent: 39.7,
-      },
-    ],
-    grandTotalCostInternal: 250_000_000,
-    grandTotalPriceClient: 418_000_000,
-    totalGrossMargin: 168_000_000,
-    grossMarginPercent: 40.2,
-    createdAt: '2024-02-05T09:00:00.000Z',
-    updatedAt: '2024-02-05T09:00:00.000Z',
-  },
-];
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function validateBOQItemInput(item: unknown): item is BOQCreateItemInput {
@@ -150,42 +81,77 @@ function validateBOQItemInput(item: unknown): item is BOQCreateItemInput {
 // ─── GET /api/interior/boq ────────────────────────────────────────────────────
 
 export async function GET(request: Request): Promise<NextResponse> {
-  let tenantId = 'tenant-bella-interior-default';
-  try {
-    const ctx = await resolveInteriorContext(request);
-    if (ctx.ok) {
-      tenantId = ctx.tenantId;
-    }
-  } catch {
-    // default tenant fallback
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+  const { searchParams } = new URL(request.url);
+  const requestedProjectId = searchParams.get('projectId');
+  if (!requestedProjectId) {
+    return NextResponse.json({ success: false, error: 'projectId query parameter is required' }, { status: 400 });
   }
 
-  const { searchParams } = new URL(request.url);
-  const projectId = searchParams.get('projectId') || undefined;
-
-  const overview = await InteriorBOQAnalyticsService.getBOQOverview(tenantId, projectId);
-
-  const filtered = projectId
-    ? mockBOQs.filter((b) => b.projectId === projectId)
-    : mockBOQs;
-
-  return NextResponse.json(
-    {
-      ...overview,
-      success: true,
-      data: {
-        overview,
-        boqs: filtered,
-        total: filtered.length,
-      },
-    },
-    {
+  const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+  try {
+    const project = await repo.getProject(ctx.tenantId, requestedProjectId);
+    if (!project) return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
+    const [financeDecision, contractDecision] = await Promise.all([
+      ctx.authorization.authorize({ permissionId: 'interior:finance:read', tenantId: ctx.tenantId }),
+      ctx.authorization.authorize({ permissionId: 'interior:contract:read', tenantId: ctx.tenantId }),
+    ]);
+    const canReadInternalCosts = financeDecision.status === 'ALLOW';
+    const canReadClientPricing = canReadInternalCosts || contractDecision.status === 'ALLOW';
+    const boqs = await repo.listBOQRevisions(ctx.tenantId, project.id);
+    const totals = boqs.reduce((sum, boq) => ({
+      internalCost: sum.internalCost + boq.totalInternalCost,
+      clientPrice: sum.clientPrice + boq.totalClientPrice,
+      grossMargin: sum.grossMargin + boq.totalGrossMargin,
+    }), { internalCost: 0, clientPrice: 0, grossMargin: 0 });
+    const projectedBOQs = boqs.map((boq) => {
+      const {
+        totalInternalCost,
+        totalClientPrice,
+        totalGrossMargin,
+        grossMarginPercent,
+        items,
+        ...visibleBOQ
+      } = boq;
+      return {
+        ...visibleBOQ,
+        items: items.map((item) => {
+          const {
+            internalUnitCost,
+            internalTotalCost,
+            clientUnitPrice,
+            clientTotalPrice,
+            grossMarginAmount,
+            grossMarginPercent: itemGrossMarginPercent,
+            ...visibleItem
+          } = item;
+          return {
+            ...visibleItem,
+            ...(canReadInternalCosts ? {
+              internalUnitCost,
+              internalTotalCost,
+              grossMarginAmount,
+              grossMarginPercent: itemGrossMarginPercent,
+            } : {}),
+            ...(canReadClientPricing ? { clientUnitPrice, clientTotalPrice } : {}),
+          };
+        }),
+        ...(canReadInternalCosts ? { totalInternalCost, totalGrossMargin, grossMarginPercent } : {}),
+        ...(canReadClientPricing ? { totalClientPrice } : {}),
+      };
+    });
+    const visibleTotals = {
+      ...(canReadInternalCosts ? { internalCost: totals.internalCost, grossMargin: totals.grossMargin } : {}),
+      ...(canReadClientPricing ? { clientPrice: totals.clientPrice } : {}),
+    };
+    return NextResponse.json({ success: true, data: { projectId: project.id, boqs: projectedBOQs, total: boqs.length, totals: visibleTotals } }, {
       status: 200,
-      headers: {
-        'Cache-Control': 'no-store, max-age=0',
-      },
-    },
-  );
+      headers: { 'Cache-Control': 'no-store, max-age=0' },
+    });
+  } catch {
+    return NextResponse.json({ success: false, error: 'INTERIOR_BOQ_LOOKUP_FAILED' }, { status: 503 });
+  }
 }
 
 // ─── POST /api/interior/boq ───────────────────────────────────────────────────
@@ -207,185 +173,8 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   const payload = body as Record<string, unknown>;
 
-  // ─── Action-based Router for BOQ Manual Workspace ──────────────────────────
   if (typeof payload['action'] === 'string') {
-    const action = payload['action'];
-    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-
-    try {
-      const previousOverview = await InteriorBOQAnalyticsService.getBOQOverview(tenantId);
-      let result;
-      switch (action) {
-        case 'add_zone': {
-          const zoneName = payload['zoneName'] as string;
-          if (!zoneName || typeof zoneName !== 'string' || !zoneName.trim()) {
-            return NextResponse.json({ success: false, error: 'Tên khu vực không được để trống' }, { status: 422 });
-          }
-          result = await InteriorBOQAnalyticsService.addZone(tenantId, zoneName);
-          break;
-        }
-
-        case 'delete_zone': {
-          const zoneId = payload['zoneId'] as string;
-          if (!zoneId || typeof zoneId !== 'string') {
-            return NextResponse.json({ success: false, error: 'zoneId không hợp lệ' }, { status: 422 });
-          }
-          result = await InteriorBOQAnalyticsService.deleteZone(tenantId, zoneId);
-          break;
-        }
-
-        case 'add_item': {
-          const item = payload['item'] as Record<string, unknown>;
-          if (!item || typeof item !== 'object') {
-            return NextResponse.json({ success: false, error: 'Dữ liệu cấu kiện không hợp lệ' }, { status: 422 });
-          }
-          if (!item['itemName'] || typeof item['itemName'] !== 'string') {
-            return NextResponse.json({ success: false, error: 'Tên cấu kiện không được để trống' }, { status: 422 });
-          }
-          if (typeof item['quantity'] !== 'number' || item['quantity'] <= 0) {
-            return NextResponse.json({ success: false, error: 'Số lượng phải lớn hơn 0' }, { status: 422 });
-          }
-          if (typeof item['internalUnitCost'] !== 'number' || item['internalUnitCost'] < 0) {
-            return NextResponse.json({ success: false, error: 'Đơn giá vốn không được âm' }, { status: 422 });
-          }
-          if (typeof item['clientUnitPrice'] !== 'number' || item['clientUnitPrice'] < 0) {
-            return NextResponse.json({ success: false, error: 'Đơn giá bán không được âm' }, { status: 422 });
-          }
-
-          result = await InteriorBOQAnalyticsService.addItem(tenantId, {
-            zoneId: (item['zoneId'] as string) || 'zone-living',
-            zoneName: item['zoneName'] as string | undefined,
-            itemName: item['itemName'] as string,
-            specifications: (item['specifications'] as string) || 'Theo thiết kế',
-            unit: (item['unit'] as string) || 'Cái',
-            quantity: item['quantity'] as number,
-            internalUnitCost: item['internalUnitCost'] as number,
-            clientUnitPrice: item['clientUnitPrice'] as number,
-          });
-          break;
-        }
-
-        case 'update_item': {
-          const item = payload['item'] as Record<string, unknown>;
-          if (!item || typeof item['itemId'] !== 'string') {
-            return NextResponse.json({ success: false, error: 'itemId không hợp lệ' }, { status: 422 });
-          }
-          if (item['quantity'] !== undefined && (typeof item['quantity'] !== 'number' || item['quantity'] <= 0)) {
-            return NextResponse.json({ success: false, error: 'Số lượng phải lớn hơn 0' }, { status: 422 });
-          }
-          if (item['internalUnitCost'] !== undefined && (typeof item['internalUnitCost'] !== 'number' || item['internalUnitCost'] < 0)) {
-            return NextResponse.json({ success: false, error: 'Đơn giá vốn không được âm' }, { status: 422 });
-          }
-          if (item['clientUnitPrice'] !== undefined && (typeof item['clientUnitPrice'] !== 'number' || item['clientUnitPrice'] < 0)) {
-            return NextResponse.json({ success: false, error: 'Đơn giá bán không được âm' }, { status: 422 });
-          }
-
-          result = await InteriorBOQAnalyticsService.updateItem(tenantId, {
-            itemId: item['itemId'] as string,
-            itemName: item['itemName'] as string | undefined,
-            specifications: item['specifications'] as string | undefined,
-            unit: item['unit'] as string | undefined,
-            quantity: item['quantity'] as number | undefined,
-            internalUnitCost: item['internalUnitCost'] as number | undefined,
-            clientUnitPrice: item['clientUnitPrice'] as number | undefined,
-          });
-          break;
-        }
-
-        case 'delete_item': {
-          const itemId = payload['itemId'] as string;
-          if (!itemId || typeof itemId !== 'string') {
-            return NextResponse.json({ success: false, error: 'itemId không hợp lệ' }, { status: 422 });
-          }
-          result = await InteriorBOQAnalyticsService.deleteItem(tenantId, itemId);
-          break;
-        }
-
-        case 'duplicate_item': {
-          const duplicate = payload['duplicate'] as Record<string, unknown>;
-          if (!duplicate || typeof duplicate['itemId'] !== 'string') {
-            return NextResponse.json({ success: false, error: 'itemId không hợp lệ' }, { status: 422 });
-          }
-          result = await InteriorBOQAnalyticsService.duplicateItem(tenantId, {
-            itemId: duplicate['itemId'] as string,
-            targetZoneId: duplicate['targetZoneId'] as string | undefined,
-          });
-          break;
-        }
-
-        case 'update_status': {
-          const transition = payload['transition'] as Record<string, unknown>;
-          if (!transition || typeof transition['targetStatus'] !== 'string') {
-            return NextResponse.json({ success: false, error: 'targetStatus không hợp lệ' }, { status: 422 });
-          }
-          result = await InteriorBOQAnalyticsService.transitionStatus(tenantId, {
-            targetStatus: transition['targetStatus'] as BOQStatus,
-            actorName: actor.full_name ?? undefined,
-          });
-          break;
-        }
-
-        case 'create_revision': {
-          result = await InteriorBOQAnalyticsService.createRevision(tenantId, {
-            actorName: actor.full_name ?? undefined,
-          });
-          break;
-        }
-
-        case 'reset': {
-          InteriorBOQAnalyticsService.resetTenantBOQData(tenantId);
-          result = await InteriorBOQAnalyticsService.getBOQOverview(tenantId);
-          break;
-        }
-
-        default:
-          return NextResponse.json({ success: false, error: `Action không được hỗ trợ: ${action}` }, { status: 400 });
-      }
-
-      // Synchronize to real DB repository in background if configured
-      try {
-        await InteriorBOQAnalyticsService.syncToRepository(tenantId, repo, actor.full_name ?? undefined);
-      } catch {
-        // Continue with memory store confirmation
-      }
-
-      // Record Real Audit Log in public.audit_logs
-      try {
-        await repo.recordAuditLog(tenantId, {
-          userId: actor.id ?? null,
-          action: `BOQ_${action.toUpperCase()}`,
-          module: 'INTERIOR_BOQ',
-          targetId: result.project.id,
-          oldData: {
-            action,
-            status: previousOverview.status,
-            versionNumber: previousOverview.versionNumber,
-            totalClientPrice: previousOverview.kpis.totalClientPrice.rawValue,
-            totalCogs: previousOverview.kpis.totalCogs.rawValue,
-            grossProfit: previousOverview.kpis.grossProfit.rawValue,
-            grossMargin: previousOverview.kpis.grossMargin.rawPercentage,
-          },
-          newData: {
-            action,
-            status: result.status,
-            versionNumber: result.versionNumber,
-            totalClientPrice: result.kpis.totalClientPrice.rawValue,
-            totalCogs: result.kpis.totalCogs.rawValue,
-            grossProfit: result.kpis.grossProfit.rawValue,
-            grossMargin: result.kpis.grossMargin.rawPercentage,
-            actor: actor.full_name,
-            timestamp: new Date().toISOString(),
-          },
-        });
-      } catch {
-        // Silent fallback
-      }
-
-      return NextResponse.json({ success: true, data: result }, { status: 200 });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Lỗi xử lý BOQ';
-      return NextResponse.json({ success: false, error: msg }, { status: 400 });
-    }
+    return NextResponse.json({ success: false, error: 'INTERIOR_BOQ_COMMAND_PERSISTENCE_UNAVAILABLE' }, { status: 503 });
   }
 
   // ─── Legacy batch creation path (Backward compatibility) ───────────────────
@@ -412,24 +201,44 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   // ── Guard: designRevisionId must reference an approved revision ───────────
   const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-  let dbRevision = null;
+  let dbRevision;
   try {
     dbRevision = await repo.getDesignRevision(tenantId, parsed.designRevisionId);
   } catch {
-    // DB check failed
+    return NextResponse.json(
+      { success: false, error: 'INTERIOR_DESIGN_REVISION_LOOKUP_FAILED' },
+      { status: 503 },
+    );
   }
 
-  const mockRev = mockRevisions.find((r) => r.id === parsed.designRevisionId);
-
-  if (!dbRevision && !mockRev) {
+  if (!dbRevision) {
     return NextResponse.json(
       { success: false, error: `Design revision not found: ${parsed.designRevisionId}` },
       { status: 404 }
     );
   }
 
-  const isApproved = (dbRevision && dbRevision.status === 'approved') || (mockRev && mockRev.status === 'approved');
-  if (!isApproved) {
+  if (dbRevision.projectId !== parsed.projectId) {
+    return NextResponse.json(
+      { success: false, error: 'Design revision does not belong to the requested project' },
+      { status: 422 },
+    );
+  }
+
+  let project;
+  try {
+    project = await repo.getProject(tenantId, parsed.projectId);
+  } catch {
+    return NextResponse.json(
+      { success: false, error: 'INTERIOR_PROJECT_LOOKUP_FAILED' },
+      { status: 503 },
+    );
+  }
+  if (!project) {
+    return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
+  }
+
+  if (dbRevision.status !== 'approved') {
     return NextResponse.json(
       {
         success: false,
@@ -526,9 +335,12 @@ export async function POST(request: Request): Promise<NextResponse> {
   };
 
   try {
-    await repo.saveBOQ(tenantId, domainBOQ);
+    await repo.saveBOQ(tenantId, domainBOQ, { auditActorId: actor.id });
   } catch {
-    // Database save failed; continue with mock
+    return NextResponse.json(
+      { success: false, error: 'INTERIOR_BOQ_PERSISTENCE_FAILED' },
+      { status: 503 },
+    );
   }
 
   const boqItems: BOQItem[] = domainItems.map((item) => ({
@@ -561,8 +373,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     createdAt: now,
     updatedAt: now,
   };
-
-  mockBOQs.push(newBOQ);
 
   return NextResponse.json(
     { success: true, data: { boq: newBOQ } },
