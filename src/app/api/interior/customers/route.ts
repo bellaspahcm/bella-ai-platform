@@ -21,8 +21,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
-import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { interiorRbacRpcClient, isInteriorRbacRecord } from '@/products/bella-interior/lib/rbac-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,15 +30,21 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const ctx = await resolveInteriorContext(request);
     if (!ctx.ok) return ctx.response;
 
-    const repo = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
-    const projects = await repo.listProjects(ctx.tenantId);
+    const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_list_projects');
+    if (error || !Array.isArray(data)) {
+      return NextResponse.json({ success: false, error: 'INTERIOR_CUSTOMER_LOOKUP_FAILED' }, { status: 503 });
+    }
     const customerMap = new Map<string, { id: string; name: string; projectCount: number }>();
-    for (const project of projects) {
-      const current = customerMap.get(project.customerId);
+    for (const value of data) {
+      if (!isInteriorRbacRecord(value)) continue;
+      const customerId = value.customerId;
+      if (typeof customerId !== 'string' || !customerId.trim()) continue;
+      const name = typeof value.customerName === 'string' ? value.customerName : '';
+      const current = customerMap.get(customerId);
       if (current) current.projectCount += 1;
-      else customerMap.set(project.customerId, {
-        id: project.customerId,
-        name: project.customerName,
+      else customerMap.set(customerId, {
+        id: customerId,
+        name,
         projectCount: 1,
       });
     }

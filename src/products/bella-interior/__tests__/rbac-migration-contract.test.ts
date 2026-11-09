@@ -113,6 +113,10 @@ describe('Bella Interior RBAC migration contract', () => {
     expect(migrationSql).toContain("WHEN 'PROJECT' THEN (p_project_id IS NOT NULL AND ur.scope_id=p_project_id)");
     expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_authorize_project_list');
     expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_list_projects()');
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_authorize_customer_list');
+    expect(migrationSql).toContain("'customerId',CASE WHEN public.interior_has_permission('interior:customer:read'");
+    expect(migrationSql).toContain('REVOKE ALL ON FUNCTION public.interior_authorize_customer_list(uuid)');
+    expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_authorize_customer_list(uuid) TO authenticated');
     expect(migrationSql).toContain('AND public.interior_has_permission(\'interior:project:read\',v_tenant,p.id,p.branch_id)');
     expect(migrationSql).toContain('p_tenant_id IS DISTINCT FROM v_actor_tenant');
     expect(migrationSql).toContain('WHERE actor.id = auth.uid()');
@@ -145,5 +149,15 @@ describe('Bella Interior RBAC migration contract', () => {
     expect(migrationSql).not.toMatch(/au\.banned_until\s*>\s*now\(\)/i);
     expect(migrationSql).toContain("(p_scope_type IN ('TENANT','SELF') AND p_scope_id IS NOT NULL)");
     expect(migrationSql).toContain('PERFORM 1 FROM public.tenants t WHERE t.id=v_tenant FOR UPDATE');
+  });
+
+  it('routes design revision reads and creation through scoped actor-bound RPCs', () => {
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_list_room_zones(p_project_id uuid)');
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_list_design_revisions(p_project_id uuid)');
+    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_create_design_revision(');
+    expect(migrationSql).toContain("public.interior_has_permission('interior:design:read',v_tenant,p_project_id,NULL)");
+    expect(migrationSql).toContain("public.interior_has_permission('interior:design:create',v_tenant,p_project_id,NULL)");
+    expect(migrationSql).toContain("submitted_by_user_id,submitted_at\n    ) VALUES (v_tenant,p_project_id,p_version_number,trim(p_title),'draft',v_actor::text,v_actor");
+    expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_create_design_revision(uuid,text,integer) TO authenticated');
   });
 });

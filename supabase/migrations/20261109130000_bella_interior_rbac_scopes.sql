@@ -588,6 +588,7 @@ BEGIN
   END IF;
   SELECT coalesce(jsonb_agg(jsonb_build_object(
     'id',p.id,'code',p.code,'name',p.name,'status',p.status,
+    'customerId',CASE WHEN public.interior_has_permission('interior:customer:read',v_tenant,p.id,p.branch_id) THEN p.customer_id ELSE NULL END,
     'customerName',CASE WHEN public.interior_has_permission('interior:customer:read',v_tenant,p.id,p.branch_id) THEN p.customer_name ELSE NULL END,
     'estimatedBudget',CASE WHEN public.interior_has_permission('interior:finance:read',v_tenant,p.id,p.branch_id)
       OR public.interior_has_permission('interior:contract:read',v_tenant,p.id,p.branch_id) THEN p.estimated_budget ELSE NULL END,
@@ -598,6 +599,33 @@ BEGIN
   WHERE p.tenant_id=v_tenant
     AND public.interior_has_permission('interior:project:read',v_tenant,p.id,p.branch_id);
   RETURN v_result;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_authorize_customer_list(p_tenant_id uuid)
+RETURNS TABLE(status text,reason text)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_actor_tenant uuid:=public.interior_actor_tenant();
+BEGIN
+  IF auth.uid() IS NULL OR v_actor_tenant IS NULL OR p_tenant_id IS DISTINCT FROM v_actor_tenant THEN
+    RETURN QUERY SELECT 'DENY'::text,'TENANT_MISMATCH'::text;
+    RETURN;
+  END IF;
+
+  -- A customer list is derived from projects. Require both permissions on at least
+  -- one visible project here; the list RPC repeats both checks per row.
+  IF EXISTS (
+    SELECT 1
+    FROM public.interior_projects p
+    WHERE p.tenant_id=p_tenant_id
+      AND public.interior_has_permission('interior:project:read',p_tenant_id,p.id,p.branch_id)
+      AND public.interior_has_permission('interior:customer:read',p_tenant_id,p.id,p.branch_id)
+  ) THEN
+    RETURN QUERY SELECT 'ALLOW'::text,'SCOPED_CUSTOMER_LIST'::text;
+  ELSE
+    RETURN QUERY SELECT 'DENY'::text,'NO_GRANT'::text;
+  END IF;
 END;
 $$;
 
@@ -645,6 +673,65 @@ BEGIN
     'targetCompletionDate',v_project.target_completion_date,'leadArchitectName',v_project.lead_architect_name,
     'rooms',v_rooms,'materials',NULL,'progress',NULL
   );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_list_room_zones(p_project_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_tenant uuid:=public.interior_actor_tenant(); v_result jsonb;
+BEGIN
+  IF v_tenant IS NULL OR p_project_id IS NULL THEN
+    RAISE EXCEPTION 'AuthorizationViolation: active Interior tenant and project are required';
+  END IF;
+  IF NOT public.interior_has_permission('interior:design:read',v_tenant,p_project_id,NULL) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: scoped design read is required';
+  END IF;
+  SELECT coalesce(jsonb_agg(jsonb_build_object(
+    'id',z.id,'tenantId',z.tenant_id,'projectId',z.project_id,'code',z.code,'name',z.name,
+    'floor',z.floor,'areaSquareMeters',z.area_square_meters,'description',z.description
+  ) ORDER BY z.floor,z.code),'[]'::jsonb)
+  INTO v_result
+  FROM public.interior_project_room_zones z
+  WHERE z.tenant_id=v_tenant AND z.project_id=p_project_id;
+  RETURN v_result;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_list_design_revisions(p_project_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_tenant uuid:=public.interior_actor_tenant(); v_result jsonb;
+BEGIN
+  IF v_tenant IS NULL OR p_project_id IS NULL THEN
+    RAISE EXCEPTION 'AuthorizationViolation: active Interior tenant and project are required';
+  END IF;
+  IF NOT public.interior_has_permission('interior:design:read',v_tenant,p_project_id,NULL) THEN
+    RAISE EXCEPTION 'AuthorizationViolation: scoped design read is required';
+  END IF;
+  SELECT coalesce(jsonb_agg(jsonb_build_object(
+    'id',r.id,'tenantId',r.tenant_id,'projectId',r.project_id,'versionNumber',r.version_number,
+    'title',r.title,'status',r.status,'changeSummary',r.change_summary,'submittedBy',r.submitted_by,
+    'submittedAt',r.submitted_at,'approvedBy',r.approved_by,'approvedAt',r.approved_at,
+    'clientSignoffName',r.client_signoff_name,'clientSignoffDate',r.client_signoff_date,
+    'assets',coalesce((SELECT jsonb_agg(jsonb_build_object(
+      'id',a.id,'tenantId',a.tenant_id,'revisionId',a.revision_id,'type',a.asset_type,
+      'title',a.title,'fileUrl',a.file_url,'roomZoneId',a.room_zone_id,'notes',a.notes
+    ) ORDER BY a.created_at,a.id) FROM public.interior_design_assets a
+      WHERE a.tenant_id=v_tenant AND a.revision_id=r.id),'[]'::jsonb),
+    'materialSpecs',coalesce((SELECT jsonb_agg(jsonb_build_object(
+      'id',m.id,'tenantId',m.tenant_id,'revisionId',m.revision_id,'itemCategory',m.item_category,
+      'brand',m.brand,'code',m.code,'name',m.name,'colorTone',m.color_tone,
+      'specDescription',m.spec_description,'approvedForUse',m.approved_for_use
+    ) ORDER BY m.created_at,m.id) FROM public.interior_design_material_specs m
+      WHERE m.tenant_id=v_tenant AND m.revision_id=r.id),'[]'::jsonb)
+  ) ORDER BY r.version_number),'[]'::jsonb)
+  INTO v_result
+  FROM public.interior_design_revisions r
+  WHERE r.tenant_id=v_tenant AND r.project_id=p_project_id;
+  RETURN v_result;
 END;
 $$;
 
@@ -927,6 +1014,48 @@ BEGIN
     jsonb_build_object('id',v_revision.id,'status','approved','approved_by_user_id',v_actor,'approved_at',v_approved_at),
     v_actor,v_approved_at);
   RETURN QUERY SELECT 'COMMITTED'::text,'DESIGN_REVISION_APPROVED'::text,v_revision.id,v_approved_at;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.interior_create_design_revision(
+  p_project_id uuid,p_title text,p_version_number integer
+)
+RETURNS TABLE(status text,reason text,revision_id uuid)
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE
+  v_actor uuid:=auth.uid();
+  v_tenant uuid:=public.interior_actor_tenant();
+  v_revision_id uuid;
+BEGIN
+  IF v_actor IS NULL OR v_tenant IS NULL THEN
+    RETURN QUERY SELECT 'DENIED'::text,'ACTIVE_ACTOR_REQUIRED'::text,NULL::uuid; RETURN;
+  END IF;
+  IF p_project_id IS NULL OR p_version_number IS NULL OR p_version_number<1
+    OR p_version_number>10000 OR p_title IS NULL OR length(trim(p_title)) NOT BETWEEN 1 AND 300 THEN
+    RETURN QUERY SELECT 'DENIED'::text,'INVALID_REVISION_INPUT'::text,NULL::uuid; RETURN;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.interior_projects p
+    WHERE p.id=p_project_id AND p.tenant_id=v_tenant) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'PROJECT_NOT_FOUND'::text,NULL::uuid; RETURN;
+  END IF;
+  IF NOT public.interior_has_permission('interior:design:create',v_tenant,p_project_id,NULL) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'DESIGN_CREATE_PERMISSION_REQUIRED'::text,NULL::uuid; RETURN;
+  END IF;
+  BEGIN
+    INSERT INTO public.interior_design_revisions(
+      tenant_id,project_id,version_number,title,status,submitted_by,submitted_by_user_id,submitted_at
+    ) VALUES (v_tenant,p_project_id,p_version_number,trim(p_title),'draft',v_actor::text,v_actor,statement_timestamp())
+    RETURNING id INTO v_revision_id;
+  EXCEPTION WHEN unique_violation THEN
+    RETURN QUERY SELECT 'DENIED'::text,'REVISION_NUMBER_ALREADY_EXISTS'::text,NULL::uuid;
+    RETURN;
+  END;
+  INSERT INTO public.audit_logs(tenant_id,table_name,record_id,action,old_data,new_data,changed_by_id,created_at)
+  VALUES(v_tenant,'interior_design_revisions',v_revision_id,'CREATE',NULL,
+    jsonb_build_object('project_id',p_project_id,'version_number',p_version_number,'title',trim(p_title),'status','draft'),
+    v_actor,statement_timestamp());
+  RETURN QUERY SELECT 'COMMITTED'::text,'DESIGN_REVISION_CREATED'::text,v_revision_id;
 END;
 $$;
 
@@ -1572,6 +1701,7 @@ REVOKE ALL ON FUNCTION public.interior_resolve_project_id(uuid,text,uuid,uuid,uu
 REVOKE ALL ON FUNCTION public.interior_has_permission(text,uuid,uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_authorize_action(text,uuid,uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_authorize_project_list(uuid) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_authorize_customer_list(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_list_projects() FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_is_owner(uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_actor_can_manage_roles(uuid) FROM PUBLIC,anon,authenticated,service_role;
@@ -1587,10 +1717,13 @@ REVOKE ALL ON FUNCTION public.interior_list_users() FROM PUBLIC,anon,authenticat
 REVOKE ALL ON FUNCTION public.interior_rbac_catalog() FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_permission_audit(integer) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_read_project(uuid) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_list_room_zones(uuid) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_list_design_revisions(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_read_boqs(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_create_project(text,text,text,text,text,text,text,numeric,date,uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_approve_boq(uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_approve_design_revision(uuid,text) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.interior_create_design_revision(uuid,text,integer) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.interior_register_invited_user(uuid,text,text,text,uuid) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.save_interior_boq_atomic(uuid,jsonb,jsonb,integer,text,text,uuid) FROM PUBLIC,anon,service_role;
 REVOKE ALL ON FUNCTION public.enqueue_interior_finance_event(uuid,text,text,text,jsonb) FROM PUBLIC,anon,service_role;
@@ -1599,6 +1732,7 @@ GRANT EXECUTE ON FUNCTION public.interior_resolve_project_id(uuid,text,uuid,uuid
 GRANT EXECUTE ON FUNCTION public.interior_has_permission(text,uuid,uuid,uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_authorize_action(text,uuid,uuid,uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_authorize_project_list(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_authorize_customer_list(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_list_projects() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_manage_user_role(text,uuid,text,text,uuid,uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_set_admin_role_delegation(uuid,text,text) TO authenticated;
@@ -1610,10 +1744,13 @@ GRANT EXECUTE ON FUNCTION public.interior_list_users() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_rbac_catalog() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_permission_audit(integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_read_project(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_list_room_zones(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_list_design_revisions(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_read_boqs(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_create_project(text,text,text,text,text,text,text,numeric,date,uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_approve_boq(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_approve_design_revision(uuid,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.interior_create_design_revision(uuid,text,integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.interior_register_invited_user(uuid,text,text,text,uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.save_interior_boq_atomic(uuid,jsonb,jsonb,integer,text,text,uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.enqueue_interior_finance_event(uuid,text,text,text,jsonb) TO authenticated;

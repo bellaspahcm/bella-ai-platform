@@ -50,6 +50,16 @@ describe('SupabaseInteriorRoleAuthorization', () => {
     expect(rpc).toHaveBeenCalledWith('interior_authorize_project_list', { p_tenant_id: 'tenant-a' });
   });
 
+  it('uses the project and customer permission resolver for customer lists', async () => {
+    const { authorization, rpc } = createAuthorization({
+      data: [{ status: 'ALLOW', reason: 'SCOPED_CUSTOMER_LIST' }],
+      error: null,
+    });
+    await expect(authorization.authorizeCustomerList('tenant-a'))
+      .resolves.toEqual({ status: 'ALLOW', reason: 'SCOPED_CUSTOMER_LIST' });
+    expect(rpc).toHaveBeenCalledWith('interior_authorize_customer_list', { p_tenant_id: 'tenant-a' });
+  });
+
   it('fails closed when the database resolver is unavailable', async () => {
     const { authorization } = createAuthorization({ data: null, error: { message: 'offline' } });
     await expect(authorization.authorize({ permissionId: 'interior:project:read', tenantId: 'tenant-a' }))

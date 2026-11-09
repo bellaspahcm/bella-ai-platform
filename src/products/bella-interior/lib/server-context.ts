@@ -417,10 +417,14 @@ export async function resolveInteriorContext(
 
     const isProjectList = new URL(request.url).pathname.replace(/\/+$/, '') === '/api/interior/projects'
       && request.method.toUpperCase() === 'GET';
+    const isCustomerList = new URL(request.url).pathname.replace(/\/+$/, '') === '/api/interior/customers'
+      && request.method.toUpperCase() === 'GET';
     const isAuditRead = new URL(request.url).pathname.replace(/\/+$/, '') === '/api/interior/rbac/audit'
       && request.method.toUpperCase() === 'GET';
     const decision = isProjectList
       ? await authorization_helper.authorizeProjectList(tenantId)
+      : isCustomerList
+        ? await authorization_helper.authorizeCustomerList(tenantId)
       : isAuditRead
         ? await (async () => {
           const decisions = await Promise.all([

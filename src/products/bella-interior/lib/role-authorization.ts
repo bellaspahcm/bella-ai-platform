@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
 
 export type InteriorAuthorizationDecision =
-  | { readonly status: 'ALLOW'; readonly reason: 'AUTHORIZED' | 'SCOPED_PROJECT_LIST' }
+  | { readonly status: 'ALLOW'; readonly reason: 'AUTHORIZED' | 'SCOPED_PROJECT_LIST' | 'SCOPED_CUSTOMER_LIST' }
   | { readonly status: 'DENY'; readonly reason: string }
   | { readonly status: 'UNAVAILABLE'; readonly reason: 'RESOLVER_UNAVAILABLE' };
 
@@ -84,6 +84,25 @@ export class SupabaseInteriorRoleAuthorization {
       if (!row) return { status: 'UNAVAILABLE', reason: 'RESOLVER_UNAVAILABLE' };
       if (row.status === 'ALLOW' && row.reason === 'SCOPED_PROJECT_LIST') {
         return { status: 'ALLOW', reason: 'SCOPED_PROJECT_LIST' };
+      }
+      if (row.status === 'DENY') return { status: 'DENY', reason: row.reason };
+      return { status: 'UNAVAILABLE', reason: 'RESOLVER_UNAVAILABLE' };
+    } catch {
+      return { status: 'UNAVAILABLE', reason: 'RESOLVER_UNAVAILABLE' };
+    }
+  }
+
+  async authorizeCustomerList(tenantId: string): Promise<InteriorAuthorizationDecision> {
+    if (!tenantId.trim()) return { status: 'DENY', reason: 'INVALID_CONTEXT' };
+    try {
+      const response = await this.client.rpc('interior_authorize_customer_list', {
+        p_tenant_id: tenantId,
+      });
+      if (response.error) return { status: 'UNAVAILABLE', reason: 'RESOLVER_UNAVAILABLE' };
+      const row = authorizationRow(response.data);
+      if (!row) return { status: 'UNAVAILABLE', reason: 'RESOLVER_UNAVAILABLE' };
+      if (row.status === 'ALLOW' && row.reason === 'SCOPED_CUSTOMER_LIST') {
+        return { status: 'ALLOW', reason: 'SCOPED_CUSTOMER_LIST' };
       }
       if (row.status === 'DENY') return { status: 'DENY', reason: row.reason };
       return { status: 'UNAVAILABLE', reason: 'RESOLVER_UNAVAILABLE' };
