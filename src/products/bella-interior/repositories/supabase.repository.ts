@@ -8,6 +8,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { randomUUID } from 'node:crypto';
 
 import type {
   InteriorProject,
@@ -1887,19 +1888,28 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     if (!project || !revision || revision.projectId !== project.id) {
       throw new Error('[InteriorRepo] Tenant isolation violation: takeoff project and revision do not match');
     }
+    const parentComponentsMap = new Map<string, string>();
     if (run.parentRunId) {
       const parent = await this.getTakeoffRun(tenantId, run.parentRunId);
       if (!parent || parent.id === run.id || parent.projectId !== project.id) {
         throw new Error('[InteriorRepo] Tenant isolation violation: takeoff parent run is not in the same project');
       }
+      for (const comp of parent.components) {
+        parentComponentsMap.set(`${ensureUuid(comp.roomZoneId)}::${comp.componentCode}`, comp.stableComponentId);
+      }
     }
-    const { error } = await this.supabase
-      .from('interior_design_takeoff_runs')
+    const runId = ensureUuid(run.id);
+    const projId = ensureUuid(run.projectId);
+    const revId = ensureUuid(run.designRevisionId);
+
+    // 1. Upsert canonical takeoff run metadata
+    const { error: runError } = await this.supabase
+      .from('interior_takeoff_runs')
       .upsert({
-        id: ensureUuid(run.id),
+        id: runId,
         tenant_id: tenantId,
-        project_id: ensureUuid(run.projectId),
-        design_revision_id: ensureUuid(run.designRevisionId),
+        project_id: projId,
+        design_revision_id: revId,
         run_number: run.runNumber,
         title: run.title,
         status: run.status,
@@ -1909,125 +1919,242 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
         completed_at: run.completedAt ?? null,
         parent_run_id: run.parentRunId ? ensureUuid(run.parentRunId) : null,
         idempotency_key: run.idempotencyKey ?? null,
-        components_snapshot: run.components,
         total_components_count: run.totalComponentsCount,
         pending_review_count: run.pendingReviewCount,
         verified_count: run.verifiedCount,
         review_required_count: run.reviewRequiredCount,
+        updated_at: new Date().toISOString(),
       });
-    if (error) throw new Error(`[InteriorRepo] saveTakeoffRun failed: ${error.message}`);
+    if (runError) throw new Error(`[InteriorRepo] saveTakeoffRun failed: ${runError.message}`);
+
+    // 2. Upsert normalized relational components with stable component identity inheritance
+    if (run.components && run.components.length > 0) {
+      const componentRows = run.components.map((c) => {
+        const roomZoneId = ensureUuid(c.roomZoneId);
+        const mapKey = `${roomZoneId}::${c.componentCode}`;
+        const stableId = c.stableComponentId
+          ? ensureUuid(c.stableComponentId)
+          : parentComponentsMap.get(mapKey) || randomUUID();
+
+        return {
+          id: ensureUuid(c.id),
+          stable_component_id: stableId,
+          tenant_id: tenantId,
+          project_id: projId,
+          takeoff_run_id: runId,
+          design_revision_id: revId,
+          room_zone_id: roomZoneId,
+          room_zone_name: c.roomZoneName,
+          component_code: c.componentCode,
+          component_name: c.componentName,
+          category: c.category,
+          dimensions_json: c.dimensions,
+          specifications_json: c.specifications,
+          unit: c.unit,
+          quantity: c.quantity,
+          review_status: c.reviewStatus,
+          review_notes: c.reviewNotes ?? null,
+          verified_by: c.verifiedBy ?? null,
+          verified_at: c.verifiedAt ?? null,
+          source_drawing_ref: c.sourceDrawingRef ?? null,
+          source_3d_visual_ref: c.source3DVisualRef ?? null,
+          estimated_unit_cost: c.estimatedUnitCost ?? 0,
+          target_unit_price: c.targetUnitPrice ?? 0,
+          notes: c.notes ?? null,
+          updated_at: new Date().toISOString(),
+        };
+      });
+
+      const { error: compError } = await this.supabase
+        .from('interior_takeoff_components')
+        .upsert(componentRows);
+      if (compError) throw new Error(`[InteriorRepo] saveTakeoffComponents failed: ${compError.message}`);
+    }
   }
 
   async getTakeoffRun(tenantId: string, runId: string): Promise<DesignTakeoffRun | null> {
     if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
-    const { data, error } = await this.supabase
-      .from('interior_design_takeoff_runs')
+    const validRunId = ensureUuid(runId);
+    const { data: runData, error: runError } = await this.supabase
+      .from('interior_takeoff_runs')
       .select('*')
       .eq('tenant_id', tenantId)
-      .eq('id', ensureUuid(runId))
+      .eq('id', validRunId)
       .maybeSingle();
-    if (error?.code === 'PGRST116') return null;
-    if (error) throw new Error(`[InteriorRepo] getTakeoffRun failed: ${error.message}`);
-    if (!data) return null;
-      const row = data as {
-        id: string;
-        tenant_id: string;
-        project_id: string;
-        design_revision_id: string;
-        run_number: number;
-        title: string;
-        status: DesignTakeoffRun['status'];
-        is_immutable?: boolean;
-        prepared_by: string;
-        completed_by?: string | null;
-        completed_at?: string | null;
-        parent_run_id?: string | null;
-        idempotency_key?: string | null;
-        total_components_count?: number;
-        pending_review_count?: number;
-        verified_count?: number;
-        review_required_count?: number;
-        components_snapshot?: readonly DesignTakeoffComponent[];
-        created_at: string;
-        updated_at: string;
-      };
-      return {
-        id: row.id,
-        tenantId: row.tenant_id,
-        projectId: row.project_id,
-        designRevisionId: row.design_revision_id,
-        runNumber: row.run_number,
-        title: row.title,
-        status: row.status,
-        isImmutable: row.is_immutable ?? false,
-        preparedBy: row.prepared_by,
-        completedBy: row.completed_by ?? undefined,
-        completedAt: row.completed_at ?? undefined,
-        parentRunId: row.parent_run_id ?? undefined,
-        idempotencyKey: row.idempotency_key ?? undefined,
-        totalComponentsCount: row.total_components_count ?? 0,
-        pendingReviewCount: row.pending_review_count ?? 0,
-        verifiedCount: row.verified_count ?? 0,
-        reviewRequiredCount: row.review_required_count ?? 0,
-        components: row.components_snapshot ?? [],
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      };
+
+    if (runError?.code === 'PGRST116') return null;
+    if (runError) throw new Error(`[InteriorRepo] getTakeoffRun failed: ${runError.message}`);
+    if (!runData) return null;
+
+    const row = runData as {
+      id: string;
+      tenant_id: string;
+      project_id: string;
+      design_revision_id: string;
+      run_number: number;
+      title: string;
+      status: DesignTakeoffRun['status'];
+      is_immutable?: boolean;
+      prepared_by: string;
+      completed_by?: string | null;
+      completed_at?: string | null;
+      parent_run_id?: string | null;
+      idempotency_key?: string | null;
+      total_components_count?: number;
+      pending_review_count?: number;
+      verified_count?: number;
+      review_required_count?: number;
+      created_at: string;
+      updated_at: string;
+    };
+
+    // Fetch normalized relational components
+    const { data: compData, error: compError } = await this.supabase
+      .from('interior_takeoff_components')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('takeoff_run_id', validRunId)
+      .order('component_code', { ascending: true });
+
+    if (compError) throw new Error(`[InteriorRepo] getTakeoffRun components failed: ${compError.message}`);
+
+    const compRows = (compData || []) as Array<{
+      id: string;
+      stable_component_id: string;
+      tenant_id: string;
+      project_id: string;
+      takeoff_run_id: string;
+      design_revision_id: string;
+      room_zone_id: string;
+      room_zone_name: string;
+      component_code: string;
+      component_name: string;
+      category: DesignTakeoffComponent['category'];
+      dimensions_json: DesignTakeoffComponent['dimensions'];
+      specifications_json: DesignTakeoffComponent['specifications'];
+      unit: DesignTakeoffComponent['unit'];
+      quantity: number | string;
+      review_status: DesignTakeoffComponent['reviewStatus'];
+      review_notes?: string | null;
+      verified_by?: string | null;
+      verified_at?: string | null;
+      source_drawing_ref?: string | null;
+      source_3d_visual_ref?: string | null;
+      estimated_unit_cost?: number | string | null;
+      target_unit_price?: number | string | null;
+      notes?: string | null;
+      created_at: string;
+      updated_at: string;
+    }>;
+
+    const components: DesignTakeoffComponent[] = compRows.map((c) => ({
+      id: c.id,
+      stableComponentId: c.stable_component_id,
+      tenantId: c.tenant_id,
+      projectId: c.project_id,
+      takeoffRunId: c.takeoff_run_id,
+      designRevisionId: c.design_revision_id,
+      roomZoneId: c.room_zone_id,
+      roomZoneName: c.room_zone_name,
+      componentCode: c.component_code,
+      componentName: c.component_name,
+      category: c.category,
+      dimensions: c.dimensions_json || { unit: 'mm' },
+      specifications: c.specifications_json || {},
+      unit: c.unit,
+      quantity: Number(c.quantity),
+      reviewStatus: c.review_status,
+      reviewNotes: c.review_notes ?? undefined,
+      verifiedBy: c.verified_by ?? undefined,
+      verifiedAt: c.verified_at ?? undefined,
+      sourceDrawingRef: c.source_drawing_ref ?? undefined,
+      source3DVisualRef: c.source_3d_visual_ref ?? undefined,
+      estimatedUnitCost: c.estimated_unit_cost ? Number(c.estimated_unit_cost) : undefined,
+      targetUnitPrice: c.target_unit_price ? Number(c.target_unit_price) : undefined,
+      notes: c.notes ?? undefined,
+      createdAt: c.created_at,
+      updatedAt: c.updated_at,
+    }));
+
+    return {
+      id: row.id,
+      tenantId: row.tenant_id,
+      projectId: row.project_id,
+      designRevisionId: row.design_revision_id,
+      runNumber: row.run_number,
+      title: row.title,
+      status: row.status,
+      isImmutable: row.is_immutable ?? false,
+      preparedBy: row.prepared_by,
+      completedBy: row.completed_by ?? undefined,
+      completedAt: row.completed_at ?? undefined,
+      parentRunId: row.parent_run_id ?? undefined,
+      idempotencyKey: row.idempotency_key ?? undefined,
+      totalComponentsCount: row.total_components_count ?? components.length,
+      pendingReviewCount: row.pending_review_count ?? components.filter((c) => c.reviewStatus === 'pending').length,
+      verifiedCount: row.verified_count ?? components.filter((c) => c.reviewStatus === 'verified').length,
+      reviewRequiredCount: row.review_required_count ?? components.filter((c) => c.reviewStatus === 'review_required').length,
+      components,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
   }
 
   async listTakeoffRuns(tenantId: string, projectId: string): Promise<DesignTakeoffRun[]> {
     if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
     const { data, error } = await this.supabase
-      .from('interior_design_takeoff_runs')
+      .from('interior_takeoff_runs')
       .select('*')
       .eq('tenant_id', tenantId)
       .eq('project_id', ensureUuid(projectId))
       .order('run_number', { ascending: true });
+
     if (error) throw new Error(`[InteriorRepo] listTakeoffRuns failed: ${error.message}`);
     if (!data) return [];
-      const rows = data as Array<{
-        id: string;
-        tenant_id: string;
-        project_id: string;
-        design_revision_id: string;
-        run_number: number;
-        title: string;
-        status: DesignTakeoffRun['status'];
-        is_immutable?: boolean;
-        prepared_by: string;
-        completed_by?: string | null;
-        completed_at?: string | null;
-        parent_run_id?: string | null;
-        idempotency_key?: string | null;
-        total_components_count?: number;
-        pending_review_count?: number;
-        verified_count?: number;
-        review_required_count?: number;
-        components_snapshot?: readonly DesignTakeoffComponent[];
-        created_at: string;
-        updated_at: string;
-      }>;
-      return rows.map((row) => ({
-        id: row.id,
-        tenantId: row.tenant_id,
-        projectId: row.project_id,
-        designRevisionId: row.design_revision_id,
-        runNumber: row.run_number,
-        title: row.title,
-        status: row.status,
-        isImmutable: row.is_immutable ?? false,
-        preparedBy: row.prepared_by,
-        completedBy: row.completed_by ?? undefined,
-        completedAt: row.completed_at ?? undefined,
-        parentRunId: row.parent_run_id ?? undefined,
-        idempotencyKey: row.idempotency_key ?? undefined,
-        totalComponentsCount: row.total_components_count ?? 0,
-        pendingReviewCount: row.pending_review_count ?? 0,
-        verifiedCount: row.verified_count ?? 0,
-        reviewRequiredCount: row.review_required_count ?? 0,
-        components: row.components_snapshot ?? [],
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      }));
+
+    const rows = data as Array<{
+      id: string;
+      tenant_id: string;
+      project_id: string;
+      design_revision_id: string;
+      run_number: number;
+      title: string;
+      status: DesignTakeoffRun['status'];
+      is_immutable?: boolean;
+      prepared_by: string;
+      completed_by?: string | null;
+      completed_at?: string | null;
+      parent_run_id?: string | null;
+      idempotency_key?: string | null;
+      total_components_count?: number;
+      pending_review_count?: number;
+      verified_count?: number;
+      review_required_count?: number;
+      created_at: string;
+      updated_at: string;
+    }>;
+
+    return rows.map((row) => ({
+      id: row.id,
+      tenantId: row.tenant_id,
+      projectId: row.project_id,
+      designRevisionId: row.design_revision_id,
+      runNumber: row.run_number,
+      title: row.title,
+      status: row.status,
+      isImmutable: row.is_immutable ?? false,
+      preparedBy: row.prepared_by,
+      completedBy: row.completed_by ?? undefined,
+      completedAt: row.completed_at ?? undefined,
+      parentRunId: row.parent_run_id ?? undefined,
+      idempotencyKey: row.idempotency_key ?? undefined,
+      totalComponentsCount: row.total_components_count ?? 0,
+      pendingReviewCount: row.pending_review_count ?? 0,
+      verifiedCount: row.verified_count ?? 0,
+      reviewRequiredCount: row.review_required_count ?? 0,
+      components: [],
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }));
   }
 }

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const migrationPath = join(process.cwd(), 'supabase/migrations/20261109130000_bella_interior_rbac_scopes.sql');
-const migrationSql = readFileSync(migrationPath, 'utf8');
+const migrationSql = readFileSync(migrationPath, 'utf8').replace(/\r\n/g, '\n');
 
 function explicitRolePermissions(): Map<string, Set<string>> {
   const seedStart = migrationSql.indexOf('INSERT INTO public.interior_role_permissions(role_key,permission_id) VALUES');
