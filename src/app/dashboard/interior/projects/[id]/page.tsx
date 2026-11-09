@@ -101,7 +101,7 @@ export default function ProjectDetailPage({
       case 'handover':
         return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">Nghiệm thu bàn giao</span>;
       case 'completed':
-        return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">Hoàn thành & Bảo hành</span>;
+        return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">Hoàn thành &amp; Bảo hành</span>;
       case 'design':
       default:
         return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">Thiết kế 3D & Duyệt mẫu</span>;
