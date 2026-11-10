@@ -174,6 +174,12 @@ export interface PaymentMilestone {
   readonly status: PaymentMilestoneStatus;
   readonly dueDate?: string;
   readonly paidAt?: string;
+
+  // Phase 3 Additive Milestone Progress & Financial Reconciliation Fields
+  readonly collectedAmount?: number;
+  readonly invoiceStatus?: 'unissued' | 'issued' | 'adjusted';
+  readonly invoiceNumber?: string;
+  readonly invoicedAt?: string;
 }
 
 export type InteriorContractStatus =
@@ -210,5 +216,17 @@ export interface InteriorContract {
   readonly contractorRepresentative: string;
   readonly milestones: PaymentMilestone[];
   readonly addenda: ContractAddendum[];
+
+  // Phase 3 Additive Lineage, Schedule & Terms Fields
+  readonly quotationNumber?: string;
+  readonly quotationVersionNumber?: number;
+  readonly boqId?: string;
+  readonly boqVersionNumber?: number;
+  readonly paymentTerms?: string;
+  readonly executionStartDate?: string;
+  readonly executionEndDate?: string;
+  readonly notes?: string;
+  readonly createdAt?: string;
+  readonly updatedAt?: string;
 }
 

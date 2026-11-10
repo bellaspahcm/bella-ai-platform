@@ -23,7 +23,10 @@ import type {
   InteriorBOQ,
   InteriorQuotation,
   InteriorContract,
+  ContractAddendum,
+  PaymentMilestone,
 } from '../domain/commercial-costing/types';
+import type { PaymentTransaction } from '../domain/commercial-costing/contract.types';
 import type {
   ProductionOrder,
   SiteInstallationPlan,
@@ -44,6 +47,8 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
   private readonly boqs = new Map<string, InteriorBOQ>();
   private readonly quotations = new Map<string, InteriorQuotation>();
   private readonly contracts = new Map<string, InteriorContract>();
+  private readonly contractAddenda = new Map<string, ContractAddendum>();
+  private readonly paymentTransactions = new Map<string, PaymentTransaction>();
   private readonly productionOrders = new Map<string, ProductionOrder>();
   private readonly installationPlans = new Map<string, SiteInstallationPlan>();
   private readonly siteDiaries = new Map<string, SiteDiaryEntry>();
@@ -359,6 +364,14 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
 
   async saveContract(tenantId: string, contract: InteriorContract): Promise<void> {
     if (contract.tenantId !== tenantId) throw new TenantIsolationViolationError();
+    const existing = this.contracts.get(this.makeKey(tenantId, contract.id));
+    if (existing && (existing.status === 'signed' || existing.status === 'active')) {
+      if (existing.baselineContractValue !== contract.baselineContractValue) {
+        throw new Error(
+          `[InteriorRepo] Immutability violation: Contract ${contract.id} baseline value is sealed and cannot be modified directly. Use an addendum.`
+        );
+      }
+    }
     this.contracts.set(this.makeKey(tenantId, contract.id), contract);
   }
 
@@ -374,6 +387,98 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
       }
     }
     return null;
+  }
+
+  async listContractsByProject(tenantId: string, projectId: string): Promise<InteriorContract[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    const result: InteriorContract[] = [];
+    for (const [key, val] of this.contracts.entries()) {
+      if (key.startsWith(`${tenantId}::`) && val.projectId === projectId) {
+        result.push(val);
+      }
+    }
+    return result;
+  }
+
+  async saveContractAddendum(tenantId: string, addendum: ContractAddendum): Promise<void> {
+    if (addendum.tenantId !== tenantId) throw new TenantIsolationViolationError();
+    const contract = await this.getContract(tenantId, addendum.contractId);
+    if (!contract) {
+      throw new Error(`[InteriorRepo] Contract not found: ${addendum.contractId}`);
+    }
+    this.contractAddenda.set(this.makeKey(tenantId, addendum.id), addendum);
+
+    // Synchronize parent contract addenda and currentContractValue
+    const existingAddenda = contract.addenda.filter((a) => a.id !== addendum.id);
+    const updatedAddenda = [...existingAddenda, addendum];
+    const totalAddendaDelta = updatedAddenda.reduce((acc, a) => acc + a.valueDelta, 0);
+    const updatedContract: InteriorContract = {
+      ...contract,
+      currentContractValue: contract.baselineContractValue + totalAddendaDelta,
+      addenda: updatedAddenda,
+      updatedAt: new Date().toISOString(),
+    };
+    this.contracts.set(this.makeKey(tenantId, contract.id), updatedContract);
+  }
+
+  async listContractAddenda(tenantId: string, contractId: string): Promise<ContractAddendum[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    const result: ContractAddendum[] = [];
+    for (const [key, val] of this.contractAddenda.entries()) {
+      if (key.startsWith(`${tenantId}::`) && val.contractId === contractId) {
+        result.push(val);
+      }
+    }
+    return result.sort((a, b) => a.addendumNumber.localeCompare(b.addendumNumber));
+  }
+
+  async savePaymentTransaction(tenantId: string, transaction: PaymentTransaction): Promise<void> {
+    if (transaction.tenantId !== tenantId) throw new TenantIsolationViolationError();
+    const contract = await this.getContract(tenantId, transaction.contractId);
+    if (!contract) {
+      throw new Error(`[InteriorRepo] Contract not found: ${transaction.contractId}`);
+    }
+    this.paymentTransactions.set(this.makeKey(tenantId, transaction.id), transaction);
+
+    // Update the corresponding milestone's collectedAmount
+    const updatedMilestones = contract.milestones.map((m) => {
+      if (m.id === transaction.milestoneId) {
+        const prevCollected = m.collectedAmount ?? 0;
+        const newCollected = prevCollected + transaction.amount;
+        const isPaid = newCollected >= m.amount;
+        return {
+          ...m,
+          collectedAmount: newCollected,
+          status: (isPaid ? 'paid' : 'pending') as PaymentMilestone['status'],
+          paidAt: isPaid ? transaction.transactionDate : m.paidAt,
+        };
+      }
+      return m;
+    });
+
+    const updatedContract: InteriorContract = {
+      ...contract,
+      milestones: updatedMilestones,
+      updatedAt: new Date().toISOString(),
+    };
+    this.contracts.set(this.makeKey(tenantId, contract.id), updatedContract);
+  }
+
+  async listPaymentTransactions(
+    tenantId: string,
+    contractId: string,
+    milestoneId?: string
+  ): Promise<PaymentTransaction[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    const result: PaymentTransaction[] = [];
+    for (const [key, val] of this.paymentTransactions.entries()) {
+      if (key.startsWith(`${tenantId}::`) && val.contractId === contractId) {
+        if (!milestoneId || val.milestoneId === milestoneId) {
+          result.push(val);
+        }
+      }
+    }
+    return result.sort((a, b) => b.transactionDate.localeCompare(a.transactionDate));
   }
 
   // --- Manufacturing & Installation ---
@@ -499,6 +604,8 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
     this.boqs.clear();
     this.quotations.clear();
     this.contracts.clear();
+    this.contractAddenda.clear();
+    this.paymentTransactions.clear();
     this.productionOrders.clear();
     this.installationPlans.clear();
     this.siteDiaries.clear();

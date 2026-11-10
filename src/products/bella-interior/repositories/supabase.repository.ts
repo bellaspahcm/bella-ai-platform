@@ -26,6 +26,7 @@ import type {
   PaymentMilestone,
   ContractAddendum,
 } from '../domain/commercial-costing/types';
+import type { PaymentTransaction } from '../domain/commercial-costing/contract.types';
 import type {
   ProductionOrder,
   SiteInstallationPlan,
@@ -195,6 +196,16 @@ interface InteriorContractRow {
   signed_date: string;
   client_representative: string;
   contractor_representative: string;
+  quotation_number?: string | null;
+  quotation_version_number?: number | null;
+  boq_id?: string | null;
+  boq_version_number?: number | null;
+  payment_terms?: string | null;
+  execution_start_date?: string | null;
+  execution_end_date?: string | null;
+  notes?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 interface PaymentMilestoneRow {
@@ -209,6 +220,36 @@ interface PaymentMilestoneRow {
   status: string;
   due_date: string | null;
   paid_at: string | null;
+  collected_amount?: string | number | null;
+  invoice_status?: string | null;
+  invoice_number?: string | null;
+  invoiced_at?: string | null;
+}
+
+interface ContractAddendumRow {
+  id: string;
+  tenant_id: string;
+  contract_id: string;
+  addendum_number: string;
+  title: string;
+  value_delta: string | number;
+  reason: string;
+  approved_at: string;
+}
+
+interface PaymentTransactionRow {
+  id: string;
+  tenant_id: string;
+  contract_id: string;
+  milestone_id: string;
+  amount: string | number;
+  payment_method: string;
+  reference_code: string;
+  transaction_date: string;
+  proof_url: string | null;
+  notes: string | null;
+  recorded_by: string;
+  created_at: string;
 }
 
 interface ProductionOrderRow {
@@ -646,6 +687,40 @@ function mapRowToMilestone(row: PaymentMilestoneRow): PaymentMilestone {
     status: row.status as PaymentMilestone['status'],
     dueDate: row.due_date ?? undefined,
     paidAt: row.paid_at ?? undefined,
+    collectedAmount: row.collected_amount != null ? toNum(row.collected_amount) : 0,
+    invoiceStatus: (row.invoice_status as PaymentMilestone['invoiceStatus']) ?? 'unissued',
+    invoiceNumber: row.invoice_number ?? undefined,
+    invoicedAt: row.invoiced_at ?? undefined,
+  };
+}
+
+function mapRowToAddendum(row: ContractAddendumRow): ContractAddendum {
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    contractId: row.contract_id,
+    addendumNumber: row.addendum_number,
+    title: row.title,
+    valueDelta: toNum(row.value_delta),
+    reason: row.reason,
+    approvedAt: row.approved_at,
+  };
+}
+
+function mapRowToPaymentTransaction(row: PaymentTransactionRow): PaymentTransaction {
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    contractId: row.contract_id,
+    milestoneId: row.milestone_id,
+    amount: toNum(row.amount),
+    paymentMethod: row.payment_method as PaymentTransaction['paymentMethod'],
+    referenceCode: row.reference_code,
+    transactionDate: row.transaction_date,
+    proofUrl: row.proof_url ?? undefined,
+    notes: row.notes ?? undefined,
+    recordedBy: row.recorded_by,
+    createdAt: row.created_at,
   };
 }
 
@@ -669,6 +744,16 @@ function mapRowToContract(
     contractorRepresentative: row.contractor_representative,
     milestones,
     addenda,
+    quotationNumber: row.quotation_number ?? undefined,
+    quotationVersionNumber: row.quotation_version_number ?? undefined,
+    boqId: row.boq_id ?? undefined,
+    boqVersionNumber: row.boq_version_number ?? undefined,
+    paymentTerms: row.payment_terms ?? undefined,
+    executionStartDate: row.execution_start_date ?? undefined,
+    executionEndDate: row.execution_end_date ?? undefined,
+    notes: row.notes ?? undefined,
+    createdAt: row.created_at ?? undefined,
+    updatedAt: row.updated_at ?? undefined,
   };
 }
 
@@ -689,6 +774,16 @@ function mapContractToRow(
     signed_date: contract.signedDate,
     client_representative: contract.clientRepresentative,
     contractor_representative: contract.contractorRepresentative,
+    quotation_number: contract.quotationNumber ?? null,
+    quotation_version_number: contract.quotationVersionNumber ?? null,
+    boq_id: contract.boqId ? ensureUuid(contract.boqId) : null,
+    boq_version_number: contract.boqVersionNumber ?? null,
+    payment_terms: contract.paymentTerms ?? null,
+    execution_start_date: contract.executionStartDate ?? null,
+    execution_end_date: contract.executionEndDate ?? null,
+    notes: contract.notes ?? null,
+    created_at: contract.createdAt ?? new Date().toISOString(),
+    updated_at: contract.updatedAt ?? new Date().toISOString(),
   };
 }
 
@@ -1523,6 +1618,10 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
           status: milestone.status,
           due_date: milestone.dueDate ?? null,
           paid_at: milestone.paidAt ?? null,
+          collected_amount: milestone.collectedAmount ?? 0,
+          invoice_status: milestone.invoiceStatus ?? 'unissued',
+          invoice_number: milestone.invoiceNumber ?? null,
+          invoiced_at: milestone.invoicedAt ?? null,
         });
       if (msErr) throw new Error(`[InteriorRepo] saveContract (milestone) failed: ${msErr.message}`);
     }
@@ -1546,8 +1645,19 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
       .order('milestone_order', { ascending: true });
     if (msErr) throw new Error(`[InteriorRepo] getContract (milestones) failed: ${msErr.message}`);
 
+    const { data: addendaData, error: addendaErr } = await this.supabase
+      .from('interior_contract_addenda')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('contract_id', contractId)
+      .order('approved_at', { ascending: true });
+    // Soft error handle in case addenda table is freshly migrated
+    const addenda = (!addendaErr && addendaData)
+      ? (addendaData as ContractAddendumRow[]).map(mapRowToAddendum)
+      : [];
+
     const milestones = (msData as PaymentMilestoneRow[]).map(mapRowToMilestone);
-    return mapRowToContract(data as InteriorContractRow, milestones, []);
+    return mapRowToContract(data as InteriorContractRow, milestones, addenda);
   }
 
   async getContractByProject(tenantId: string, projectId: string): Promise<InteriorContract | null> {
@@ -1571,8 +1681,148 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
       .order('milestone_order', { ascending: true });
     if (msErr) throw new Error(`[InteriorRepo] getContractByProject (milestones) failed: ${msErr.message}`);
 
+    const { data: addendaData } = await this.supabase
+      .from('interior_contract_addenda')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('contract_id', contractRow.id)
+      .order('approved_at', { ascending: true });
+    const addenda = addendaData ? (addendaData as ContractAddendumRow[]).map(mapRowToAddendum) : [];
+
     const milestones = (msData as PaymentMilestoneRow[]).map(mapRowToMilestone);
-    return mapRowToContract(contractRow, milestones, []);
+    return mapRowToContract(contractRow, milestones, addenda);
+  }
+
+  async listContractsByProject(tenantId: string, projectId: string): Promise<InteriorContract[]> {
+    const { data, error } = await this.supabase
+      .from('interior_contracts')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('project_id', projectId)
+      .order('signed_date', { ascending: false });
+    if (error) throw new Error(`[InteriorRepo] listContractsByProject failed: ${error.message}`);
+    if (!data || data.length === 0) return [];
+
+    const contracts: InteriorContract[] = [];
+    for (const row of data as InteriorContractRow[]) {
+      const { data: msData } = await this.supabase
+        .from('interior_payment_milestones')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('contract_id', row.id)
+        .order('milestone_order', { ascending: true });
+      const milestones = msData ? (msData as PaymentMilestoneRow[]).map(mapRowToMilestone) : [];
+      contracts.push(mapRowToContract(row, milestones, []));
+    }
+    return contracts;
+  }
+
+  async saveContractAddendum(tenantId: string, addendum: ContractAddendum): Promise<void> {
+    if (!tenantId || addendum.tenantId !== tenantId) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: addendum tenant does not match');
+    }
+    const contract = await this.getContract(tenantId, addendum.contractId);
+    if (!contract) {
+      throw new Error(`[InteriorRepo] Contract not found: ${addendum.contractId}`);
+    }
+
+    const { error } = await this.supabase
+      .from('interior_contract_addenda')
+      .upsert({
+        id: ensureUuid(addendum.id),
+        tenant_id: ensureUuid(tenantId),
+        contract_id: ensureUuid(addendum.contractId),
+        addendum_number: addendum.addendumNumber,
+        title: addendum.title,
+        value_delta: addendum.valueDelta,
+        reason: addendum.reason,
+        approved_at: addendum.approvedAt,
+      })
+      .eq('tenant_id', tenantId);
+    if (error) throw new Error(`[InteriorRepo] saveContractAddendum failed: ${error.message}`);
+
+    // Update parent contract's currentContractValue
+    const allAddenda = await this.listContractAddenda(tenantId, addendum.contractId);
+    const totalDelta = allAddenda.reduce((acc, a) => acc + a.valueDelta, 0);
+    const updatedValue = contract.baselineContractValue + totalDelta;
+    await this.supabase
+      .from('interior_contracts')
+      .update({
+        current_contract_value: updatedValue,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('tenant_id', tenantId)
+      .eq('id', addendum.contractId);
+  }
+
+  async listContractAddenda(tenantId: string, contractId: string): Promise<ContractAddendum[]> {
+    const { data, error } = await this.supabase
+      .from('interior_contract_addenda')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('contract_id', contractId)
+      .order('approved_at', { ascending: true });
+    if (error) throw new Error(`[InteriorRepo] listContractAddenda failed: ${error.message}`);
+    if (!data) return [];
+    return (data as ContractAddendumRow[]).map(mapRowToAddendum);
+  }
+
+  async savePaymentTransaction(tenantId: string, transaction: PaymentTransaction): Promise<void> {
+    if (!tenantId || transaction.tenantId !== tenantId) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: transaction tenant does not match');
+    }
+    const { error } = await this.supabase
+      .from('interior_payment_transactions')
+      .insert({
+        id: ensureUuid(transaction.id),
+        tenant_id: ensureUuid(tenantId),
+        contract_id: ensureUuid(transaction.contractId),
+        milestone_id: ensureUuid(transaction.milestoneId),
+        amount: transaction.amount,
+        payment_method: transaction.paymentMethod,
+        reference_code: transaction.referenceCode,
+        transaction_date: transaction.transactionDate,
+        proof_url: transaction.proofUrl ?? null,
+        notes: transaction.notes ?? null,
+        recorded_by: transaction.recordedBy,
+        created_at: transaction.createdAt,
+      });
+    if (error) throw new Error(`[InteriorRepo] savePaymentTransaction failed: ${error.message}`);
+
+    // Recompute collected amount on milestone
+    const { data: txs } = await this.supabase
+      .from('interior_payment_transactions')
+      .select('amount')
+      .eq('tenant_id', tenantId)
+      .eq('milestone_id', transaction.milestoneId);
+    const totalCollected = txs ? txs.reduce((acc, t) => acc + toNum(t.amount), 0) : transaction.amount;
+
+    await this.supabase
+      .from('interior_payment_milestones')
+      .update({
+        collected_amount: totalCollected,
+      })
+      .eq('tenant_id', tenantId)
+      .eq('id', transaction.milestoneId);
+  }
+
+  async listPaymentTransactions(
+    tenantId: string,
+    contractId: string,
+    milestoneId?: string
+  ): Promise<PaymentTransaction[]> {
+    let query = this.supabase
+      .from('interior_payment_transactions')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('contract_id', contractId);
+    if (milestoneId) {
+      query = query.eq('milestone_id', milestoneId);
+    }
+    const { data, error } = await query.order('transaction_date', { ascending: false });
+    if (error) throw new Error(`[InteriorRepo] listPaymentTransactions failed: ${error.message}`);
+    if (!data) return [];
+    return (data as PaymentTransactionRow[]).map(mapRowToPaymentTransaction);
   }
 
   // ─── Manufacturing & Installation ──────────────────────────────────────────
