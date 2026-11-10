@@ -45,20 +45,51 @@ export interface CommercialSourceOfTruth {
   readonly quotationVersionNumber: number;
   /** BOQ ID whose snapshot underpins the quotation */
   readonly boqId: string;
-  /** BOQ version number — must reference a sealed (snapshot_sealed_at IS NOT NULL) BOQ */
+  /** BOQ version number — must reference a sealed (locked_for_contract) BOQ snapshot */
   readonly boqVersionNumber: number;
   /** Sealed timestamp of the BOQ snapshot (ISO-8601) — must NOT be null */
   readonly boqSnapshotSealedAt: string;
+  /** Canonical sealed status: strictly 'locked_for_contract' */
+  readonly boqSealedStatus: 'locked_for_contract';
   /** Design revision ID whose approved takeoff produced the BOQ */
   readonly designRevisionId: string;
   /** Design revision version number at the time of approval */
   readonly designRevisionVersionNumber: number;
   /** Customer approval record ID (Phase 4) with status = 'approved' */
   readonly customerApprovalId: string;
+  /**
+   * Reference path to stored signature document (Supabase Storage / S3).
+   * Populated from CustomerApproval.signatureReference if present.
+   */
+  readonly signatureReferenceStoragePath?: string;
+  /**
+   * SHA-256 integrity hash of the uploaded signed document artifact.
+   *
+   * IMPORTANT ARCHITECTURAL QUALIFICATION:
+   * This SHA-256 hash verifies document artifact file integrity in storage.
+   * It does NOT constitute a legal PKI digital signature, nor does it
+   * independently prove the signer's identity or authorization.
+   * Authoritative approval proof resides in the CustomerApproval record.
+   */
+  readonly signatureFileSha256?: string;
   /** Baseline contract value (amount agreed at signing, before addenda) */
   readonly baselineContractValue: number;
   /** Current contract value after all addenda (may equal baseline if no addenda) */
   readonly currentContractValue: number;
+  /**
+   * Role of the actor issuing the production request.
+   * Must be authorized (OWNER, ADMIN, PROJECT_MANAGER, or interior:production:request).
+   */
+  readonly authorizedActorRole: string;
+  /**
+   * Idempotency key uniquely identifying this release attempt.
+   * Guards against duplicate ProductionOrders from retries or double-clicks.
+   */
+  readonly idempotencyKey: string;
+  /** Addendum ID if this release is for an approved contract variation order */
+  readonly addendumId?: string;
+  /** Addendum number (e.g. 'ADD-01') if applicable */
+  readonly addendumNumber?: string;
 }
 
 export interface FurnitureProductionItem {
@@ -80,6 +111,10 @@ export interface FurnitureProductionItem {
 export interface InteriorProductionRequestInput {
   readonly tenantId: string;
   readonly actorUserId: string;
+  /** Role of the requesting actor for RBAC verification */
+  readonly userRole: string;
+  /** Unique idempotency key to prevent duplicate production orders */
+  readonly idempotencyKey: string;
   /** Must be an approved DesignRevision — enforced by CommercialIntakeValidationService */
   readonly designRevisionId: string;
   readonly interiorProjectId: string;
@@ -91,6 +126,8 @@ export interface InteriorProductionRequestInput {
   readonly commercialSourceOfTruth: CommercialSourceOfTruth;
   readonly items: FurnitureProductionItem[];
   readonly requiredByDate: string;
+  /** Optional reference to approved contract addendum for variation releases */
+  readonly addendumId?: string;
   readonly notes?: string;
 }
 
