@@ -70,13 +70,19 @@ CREATE TABLE IF NOT EXISTS interior_customer_approvals (
   created_at              TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
   updated_at              TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
 
-  PRIMARY KEY (tenant_id, id),
+  PRIMARY KEY (id),
+  CONSTRAINT uq_ica_tenant_id UNIQUE (tenant_id, id),
 
   -- Referential integrity: tenant isolation enforced at DB level
   CONSTRAINT fk_ica_tenant
     FOREIGN KEY (tenant_id)
-    REFERENCES interior_projects (tenant_id)
-    ON DELETE RESTRICT,
+    REFERENCES tenants (id)
+    ON DELETE CASCADE,
+
+  CONSTRAINT fk_ica_project
+    FOREIGN KEY (project_id)
+    REFERENCES interior_projects (id)
+    ON DELETE CASCADE,
 
   -- CP-2: Token must be unique within tenant scope
   CONSTRAINT uq_ica_approval_token UNIQUE (tenant_id, approval_token)
@@ -86,8 +92,18 @@ CREATE TABLE IF NOT EXISTS interior_customer_approvals (
 ALTER TABLE interior_customer_approvals ENABLE ROW LEVEL SECURITY;
 
 -- RLS policy: tenant isolation
-CREATE POLICY ica_tenant_isolation ON interior_customer_approvals
-  USING (tenant_id = auth.jwt() ->> 'tenant_id');
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'interior_customer_approvals' AND policyname = 'ica_tenant_isolation'
+  ) THEN
+    CREATE POLICY ica_tenant_isolation ON interior_customer_approvals
+      FOR ALL
+      USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+      WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
+  END IF;
+END $$;
 
 -- Indexes
 -- zero-downtime: allow blocking-index - primary lookup by subject_id for approval list
