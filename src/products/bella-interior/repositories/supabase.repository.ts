@@ -28,6 +28,10 @@ import type {
 } from '../domain/commercial-costing/types';
 import type { PaymentTransaction } from '../domain/commercial-costing/contract.types';
 import type {
+  CustomerApproval,
+  SignatureReference,
+} from '../domain/commercial-costing/approval.types';
+import type {
   ProductionOrder,
   SiteInstallationPlan,
   ProductionOrderItem,
@@ -2528,5 +2532,183 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     }));
+  }
+
+  // ─── Phase 4: Customer Approval & Digital Signature ──────────────────────────
+
+  private mapRowToCustomerApproval(row: Record<string, unknown>): CustomerApproval {
+    const signatureReference: SignatureReference | null =
+      row.signature_storage_path
+        ? {
+            storagePath: row.signature_storage_path as string,
+            storageUrl: row.signature_storage_url as string,
+            mimeType: row.signature_mime_type as string,
+            fileSizeBytes: row.signature_file_size_bytes as number,
+            sha256Hash: row.signature_sha256_hash as string,
+            uploadedAt: row.signature_uploaded_at as string,
+          }
+        : null;
+
+    return {
+      id: row.id as string,
+      tenantId: row.tenant_id as string,
+      projectId: row.project_id as string,
+      subjectType: row.subject_type as 'quotation' | 'contract',
+      subjectId: row.subject_id as string,
+      subjectVersionNumber: (row.subject_version_number as number) ?? 1,
+      approvalToken: row.approval_token as string,
+      status: row.status as CustomerApproval['status'],
+      clientRepresentative: row.client_representative as string,
+      clientContact: row.client_contact as string,
+      sentAt: row.sent_at as string,
+      expiresAt: row.expires_at as string,
+      approvedAt: (row.approved_at as string | null) ?? null,
+      rejectedAt: (row.rejected_at as string | null) ?? null,
+      rejectionReason: (row.rejection_reason as string | null) ?? null,
+      customerNotes: (row.customer_notes as string | null) ?? null,
+      signatureReference,
+      sentByActorId: row.sent_by_actor_id as string,
+      sentByActorName: row.sent_by_actor_name as string,
+      createdAt: row.created_at as string,
+      updatedAt: row.updated_at as string,
+    };
+  }
+
+  async saveCustomerApproval(tenantId: string, approval: CustomerApproval): Promise<void> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    if (approval.tenantId !== tenantId) throw new Error('[InteriorRepo] Tenant isolation violation — approval.tenantId mismatch');
+
+    const { error } = await this.supabase
+      .from('interior_customer_approvals')
+      .upsert({
+        id: approval.id,
+        tenant_id: approval.tenantId,
+        project_id: approval.projectId,
+        subject_type: approval.subjectType,
+        subject_id: approval.subjectId,
+        subject_version_number: approval.subjectVersionNumber,
+        approval_token: approval.approvalToken,
+        status: approval.status,
+        client_representative: approval.clientRepresentative,
+        client_contact: approval.clientContact,
+        sent_at: approval.sentAt,
+        expires_at: approval.expiresAt,
+        approved_at: approval.approvedAt ?? null,
+        rejected_at: approval.rejectedAt ?? null,
+        rejection_reason: approval.rejectionReason ?? null,
+        customer_notes: approval.customerNotes ?? null,
+        signature_storage_path: approval.signatureReference?.storagePath ?? null,
+        signature_storage_url: approval.signatureReference?.storageUrl ?? null,
+        signature_mime_type: approval.signatureReference?.mimeType ?? null,
+        signature_file_size_bytes: approval.signatureReference?.fileSizeBytes ?? null,
+        signature_sha256_hash: approval.signatureReference?.sha256Hash ?? null,
+        signature_uploaded_at: approval.signatureReference?.uploadedAt ?? null,
+        sent_by_actor_id: approval.sentByActorId,
+        sent_by_actor_name: approval.sentByActorName,
+        updated_at: approval.updatedAt,
+      }, { onConflict: 'tenant_id,id' });
+
+    if (error) throw new Error(`[InteriorRepo] saveCustomerApproval failed: ${error.message}`);
+  }
+
+  async getCustomerApproval(tenantId: string, approvalId: string): Promise<CustomerApproval | null> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+
+    const { data, error } = await this.supabase
+      .from('interior_customer_approvals')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('id', approvalId)
+      .maybeSingle();
+
+    if (error?.code === 'PGRST116') return null;
+    if (error) throw new Error(`[InteriorRepo] getCustomerApproval failed: ${error.message}`);
+    if (!data) return null;
+
+    return this.mapRowToCustomerApproval(data as Record<string, unknown>);
+  }
+
+  async getCustomerApprovalByToken(tenantId: string, approvalToken: string): Promise<CustomerApproval | null> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+
+    const { data, error } = await this.supabase
+      .from('interior_customer_approvals')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('approval_token', approvalToken)
+      .maybeSingle();
+
+    if (error?.code === 'PGRST116') return null;
+    if (error) throw new Error(`[InteriorRepo] getCustomerApprovalByToken failed: ${error.message}`);
+    if (!data) return null;
+
+    return this.mapRowToCustomerApproval(data as Record<string, unknown>);
+  }
+
+  async listCustomerApprovals(tenantId: string, subjectId: string): Promise<CustomerApproval[]> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+
+    const { data, error } = await this.supabase
+      .from('interior_customer_approvals')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('subject_id', subjectId)
+      .order('sent_at', { ascending: true });
+
+    if (error) throw new Error(`[InteriorRepo] listCustomerApprovals failed: ${error.message}`);
+    if (!data) return [];
+
+    return (data as Record<string, unknown>[]).map((row) => this.mapRowToCustomerApproval(row));
+  }
+
+  async supersedePendingApprovals(tenantId: string, subjectId: string, reason: string): Promise<void> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+
+    const { error } = await this.supabase
+      .from('interior_customer_approvals')
+      .update({
+        status: 'superseded',
+        customer_notes: reason,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('tenant_id', tenantId)
+      .eq('subject_id', subjectId)
+      .eq('status', 'pending');
+
+    if (error) throw new Error(`[InteriorRepo] supersedePendingApprovals failed: ${error.message}`);
+  }
+
+  async transitionCustomerApproval(
+    tenantId: string,
+    approvalId: string,
+    targetApproval: CustomerApproval
+  ): Promise<boolean> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    if (targetApproval.tenantId !== tenantId) throw new Error('[InteriorRepo] Tenant isolation violation — tenantId mismatch');
+
+    const { data, error } = await this.supabase
+      .from('interior_customer_approvals')
+      .update({
+        status: targetApproval.status,
+        approved_at: targetApproval.approvedAt ?? null,
+        rejected_at: targetApproval.rejectedAt ?? null,
+        rejection_reason: targetApproval.rejectionReason ?? null,
+        customer_notes: targetApproval.customerNotes ?? null,
+        signature_storage_path: targetApproval.signatureReference?.storagePath ?? null,
+        signature_storage_url: targetApproval.signatureReference?.storageUrl ?? null,
+        signature_mime_type: targetApproval.signatureReference?.mimeType ?? null,
+        signature_file_size_bytes: targetApproval.signatureReference?.fileSizeBytes ?? null,
+        signature_sha256_hash: targetApproval.signatureReference?.sha256Hash ?? null,
+        signature_uploaded_at: targetApproval.signatureReference?.uploadedAt ?? null,
+        updated_at: targetApproval.updatedAt,
+      })
+      .eq('tenant_id', tenantId)
+      .eq('id', approvalId)
+      .eq('status', 'pending')
+      .gt('expires_at', new Date().toISOString())
+      .select('id');
+
+    if (error) throw new Error(`[InteriorRepo] transitionCustomerApproval failed: ${error.message}`);
+    return Array.isArray(data) && data.length === 1;
   }
 }
