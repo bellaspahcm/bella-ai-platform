@@ -476,6 +476,17 @@ export class InteriorContractLifecycleService {
       );
     }
 
+    // Checkpoint 7B: Duplicate Payment Prevention (Idempotency Guard)
+    const existingTransactions = await this.repository.listPaymentTransactions(input.tenantId, input.contractId);
+    const isDuplicate = existingTransactions.some(
+      (tx) => tx.referenceCode.trim().toLowerCase() === input.referenceCode.trim().toLowerCase()
+    );
+    if (isDuplicate) {
+      throw new Error(
+        `DuplicatePaymentTransaction: A transaction with referenceCode "${input.referenceCode}" has already been recorded for contract "${input.contractId}".`
+      );
+    }
+
     const now = new Date().toISOString();
     const transaction: PaymentTransaction = {
       id: randomUUID(),

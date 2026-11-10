@@ -582,6 +582,21 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
       expect(summary.paidMilestonesCount).toBe(1);
       expect(summary.totalMilestonesCount).toBe(3);
       expect(summary.isFullyCollected).toBe(false);
+
+      // 6. Checkpoint 7B: Reject duplicate payment transaction with identical referenceCode
+      await expect(
+        service.recordPayment({
+          tenantId: TENANT_ID,
+          contractId: contract.id,
+          milestoneId: m1.id,
+          amount: 10_000_000,
+          paymentMethod: 'bank_transfer',
+          referenceCode: 'VCB-TX-98765', // Duplicate reference code!
+          transactionDate: '2026-03-09',
+          recordedBy: 'Accountant Nguyen',
+          userRole: 'owner',
+        })
+      ).rejects.toThrow(/DuplicatePaymentTransaction/);
     });
   });
 
