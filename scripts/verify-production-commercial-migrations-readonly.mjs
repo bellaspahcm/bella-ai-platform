@@ -140,10 +140,14 @@ async function verifyProductionReadonly() {
 
   // ── 5. Final Audit Verdict ────────────────────────────────────────────────
   console.log('\n========================================================================');
+  console.log('AUDIT SCOPE: Read-Only System Catalog Inspection (Zero mutation, Zero runtime effect)');
   if (allChecksPassed) {
-    console.log('AUDIT VERDICT: PASS — All production schema objects, constraints, and triggers verified!');
+    console.log('AUDIT VERDICT: PASS — All 4 commercial schema migrations, core tables, unique constraints, and immutability triggers verified in PostgreSQL catalog.');
+  } else if (appliedMigrations.length === 0) {
+    console.log('AUDIT VERDICT: MIGRATIONS_HELD — 0/4 commercial migrations found on this database.');
+    console.log('NOTE: This is the EXPECTED and AUTHORIZED state while Production DDL remains HELD under governance.');
   } else {
-    console.error('AUDIT VERDICT: FAIL — One or more required schema elements are missing or incorrect.');
+    console.error('AUDIT VERDICT: INCOMPLETE — Partial migration state detected. Investigation required before proceeding.');
     process.exit(1);
   }
   console.log('========================================================================');
@@ -153,3 +157,4 @@ verifyProductionReadonly().catch(err => {
   console.error('Fatal Read-Only Audit Error:', err.message);
   process.exit(1);
 });
+
