@@ -2677,4 +2677,38 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
 
     if (error) throw new Error(`[InteriorRepo] supersedePendingApprovals failed: ${error.message}`);
   }
+
+  async transitionCustomerApproval(
+    tenantId: string,
+    approvalId: string,
+    targetApproval: CustomerApproval
+  ): Promise<boolean> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    if (targetApproval.tenantId !== tenantId) throw new Error('[InteriorRepo] Tenant isolation violation — tenantId mismatch');
+
+    const { data, error } = await this.supabase
+      .from('interior_customer_approvals')
+      .update({
+        status: targetApproval.status,
+        approved_at: targetApproval.approvedAt ?? null,
+        rejected_at: targetApproval.rejectedAt ?? null,
+        rejection_reason: targetApproval.rejectionReason ?? null,
+        customer_notes: targetApproval.customerNotes ?? null,
+        signature_storage_path: targetApproval.signatureReference?.storagePath ?? null,
+        signature_storage_url: targetApproval.signatureReference?.storageUrl ?? null,
+        signature_mime_type: targetApproval.signatureReference?.mimeType ?? null,
+        signature_file_size_bytes: targetApproval.signatureReference?.fileSizeBytes ?? null,
+        signature_sha256_hash: targetApproval.signatureReference?.sha256Hash ?? null,
+        signature_uploaded_at: targetApproval.signatureReference?.uploadedAt ?? null,
+        updated_at: targetApproval.updatedAt,
+      })
+      .eq('tenant_id', tenantId)
+      .eq('id', approvalId)
+      .eq('status', 'pending')
+      .gt('expires_at', new Date().toISOString())
+      .select('id');
+
+    if (error) throw new Error(`[InteriorRepo] transitionCustomerApproval failed: ${error.message}`);
+    return Array.isArray(data) && data.length === 1;
+  }
 }

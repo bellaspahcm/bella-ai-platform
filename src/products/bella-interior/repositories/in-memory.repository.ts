@@ -679,5 +679,21 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
       }
     }
   }
+
+  async transitionCustomerApproval(
+    tenantId: string,
+    approvalId: string,
+    targetApproval: CustomerApproval
+  ): Promise<boolean> {
+    const key = this.makeKey(tenantId, approvalId);
+    const existing = this.customerApprovals.get(key);
+    if (!existing) return false;
+    // Atomic check: must be pending and not expired
+    if (existing.status !== 'pending') return false;
+    if (new Date(existing.expiresAt) <= new Date()) return false;
+
+    this.customerApprovals.set(key, targetApproval);
+    return true;
+  }
 }
 

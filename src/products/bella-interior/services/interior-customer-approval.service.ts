@@ -282,8 +282,15 @@ export class InteriorCustomerApprovalService {
       updatedAt: now,
     };
 
-    // CP-6: Persist first, then event
-    await this.repo.saveCustomerApproval(input.tenantId, updated);
+    // CP-4: Atomic conditional update guard (WHERE status = 'pending' AND expires_at > now())
+    const transitioned = await this.repo.transitionCustomerApproval(input.tenantId, approval.id, updated);
+    if (!transitioned) {
+      const latest = await this.repo.getCustomerApproval(input.tenantId, approval.id);
+      if (latest && latest.status !== 'pending') {
+        throw new ApprovalImmutabilityError(approval.id, latest.status);
+      }
+      throw new ApprovalTokenError(`Atomic token consumption failed: token already consumed or expired for approval '${approval.id}'`);
+    }
 
     const eventType = updated.subjectType === 'quotation'
       ? 'interior.quotation.approved.v1'
@@ -350,8 +357,15 @@ export class InteriorCustomerApprovalService {
       updatedAt: now,
     };
 
-    // CP-6: Persist first, then event
-    await this.repo.saveCustomerApproval(input.tenantId, updated);
+    // CP-4: Atomic conditional update guard (WHERE status = 'pending' AND expires_at > now())
+    const transitioned = await this.repo.transitionCustomerApproval(input.tenantId, approval.id, updated);
+    if (!transitioned) {
+      const latest = await this.repo.getCustomerApproval(input.tenantId, approval.id);
+      if (latest && latest.status !== 'pending') {
+        throw new ApprovalImmutabilityError(approval.id, latest.status);
+      }
+      throw new ApprovalTokenError(`Atomic token consumption failed: token already consumed or expired for approval '${approval.id}'`);
+    }
 
     // CP-3: Only quotations have a rejection event (triggers new revision workflow)
     if (updated.subjectType === 'quotation') {

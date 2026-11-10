@@ -86,6 +86,8 @@ export interface IInteriorRepository {
   getCustomerApprovalByToken(tenantId: string, approvalToken: string): Promise<CustomerApproval | null>;
   listCustomerApprovals(tenantId: string, subjectId: string): Promise<CustomerApproval[]>;
   supersedePendingApprovals(tenantId: string, subjectId: string, reason: string): Promise<void>;
+  /** Atomic conditional state transition: WHERE status = 'pending' AND expires_at > now() */
+  transitionCustomerApproval(tenantId: string, approvalId: string, targetApproval: CustomerApproval): Promise<boolean>;
 
   // Manufacturing & Installation
   saveProductionOrder(tenantId: string, order: ProductionOrder): Promise<void>;

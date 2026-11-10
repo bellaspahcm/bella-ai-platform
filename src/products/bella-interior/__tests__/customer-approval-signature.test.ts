@@ -359,6 +359,43 @@ describe('Bella Interior OS — Commercial Proposal Phase 4 (Customer Approval &
         })
       ).rejects.toThrow(ApprovalImmutabilityError);
     });
+
+    it('atomically consumes token: concurrent approval requests result in exactly 1 winner and 1 failure', async () => {
+      const q = makeSentQuotation(TENANT_A);
+      await repo.saveQuotation(TENANT_A, q);
+
+      const approval = await svc.sendApprovalRequest({
+        tenantId: TENANT_A, projectId: PROJECT_ID,
+        subjectType: 'quotation', subjectId: q.id, subjectVersionNumber: 1,
+        clientRepresentative: 'Concurrent Tester', clientContact: 'concurrent@x.com',
+        actorId: randomUUID(), actorName: 'PM', userRole: 'pm',
+      });
+
+      // Fire 2 concurrent approvals
+      const results = await Promise.allSettled([
+        svc.recordApproval({
+          tenantId: TENANT_A,
+          approvalId: approval.id,
+          approvalToken: approval.approvalToken,
+          customerNotes: 'Approved by Request 1',
+          actorId: randomUUID(), actorName: 'Portal 1', userRole: 'admin',
+        }),
+        svc.recordApproval({
+          tenantId: TENANT_A,
+          approvalId: approval.id,
+          approvalToken: approval.approvalToken,
+          customerNotes: 'Approved by Request 2',
+          actorId: randomUUID(), actorName: 'Portal 2', userRole: 'admin',
+        }),
+      ]);
+
+      const fulfilled = results.filter((r) => r.status === 'fulfilled');
+      const rejected = results.filter((r) => r.status === 'rejected');
+
+      expect(fulfilled).toHaveLength(1);
+      expect(rejected).toHaveLength(1);
+      expect((rejected[0] as PromiseRejectedResult).reason).toBeInstanceOf(ApprovalImmutabilityError);
+    });
   });
 
   // ─── Checkpoint 5: Multi-Tenant Isolation ───────────────────────────────────
