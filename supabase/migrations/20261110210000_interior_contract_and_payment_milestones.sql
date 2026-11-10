@@ -92,7 +92,11 @@ CREATE TABLE IF NOT EXISTS public.interior_payment_transactions (
 
   CONSTRAINT fk_interior_payment_tx_contract
     FOREIGN KEY (tenant_id, contract_id)
-    REFERENCES public.interior_contracts(tenant_id, id) ON DELETE CASCADE
+    REFERENCES public.interior_contracts(tenant_id, id) ON DELETE CASCADE,
+
+  -- Concurrency Guard: Unique transaction reference code per contract prevents race-condition double-payments
+  CONSTRAINT uq_interior_payment_tx_reference
+    UNIQUE (tenant_id, contract_id, reference_code)
 );
 
 -- ---------------------------------------------------------------------------

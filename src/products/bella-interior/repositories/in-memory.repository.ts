@@ -438,6 +438,20 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
     if (!contract) {
       throw new Error(`[InteriorRepo] Contract not found: ${transaction.contractId}`);
     }
+
+    // Unique constraint: (tenantId, contractId, referenceCode) - race condition guard
+    for (const existing of this.paymentTransactions.values()) {
+      if (
+        existing.tenantId === tenantId &&
+        existing.contractId === transaction.contractId &&
+        existing.referenceCode.trim().toLowerCase() === transaction.referenceCode.trim().toLowerCase()
+      ) {
+        throw new Error(
+          `DuplicatePaymentTransaction: A transaction with referenceCode "${transaction.referenceCode}" has already been recorded for contract "${transaction.contractId}".`
+        );
+      }
+    }
+
     this.paymentTransactions.set(this.makeKey(tenantId, transaction.id), transaction);
 
     // Update the corresponding milestone's collectedAmount

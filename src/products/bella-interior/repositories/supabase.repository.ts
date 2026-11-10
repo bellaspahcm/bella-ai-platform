@@ -1787,7 +1787,14 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
         recorded_by: transaction.recordedBy,
         created_at: transaction.createdAt,
       });
-    if (error) throw new Error(`[InteriorRepo] savePaymentTransaction failed: ${error.message}`);
+    if (error) {
+      if (error.code === '23505' || error.message?.includes('duplicate key') || error.message?.includes('uq_interior_payment_tx_reference')) {
+        throw new Error(
+          `DuplicatePaymentTransaction: A transaction with referenceCode "${transaction.referenceCode}" has already been recorded for contract "${transaction.contractId}".`
+        );
+      }
+      throw new Error(`[InteriorRepo] savePaymentTransaction failed: ${error.message}`);
+    }
 
     // Recompute collected amount on milestone
     const { data: txs } = await this.supabase
