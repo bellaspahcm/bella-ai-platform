@@ -9,6 +9,7 @@
  */
 
 import type { BOQStatus } from './commercial-costing/types';
+import type { IInteriorRepository } from '../repositories/interior-repository.interface';
 
 export interface BOQProjectHeader {
   readonly id: string;
@@ -168,6 +169,16 @@ export interface TransitionBOQStatusInput {
 
 export interface CreateBOQRevisionInput {
   readonly actorName?: string;
+  /** Phase 1 — BOQ Versioning: When provided, delegates to repo.forkBOQRevision() for DB persistence */
+  readonly repo?: IInteriorRepository;
+  /** ID of the source BOQ to fork from (required when repo is supplied) */
+  readonly sourceBOQId?: string;
+  /** Actor user ID performing the fork (required when repo is supplied) */
+  readonly actorId?: string;
+  /** Optional release notes for the new revision */
+  readonly releaseNotes?: string;
+  /** Optional idempotency key */
+  readonly idempotencyKey?: string;
 }
 
 export type BOQActionPayload =

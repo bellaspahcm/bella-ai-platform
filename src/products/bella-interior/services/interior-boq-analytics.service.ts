@@ -899,7 +899,11 @@ export class InteriorBOQAnalyticsService {
   }
 
   /**
-   * Creates a new draft revision from an approved or locked BOQ (Fork / Increment Revision)
+   * Creates a new draft revision from an approved or locked BOQ (Fork / Increment Revision).
+   *
+   * Phase 1 (BOQ Versioning): When a repository is supplied, this delegates to
+   * `repo.forkBOQRevision()` for DB-persisted snapshot sealing (preferred).
+   * Without a repo, falls back to the in-memory fork for backward-compatible testing.
    */
   public static async createRevision(
     tenantId: string,
@@ -916,7 +920,18 @@ export class InteriorBOQAnalyticsService {
       );
     }
 
-    // Preserve historical snapshot of current version before incrementing
+    // DB-persisted snapshot sealing (Phase 1)
+    if (input.repo && input.sourceBOQId && input.actorId) {
+      await input.repo.forkBOQRevision(tenantId, {
+        sourceBOQId:    input.sourceBOQId,
+        actorId:        input.actorId,
+        actorName:      input.actorName,
+        releaseNotes:   input.releaseNotes,
+        idempotencyKey: input.idempotencyKey,
+      });
+    }
+
+    // Update in-memory state (preserves backward compat with analytics read path)
     if (!state.snapshots) {
       state.snapshots = new Map();
     }

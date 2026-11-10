@@ -17,6 +17,10 @@ import type {
   InteriorContract,
 } from '../domain/commercial-costing/types';
 import type {
+  BOQVersionHistoryItem,
+  ForkBOQRevisionInput,
+} from '../domain/commercial-costing/boq-version-diff.types';
+import type {
   ProductionOrder,
   SiteInstallationPlan,
 } from '../domain/manufacturing-install/types';
@@ -56,6 +60,10 @@ export interface IInteriorRepository {
   getBOQ(tenantId: string, boqId: string): Promise<InteriorBOQ | null>;
   getBOQByProject(tenantId: string, projectId: string): Promise<InteriorBOQ | null>;
   listBOQRevisions(tenantId: string, projectId: string): Promise<InteriorBOQ[]>;
+  /** Fork an approved/locked BOQ into a new draft revision (Phase 1 — Versioning) */
+  forkBOQRevision(tenantId: string, input: ForkBOQRevisionInput): Promise<InteriorBOQ>;
+  /** List all BOQ revisions for a project with fork lineage metadata (Phase 1 — Versioning) */
+  listBOQVersionHistory(tenantId: string, projectId: string): Promise<BOQVersionHistoryItem[]>;
   saveQuotation(tenantId: string, quotation: InteriorQuotation): Promise<void>;
   getQuotation(tenantId: string, quotationId: string): Promise<InteriorQuotation | null>;
   saveContract(tenantId: string, contract: InteriorContract): Promise<void>;
