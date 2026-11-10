@@ -112,13 +112,16 @@ COMMENT ON COLUMN public.interior_quotation_items.cost_breakdown_json IS
 -- Step 3: Indexes
 -- ---------------------------------------------------------------------------
 
+-- zero-downtime: allow blocking-index - newly created child table in fresh interior vertical
 CREATE INDEX IF NOT EXISTS idx_interior_quotation_items_tenant_quotation
   ON public.interior_quotation_items(tenant_id, quotation_id);
 
+-- zero-downtime: allow blocking-index - partial index on new child table
 CREATE INDEX IF NOT EXISTS idx_interior_quotation_items_stable_component
   ON public.interior_quotation_items(tenant_id, stable_component_id)
   WHERE stable_component_id IS NOT NULL;
 
+-- zero-downtime: allow blocking-index - newly added column indexing on interior vertical table
 CREATE INDEX IF NOT EXISTS idx_interior_quotations_forked_from
   ON public.interior_quotations(forked_from_quotation_id)
   WHERE forked_from_quotation_id IS NOT NULL;
