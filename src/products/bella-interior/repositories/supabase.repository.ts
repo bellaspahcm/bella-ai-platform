@@ -41,6 +41,10 @@ import type {
 } from '../domain/delivery-aftercare/types';
 
 import type { IInteriorRepository, SaveBOQOptions } from './interior-repository.interface';
+import type {
+  BOQVersionHistoryItem,
+  ForkBOQRevisionInput,
+} from '../domain/commercial-costing/boq-version-diff.types';
 import { ensureUuid, isUuid } from '../lib/uuid-helper';
 
 // ---------------------------------------------------------------------------
@@ -131,6 +135,10 @@ interface InteriorBOQRow {
   total_gross_margin: string | number;
   gross_margin_percent: string | number;
   prepared_by: string;
+  // Phase 1: BOQ Versioning columns (additive — may be null for pre-migration rows)
+  forked_from_boq_id: string | null;
+  snapshot_sealed_at: string | null;
+  release_notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -526,7 +534,11 @@ function mapRowToBOQItem(row: BOQItemRow): BOQItem {
   };
 }
 
-function mapRowToBOQ(row: InteriorBOQRow, items: BOQItem[]): InteriorBOQ {
+function mapRowToBOQ(row: InteriorBOQRow, items: BOQItem[]): InteriorBOQ & {
+  forkedFromBoqId?: string | null;
+  snapshotSealedAt?: string | null;
+  releaseNotes?: string | null;
+} {
   return {
     id: row.id,
     tenantId: row.tenant_id,
@@ -543,6 +555,10 @@ function mapRowToBOQ(row: InteriorBOQRow, items: BOQItem[]): InteriorBOQ {
     preparedBy: row.prepared_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    // Phase 1 versioning fields (may be undefined on old rows pre-migration)
+    forkedFromBoqId: row.forked_from_boq_id ?? null,
+    snapshotSealedAt: row.snapshot_sealed_at ?? null,
+    releaseNotes: row.release_notes ?? null,
   };
 }
 
@@ -550,6 +566,11 @@ function mapBOQToRow(
   boq: InteriorBOQ,
   tenantId: string
 ): Omit<InteriorBOQRow, 'created_at' | 'updated_at'> & { tenant_id: string } {
+  const extended = boq as InteriorBOQ & {
+    forkedFromBoqId?: string | null;
+    snapshotSealedAt?: string | null;
+    releaseNotes?: string | null;
+  };
   return {
     id: ensureUuid(boq.id),
     tenant_id: ensureUuid(tenantId),
@@ -563,6 +584,10 @@ function mapBOQToRow(
     total_gross_margin: boq.totalGrossMargin,
     gross_margin_percent: boq.grossMarginPercent,
     prepared_by: boq.preparedBy,
+    // Phase 1 versioning columns
+    forked_from_boq_id: extended.forkedFromBoqId ?? null,
+    snapshot_sealed_at: extended.snapshotSealedAt ?? null,
+    release_notes: extended.releaseNotes ?? null,
   };
 }
 
@@ -1194,6 +1219,80 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
       revisions.push(mapRowToRevision(row, assets, materialSpecs));
     }
     return revisions;
+  }
+
+  /**
+   * Forks an approved/locked BOQ into a new draft revision via the
+   * fork_interior_boq_revision RPC (atomic transaction, single DB roundtrip).
+   */
+  async forkBOQRevision(tenantId: string, input: ForkBOQRevisionInput): Promise<InteriorBOQ> {
+    if (!tenantId || input.sourceBOQId.trim() === '') {
+      throw new Error('[InteriorRepo] forkBOQRevision: tenantId and sourceBOQId are required');
+    }
+    const validTenantId = ensureUuid(tenantId);
+    const validSourceId = ensureUuid(input.sourceBOQId);
+    const validActorId  = ensureUuid(input.actorId);
+
+    if (typeof this.supabase?.rpc !== 'function') {
+      throw new Error('[InteriorRepo] forkBOQRevision: RPC not available');
+    }
+
+    const { data: newBoqId, error } = await this.supabase.rpc('fork_interior_boq_revision', {
+      p_tenant_id:        validTenantId,
+      p_source_boq_id:    validSourceId,
+      p_actor_id:         validActorId,
+      p_release_notes:    input.releaseNotes ?? null,
+      p_idempotency_key:  input.idempotencyKey ?? null,
+    });
+
+    if (error) {
+      throw new Error(`[InteriorRepo] forkBOQRevision failed: ${error.message}`);
+    }
+
+    // Load and return the new draft BOQ
+    const result = await this.getBOQ(validTenantId, newBoqId as string);
+    if (!result) {
+      throw new Error(`[InteriorRepo] forkBOQRevision: could not load newly created BOQ "${newBoqId}"`);
+    }
+    return result;
+  }
+
+  /**
+   * Lists all BOQ revisions for a project with fork lineage metadata,
+   * using the interior_boq_version_history view (single query, no N+1).
+   */
+  async listBOQVersionHistory(tenantId: string, projectId: string): Promise<BOQVersionHistoryItem[]> {
+    const { data, error } = await this.supabase
+      .from('interior_boq_version_history')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('project_id', projectId)
+      .order('version_number', { ascending: true });
+
+    if (error) {
+      throw new Error(`[InteriorRepo] listBOQVersionHistory failed: ${error.message}`);
+    }
+    if (!data || data.length === 0) return [];
+
+    return (data as Array<Record<string, unknown>>).map((row): BOQVersionHistoryItem => ({
+      boqId:                    row['boq_id'] as string,
+      tenantId:                 row['tenant_id'] as string,
+      projectId:                row['project_id'] as string,
+      boqNumber:                row['boq_number'] as string,
+      versionNumber:            row['version_number'] as number,
+      status:                   row['status'] as string,
+      forkedFromBoqId:          (row['forked_from_boq_id'] as string | null) ?? null,
+      forkedFromVersionNumber:  (row['forked_from_version_number'] as number | null) ?? null,
+      snapshotSealedAt:         (row['snapshot_sealed_at'] as string | null) ?? null,
+      releaseNotes:             (row['release_notes'] as string | null) ?? null,
+      preparedBy:               row['prepared_by'] as string,
+      createdAt:                row['created_at'] as string,
+      totalClientPrice:         toNum(row['total_client_price'] as string | number),
+      totalInternalCost:        toNum(row['total_internal_cost'] as string | number),
+      totalGrossMargin:         toNum(row['total_gross_margin'] as string | number),
+      grossMarginPercent:       toNum(row['gross_margin_percent'] as string | number),
+      itemCount:                (row['item_count'] as number) ?? 0,
+    }));
   }
 
   // ─── Commercial & Costing ──────────────────────────────────────────────────

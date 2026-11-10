@@ -10,6 +10,10 @@
 import { TenantIsolationViolationError, TakeoffRunImmutableError } from '../domain/errors';
 import type { IInteriorRepository, SaveBOQOptions } from './interior-repository.interface';
 import type {
+  BOQVersionHistoryItem,
+  ForkBOQRevisionInput,
+} from '../domain/commercial-costing/boq-version-diff.types';
+import type {
   InteriorProject,
   ProjectRoomZone,
   DesignRevision,
@@ -187,6 +191,128 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
       }
     }
     return result.sort((a, b) => b.versionNumber - a.versionNumber);
+  }
+
+  /**
+   * Forks an approved/locked BOQ into a new draft revision (in-memory — for unit tests).
+   * Mirrors the behaviour of the fork_interior_boq_revision SQL RPC.
+   */
+  async forkBOQRevision(tenantId: string, input: ForkBOQRevisionInput): Promise<InteriorBOQ> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+
+    const sourceKey = this.makeKey(tenantId, input.sourceBOQId);
+    const source = this.boqs.get(sourceKey);
+    if (!source) {
+      throw new Error(`BOQNotFound: Source BOQ "${input.sourceBOQId}" not found for tenant "${tenantId}".`);
+    }
+    if (source.status !== 'approved' && source.status !== 'locked_for_contract') {
+      throw new Error(
+        `BOQForkViolation: Cannot fork BOQ in status "${source.status}". Must be approved or locked_for_contract.`
+      );
+    }
+
+    // Seal the source (mutate in-place — controlled, isolated within test store)
+    const sourceExtended = source as InteriorBOQ & { snapshotSealedAt?: string | null; forkedFromBoqId?: string | null; releaseNotes?: string | null };
+    const sealedSource: InteriorBOQ & { snapshotSealedAt?: string; forkedFromBoqId?: string | null; releaseNotes?: string | null } = {
+      ...source,
+      snapshotSealedAt: sourceExtended.snapshotSealedAt ?? new Date().toISOString(),
+    };
+    this.boqs.set(sourceKey, JSON.parse(JSON.stringify(sealedSource)) as InteriorBOQ);
+
+    // Build new boq_number
+    const newVersionNumber = source.versionNumber + 1;
+    const newBoqNumber = source.boqNumber.replace(/-V\d+$/, '') + `-V${newVersionNumber}`;
+    const newBoqId = `boq-fork-${Date.now()}-${newVersionNumber}`;
+
+    // Deep-copy items with new IDs, preserve stableComponentId lineage
+    const newItems: (typeof source.items[0])[] = source.items.map((item) => ({
+      ...item,
+      id: `item-fork-${Date.now()}-${item.id.slice(-8)}`,
+      boqId: newBoqId,
+      syncStatus: 'active' as const,
+      lineage: item.lineage
+        ? {
+            ...item.lineage,
+            sourceBOQRevisionId: item.id, // 7th lineage field: source item ID
+          }
+        : undefined,
+    }));
+
+    const newDraftBOQ: InteriorBOQ & {
+      forkedFromBoqId?: string | null;
+      snapshotSealedAt?: string | null;
+      releaseNotes?: string | null;
+    } = {
+      id: newBoqId,
+      tenantId,
+      projectId: source.projectId,
+      designRevisionId: source.designRevisionId,
+      boqNumber: newBoqNumber,
+      versionNumber: newVersionNumber,
+      status: 'draft',
+      totalInternalCost: source.totalInternalCost,
+      totalClientPrice: source.totalClientPrice,
+      totalGrossMargin: source.totalGrossMargin,
+      grossMarginPercent: source.grossMarginPercent,
+      items: newItems,
+      preparedBy: input.actorId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      forkedFromBoqId: input.sourceBOQId,
+      snapshotSealedAt: null,
+      releaseNotes: input.releaseNotes ?? null,
+    };
+
+    this.boqs.set(this.makeKey(tenantId, newBoqId), JSON.parse(JSON.stringify(newDraftBOQ)) as InteriorBOQ);
+    return JSON.parse(JSON.stringify(newDraftBOQ)) as InteriorBOQ;
+  }
+
+  /**
+   * Lists all BOQ revisions for a project with fork lineage metadata.
+   * In-memory implementation — mirrors the interior_boq_version_history view.
+   */
+  async listBOQVersionHistory(tenantId: string, projectId: string): Promise<BOQVersionHistoryItem[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+
+    const revisions = await this.listBOQRevisions(tenantId, projectId);
+    // listBOQRevisions returns desc order — reverse to asc for history
+    revisions.sort((a, b) => a.versionNumber - b.versionNumber);
+
+    return revisions.map((boq): BOQVersionHistoryItem => {
+      const extended = boq as InteriorBOQ & {
+        forkedFromBoqId?: string | null;
+        snapshotSealedAt?: string | null;
+        releaseNotes?: string | null;
+      };
+
+      // Find parent version number if forkedFromBoqId is set
+      let forkedFromVersionNumber: number | null = null;
+      if (extended.forkedFromBoqId) {
+        const parentKey = this.makeKey(tenantId, extended.forkedFromBoqId);
+        const parent = this.boqs.get(parentKey) as (InteriorBOQ & { versionNumber: number }) | undefined;
+        forkedFromVersionNumber = parent?.versionNumber ?? null;
+      }
+
+      return {
+        boqId:                    boq.id,
+        tenantId:                 boq.tenantId,
+        projectId:                boq.projectId,
+        boqNumber:                boq.boqNumber,
+        versionNumber:            boq.versionNumber,
+        status:                   boq.status,
+        forkedFromBoqId:          extended.forkedFromBoqId ?? null,
+        forkedFromVersionNumber,
+        snapshotSealedAt:         extended.snapshotSealedAt ?? null,
+        releaseNotes:             extended.releaseNotes ?? null,
+        preparedBy:               boq.preparedBy,
+        createdAt:                boq.createdAt,
+        totalClientPrice:         boq.totalClientPrice,
+        totalInternalCost:        boq.totalInternalCost,
+        totalGrossMargin:         boq.totalGrossMargin,
+        grossMarginPercent:       boq.grossMarginPercent,
+        itemCount:                boq.items.length,
+      };
+    });
   }
 
   async saveQuotation(tenantId: string, quotation: InteriorQuotation): Promise<void> {
