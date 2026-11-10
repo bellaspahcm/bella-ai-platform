@@ -24,9 +24,16 @@ async function runConcurrencyTests() {
   console.log('Target DB: Non-Production (bmnbqbcdbuklhopfbopv)');
   console.log('====================================================================\n');
 
-  // Establish TWO separate, independent PostgreSQL connections
-  const c1 = new Client({ connectionString, ssl: { rejectUnauthorized: false } });
-  const c2 = new Client({ connectionString, ssl: { rejectUnauthorized: false } });
+  // Establish TWO separate, independent PostgreSQL connections.
+  // SSL configuration: derive from connection string rather than hard-coding insecure options.
+  //   - If the URL contains sslmode=disable: no SSL (local dev only)
+  //   - If the URL contains sslmode=require / sslmode=verify-ca / sslmode=verify-full: use system CA
+  //   - Otherwise (Supabase Non-Production default): require SSL with system CA verification
+  // SECURITY: rejectUnauthorized must remain true in all production/non-production environments.
+  const hasDisableSSL = connectionString.includes('sslmode=disable');
+  const sslConfig = hasDisableSSL ? false : true; // true = require SSL + system CA verification
+  const c1 = new Client({ connectionString, ssl: sslConfig });
+  const c2 = new Client({ connectionString, ssl: sslConfig });
 
   await c1.connect();
   await c2.connect();
