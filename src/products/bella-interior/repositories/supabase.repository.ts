@@ -1467,6 +1467,22 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     return mapRowToQuotation(data as InteriorQuotationRow);
   }
 
+  async listQuotationsByProject(tenantId: string, projectId: string): Promise<InteriorQuotation[]> {
+    const { data, error } = await this.supabase
+      .from('interior_quotations')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('project_id', projectId)
+      .order('version_number', { ascending: false });
+    if (error) throw new Error(`[InteriorRepo] listQuotationsByProject failed: ${error.message}`);
+    if (!data || data.length === 0) return [];
+    return (data as InteriorQuotationRow[]).map(mapRowToQuotation);
+  }
+
+  async listQuotationRevisions(tenantId: string, projectId: string): Promise<InteriorQuotation[]> {
+    return this.listQuotationsByProject(tenantId, projectId);
+  }
+
   async saveContract(tenantId: string, contract: InteriorContract): Promise<void> {
     if (!tenantId || contract.tenantId !== tenantId || contract.milestones.some((milestone) => milestone.tenantId !== tenantId || milestone.contractId !== contract.id)) {
       throw new Error('[InteriorRepo] Tenant isolation violation: contract or milestone tenant/parent does not match');

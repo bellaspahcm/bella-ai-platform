@@ -324,6 +324,21 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
     return this.quotations.get(this.makeKey(tenantId, quotationId)) ?? null;
   }
 
+  async listQuotationsByProject(tenantId: string, projectId: string): Promise<InteriorQuotation[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    const result: InteriorQuotation[] = [];
+    for (const [key, val] of this.quotations.entries()) {
+      if (key.startsWith(`${tenantId}::`) && val.projectId === projectId) {
+        result.push(JSON.parse(JSON.stringify(val)) as InteriorQuotation);
+      }
+    }
+    return result.sort((a, b) => b.versionNumber - a.versionNumber);
+  }
+
+  async listQuotationRevisions(tenantId: string, projectId: string): Promise<InteriorQuotation[]> {
+    return this.listQuotationsByProject(tenantId, projectId);
+  }
+
   async saveContract(tenantId: string, contract: InteriorContract): Promise<void> {
     if (contract.tenantId !== tenantId) throw new TenantIsolationViolationError();
     this.contracts.set(this.makeKey(tenantId, contract.id), contract);

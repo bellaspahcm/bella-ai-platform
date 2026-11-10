@@ -66,6 +66,8 @@ export interface IInteriorRepository {
   listBOQVersionHistory(tenantId: string, projectId: string): Promise<BOQVersionHistoryItem[]>;
   saveQuotation(tenantId: string, quotation: InteriorQuotation): Promise<void>;
   getQuotation(tenantId: string, quotationId: string): Promise<InteriorQuotation | null>;
+  listQuotationsByProject(tenantId: string, projectId: string): Promise<InteriorQuotation[]>;
+  listQuotationRevisions(tenantId: string, projectId: string): Promise<InteriorQuotation[]>;
   saveContract(tenantId: string, contract: InteriorContract): Promise<void>;
   getContract(tenantId: string, contractId: string): Promise<InteriorContract | null>;
   getContractByProject(tenantId: string, projectId: string): Promise<InteriorContract | null>;
