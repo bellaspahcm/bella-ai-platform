@@ -63,14 +63,21 @@ const STATUS_LABELS: Record<string, string> = {
   rejected: 'Từ chối / Hủy',
 };
 
-// Roles allowed to see internal COGS and margins
-const INTERNAL_ESTIMATOR_ROLES = new Set([
+// Canonical RBAC Roles permitted to view internal costing & commercial margin data
+// Normalized to lowercase for case-insensitive role evaluation
+// Maps to public.interior_role_permissions (migration 20261109130000) having interior:finance:read
+export const CANONICAL_INTERNAL_COSTING_ROLES = new Set([
+  'owner',
+  'admin',
+  'qs',         // Quantity Surveyor / Estimator
+  'pm',         // Project Manager
+  'director',   // Executive / Director
+  'executive',
   'estimator',
   'lead_architect',
-  'director',
-  'admin',
-  'owner',
 ]);
+
+const INTERNAL_ESTIMATOR_ROLES = CANONICAL_INTERNAL_COSTING_ROLES;
 
 // ---------------------------------------------------------------------------
 // Service Implementation
@@ -179,9 +186,11 @@ export class InteriorQuotationMarginService {
     const grandTotal = discountedSubtotal + vatAmount;
 
     const totalGrossMargin = runningSubtotal - runningCogs - discountAmount;
-    const grossMarginPercent = runningSubtotal > 0
-      ? Math.round((totalGrossMargin / runningSubtotal) * 1000) / 10
+    // Weighted blended gross margin on net revenue (discounted subtotal)
+    const grossMarginPercent = discountedSubtotal > 0
+      ? Math.round((totalGrossMargin / discountedSubtotal) * 1000) / 10
       : 0;
+    // Markup on internal COGS
     const markupPercentOnCogs = runningCogs > 0
       ? Math.round((totalGrossMargin / runningCogs) * 1000) / 10
       : 0;
@@ -233,6 +242,11 @@ export class InteriorQuotationMarginService {
       paymentTerms: fullQuotation.paymentTerms,
       validityDays: fullQuotation.validityDays,
       createdAt: fullQuotation.createdAt,
+      boqVersionNumber: fullQuotation.boqVersionNumber,
+      totalInternalCogs: fullQuotation.totalInternalCogs,
+      totalGrossMargin: fullQuotation.totalGrossMargin,
+      grossMarginPercent: fullQuotation.grossMarginPercent,
+      preparedBy: fullQuotation.preparedBy,
     });
 
     return fullQuotation;
@@ -510,9 +524,11 @@ export class InteriorQuotationMarginService {
     const grandTotal = discountedSubtotal + vatAmount;
 
     const totalGrossMargin = runningSubtotal - runningCogs - discountAmount;
-    const grossMarginPercent = runningSubtotal > 0
-      ? Math.round((totalGrossMargin / runningSubtotal) * 1000) / 10
+    // Weighted blended gross margin on net revenue (discounted subtotal)
+    const grossMarginPercent = discountedSubtotal > 0
+      ? Math.round((totalGrossMargin / discountedSubtotal) * 1000) / 10
       : 0;
+    // Markup on internal COGS
     const markupPercentOnCogs = runningCogs > 0
       ? Math.round((totalGrossMargin / runningCogs) * 1000) / 10
       : 0;
@@ -609,3 +625,4 @@ export class InteriorQuotationMarginService {
     };
   }
 }
+

@@ -6,10 +6,11 @@
 --   Extends interior_quotations with commercial margin summary and revision fields.
 --   Creates interior_quotation_items to capture decoupled line-item commercial snapshots
 --   with tiered markups and granular cost breakdowns.
+--   Enforces strict tenant integrity, snapshot immutability, and client data security.
 --
 -- Scope:
 --   - Additive only: ADD COLUMN IF NOT EXISTS, CREATE TABLE IF NOT EXISTS,
---     CREATE INDEX IF NOT EXISTS, CREATE OR REPLACE FUNCTION/TRIGGER
+--     CREATE INDEX IF NOT EXISTS, CREATE OR REPLACE FUNCTION/TRIGGER/VIEW
 --   - Zero destructive DDL (no DROP TABLE, DROP COLUMN, TRUNCATE, or CASCADE)
 --   - G8-sealed migrations (140000, 170000, 180000) and Phase 1 (190000) UNTOUCHED
 --   - Healthcare H1-H12 and Logistics E7.1-E7.3 FROZEN / SEALED UNTOUCHED
@@ -42,20 +43,31 @@ COMMENT ON COLUMN public.interior_quotations.boq_version_number IS
 COMMENT ON COLUMN public.interior_quotations.total_internal_cogs IS
   'Total internal Cost of Goods Sold (Internal Unit Cost * Quantity across all items). Estimator only.';
 COMMENT ON COLUMN public.interior_quotations.total_gross_margin IS
-  'Subtotal (Client Price) - Total Internal COGS. Estimator only.';
+  'Net Revenue (Subtotal - Discount) - Total Internal COGS. Estimator only.';
 COMMENT ON COLUMN public.interior_quotations.gross_margin_percent IS
-  'Blended Gross Margin % across entire quotation. Estimator only.';
+  'Weighted Blended Gross Margin % on Net Revenue across entire quotation. Estimator only.';
 COMMENT ON COLUMN public.interior_quotations.forked_from_quotation_id IS
   'Parent Quotation ID if this is a revised quotation (e.g. V1 -> V2).';
 
+-- Ensure composite uniqueness for cross-tenant composite FK
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'uq_interior_quotations_tenant_id'
+  ) THEN
+    ALTER TABLE public.interior_quotations
+      ADD CONSTRAINT uq_interior_quotations_tenant_id UNIQUE (tenant_id, id);
+  END IF;
+END $$;
+
 -- ---------------------------------------------------------------------------
--- Step 2: Create interior_quotation_items table
+-- Step 2: Create interior_quotation_items table with composite tenant FK
 -- ---------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS public.interior_quotation_items (
   id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id             UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
-  quotation_id          UUID NOT NULL REFERENCES public.interior_quotations(id) ON DELETE CASCADE,
+  quotation_id          UUID NOT NULL,
   boq_item_id           UUID,
   stable_component_id   TEXT,
   room_zone_name        TEXT NOT NULL,
@@ -80,6 +92,10 @@ CREATE TABLE IF NOT EXISTS public.interior_quotation_items (
 
   created_at            TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at            TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+
+  -- Enforces strict tenant containment: item cannot belong to a different tenant than parent quotation
+  CONSTRAINT fk_interior_quotation_items_parent FOREIGN KEY (tenant_id, quotation_id)
+    REFERENCES public.interior_quotations(tenant_id, id) ON DELETE CASCADE,
 
   CONSTRAINT chk_interior_quotation_items_qty_positive CHECK (quantity > 0),
   CONSTRAINT chk_interior_quotation_items_prices_non_negative CHECK (
@@ -134,10 +150,10 @@ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
--- Step 5: Immutability guard trigger for Quotation snapshots
--- When status is sent_to_client or accepted, items cannot be edited/deleted
+-- Step 5: Immutability triggers for Quotation snapshots
 -- ---------------------------------------------------------------------------
 
+-- 5A: Protect quotation items from modification once sent or accepted
 CREATE OR REPLACE FUNCTION public.guard_interior_quotation_items_immutability()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -167,5 +183,100 @@ CREATE TRIGGER trg_guard_interior_quotation_items_immutability
   ON public.interior_quotation_items
   FOR EACH ROW
   EXECUTE FUNCTION public.guard_interior_quotation_items_immutability();
+
+-- 5B: Protect quotation header financial terms from modification once sent or accepted
+CREATE OR REPLACE FUNCTION public.guard_interior_quotations_immutability()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Block deletion of sent or accepted quotation
+  IF TG_OP = 'DELETE' THEN
+    IF OLD.status IN ('sent_to_client', 'accepted') THEN
+      RAISE EXCEPTION 'QuotationImmutableError: Cannot delete quotation "%" in status "%".',
+        OLD.quotation_number, OLD.status
+        USING ERRCODE = 'P0001';
+    END IF;
+    RETURN OLD;
+  END IF;
+
+  -- Block financial modifications on sent or accepted quotation
+  IF OLD.status IN ('sent_to_client', 'accepted') THEN
+    -- Allow status transitions: sent_to_client -> accepted / rejected
+    -- Allow timestamp stamping: accepted_at, rejected_at, approved_by, sent_to_client_at
+    -- Disallow mutating commercial financial terms
+    IF (OLD.subtotal <> NEW.subtotal) OR
+       (OLD.discount_amount <> NEW.discount_amount) OR
+       (OLD.vat_percent <> NEW.vat_percent) OR
+       (OLD.grand_total <> NEW.grand_total) OR
+       (OLD.total_internal_cogs <> NEW.total_internal_cogs) OR
+       (OLD.boq_id <> NEW.boq_id) OR
+       (OLD.boq_version_number <> NEW.boq_version_number) THEN
+      RAISE EXCEPTION 'QuotationImmutableError: Cannot modify financial terms of quotation "%" in status "%". Create a new revision.',
+        OLD.quotation_number, OLD.status
+        USING ERRCODE = 'P0001';
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_guard_interior_quotations_immutability
+  ON public.interior_quotations;
+
+CREATE TRIGGER trg_guard_interior_quotations_immutability
+  BEFORE UPDATE OR DELETE
+  ON public.interior_quotations
+  FOR EACH ROW
+  EXECUTE FUNCTION public.guard_interior_quotations_immutability();
+
+-- ---------------------------------------------------------------------------
+-- Step 6: Sanitized Client-Facing Database Views (Zero Financial Leakage)
+-- Clients query these views — internal COGS, margins, and markups are NOT exposed.
+-- ---------------------------------------------------------------------------
+
+CREATE OR REPLACE VIEW public.interior_client_quotations_view AS
+SELECT
+  q.id,
+  q.tenant_id,
+  q.project_id,
+  q.quotation_number,
+  q.version_number,
+  q.status,
+  q.subtotal,
+  q.discount_amount,
+  q.vat_percent,
+  q.vat_amount,
+  q.grand_total,
+  q.payment_terms,
+  q.validity_days,
+  q.sent_to_client_at,
+  q.accepted_at,
+  q.created_at
+FROM public.interior_quotations q;
+
+COMMENT ON VIEW public.interior_client_quotations_view IS
+  'Sanitized client-facing quotation header view. Excludes internal COGS, gross margin, and markups.';
+
+CREATE OR REPLACE VIEW public.interior_client_quotation_items_view AS
+SELECT
+  i.id,
+  i.tenant_id,
+  i.quotation_id,
+  i.room_zone_name,
+  i.item_code,
+  i.item_name,
+  i.category,
+  i.specifications,
+  i.unit,
+  i.quantity,
+  i.client_unit_price,
+  i.client_total_price,
+  i.created_at
+FROM public.interior_quotation_items i;
+
+COMMENT ON VIEW public.interior_client_quotation_items_view IS
+  'Sanitized client-facing quotation items view. Excludes internal_unit_cost, internal_total_cost, markup_percent, gross_margin_amount, and cost_breakdown_json.';
 
 COMMIT;

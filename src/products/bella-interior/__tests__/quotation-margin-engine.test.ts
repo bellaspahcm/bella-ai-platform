@@ -445,4 +445,222 @@ describe('InteriorQuotationMarginService (Phase 2)', () => {
       ).rejects.toThrow(TenantIsolationViolationError);
     });
   });
+
+  // ── 7. Six Architectural Hardening Verifications (User Directive Checklist) ─
+
+  describe('Architectural Hardening Verification Checklist', () => {
+    // Check 1: Gross Margin Formula vs Markup
+    test('Check 1: Markup (35%) on 100M cost yields 135M price and 25.93% Gross Margin', async () => {
+      const item100M = makeBOQItem({
+        id: 'comp-100m-cabinetry',
+        category: 'cabinetry', // 35% markup
+        internalUnitCost: 100_000_000,
+        clientUnitPrice: 0, // calculate from markup
+        quantity: 1,
+      });
+
+      const singleItemBOQ = {
+        ...makeApprovedBOQ([item100M]),
+        id: 'boq-100m-unique-001',
+      };
+      await repo.saveBOQ(TENANT_A, singleItemBOQ);
+
+      const quotation = await service.generateQuotationFromBOQ({
+        tenantId: TENANT_A,
+        projectId: PROJECT_ID,
+        boqId: singleItemBOQ.id,
+        actorId: ACTOR_ID,
+      });
+
+      const lineItem = quotation.items[0];
+      expect(lineItem.internalUnitCost).toBe(100_000_000);
+      expect(lineItem.markupPercent).toBe(35.0);
+      expect(lineItem.clientUnitPrice).toBe(135_000_000); // 100M * 1.35
+      expect(lineItem.grossMarginAmount).toBe(35_000_000); // 135M - 100M
+      // CRITICAL ASSERTION: Gross margin is 35M / 135M = 25.93%, NOT 35%!
+      expect(lineItem.grossMarginPercent).toBe(25.9);
+      expect(quotation.grossMarginPercent).toBe(25.9);
+    });
+
+    // Check 2: Weighted Margin Calculation
+    test('Check 2: Weighted margin computes on aggregate revenue/COGS, not simple average', async () => {
+      // Item A: 10M cost, 100% markup -> 20M price (50% margin)
+      const itemA = makeBOQItem({
+        id: 'item-small-high-margin',
+        category: 'cabinetry',
+        internalUnitCost: 10_000_000,
+        clientUnitPrice: 20_000_000,
+        quantity: 1,
+      });
+      // Item B: 80M cost, 25% markup -> 100M price (20% margin)
+      const itemB = makeBOQItem({
+        id: 'item-large-low-margin',
+        category: 'loose_furniture',
+        internalUnitCost: 80_000_000,
+        clientUnitPrice: 100_000_000,
+        quantity: 1,
+      });
+
+      const mixedBOQ: InteriorBOQ = {
+        ...makeApprovedBOQ([itemA, itemB]),
+        id: 'boq-mixed-margin-001',
+      };
+      await repo.saveBOQ(TENANT_A, mixedBOQ);
+
+      const quotation = await service.generateQuotationFromBOQ({
+        tenantId: TENANT_A,
+        projectId: PROJECT_ID,
+        boqId: mixedBOQ.id,
+        actorId: ACTOR_ID,
+      });
+
+      // Total Revenue = 120M, Total COGS = 90M, Total Margin = 30M
+      // Weighted Margin = 30M / 120M = 25.0%
+      // Simple Average of item margins = (50% + 20%) / 2 = 35.0%
+      expect(quotation.subtotal).toBe(120_000_000);
+      expect(quotation.totalInternalCogs).toBe(90_000_000);
+      expect(quotation.totalGrossMargin).toBe(30_000_000);
+      // CRITICAL ASSERTION: Weighted margin is 25.0%, NOT 35.0%!
+      expect(quotation.grossMarginPercent).toBe(25.0);
+    });
+
+    // Check 3: Snapshot Integrity across BOQ Changes
+    test('Check 3: Quotation snapshot remains 100% immutable when source BOQ is modified', async () => {
+      const v1BOQ = {
+        ...makeApprovedBOQ([itemCabinetry]),
+        id: 'boq-snapshot-test-001',
+      };
+      await repo.saveBOQ(TENANT_A, v1BOQ);
+
+      const quotationV1 = await service.generateQuotationFromBOQ({
+        tenantId: TENANT_A,
+        projectId: PROJECT_ID,
+        boqId: v1BOQ.id,
+        actorId: ACTOR_ID,
+      });
+
+      const initialSubtotal = quotationV1.subtotal;
+      const initialCogs = quotationV1.totalInternalCogs;
+
+      // Now someone modifies BOQ (e.g. forks or changes quantities in a draft)
+      const mutatedBOQ: InteriorBOQ = {
+        ...v1BOQ,
+        id: 'boq-v2-forked-unique',
+        versionNumber: 2,
+        status: 'draft',
+        items: [
+          {
+            ...itemCabinetry,
+            quantity: 999, // drastically changed
+            internalTotalCost: 999 * itemCabinetry.internalUnitCost,
+          },
+        ],
+      };
+      await repo.saveBOQ(TENANT_A, mutatedBOQ);
+
+      // Reload Quotation V1
+      const reloadedQuotation = await repo.getQuotation(TENANT_A, quotationV1.id);
+      expect(reloadedQuotation).toBeDefined();
+      expect(reloadedQuotation!.subtotal).toBe(initialSubtotal);
+      expect(reloadedQuotation!.totalInternalCogs).toBe(initialCogs);
+      expect(reloadedQuotation!.boqVersionNumber).toBe(1);
+    });
+
+    // Check 4: Tenant Integrity
+    test('Check 4: Cannot save quotation with mismatched tenant ID', async () => {
+      const quotation = await service.generateQuotationFromBOQ({
+        tenantId: TENANT_A,
+        projectId: PROJECT_ID,
+        boqId: 'boq-canonical-001',
+        actorId: ACTOR_ID,
+      });
+
+      // Tenant B tries to save Tenant A's quotation
+      await expect(
+        repo.saveQuotation(TENANT_B, quotation)
+      ).rejects.toThrow(TenantIsolationViolationError);
+    });
+
+    // Check 5: Client Data Security
+    test('Check 5: Client view contains zero internal financial fields in serialized JSON', async () => {
+      const quotation = await service.generateQuotationFromBOQ({
+        tenantId: TENANT_A,
+        projectId: PROJECT_ID,
+        boqId: 'boq-canonical-001',
+        actorId: ACTOR_ID,
+      });
+
+      const clientView = await service.getClientQuotationView(TENANT_A, quotation);
+      const json = JSON.stringify(clientView);
+
+      const forbiddenTokens = [
+        'internalUnitCost',
+        'internalTotalCost',
+        'totalInternalCogs',
+        'grossMargin',
+        'grossProfit',
+        'markupPercent',
+        'costBreakdown',
+        'materialCost',
+        'laborCost',
+        'hardwareCost',
+        'finishingCost',
+      ];
+
+      for (const token of forbiddenTokens) {
+        expect(json).not.toContain(token);
+      }
+    });
+
+    // Check 6: Approval & Immutability Guard
+    test('Check 6: Quotation in sent_to_client status rejects financial modifications', async () => {
+      const quotation = await service.generateQuotationFromBOQ({
+        tenantId: TENANT_A,
+        projectId: PROJECT_ID,
+        boqId: 'boq-canonical-001',
+        actorId: ACTOR_ID,
+      });
+
+      // Mark quotation as sent_to_client
+      const sentQuotation = {
+        ...quotation,
+        status: 'sent_to_client' as const,
+      };
+      await repo.saveQuotation(TENANT_A, sentQuotation);
+
+      // Attempt to tamper with financial terms on sent quotation
+      const tamperedQuotation = {
+        ...sentQuotation,
+        grandTotal: 1_000_000, // malicious price drop
+      };
+
+      await expect(
+        repo.saveQuotation(TENANT_A, tamperedQuotation)
+      ).rejects.toThrow('QuotationImmutableError');
+    });
+
+    // Check C: Canonical Role Alignment
+    test('Check C: Canonical roles OWNER, ADMIN, QS, PM succeed; CLIENT, DESIGNER fail', async () => {
+      const quotation = await service.generateQuotationFromBOQ({
+        tenantId: TENANT_A,
+        projectId: PROJECT_ID,
+        boqId: 'boq-canonical-001',
+        actorId: ACTOR_ID,
+      });
+
+      // Permitted canonical roles
+      for (const role of ['OWNER', 'ADMIN', 'QS', 'PM', 'DIRECTOR', 'EXECUTIVE']) {
+        const view = await service.getInternalCostingView(TENANT_A, quotation, role);
+        expect(view).toBeDefined();
+        expect(view.totalInternalCogs).toBeGreaterThan(0);
+      }
+
+      // Forbidden roles
+      for (const role of ['CLIENT', 'DESIGNER', 'SUBCONTRACTOR', 'GUEST']) {
+        await expect(
+          service.getInternalCostingView(TENANT_A, quotation, role)
+        ).rejects.toThrow('AuthorizationViolation');
+      }
+    });
+  });
 });
