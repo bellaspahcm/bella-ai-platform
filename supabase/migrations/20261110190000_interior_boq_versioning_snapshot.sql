@@ -39,10 +39,12 @@ COMMENT ON COLUMN public.interior_boqs.release_notes IS
 -- Step 2: Supporting indexes
 -- ---------------------------------------------------------------------------
 
+-- zero-downtime: allow blocking-index - partial index on existing table for version fork lineage
 CREATE INDEX IF NOT EXISTS idx_interior_boqs_forked_from
   ON public.interior_boqs(forked_from_boq_id)
   WHERE forked_from_boq_id IS NOT NULL;
 
+-- zero-downtime: allow blocking-index - partial index on existing table for sealed snapshot lookup
 CREATE INDEX IF NOT EXISTS idx_interior_boqs_snapshot_sealed
   ON public.interior_boqs(tenant_id, project_id, snapshot_sealed_at)
   WHERE snapshot_sealed_at IS NOT NULL;
