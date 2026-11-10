@@ -160,3 +160,4 @@ COMMENT ON COLUMN interior_customer_approvals.signature_storage_path IS
   'Storage bucket path for digital signature file — stored as reference, not blob (CP-7)';
 COMMENT ON COLUMN interior_customer_approvals.status IS
   'Immutable once non-pending: approved | rejected | expired | superseded';
+

@@ -196,3 +196,4 @@ export interface ApprovalSummary {
   readonly rejectionReason?: string;
   readonly hasSignature: boolean;
 }
+
