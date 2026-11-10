@@ -15,7 +15,9 @@ import type {
   InteriorBOQ,
   InteriorQuotation,
   InteriorContract,
+  ContractAddendum,
 } from '../domain/commercial-costing/types';
+import type { PaymentTransaction } from '../domain/commercial-costing/contract.types';
 import type {
   BOQVersionHistoryItem,
   ForkBOQRevisionInput,
@@ -71,6 +73,11 @@ export interface IInteriorRepository {
   saveContract(tenantId: string, contract: InteriorContract): Promise<void>;
   getContract(tenantId: string, contractId: string): Promise<InteriorContract | null>;
   getContractByProject(tenantId: string, projectId: string): Promise<InteriorContract | null>;
+  listContractsByProject(tenantId: string, projectId: string): Promise<InteriorContract[]>;
+  saveContractAddendum(tenantId: string, addendum: ContractAddendum): Promise<void>;
+  listContractAddenda(tenantId: string, contractId: string): Promise<ContractAddendum[]>;
+  savePaymentTransaction(tenantId: string, transaction: PaymentTransaction): Promise<void>;
+  listPaymentTransactions(tenantId: string, contractId: string, milestoneId?: string): Promise<PaymentTransaction[]>;
 
   // Manufacturing & Installation
   saveProductionOrder(tenantId: string, order: ProductionOrder): Promise<void>;
