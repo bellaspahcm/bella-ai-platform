@@ -8,6 +8,7 @@
 
 import pg from 'pg';
 import dotenv from 'dotenv';
+import fs from 'fs';
 dotenv.config({ path: '.env.e2e' });
 
 const { Client } = pg;
@@ -25,13 +26,12 @@ async function runConcurrencyTests() {
   console.log('====================================================================\n');
 
   // Establish TWO separate, independent PostgreSQL connections.
-  // SSL configuration: derive from connection string rather than hard-coding insecure options.
-  //   - If the URL contains sslmode=disable: no SSL (local dev only)
-  //   - If the URL contains sslmode=require / sslmode=verify-ca / sslmode=verify-full: use system CA
-  //   - Otherwise (Supabase Non-Production default): require SSL with system CA verification
-  // SECURITY: rejectUnauthorized must remain true in all production/non-production environments.
+  // SSL configuration: derive from connection string and load Supabase Root CA.
+  // SECURITY: rejectUnauthorized remains strictly true with trusted Supabase CA.
   const hasDisableSSL = connectionString.includes('sslmode=disable');
-  const sslConfig = hasDisableSSL ? false : true; // true = require SSL + system CA verification
+  const caCertPath = 'scripts/certificates/supabase-root-2021.crt';
+  const ca = fs.existsSync(caCertPath) ? fs.readFileSync(caCertPath).toString() : undefined;
+  const sslConfig = hasDisableSSL ? false : (ca ? { ca, rejectUnauthorized: true } : true);
   const c1 = new Client({ connectionString, ssl: sslConfig });
   const c2 = new Client({ connectionString, ssl: sslConfig });
 
