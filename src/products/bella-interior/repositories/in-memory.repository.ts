@@ -317,11 +317,44 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
 
   async saveQuotation(tenantId: string, quotation: InteriorQuotation): Promise<void> {
     if (quotation.tenantId !== tenantId) throw new TenantIsolationViolationError();
-    this.quotations.set(this.makeKey(tenantId, quotation.id), quotation);
+    const key = this.makeKey(tenantId, quotation.id);
+    const existing = this.quotations.get(key);
+
+    if (existing && (existing.status === 'sent_to_client' || existing.status === 'accepted')) {
+      // Allow status transitions (e.g. sent_to_client -> accepted / rejected)
+      const isStatusTransitionOnly =
+        existing.subtotal === quotation.subtotal &&
+        existing.discountAmount === quotation.discountAmount &&
+        existing.grandTotal === quotation.grandTotal &&
+        existing.boqId === quotation.boqId;
+
+      if (!isStatusTransitionOnly) {
+        throw new Error(
+          `QuotationImmutableError: Cannot modify financial terms of quotation "${existing.quotationNumber}" in status "${existing.status}". Create a new revision.`
+        );
+      }
+    }
+
+    this.quotations.set(key, JSON.parse(JSON.stringify(quotation)) as InteriorQuotation);
   }
 
   async getQuotation(tenantId: string, quotationId: string): Promise<InteriorQuotation | null> {
     return this.quotations.get(this.makeKey(tenantId, quotationId)) ?? null;
+  }
+
+  async listQuotationsByProject(tenantId: string, projectId: string): Promise<InteriorQuotation[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    const result: InteriorQuotation[] = [];
+    for (const [key, val] of this.quotations.entries()) {
+      if (key.startsWith(`${tenantId}::`) && val.projectId === projectId) {
+        result.push(JSON.parse(JSON.stringify(val)) as InteriorQuotation);
+      }
+    }
+    return result.sort((a, b) => b.versionNumber - a.versionNumber);
+  }
+
+  async listQuotationRevisions(tenantId: string, projectId: string): Promise<InteriorQuotation[]> {
+    return this.listQuotationsByProject(tenantId, projectId);
   }
 
   async saveContract(tenantId: string, contract: InteriorContract): Promise<void> {

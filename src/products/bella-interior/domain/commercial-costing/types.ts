@@ -142,6 +142,18 @@ export interface InteriorQuotation {
   readonly paymentTerms: string;
   readonly validityDays: number;
   readonly createdAt: string;
+
+  // Phase 2 Additive Commercial Margin & Lineage Fields
+  readonly boqVersionNumber?: number;
+  readonly totalInternalCogs?: number;
+  readonly totalGrossMargin?: number;
+  readonly grossMarginPercent?: number;
+  readonly forkedFromQuotationId?: string | null;
+  readonly preparedBy?: string;
+  readonly approvedBy?: string;
+  readonly sentToClientAt?: string | null;
+  readonly acceptedAt?: string | null;
+  readonly rejectedAt?: string | null;
 }
 
 export type PaymentMilestoneStatus =
