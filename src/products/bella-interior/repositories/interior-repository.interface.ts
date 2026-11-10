@@ -18,6 +18,7 @@ import type {
   ContractAddendum,
 } from '../domain/commercial-costing/types';
 import type { PaymentTransaction } from '../domain/commercial-costing/contract.types';
+import type { CustomerApproval } from '../domain/commercial-costing/approval.types';
 import type {
   BOQVersionHistoryItem,
   ForkBOQRevisionInput,
@@ -78,6 +79,13 @@ export interface IInteriorRepository {
   listContractAddenda(tenantId: string, contractId: string): Promise<ContractAddendum[]>;
   savePaymentTransaction(tenantId: string, transaction: PaymentTransaction): Promise<void>;
   listPaymentTransactions(tenantId: string, contractId: string, milestoneId?: string): Promise<PaymentTransaction[]>;
+
+  // Phase 4: Customer Approval & Digital Signature
+  saveCustomerApproval(tenantId: string, approval: CustomerApproval): Promise<void>;
+  getCustomerApproval(tenantId: string, approvalId: string): Promise<CustomerApproval | null>;
+  getCustomerApprovalByToken(tenantId: string, approvalToken: string): Promise<CustomerApproval | null>;
+  listCustomerApprovals(tenantId: string, subjectId: string): Promise<CustomerApproval[]>;
+  supersedePendingApprovals(tenantId: string, subjectId: string, reason: string): Promise<void>;
 
   // Manufacturing & Installation
   saveProductionOrder(tenantId: string, order: ProductionOrder): Promise<void>;

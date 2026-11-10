@@ -27,6 +27,7 @@ import type {
   PaymentMilestone,
 } from '../domain/commercial-costing/types';
 import type { PaymentTransaction } from '../domain/commercial-costing/contract.types';
+import type { CustomerApproval } from '../domain/commercial-costing/approval.types';
 import type {
   ProductionOrder,
   SiteInstallationPlan,
@@ -56,6 +57,8 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
   private readonly handoverDossiers = new Map<string, HandoverDossier>();
   private readonly warrantyCertificates = new Map<string, WarrantyCertificate>();
   private readonly warrantyTickets = new Map<string, WarrantyServiceTicket>();
+  // Phase 4: Customer Approval
+  private readonly customerApprovals = new Map<string, CustomerApproval>();
 
   private makeKey(tenantId: string, id: string): string {
     if (!tenantId) throw new TenantIsolationViolationError('tenantId is required');
@@ -627,6 +630,54 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
     this.handoverDossiers.clear();
     this.warrantyCertificates.clear();
     this.warrantyTickets.clear();
+    this.customerApprovals.clear();
+  }
+
+  // ─── Phase 4: Customer Approval & Digital Signature ──────────────────────────
+
+  async saveCustomerApproval(tenantId: string, approval: CustomerApproval): Promise<void> {
+    if (approval.tenantId !== tenantId) throw new TenantIsolationViolationError();
+    this.customerApprovals.set(this.makeKey(tenantId, approval.id), approval);
+  }
+
+  async getCustomerApproval(tenantId: string, approvalId: string): Promise<CustomerApproval | null> {
+    return this.customerApprovals.get(this.makeKey(tenantId, approvalId)) ?? null;
+  }
+
+  async getCustomerApprovalByToken(tenantId: string, approvalToken: string): Promise<CustomerApproval | null> {
+    for (const approval of this.customerApprovals.values()) {
+      if (approval.tenantId === tenantId && approval.approvalToken === approvalToken) {
+        return approval;
+      }
+    }
+    return null;
+  }
+
+  async listCustomerApprovals(tenantId: string, subjectId: string): Promise<CustomerApproval[]> {
+    const result: CustomerApproval[] = [];
+    for (const approval of this.customerApprovals.values()) {
+      if (approval.tenantId === tenantId && approval.subjectId === subjectId) {
+        result.push(approval);
+      }
+    }
+    return result.sort((a, b) => a.sentAt.localeCompare(b.sentAt));
+  }
+
+  async supersedePendingApprovals(tenantId: string, subjectId: string, reason: string): Promise<void> {
+    for (const [key, approval] of this.customerApprovals.entries()) {
+      if (
+        approval.tenantId === tenantId &&
+        approval.subjectId === subjectId &&
+        approval.status === 'pending'
+      ) {
+        this.customerApprovals.set(key, {
+          ...approval,
+          status: 'superseded',
+          customerNotes: reason,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    }
   }
 }
 

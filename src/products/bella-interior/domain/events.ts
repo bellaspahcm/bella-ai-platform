@@ -69,3 +69,62 @@ export interface WarrantyClaimCreatedEvent extends BaseInteriorDomainEvent {
   };
 }
 
+// ─── Phase 4: Customer Approval Domain Events ─────────────────────────────────
+
+export interface QuotationApprovalSentEvent extends BaseInteriorDomainEvent {
+  readonly eventType: 'interior.quotation.approval_sent.v1';
+  readonly payload: {
+    readonly projectId: string;
+    readonly quotationId: string;
+    readonly approvalId: string;
+    readonly versionNumber: number;
+    readonly clientRepresentative: string;
+    readonly expiresAt: string;
+  };
+}
+
+export interface QuotationApprovedEvent extends BaseInteriorDomainEvent {
+  readonly eventType: 'interior.quotation.approved.v1';
+  readonly payload: {
+    readonly projectId: string;
+    readonly quotationId: string;
+    readonly approvalId: string;
+    readonly versionNumber: number;
+    readonly clientRepresentative: string;
+    readonly hasSignature: boolean;
+  };
+}
+
+export interface QuotationRejectedEvent extends BaseInteriorDomainEvent {
+  readonly eventType: 'interior.quotation.rejected.v1';
+  readonly payload: {
+    readonly projectId: string;
+    readonly quotationId: string;
+    readonly approvalId: string;
+    readonly versionNumber: number;
+    readonly rejectionReason: string;
+  };
+}
+
+export interface ContractApprovalSentEvent extends BaseInteriorDomainEvent {
+  readonly eventType: 'interior.contract.approval_sent.v1';
+  readonly payload: {
+    readonly projectId: string;
+    readonly contractId: string;
+    readonly approvalId: string;
+    readonly clientRepresentative: string;
+    readonly expiresAt: string;
+  };
+}
+
+export interface ContractApprovedEvent extends BaseInteriorDomainEvent {
+  readonly eventType: 'interior.contract.customer_approved.v1';
+  readonly payload: {
+    readonly projectId: string;
+    readonly contractId: string;
+    readonly approvalId: string;
+    readonly clientRepresentative: string;
+    readonly hasSignature: boolean;
+  };
+}
+
