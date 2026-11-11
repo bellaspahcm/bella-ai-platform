@@ -206,8 +206,11 @@ jobs:
         run: echo "✅ Security checks skipped - no dependency/security files changed"
 
       - name: Install Playwright Chromium
-        if: needs.detect_changes.outputs.needs_e2e == 'true'
-        run: npx playwright install --with-deps chromium
+        if: needs.detect_changes.outputs.needs_e2e == 'true' && (steps.check-lint-needed.outputs.needs_e2e_checks == 'true' || contains(needs.detect_changes.outputs.scope_message, 'Hospitality') || contains(needs.detect_changes.outputs.scope_message, 'Manufacturing'))
+        run: |
+          sudo sed -i 's|http://azure\.archive\.ubuntu\.com/ubuntu/|http://archive\.ubuntu\.com/ubuntu/|g' /etc/apt/sources.list /etc/apt/sources.list.d/* /etc/apt/apt-mirrors.txt 2>/dev/null || true
+          sudo sed -i 's|https://azure\.archive\.ubuntu\.com/ubuntu/|https://archive\.ubuntu\.com/ubuntu/|g' /etc/apt/sources.list /etc/apt/sources.list.d/* /etc/apt/apt-mirrors.txt 2>/dev/null || true
+          npx playwright install --with-deps chromium
 
       - name: Authenticated route smoke
         if: needs.detect_changes.outputs.needs_e2e == 'true' && steps.check-lint-needed.outputs.needs_e2e_checks == 'true'
