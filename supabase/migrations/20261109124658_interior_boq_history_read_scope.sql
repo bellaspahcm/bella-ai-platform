@@ -117,3 +117,4 @@ $function$;
 REVOKE ALL ON FUNCTION public.interior_get_boq_item_history(uuid, text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.interior_get_boq_item_history(uuid, text) FROM anon;
 GRANT EXECUTE ON FUNCTION public.interior_get_boq_item_history(uuid, text) TO authenticated;
+

@@ -220,9 +220,9 @@ jobs:
       
       - name: Test migrations (dry run)
         run: |
-          # Install PostgreSQL client
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
+          # Install PostgreSQL client with retry and fallback mirror
+          sudo sed -i 's|azure.archive.ubuntu.com|archive.ubuntu.com|g' /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list /etc/apt/apt-mirrors.txt 2>/dev/null || true
+          for i in 1 2 3; do sudo apt-get update && sudo apt-get install -y postgresql-client && break || sleep 5; done
           
           # Test core schema migration
           PGPASSWORD=postgres psql -h localhost -U postgres -d test_db \
