@@ -4,12 +4,14 @@ const { join } = require('node:path');
 
 const MIGRATION_FILE_PATTERN = /^(\d{8}|\d{14})_.+\.sql$/;
 
-// The isolated Construction E2E database recorded this exact migration under
-// its earlier version before the repository timestamp was normalized. The
-// stored SQL was read back and matches the local migration after the same
+// The isolated Construction and Interior E2E database recorded these exact migrations
+// under earlier versions before the repository timestamps were normalized. The
+// stored SQL was read back and matches the local migrations after the same
 // newline/comment normalization used by the E2E migration applier.
 const MIGRATION_VERSION_ALIASES = new Map([
   ['20261104223802', '20261104135713'],
+  ['20261110161823', '20261110190000'],
+  ['20261110162223', '20261110220000'],
 ]);
 
 function normalizeMigrationVersion(version) {
