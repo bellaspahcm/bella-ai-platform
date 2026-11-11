@@ -52,7 +52,7 @@ async function verifyProductionReadonly() {
   ];
 
   const appliedMigrations = await runSql(`
-    SELECT version, name, inserted_at
+    SELECT version, name
     FROM supabase_migrations.schema_migrations
     WHERE version IN ('20261110190000', '20261110200000', '20261110210000', '20261110220000')
     ORDER BY version ASC;
@@ -60,11 +60,10 @@ async function verifyProductionReadonly() {
 
   console.log(`Found ${appliedMigrations.length} / ${expectedMigrations.length} expected commercial migration records:`);
   for (const m of appliedMigrations) {
-    console.log(`  [OK] Version: ${m.version} | Name: ${m.name || 'N/A'} | Inserted: ${m.inserted_at}`);
+    console.log(`  [OK] Version: ${m.version} | Name: ${m.name || 'N/A'}`);
   }
 
   if (appliedMigrations.length !== expectedMigrations.length) {
-    console.error(`  [FAIL] Expected ${expectedMigrations.length} migrations, but found ${appliedMigrations.length}.`);
     allChecksPassed = false;
   }
 
