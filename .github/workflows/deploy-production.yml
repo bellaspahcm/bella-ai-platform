@@ -153,6 +153,10 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - name: Harden apt mirrors (Azure DNS flake mitigation)
+        run: |
+          sudo sed -i 's|http://azure\.archive\.ubuntu\.com/ubuntu/|http://archive\.ubuntu\.com/ubuntu/|g' /etc/apt/sources.list /etc/apt/sources.list.d/* /etc/apt/apt-mirrors.txt 2>/dev/null || true
+          sudo sed -i 's|https://azure\.archive\.ubuntu\.com/ubuntu/|https://archive\.ubuntu\.com/ubuntu/|g' /etc/apt/sources.list /etc/apt/sources.list.d/* /etc/apt/apt-mirrors.txt 2>/dev/null || true
       - run: npx playwright install --with-deps chromium
       - run: npm run e2e:auth-smoke
         env:
