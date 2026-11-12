@@ -163,7 +163,15 @@ export function requiredInteriorPermission(request: Request, body: JsonRecord | 
   }
   if (pathname === '/api/interior/contracts') {
     if (method === 'GET') return INTERIOR_PERMISSIONS.contractRead;
-    if (method === 'POST') return INTERIOR_PERMISSIONS.contractCreate;
+    if (method === 'POST') {
+      switch (body?.action) {
+        case 'create-contract': return INTERIOR_PERMISSIONS.contractCreate;
+        case 'release-to-workshop': return INTERIOR_PERMISSIONS.productionRelease;
+        case 'record-payment': return INTERIOR_PERMISSIONS.paymentRecord;
+        case 'create-addendum': return INTERIOR_PERMISSIONS.contractAmend;
+        default: return null;
+      }
+    }
   }
   if (pathname === '/api/interior/finance' && method === 'GET') return INTERIOR_PERMISSIONS.financeRead;
   if (pathname === '/api/interior/reports/analytics' && method === 'GET') return INTERIOR_PERMISSIONS.reportsRead;

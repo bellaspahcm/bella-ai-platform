@@ -130,6 +130,7 @@ function makeBOQ(
   status: InteriorBOQ['status'] = 'locked_for_contract',
   tenantId = TENANT_ID,
   versionNumber = 1,
+  snapshotSealedAt: string | null = '2026-11-12T00:00:00.000Z',
 ): InteriorBOQ {
   return {
     id: BOQ_ID,
@@ -147,6 +148,7 @@ function makeBOQ(
     preparedBy: 'Estimator Phạm Thu Hà',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    snapshotSealedAt,
   };
 }
 
@@ -283,6 +285,7 @@ async function seedValidChain(
     contractBoqVersionNumber?: number;
     approvalSubjectVersionNumber?: number;
     approvalSubjectId?: string;
+    boqSnapshotSealedAt?: string | null;
   } = {},
 ): Promise<void> {
   const boqVer = overrides.boqVersionNumber ?? 1;
@@ -292,7 +295,17 @@ async function seedValidChain(
 
   await repo.saveProject(TENANT_ID, makeProject());
   await repo.saveDesignRevision(TENANT_ID, makeDesignRevision('approved'));
-  await repo.saveBOQ(TENANT_ID, makeBOQ(overrides.boqStatus ?? 'locked_for_contract', TENANT_ID, boqVer));
+  await repo.saveBOQ(
+    TENANT_ID,
+    makeBOQ(
+      overrides.boqStatus ?? 'locked_for_contract',
+      TENANT_ID,
+      boqVer,
+      'boqSnapshotSealedAt' in overrides
+        ? overrides.boqSnapshotSealedAt ?? null
+        : '2026-11-12T00:00:00.000Z',
+    ),
+  );
   await repo.saveQuotation(TENANT_ID, makeQuotation(overrides.quotationStatus ?? 'accepted', TENANT_ID, quoteVer, boqVer));
   await repo.saveContract(
     TENANT_ID,
@@ -360,7 +373,7 @@ describe('CommercialIntakeValidationService — Complete Invariant Battery', () 
       expect(cst.designRevisionVersionNumber).toBe(1);
 
       expect(cst.boqSealedStatus).toBe('locked_for_contract');
-      expect(cst.boqSnapshotSealedAt).toBeTruthy();
+      expect(cst.boqSnapshotSealedAt).toBe('2026-11-12T00:00:00.000Z');
 
       expect(cst.signatureReferenceStoragePath).toBe('tenants/t1/signatures/sig-contract-001.png');
       expect(cst.signatureFileSha256).toBe('a1b2c3d4e5f60718293a4b5c6d7e8f901234567890abcdef1234567890abcdef');
@@ -570,6 +583,33 @@ describe('CommercialIntakeValidationService — Complete Invariant Battery', () 
       await seedValidChain(repository, { boqStatus: 'under_review' });
       await expect(service.validateAndBuildProductionRequest(baseInput))
         .rejects.toThrow(BOQNotSealedError);
+    });
+
+    it('should reject an approved BOQ when its snapshot has no seal timestamp', async () => {
+      repository = new InMemoryInteriorRepository();
+      service = new CommercialIntakeValidationService(repository);
+      await seedValidChain(repository, {
+        boqStatus: 'approved',
+        boqSnapshotSealedAt: null,
+      });
+
+      await expect(service.validateAndBuildProductionRequest(baseInput))
+        .rejects.toThrow(BOQNotSealedError);
+    });
+
+    it('should allow an approved BOQ only when its snapshot is sealed', async () => {
+      repository = new InMemoryInteriorRepository();
+      service = new CommercialIntakeValidationService(repository);
+      await seedValidChain(repository, {
+        boqStatus: 'approved',
+        boqSnapshotSealedAt: '2026-11-12T01:02:03.000Z',
+      });
+
+      const result = await service.validateAndBuildProductionRequest(baseInput);
+      expect(result.productionRequestInput.commercialSourceOfTruth.boqSnapshotSealedAt)
+        .toBe('2026-11-12T01:02:03.000Z');
+      expect(result.productionRequestInput.commercialSourceOfTruth.boqSealedStatus)
+        .toBe('approved');
     });
 
     it('should succeed with canonical locked_for_contract status', async () => {

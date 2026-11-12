@@ -117,6 +117,8 @@ export interface InteriorBOQ {
   readonly preparedBy: string;
   readonly createdAt: string;
   readonly updatedAt: string;
+  /** Present only after the BOQ snapshot has been sealed for commercial use. */
+  readonly snapshotSealedAt?: string | null;
 }
 
 export type QuotationStatus =
