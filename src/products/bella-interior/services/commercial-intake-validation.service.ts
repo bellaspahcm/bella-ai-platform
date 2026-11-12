@@ -12,7 +12,7 @@
  *   to Platform Manufacturing OS via InteriorProductionRequestPort.
  *
  * INVARIANTS ENFORCED:
- *   I1. BOQ must be sealed (status = 'locked_for_contract', snapshot_sealed_at IS NOT NULL)
+ *   I1. BOQ must be approved/locked and its immutable snapshot must be sealed
  *   I2. Quotation must be accepted (status = 'accepted') and match contract
  *   I3. Contract must be executed (status = 'signed' or 'active')
  *   I4. Customer Approval must be 'approved' for the exact contract & version (not another revision)
@@ -46,7 +46,7 @@ export class BOQNotSealedError extends Error {
   constructor(boqId: string, boqStatus: string) {
     super(
       `BOQ ${boqId} is not sealed for production intake (status: '${boqStatus}'). ` +
-        `BOQ must be 'locked_for_contract' with sealed snapshot.`,
+        `BOQ must be approved or locked with a sealed snapshot.`,
     );
     this.name = 'BOQNotSealedError';
   }
@@ -303,12 +303,15 @@ export class CommercialIntakeValidationService {
     if (!boq) {
       throw new Error(`BOQ ${quotation.boqId} linked to quotation ${quotation.id} not found`);
     }
-    // Canonical production-ready state is strictly 'locked_for_contract'
-    // Also accept 'approved' only if snapshot sealed timestamp is present
-    if (boq.status !== 'locked_for_contract' && boq.status !== 'approved') {
+    // Approved and locked BOQs are eligible only when the persisted snapshot
+    // has its own seal timestamp; updated_at is not a substitute for sealing.
+    if (
+      (boq.status !== 'locked_for_contract' && boq.status !== 'approved') ||
+      !boq.snapshotSealedAt
+    ) {
       throw new BOQNotSealedError(boq.id, boq.status);
     }
-    const boqSnapshotSealedAt = boq.updatedAt;
+    const boqSnapshotSealedAt = boq.snapshotSealedAt;
 
     // ── I6: Resolve Design Revision and verify approval ─────────────────────
     const designRevision = await this.repository.getDesignRevision(
@@ -405,7 +408,7 @@ export class CommercialIntakeValidationService {
       boqId: boq.id,
       boqVersionNumber: boq.versionNumber,
       boqSnapshotSealedAt,
-      boqSealedStatus: 'locked_for_contract',
+      boqSealedStatus: boq.status,
       designRevisionId: designRevision.id,
       designRevisionVersionNumber: designRevision.versionNumber,
       customerApprovalId: customerApproval.id,

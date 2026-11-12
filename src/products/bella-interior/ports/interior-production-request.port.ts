@@ -49,8 +49,8 @@ export interface CommercialSourceOfTruth {
   readonly boqVersionNumber: number;
   /** Sealed timestamp of the BOQ snapshot (ISO-8601) — must NOT be null */
   readonly boqSnapshotSealedAt: string;
-  /** Canonical sealed status: strictly 'locked_for_contract' */
-  readonly boqSealedStatus: 'locked_for_contract';
+  /** Exact persisted BOQ status accepted for intake after snapshot seal validation. */
+  readonly boqSealedStatus: 'approved' | 'locked_for_contract';
   /** Design revision ID whose approved takeoff produced the BOQ */
   readonly designRevisionId: string;
   /** Design revision version number at the time of approval */

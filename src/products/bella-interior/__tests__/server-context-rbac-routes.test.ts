@@ -17,6 +17,20 @@ describe('Interior route action and scope mapping', () => {
     expect(requiredInteriorPermission(request, null)).toBe(INTERIOR_PERMISSIONS.designApprove);
   });
 
+  it('requires action-specific permissions for contract commands', () => {
+    const request = new Request('https://bella.example/api/interior/contracts', { method: 'POST' });
+    expect(requiredInteriorPermission(request, { action: 'create-contract' }))
+      .toBe(INTERIOR_PERMISSIONS.contractCreate);
+    expect(requiredInteriorPermission(request, { action: 'release-to-workshop' }))
+      .toBe(INTERIOR_PERMISSIONS.productionRelease);
+    expect(requiredInteriorPermission(request, { action: 'record-payment' }))
+      .toBe(INTERIOR_PERMISSIONS.paymentRecord);
+    expect(requiredInteriorPermission(request, { action: 'create-addendum' }))
+      .toBe(INTERIOR_PERMISSIONS.contractAmend);
+    expect(requiredInteriorPermission(request, { action: 'unknown-command' }))
+      .toBeNull();
+  });
+
   it('requires QC approval for verification and ordinary QC update for rectification', () => {
     const request = new Request('https://bella.example/api/interior/delivery/punch-list/123e4567-e89b-42d3-a456-426614174000', { method: 'PATCH' });
     expect(requiredInteriorPermission(request, { status: 'verified' })).toBe(INTERIOR_PERMISSIONS.qcApprove);
