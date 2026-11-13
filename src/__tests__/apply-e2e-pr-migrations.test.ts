@@ -2,6 +2,8 @@ const {
   applyMigration,
   assertIsolatedE2eTarget,
   createE2eMigrationClient,
+  ensureInteriorHistoryHardeningBaseline,
+  assertInteriorTriggerHelpersHardened,
   inspectInteriorTriggerHardeningBaseline,
   needsInteriorTriggerHardeningDiagnostic,
 } = require('../../scripts/apply-e2e-pr-migrations.cjs');
@@ -99,33 +101,43 @@ describe('Interior hardening E2E diagnostic', () => {
   it('reports missing prerequisites using only read-only catalog queries', async () => {
     const client = {
       query: jest.fn()
-        .mockResolvedValueOnce({ rows: [{ name: 'trg_record_interior_boq_item_history', present: true, owner: 'postgres', security_definer: true, explicit_acl: null, effective_acl: ['postgres:EXECUTE:true'] }] })
+        .mockResolvedValueOnce({ rows: [{ name: 'trg_record_interior_boq_item_history', present: true, owner: 'postgres', security_definer: true, configuration: [], explicit_acl: null, effective_acl: ['postgres:EXECUTE:true'] }] })
         .mockResolvedValueOnce({ rows: [{ name: 'interior_boq_item_history', present: false, rls_enabled: null }] })
+        .mockResolvedValueOnce({ rows: [{ present: true }] })
         .mockResolvedValueOnce({ rows: [{ table_name: 'interior_boq_item_history', column_name: 'lineage_metadata', present: false }] })
         .mockResolvedValueOnce({ rows: [{ name: 'trg_interior_boq_items_history_capture', enabled: 'O', type: 27, function_name: 'trg_record_interior_boq_item_history' }] })
         .mockResolvedValueOnce({ rows: [{ name: 'history_select' }] })
+        .mockResolvedValueOnce({ rows: [{ present: true, security_definer: true, configuration: ['search_path=""'], anon_execute: false, authenticated_execute: true }] })
         .mockResolvedValueOnce({ rows: [{ present: true }] })
         .mockResolvedValueOnce({ rows: [{ version: '20261109140000' }] }),
     };
 
     const diagnostic = await inspectInteriorTriggerHardeningBaseline(client);
 
-    expect(diagnostic.functions).toContainEqual({ name: 'trg_record_interior_boq_item_history', present: true, owner: 'postgres', security_definer: true, explicit_acl: null, effective_acl: ['postgres:EXECUTE:true'] });
+    expect(diagnostic.functions).toContainEqual({ name: 'trg_record_interior_boq_item_history', present: true, owner: 'postgres', security_definer: true, configuration: [], explicit_acl: null, effective_acl: ['postgres:EXECUTE:true'] });
     expect(diagnostic.relations).toContainEqual({ name: 'interior_boq_item_history', present: false, rls_enabled: null });
     expect(diagnostic.triggers).toContainEqual({ name: 'trg_interior_boq_items_history_capture', enabled: 'O', type: 27, function_name: 'trg_record_interior_boq_item_history' });
     expect(diagnostic.policies).toEqual(['history_select']);
     expect(diagnostic.policyCount).toBe(1);
     expect(diagnostic.ledgerPresent).toBe(true);
     expect(diagnostic.versions).toEqual([{ version: '20261109140000' }]);
-    expect(client.query).toHaveBeenCalledTimes(7);
-    const columnParameters = client.query.mock.calls[2][1];
+    expect(diagnostic.authUsersPresent).toBe(true);
+    expect(diagnostic.historyReadFunction).toEqual({
+      present: true,
+      security_definer: true,
+      configuration: ['search_path=""'],
+      anon_execute: false,
+      authenticated_execute: true,
+    });
+    expect(client.query).toHaveBeenCalledTimes(9);
+    const columnParameters = client.query.mock.calls[3][1];
     const columnsByTable = columnParameters[0].map((table: string, i: number) => `${table}.${columnParameters[1][i]}`);
     expect(columnsByTable).toEqual(expect.arrayContaining([
       'interior_boqs.id', 'interior_boqs.tenant_id', 'interior_boqs.version_number',
       'interior_boq_items.source_takeoff_component_id', 'interior_boq_items.stable_component_id',
       'interior_boq_item_history.lineage_metadata', 'interior_boq_item_history.actor_id',
     ]));
-    expect(client.query.mock.calls[6][1][0]).toContain('20261109124658');
+    expect(client.query.mock.calls[8][1][0]).toContain('20261109124658');
     for (const [query] of client.query.mock.calls) {
       expect((query as string).trim()).toMatch(/^SELECT\b/i);
     }
@@ -139,13 +151,65 @@ describe('Interior hardening E2E diagnostic', () => {
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [{ present: false }] }),
     };
     const diagnostic = await inspectInteriorTriggerHardeningBaseline(client);
     expect(diagnostic.ledgerPresent).toBe(false);
     expect(diagnostic.versions).toEqual([]);
     expect(diagnostic.policyCount).toBe(0);
-    expect(client.query).toHaveBeenCalledTimes(6);
+    expect(client.query).toHaveBeenCalledTimes(8);
+  });
+
+  it('fails closed on a partial Interior baseline without issuing DDL', async () => {
+    const client = { query: jest.fn() };
+    const partial = {
+      relations: [{ name: 'interior_boq_item_history', present: false, rls_enabled: null }],
+      columns: [],
+      functions: [],
+      triggers: [],
+      policies: [],
+      policyCount: 0,
+      versions: [{ version: '20261109124658' }, { version: '20261109140000' }],
+      ledgerPresent: true,
+      authUsersPresent: true,
+      historyReadFunction: {
+        present: true,
+        security_definer: true,
+        configuration: ['search_path=""'],
+        anon_execute: false,
+        authenticated_execute: true,
+      },
+    };
+
+    await expect(ensureInteriorHistoryHardeningBaseline(client, [{ file: target }], partial))
+      .rejects.toThrow('INTERIOR_E2E_BASELINE_PARTIAL');
+    expect(client.query).not.toHaveBeenCalled();
+  });
+
+  it('verifies all helper ACLs and only the migration-owned search_path changes', async () => {
+    const rows = [
+      'guard_interior_quotation_items_immutability', 'guard_interior_quotations_immutability',
+      'guard_interior_contracts_immutability', 'guard_interior_payment_milestones_immutability',
+      'guard_interior_customer_approvals_immutability', 'interior_customer_approvals_updated_at',
+      'interior_guard_boq_approval', 'trg_record_interior_boq_item_history',
+    ].map((name) => ({
+      name,
+      present: true,
+      anon_execute: false,
+      authenticated_execute: false,
+      service_role_execute: false,
+      configuration: name === 'interior_guard_boq_approval' ? ['search_path=""'] : ['search_path=pg_catalog'],
+    }));
+    const client = { query: jest.fn().mockResolvedValue({ rows }) };
+    const before = {
+      functions: [{ name: 'interior_guard_boq_approval', configuration: ['search_path=""'] }],
+    };
+
+    await expect(assertInteriorTriggerHelpersHardened(client, [{ file: target }], before)).resolves.toBeUndefined();
+    expect(client.query).toHaveBeenCalledTimes(1);
+    expect((client.query.mock.calls[0][0] as string).trim()).toMatch(/^SELECT\b/i);
   });
 });
 
