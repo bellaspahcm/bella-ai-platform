@@ -337,6 +337,8 @@ jobs:
         if: steps.preschool-profile.outputs.use_disposable != 'true'
         env:
           ALLOW_E2E_MIGRATION_APPLY: '1'
+          EXPECTED_E2E_PROJECT_REF: bmnbqbcdbuklhopfbopv
+          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
           BASE_REF: ${{ steps.migration-base.outputs.base }}
           SUPABASE_DB_URL: ${{ secrets.E2E_SUPABASE_DB_URL }}
         run: node scripts/apply-e2e-pr-migrations.cjs --base "$BASE_REF"

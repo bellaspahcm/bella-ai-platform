@@ -4,6 +4,20 @@ const { basename } = require('node:path');
 const { Client } = require('pg');
 
 const MIGRATION_PATH = /^supabase\/migrations\/(\d{14})_(.+)\.sql$/;
+const EXPECTED_INTERIOR_E2E_PROJECT_REF = 'bmnbqbcdbuklhopfbopv';
+const PRODUCTION_PROJECT_REF = 'lvnvkpyxtuilhrabtlwv';
+const INTERIOR_TRIGGER_HARDENING_MIGRATION =
+  'supabase/migrations/20261112230707_interior_trigger_function_hardening.sql';
+const INTERIOR_TRIGGER_FUNCTIONS = [
+  'guard_interior_quotation_items_immutability',
+  'guard_interior_quotations_immutability',
+  'guard_interior_contracts_immutability',
+  'guard_interior_payment_milestones_immutability',
+  'guard_interior_customer_approvals_immutability',
+  'interior_customer_approvals_updated_at',
+  'interior_guard_boq_approval',
+  'trg_record_interior_boq_item_history',
+];
 const FOUNDATION_ORG_PEOPLE_SCHEMA_MIGRATION =
   'supabase/migrations/20260801030000_foundation_org_people_schema.sql';
 const BLUEPRINT_CORE_SCHEMA_MIGRATION = 'supabase/migrations/20260806000000_blueprint_core_schema.sql';
@@ -48,6 +62,156 @@ DO $$ BEGIN
   );
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 `;
+
+function isCiEnvironment(env) {
+  return [env.CI, env.GITHUB_ACTIONS].some((value) => (
+    typeof value === 'string' && value.length > 0
+    && !['0', 'false', 'no'].includes(value.toLowerCase())
+  ));
+}
+
+// pg-connection-string accepts query parameters that override the URL host,
+// port and user. Restrict them before the client is even constructed.
+function assertIsolatedE2eTarget(connectionString, expectedProjectRef, apiUrl) {
+  const fail = () => { throw new Error('E2E_DATABASE_TARGET_REJECTED'); };
+  if (expectedProjectRef !== EXPECTED_INTERIOR_E2E_PROJECT_REF) fail();
+
+  let url;
+  let api;
+  let username;
+  try {
+    url = new URL(connectionString);
+    api = new URL(apiUrl);
+    username = decodeURIComponent(url.username);
+  } catch {
+    fail();
+  }
+
+  const allowedParams = new Set(['sslmode', 'ssl', 'uselibpqcompat', 'application_name', 'connect_timeout']);
+  const seenParams = new Set();
+  for (const [key] of url.searchParams) {
+    if (!allowedParams.has(key) || seenParams.has(key)) fail();
+    seenParams.add(key);
+  }
+
+  const direct = url.hostname === `db.${expectedProjectRef}.supabase.co`
+    && (url.port === '' || url.port === '5432');
+  const pooler = /^aws-\d+-[a-z0-9-]+\.pooler\.supabase\.com$/.test(url.hostname)
+    && /^[a-zA-Z0-9_]+$/.test(username.slice(0, -(expectedProjectRef.length + 1)))
+    && username.endsWith(`.${expectedProjectRef}`)
+    && (url.port === '5432' || url.port === '6543');
+  if (api.protocol !== 'https:' || api.hostname !== `${expectedProjectRef}.supabase.co`
+    || api.port || api.username || api.password || api.pathname !== '/' || api.search || api.hash
+    || !['postgres:', 'postgresql:'].includes(url.protocol) || !username || !url.password
+    || url.hash || url.pathname !== '/postgres'
+    || url.hostname.includes(PRODUCTION_PROJECT_REF) || username.includes(PRODUCTION_PROJECT_REF)
+    || (!direct && !pooler)) fail();
+}
+
+function createE2eMigrationClient(connectionString, env = process.env, ClientConstructor = Client) {
+  if (isCiEnvironment(env)) {
+    assertIsolatedE2eTarget(connectionString, env.EXPECTED_E2E_PROJECT_REF, env.SUPABASE_URL);
+  }
+  return new ClientConstructor({ connectionString });
+}
+
+function needsInteriorTriggerHardeningDiagnostic(migrations) {
+  return migrations.some((migration) => migration.file === INTERIOR_TRIGGER_HARDENING_MIGRATION);
+}
+
+// Catalog-only evidence to diagnose the prerequisite mismatch before any DDL.
+async function inspectInteriorTriggerHardeningBaseline(client) {
+  const functions = await client.query(
+    `SELECT candidate.name,
+            p.oid IS NOT NULL AS present, pg_get_userbyid(p.proowner) AS owner,
+            p.prosecdef AS security_definer, p.proacl::text AS explicit_acl,
+            CASE WHEN p.oid IS NULL THEN NULL ELSE ARRAY(
+              SELECT format('%s:%s:%s',
+                            CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END,
+                            a.privilege_type, a.is_grantable)
+                FROM aclexplode(COALESCE(p.proacl, acldefault('f', p.proowner))) a
+               ORDER BY 1
+            ) END AS effective_acl
+       FROM unnest($1::text[]) AS candidate(name)
+       LEFT JOIN pg_proc p ON p.oid = to_regprocedure(format('public.%I()', candidate.name))
+      ORDER BY candidate.name`,
+    [INTERIOR_TRIGGER_FUNCTIONS],
+  );
+  const relations = await client.query(
+    `SELECT candidate.name, c.oid IS NOT NULL AS present,
+            CASE WHEN c.oid IS NULL THEN NULL ELSE c.relrowsecurity END AS rls_enabled
+       FROM unnest($1::text[]) AS candidate(name)
+       LEFT JOIN pg_namespace n ON n.nspname = 'public'
+       LEFT JOIN pg_class c ON c.relnamespace = n.oid AND c.relname = candidate.name
+                            AND c.relkind IN ('r', 'p')
+      ORDER BY candidate.name`,
+    [['interior_boqs', 'interior_boq_items', 'interior_boq_item_history',
+      'interior_takeoff_runs', 'interior_takeoff_components']],
+  );
+  const expectedColumns = {
+    interior_boqs: ['id', 'tenant_id', 'version_number'],
+    interior_boq_items: [
+      'tenant_id', 'boq_id', 'id', 'room_zone_id', 'room_zone_name', 'item_code', 'item_name',
+      'category', 'dimensions_json', 'specifications_json', 'unit', 'quantity', 'internal_unit_cost',
+      'internal_total_cost', 'client_unit_price', 'client_total_price', 'gross_margin_amount',
+      'gross_margin_percent', 'source_takeoff_component_id', 'stable_component_id',
+    ],
+    interior_boq_item_history: [
+      'tenant_id', 'boq_id', 'boq_item_id', 'boq_version_number', 'change_type', 'room_zone_id',
+      'room_zone_name', 'item_code', 'item_name', 'category', 'dimensions_json', 'specifications_json',
+      'unit', 'quantity', 'internal_unit_cost', 'internal_total_cost', 'client_unit_price',
+      'client_total_price', 'gross_margin_amount', 'gross_margin_percent', 'lineage_metadata',
+      'actor_id', 'recorded_at',
+    ],
+  };
+  const expectedColumnPairs = Object.entries(expectedColumns).flatMap(([table, names]) =>
+    names.map((name) => [table, name]));
+  const columns = await client.query(
+    `SELECT candidate.table_name, candidate.column_name,
+            EXISTS (SELECT 1 FROM pg_attribute a
+                     WHERE a.attrelid = to_regclass(format('public.%I', candidate.table_name))
+                       AND a.attname = candidate.column_name AND NOT a.attisdropped) AS present
+       FROM unnest($1::text[], $2::text[]) AS candidate(table_name, column_name)
+      ORDER BY candidate.table_name, candidate.column_name`,
+    [expectedColumnPairs.map(([table]) => table), expectedColumnPairs.map(([, name]) => name)],
+  );
+  const triggers = await client.query(
+    `SELECT t.tgname AS name, t.tgenabled AS enabled, t.tgtype AS type,
+            function_namespace.nspname AS function_schema, p.proname AS function_name
+       FROM pg_trigger t
+       JOIN pg_class c ON c.oid = t.tgrelid
+       JOIN pg_namespace n ON n.oid = c.relnamespace
+       JOIN pg_proc p ON p.oid = t.tgfoid
+       JOIN pg_namespace function_namespace ON function_namespace.oid = p.pronamespace
+      WHERE n.nspname = 'public' AND c.relname = 'interior_boq_items'
+        AND t.tgname = 'trg_interior_boq_items_history_capture' AND NOT t.tgisinternal`,
+  );
+  const policies = await client.query(
+    `SELECT p.polname AS name FROM pg_policy p
+       WHERE p.polrelid = to_regclass('public.interior_boq_item_history') ORDER BY p.polname`,
+  );
+  const ledger = await client.query(
+    "SELECT to_regclass('supabase_migrations.schema_migrations') IS NOT NULL AS present",
+  );
+  const ledgerPresent = ledger.rows[0]?.present === true;
+  const versions = ledgerPresent
+    ? await client.query(
+      `SELECT version FROM supabase_migrations.schema_migrations
+        WHERE version = ANY($1::text[]) ORDER BY version`,
+      [['20261109124658', '20261109140000', '20261109170000', '20261109180000']],
+    )
+    : { rows: [] };
+  return {
+    functions: functions.rows,
+    relations: relations.rows,
+    columns: columns.rows,
+    triggers: triggers.rows,
+    policies: policies.rows.map((row) => row.name),
+    policyCount: policies.rows.length,
+    ledgerPresent,
+    versions: versions.rows,
+  };
+}
 
 function parseArgs(argv) {
   const baseIndex = argv.indexOf('--base');
@@ -733,11 +897,20 @@ async function main() {
     throw new Error('SUPABASE_DB_URL or SUPABASE_DATABASE_URL is required for isolated E2E migration apply.');
   }
 
-  const client = new Client({ connectionString: dbUrl });
-  await client.connect();
+  const client = createE2eMigrationClient(dbUrl);
   try {
-    await ensureMigrationHistory(client);
+    await client.connect();
+  } catch (error) {
+    if (isCiEnvironment(process.env)) throw new Error('E2E_DATABASE_CONNECTION_FAILED');
+    throw error;
+  }
+  try {
     const migrations = files.map((file) => parseMigration(file));
+    if (needsInteriorTriggerHardeningDiagnostic(migrations)) {
+      const diagnostic = await inspectInteriorTriggerHardeningBaseline(client);
+      console.log(`INTERIOR_TRIGGER_HARDENING_BASELINE_DIAGNOSTIC=${JSON.stringify(diagnostic)}`);
+    }
+    await ensureMigrationHistory(client);
     await ensureRequiredE2eBaseline(client, migrations);
     const f1CatalogBefore = migrations.some((migration) => F1_CATALOG_GUARD_MIGRATIONS.has(migration.file))
       ? await getF1CatalogSnapshot(client)
@@ -767,8 +940,12 @@ if (require.main === module) {
 
 module.exports = {
   applyMigration,
+  assertIsolatedE2eTarget,
   canonicalMigrationIsNeeded,
+  createE2eMigrationClient,
   ensureRequiredE2eBaseline,
+  inspectInteriorTriggerHardeningBaseline,
+  needsInteriorTriggerHardeningDiagnostic,
   listChangedMigrationFiles,
   parseMigration,
 };
