@@ -202,8 +202,19 @@ export interface ContractOverviewResponse {
     clientRepresentative?: string | null;
   };
   workflowCommands?: {
+    createQuotationAvailable: boolean;
+    requestCustomerApprovalAvailable: boolean;
     createContractAvailable: boolean;
+    recordPaymentAvailable: boolean;
+    createAddendumAvailable: boolean;
     releaseProductionAvailable: boolean;
+  };
+  /** Exact persisted IDs used only to call the already-authorized lifecycle API. */
+  commercialWorkflow?: {
+    contractId: string;
+    contractStatus: string;
+    quotationId: string;
+    quotationVersionNumber: number;
   };
   header: ContractProjectHeader;
   kpis: ContractOverviewKPIs;

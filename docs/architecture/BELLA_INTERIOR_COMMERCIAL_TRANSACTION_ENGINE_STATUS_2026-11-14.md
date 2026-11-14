@@ -24,8 +24,28 @@ Recovery investigation is paused while Commercial work proceeds.
 
 ## Existing UI/API handoff check
 
-- Static source inspection found the Interior contracts screen calls `GET /api/interior/contracts` and `POST /api/interior/contracts` with `release-to-workshop` only. No in-repository UI caller was found for the new quotation endpoint, customer-approval request endpoint, or `create-contract`, `record-payment`, and `create-addendum` actions. Those APIs may be consumed by an external client, but that integration is not represented or verified in this repository.
-- No UI was changed. The existing contracts screen's release action still reaches a route that returns `INTERIOR_PRODUCTION_RELEASE_PERSISTENCE_UNAVAILABLE`; there is no in-repo flow from that action to a persisted Manufacturing order.
+- **Pre-change baseline:** static inspection found the Interior contracts screen had no caller for the quotation, customer-approval, contract-creation, or payment APIs. The release action reached a route that returned `INTERIOR_PRODUCTION_RELEASE_PERSISTENCE_UNAVAILABLE`.
+- The existing contracts screen's visual structure is retained. Its workflow controls now call the existing quotation, customer-approval, contract-creation, and payment APIs. The Manufacturing release action remains closed because no persisted Manufacturing target exists.
+
+## Commercial UI/API handoff change map (2026-11-14)
+
+| UI action | Classification | Canonical capability and source of truth | Authorized change | Verification |
+|---|---|---|---|---|
+| Build quotation from an approved BOQ version | `EXISTING_CAPABILITY_REUSE` | `GET/POST /api/interior/boq` and `GET/POST /api/interior/quotations`; server validates project scope and the exact approved/locked BOQ version; quote totals/default terms come from `InteriorQuotationMarginService` | Connect existing contracts workflow controls to these APIs; do not calculate commercial totals in the browser | Focused component/API contract tests; verify denied/malformed requests do not create rows |
+| Request quotation or contract approval | `EXISTING_CAPABILITY_REUSE` | `/api/interior/customer-approvals` creates a scoped single-use token for the exact subject/version; the public bearer endpoint validates token, expiry, signature artifact and transition | Provide a customer-facing handoff for the existing bearer API; never simulate customer action or auto-accept/sign | Public approval route tests; verify token stays out of logs/referrers and only real customer input is submitted |
+| Create contract draft from accepted quotation | `EXISTING_CAPABILITY_REUSE` | `POST /api/interior/contracts` derives contract baseline, BOQ/design lineage, and schedule from the exact persisted accepted quotation plus its approved evidence | Connect UI action only; no client-supplied totals or lineage | Existing route tests plus focused UI request/error tests |
+| Record a payment receipt | `EXISTING_CAPABILITY_REUSE` | `POST /api/interior/contracts` with `record-payment`; actual amount, method, bank reference and date are supplied by an authorized staff member; PostgreSQL enforces balance, uniqueness and transactional outbox | Add an explicit form to the existing milestone detail; no optimistic balance mutation or fabricated receipt | Focused form tests and existing payment/authorization tests |
+| Addendum read/edit and Manufacturing release | `CAPABILITY GAP` for the current read/UI handoff | Addendum GET currently returns an empty list, while Production release deliberately fails closed without a Manufacturing persistence target | Keep closed; do not infer missing schedule rules or add schema/migrations in this change | Record as residual gap; verify release remains unavailable |
+
+This change preserves the existing Interior contracts page visual structure. Production, schema, migration ledger, PR #537 and real business rows remain out of scope. Database-backed Commercial E2E and customer actions remain `BLOCKED`/`NOT_PROVEN` until their respective authorized runtime evidence exists.
+
+## UI/API handoff implementation (2026-11-14)
+
+- The existing contracts screen now opens a scoped workflow: select an approved/locked BOQ snapshot, create a persisted quotation draft, create a customer approval request for that exact version, and then create an unsigned contract draft only after the exact quotation is accepted. Totals and lineage remain server-owned.
+- The customer-facing page displays the exact quotation, contract, or addendum snapshot and records an explicit accept/reject decision. Contract acceptance requires a customer-provided PDF/PNG/JPEG signature artifact; the UI never auto-accepts, auto-signs, or fabricates evidence.
+- The existing payment milestone detail can record an actual receipt only for a signed/active contract and an actor allowed by the server. It requires amount, method, reference, and transaction date, then reloads the persisted balance after success; the browser does not advance balances optimistically.
+- API availability flags are derived from project-scoped authorization decisions. Manufacturing release remains unavailable. The addendum read model still returns no records, so addendum operations are not presented as a completed staff workflow.
+- No database call, migration, Production mutation, Non-Production mutation, or PR #537 action was performed for this UI/API handoff change.
 
 ## Implemented in this worktree
 
@@ -53,6 +73,7 @@ Recovery investigation is paused while Commercial work proceeds.
 
 ## Verification evidence
 
+- Current UI/API handoff verification: full-repository `npx tsc --noEmit --pretty false` exited 0; ESLint exited 0 for every changed TS/TSX file; targeted Jest passed **8 suites / 63 tests**, including workflow permission availability, exact BOQ-only create request, customer decision/signature requirements, and existing Commercial route tests. `git diff --check` passed. These are local code checks and do not establish database-backed or real-customer E2E.
 - The prior full Bella Interior Jest scope reported **46/46 suites and 544/544 tests** on the committed implementation; it did not connect to a database. After the runtime migration fix, the current `rbac-migration-contract.test.ts` passed **17/17 assertions**.
 - A scoped strict TypeScript check passed for the changed Commercial core files. This is not a full repository typecheck and does not cover every API route.
 - Current checks: `git diff --check` PASS; `node scripts/check-zero-downtime-migrations.cjs --base origin/main` PASS for **5 migrations**; RPC grant guard PASS **36/36**; targeted migration-contract test PASS **17/17**.
@@ -74,8 +95,9 @@ Recovery investigation is paused while Commercial work proceeds.
 3. Verify a real payment receipt, balance locking, Finance outbox insertion, addendum approval, and handover-to-warranty transition. Invalid-token PostgreSQL probes passed, but successful business transitions remain `NOT_PROVEN` because there is no authorized real-customer evidence in this run.
 4. Deploy and reconcile the authorized Manufacturing schema/tenant foundation before connecting validated intake to its canonical order contract. The Production catalog currently has no Manufacturing tables or `bella_manufacturing` tenant. Once that target exists, resolve the Manufacturing actor, factory access, finished-good identity, and approved BOM from authorized records; do not substitute Interior roles or BOQ item IDs. Order creation, lineage persistence, idempotency, and concurrency remain `NOT_PROVEN`.
 5. Run applicable authorization, tenant-isolation, concurrency, and application E2E checks before any Go-Live conclusion.
-6. Verify the external Sales/customer client handoff for quotation and customer-approval APIs. If these workflows are expected to run from the current Interior UI, the existing UI has no caller for them; no UI changes were made under the current scope.
+6. The existing Interior UI handoff for quotation, customer approval, contract draft, and payment is implemented and locally checked. Remaining staff workflow gaps are addendum read/list and a persisted Manufacturing release target; validate those against a canonical downstream contract before extending scope.
 
-**Current product decision:** `COMMERCIAL_TRANSACTION_ENGINE = IN_PROGRESS`; `COMMERCIAL_GO_LIVE = NOT_READY`.
+**Current product decision:** `COMMERCIAL_IMPLEMENTATION = IN_PROGRESS`; `COMMERCIAL_SCHEMA_NONPROD = VERIFIED` (prior runtime evidence); `MIGRATION_LEDGER_PARITY = PARTIAL`; `CUSTOMER_TRANSACTION_E2E = BLOCKED`; `COMMERCIAL_GO_LIVE = NOT_READY`.
+**Current-turn boundaries:** `PRODUCTION_CHANGE = NONE`; Non-Production was not accessed; `PR_537 = UNCHANGED`.
 **Production database and deployment:** unchanged by this worktree.
 **Separate Production security finding:** 27 RLS-disabled tables grant full CRUD to `anon` and `authenticated`; owner-specific policy design and remediation are still required.

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
+import { INTERIOR_PERMISSIONS, resolveInteriorContext, type InteriorServerContext } from '@/products/bella-interior/lib/server-context';
 import { InteriorContractAnalyticsService } from '@/products/bella-interior/services/interior-contract-analytics.service';
 import { InteriorContractLifecycleService } from '@/products/bella-interior/services/interior-contract-lifecycle.service';
 import { interiorRbacRpcClient, isInteriorRbacRecord, validInteriorUuid } from '@/products/bella-interior/lib/rbac-api';
@@ -11,6 +11,32 @@ import type { InteriorContract, PaymentMilestone } from '@/products/bella-interi
 import type { PaymentMethod } from '@/products/bella-interior/domain/commercial-costing/contract.types';
 
 export const dynamic = 'force-dynamic';
+
+async function readWorkflowCommands(ctx: InteriorServerContext, projectId: string) {
+  const authorize = (permissionId: string) => ctx.authorization.authorize({
+    permissionId,
+    tenantId: ctx.tenantId,
+    projectId,
+  });
+  const [boqRead, financeRead, contractCreate, contractWrite, paymentRecord, contractAmend] = await Promise.all([
+    authorize(INTERIOR_PERMISSIONS.boqRead),
+    authorize(INTERIOR_PERMISSIONS.financeRead),
+    authorize(INTERIOR_PERMISSIONS.contractCreate),
+    authorize(INTERIOR_PERMISSIONS.contractWrite),
+    authorize(INTERIOR_PERMISSIONS.paymentRecord),
+    authorize(INTERIOR_PERMISSIONS.contractAmend),
+  ]);
+  const allowed = (decision: typeof boqRead) => decision.status === 'ALLOW';
+  return {
+    createQuotationAvailable: allowed(boqRead) && allowed(financeRead) && allowed(contractCreate),
+    requestCustomerApprovalAvailable: allowed(contractWrite),
+    createContractAvailable: allowed(contractCreate),
+    recordPaymentAvailable: allowed(paymentRecord),
+    createAddendumAvailable: allowed(contractAmend),
+    // The route stays closed until a persisted Manufacturing target is available.
+    releaseProductionAvailable: false,
+  };
+}
 
 interface PaymentMilestoneInput {
   name: string;
@@ -87,7 +113,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     return NextResponse.json({ success: false, error: 'INTERIOR_CONTRACT_LOOKUP_FAILED' }, { status: 503 });
   }
 
-  const workflowCommands = { createContractAvailable: false, releaseProductionAvailable: false };
+  const workflowCommands = await readWorkflowCommands(ctx, requestedProjectId);
   if (data.hasContract !== true) {
     return NextResponse.json({
       success: true,
@@ -104,6 +130,22 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   const contractRow = data.contract;
+  const rawQuotationVersionNumber = contractRow.quotationVersionNumber;
+  const quotationVersionNumber = typeof rawQuotationVersionNumber === 'number'
+    ? rawQuotationVersionNumber
+    : typeof rawQuotationVersionNumber === 'string' && rawQuotationVersionNumber.trim() !== ''
+      ? Number(rawQuotationVersionNumber)
+      : Number.NaN;
+  if (typeof contractRow.id !== 'string' || typeof contractRow.quotationId !== 'string'
+    || !Number.isInteger(quotationVersionNumber) || quotationVersionNumber < 1) {
+    return NextResponse.json({ success: false, error: 'INTERIOR_CONTRACT_LOOKUP_FAILED' }, { status: 503 });
+  }
+  const commercialWorkflow = {
+    contractId: contractRow.id,
+    contractStatus: contractRow.status,
+    quotationId: contractRow.quotationId,
+    quotationVersionNumber,
+  };
   const summary = {
     contractNumber: contractRow.contractNumber,
     title: contractRow.title,
@@ -115,7 +157,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     return NextResponse.json({
       success: true,
       data: {
-        overview: { hasContract: true, financeAccess: false, contractSummary: summary, workflowCommands },
+        overview: { hasContract: true, financeAccess: false, contractSummary: summary, workflowCommands, commercialWorkflow },
         hasContract: true,
         contracts: [summary],
         total: 1,
@@ -215,6 +257,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     ),
     financeAccess: true,
     workflowCommands,
+    commercialWorkflow,
   };
 
   return NextResponse.json({
