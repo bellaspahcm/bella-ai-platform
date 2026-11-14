@@ -163,7 +163,7 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
       `INSERT INTO public.interior_design_revisions (
         id, tenant_id, project_id, version_number, title, status, submitted_by,
         approved_by, approved_at, submitted_by_user_id, approved_by_user_id
-      ) VALUES ($1::uuid,$2::uuid,$3::uuid,1,'E2E approved revision','approved',$4,$5,clock_timestamp(),$4::uuid,$5::uuid)`,
+      ) VALUES ($1::uuid,$2::uuid,$3::uuid,1,'E2E approved revision','approved',$4::text,$5::text,clock_timestamp(),$4::uuid,$5::uuid)`,
       [designRevisionId, tenantId, projectId, staffPreparerId, staffApproverId],
     );
     await db.query(
@@ -262,7 +262,7 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
     expect(acceptedQuoteRow.rows[0]).toEqual({
       status: 'accepted', version_number: 1, boq_id: boqId, boq_version_number: 1,
     });
-    await assumeDatabaseRole('authenticated', foreignStaffId);
+    await assumeDatabaseRole('authenticated', foreignStaffId, foreignTenantId);
     const crossTenantRead = await db.query(
       'SELECT public.interior_read_quotation($1::uuid) AS quotation', [quoteId],
     );
@@ -426,7 +426,7 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
          WHERE tenant_id=$1::uuid AND contract_id=$2::uuid) AS outstanding,
         (SELECT count(*)::integer FROM public.interior_finance_outbox
          WHERE tenant_id=$1::uuid AND event_type='INTERIOR_PAYMENT_TRANSACTION_RECORDED'
-           AND payload->>'contractId'=$2) AS outbox_count
+           AND payload->>'contractId'=($2::uuid)::text) AS outbox_count
        FROM public.interior_payment_transactions WHERE tenant_id=$1::uuid AND contract_id=$2::uuid`,
       [tenantId, contractId],
     );
@@ -519,9 +519,11 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
     return userId;
   }
 
-  async function setClaims(role: DbRole, actorId = ''): Promise<void> {
-    const claims = { role, ...(actorId ? { sub: actorId } : {}), tenant_id: tenantId,
-      app_metadata: { tenant_id: tenantId } };
+  async function setClaims(role: DbRole, actorId = '', actorTenantId = tenantId): Promise<void> {
+    const claims = role === 'anon'
+      ? { role }
+      : { role, ...(actorId ? { sub: actorId } : {}), tenant_id: actorTenantId,
+        app_metadata: { tenant_id: actorTenantId } };
     await requireDatabase().query(
       `SELECT set_config('request.jwt.claim.sub',$1,true),
         set_config('request.jwt.claim.role',$2,true),
@@ -530,9 +532,9 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
     );
   }
 
-  async function assumeDatabaseRole(role: DbRole, actorId = ''): Promise<void> {
+  async function assumeDatabaseRole(role: DbRole, actorId = '', actorTenantId = tenantId): Promise<void> {
     await requireDatabase().query('RESET ROLE');
-    await setClaims(role, actorId);
+    await setClaims(role, actorId, actorTenantId);
     await requireDatabase().query(`SET LOCAL ROLE ${role}`);
   }
 
