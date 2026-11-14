@@ -407,7 +407,7 @@ jobs:
   migrations:
     name: Migration Gates
     needs: [detect_changes, real-db-e2e]
-    if: needs.detect_changes.outputs.needs_migration_gates == 'true'
+    if: always() && needs.detect_changes.outputs.needs_migration_gates == 'true' && needs.real-db-e2e.result != 'cancelled'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
