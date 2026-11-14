@@ -88,6 +88,19 @@ This change preserves the existing Interior contracts page visual structure. Pro
 - Post-migration advisors: health returned no lints. Security reported 22 `rls_enabled_no_policy` findings; the new handover request table is RLS-enabled and has no direct grants, so it remains deny-by-default and is accessed through scoped RPCs. Existing broad SECURITY DEFINER and performance advisories were not expanded into unrelated remediation.
 - Production database and deployment remain unchanged by this work. PR #537 was not accessed or changed.
 
+## Blockers by goal (2026-11-14)
+
+| Goal | State | Blocker | Next evidence/action |
+|---|---|---|---|
+| Migration ledger parity | `PARTIAL` | The five applied Non-Production migrations were recorded under generated versions; no verified Non-Production pooler URL is available to use the official repair flow. | Obtain a verified Non-Production connection and reconcile through the official CLI route after version/schema preflight. Never repair the ledger manually or use Production credentials. |
+| Customer quotation approval | `NOT_PROVEN` | No authorized customer has reviewed and acted on a real quotation in this run. | Send the exact persisted quotation link through an authorized channel and retain the actual customer decision. |
+| Contract signature | `NOT_PROVEN` | No valid customer-signed contract artifact was provided. | Use the customer handoff and verify the uploaded real signature artifact and exact quotation/BOQ/design lineage. |
+| Payment and Finance outbox | `NOT_PROVEN` | There is no authorized real payment receipt to record. | Enter a real receipt through the signed-contract payment workflow; verify the persisted balance and outbox event. |
+| Addendum and handover/warranty | `NOT_PROVEN` | No real approved addendum or customer handover acceptance exists; staff addendum read/list is still a capability gap. | Build the addendum read path from its canonical persisted record before exposing staff operations; verify later transitions only with actual customer evidence. |
+| Manufacturing release | `NOT_PROVEN` | No deployed Manufacturing runtime/schema/tenant target is present in the inspected environment. | Keep release closed until the canonical Manufacturing actor, factory scope, finished good, BOM and persisted order contract exist. |
+
+These blockers apply only to the corresponding runtime goals. They do not block the independently completed implementation-level UI/API handoff, authorization gating, input/error handling, or exact-version lineage wiring; local checks do not establish live database authorization. `CUSTOMER_TRANSACTION_E2E = BLOCKED`; this does not mark the entire Commercial implementation as blocked.
+
 ## Still needed before calling Commercial operational
 
 1. Reconcile the five Non-Production ledger aliases through the official migration-repair route once a verified Non-Production DB connection is available. Do not use the Production URL or edit the ledger directly.
