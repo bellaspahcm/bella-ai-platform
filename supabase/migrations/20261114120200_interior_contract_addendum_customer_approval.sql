@@ -189,10 +189,13 @@ BEGIN
   IF v_tenant_id IS NULL OR auth.uid() IS NULL OR p_addendum_id IS NULL THEN
     RAISE EXCEPTION 'AuthorizationViolation: active Interior actor is required';
   END IF;
-  SELECT d, c.project_id INTO v_addendum, v_project_id
+  SELECT d.* INTO v_addendum
   FROM public.interior_contract_addenda d
-  JOIN public.interior_contracts c ON c.tenant_id = d.tenant_id AND c.id = d.contract_id
   WHERE d.tenant_id = v_tenant_id AND d.id = p_addendum_id;
+  IF NOT FOUND THEN RETURN NULL; END IF;
+  SELECT c.project_id INTO v_project_id
+  FROM public.interior_contracts c
+  WHERE c.tenant_id = v_addendum.tenant_id AND c.id = v_addendum.contract_id;
   IF NOT FOUND THEN RETURN NULL; END IF;
   IF NOT public.interior_has_permission('interior:contract:read', v_tenant_id, v_project_id, NULL)
      AND NOT public.interior_has_permission('interior:contract:write', v_tenant_id, v_project_id, NULL) THEN
