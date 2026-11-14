@@ -127,10 +127,11 @@ export interface ContractAddendumItem {
   id: string;
   code: string;
   title: string;
+  reason?: string;
   valueChange: number;
   valueChangeFormatted: string;
   effectiveDate: string;
-  status: 'approved' | 'pending' | 'signed' | 'rejected' | 'superseded';
+  status: 'approved' | 'pending' | 'signed' | 'rejected' | 'superseded' | 'legacy_unverified';
   statusLabel: string;
   statusBadgeVariant: 'success' | 'warning' | 'danger';
   fileAttachment?: string;

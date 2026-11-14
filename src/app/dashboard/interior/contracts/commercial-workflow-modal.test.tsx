@@ -91,4 +91,31 @@ describe('Commercial workflow UI handoff', () => {
     expect(await screen.findByRole('button', { name: 'Tạo bản nháp báo giá' })).toBeDisabled();
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
   });
+
+  it('does not claim a pending signature request when the approval check is unavailable', async () => {
+    const fetchMock = jest.fn(async () => mockResponse({ success: false, error: 'INTERIOR_PERMISSION_DENIED' }, 503));
+    Object.defineProperty(globalThis, 'fetch', { configurable: true, writable: true, value: fetchMock });
+
+    render(
+      <CommercialWorkflowModal
+        projectId={PROJECT_ID}
+        contract={{
+          id: '123e4567-e89b-42d3-a456-426614174050',
+          status: 'draft',
+          quotationId: '123e4567-e89b-42d3-a456-426614174060',
+          quotationVersionNumber: 1,
+        }}
+        permissions={{ createQuotationAvailable: false, requestCustomerApprovalAvailable: true, createContractAvailable: false }}
+        onClose={jest.fn()}
+        onChanged={jest.fn()}
+      />,
+    );
+
+    const button = await screen.findByRole('button', { name: 'Không thể xác minh yêu cầu ký' });
+    expect(button).toBeDisabled();
+    expect(screen.getByRole('alert')).toHaveTextContent('thao tác tạo liên kết ký đã bị khóa');
+    expect(screen.queryByText('Đã có yêu cầu ký đang chờ khách')).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('/api/interior/customer-approvals?subjectId=');
+  });
 });

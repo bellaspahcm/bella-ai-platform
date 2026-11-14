@@ -42,6 +42,8 @@ interface CommercialWorkflowPermissions {
   createContractAvailable: boolean;
 }
 
+type ContractApprovalCheck = 'not_applicable' | 'checking' | 'clear' | 'pending' | 'unavailable';
+
 interface CommercialWorkflowModalProps {
   projectId: string;
   permissions: CommercialWorkflowPermissions;
@@ -147,15 +149,18 @@ export default function CommercialWorkflowModal({
   const [loading, setLoading] = useState(true);
   const [savingAction, setSavingAction] = useState<string | null>(null);
   const [loadError, setLoadError] = useState('');
-  const [contractApprovalPending, setContractApprovalPending] = useState(false);
+  const [contractApprovalCheck, setContractApprovalCheck] = useState<ContractApprovalCheck>(contract ? 'checking' : 'not_applicable');
   const [approvalLink, setApprovalLink] = useState<{ url: string; label: string } | null>(null);
 
   const loadCommercialRecords = useCallback(async () => {
     setLoading(true);
     setLoadError('');
+    setContractApprovalCheck(contract ? 'checking' : 'not_applicable');
     const results = await Promise.all([
-      fetch(`/api/interior/boq?projectId=${encodeURIComponent(projectId)}`, { cache: 'no-store' }).catch(() => null),
-      fetch(`/api/interior/quotations?projectId=${encodeURIComponent(projectId)}`, { cache: 'no-store' }).catch(() => null),
+      contract ? Promise.resolve(null)
+        : fetch(`/api/interior/boq?projectId=${encodeURIComponent(projectId)}`, { cache: 'no-store' }).catch(() => null),
+      contract ? Promise.resolve(null)
+        : fetch(`/api/interior/quotations?projectId=${encodeURIComponent(projectId)}`, { cache: 'no-store' }).catch(() => null),
       contract
         ? fetch(`/api/interior/customer-approvals?subjectId=${encodeURIComponent(contract.id)}`, { cache: 'no-store' }).catch(() => null)
         : Promise.resolve(null),
@@ -165,11 +170,9 @@ export default function CommercialWorkflowModal({
       setLoadError('Không kết nối được tới dữ liệu thương mại của dự án.');
       setBoqs([]);
       setQuotations([]);
+      setContractApprovalCheck('not_applicable');
       setLoading(false);
       return;
-    }
-    if (contract && !approvalsResponse) {
-      setLoadError('Không thể kiểm tra yêu cầu chấp thuận đang chờ của hợp đồng.');
     }
     const [boqBody, quotationBody, approvalsBody] = await Promise.all([
       boqResponse ? boqResponse.json().catch(() => null) as Promise<unknown> : Promise.resolve(null),
@@ -198,12 +201,17 @@ export default function CommercialWorkflowModal({
       setQuotations(quotationRows.map((item: unknown) => parseQuotation(item)).filter((item): item is QuotationOption => item !== null));
     }
 
-    if (approvalsResponse?.ok && isRecord(approvalsBody) && Array.isArray(approvalsBody.data)) {
-      setContractApprovalPending(approvalsBody.data.some((item: unknown) => isRecord(item) && item.status === 'pending'));
+    if (!contract) {
+      setContractApprovalCheck('not_applicable');
+    } else if (approvalsResponse?.ok && isRecord(approvalsBody) && approvalsBody.success === true
+      && Array.isArray(approvalsBody.data)) {
+      setContractApprovalCheck(approvalsBody.data.some((item: unknown) => isRecord(item) && item.status === 'pending')
+        ? 'pending' : 'clear');
     } else {
-      setContractApprovalPending(Boolean(contract));
+      setContractApprovalCheck('unavailable');
+      nextLoadError = 'Không thể xác minh yêu cầu chấp thuận đang chờ; thao tác tạo liên kết ký đã bị khóa.';
     }
-    setLoadError(nextLoadError || (contract && !approvalsResponse ? 'Không thể kiểm tra yêu cầu chấp thuận đang chờ của hợp đồng.' : ''));
+    setLoadError(nextLoadError);
     setLoading(false);
   }, [contract, projectId]);
 
@@ -252,7 +260,7 @@ export default function CommercialWorkflowModal({
       const url = customerPageUrl(result.approvalId, result.customerApprovalEndpoint);
       if (!url) throw new Error('Máy chủ không trả về liên kết chấp thuận hợp lệ.');
       setApprovalLink({ url, label });
-      if (subjectType === 'contract') setContractApprovalPending(true);
+      if (subjectType === 'contract') setContractApprovalCheck('pending');
       toast.success('Đã tạo yêu cầu. Chưa có chấp thuận nào được ghi nhận từ thao tác này.');
       await loadCommercialRecords();
       await onChanged();
@@ -384,10 +392,13 @@ export default function CommercialWorkflowModal({
                 <p className="mt-1 text-xs text-slate-500">Hợp đồng chỉ chuyển sang đã ký sau khi khách hàng gửi quyết định kèm chứng từ chữ ký thật.</p>
                 {contractCanRequestApproval && permissions.requestCustomerApprovalAvailable ? (
                   <button type="button" onClick={() => void requestApproval('contract', contract.id, `Hợp đồng phiên bản báo giá ${contract.quotationVersionNumber}`)}
-                    disabled={contractApprovalPending || savingAction !== null}
+                    disabled={contractApprovalCheck !== 'clear' || savingAction !== null}
                     className="mt-3 inline-flex items-center gap-2 rounded-lg border border-emerald-300 px-3 py-2 text-xs font-semibold text-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-800 dark:text-emerald-300">
                     {savingAction === `approval:${contract.id}` ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                    {contractApprovalPending ? 'Đã có yêu cầu ký đang chờ khách' : 'Tạo liên kết để khách ký'}
+                    {contractApprovalCheck === 'checking' ? 'Đang kiểm tra yêu cầu ký…'
+                      : contractApprovalCheck === 'pending' ? 'Đã có yêu cầu ký đang chờ khách'
+                        : contractApprovalCheck === 'unavailable' ? 'Không thể xác minh yêu cầu ký'
+                          : 'Tạo liên kết để khách ký'}
                   </button>
                 ) : <p className="mt-2 text-xs text-slate-500">Trạng thái hợp đồng hiện tại: {contract.status}.</p>}
               </section>

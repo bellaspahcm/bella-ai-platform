@@ -8,6 +8,7 @@ import { SupabaseInteriorRepository } from '@/products/bella-interior/repositori
 import { SupabaseInteriorFinanceOutboxAdapter } from '@/products/bella-interior/adapters/supabase-finance-outbox.adapter';
 import { InteriorCustomerApprovalService } from '@/products/bella-interior/services/interior-customer-approval.service';
 import type { InteriorContract, PaymentMilestone } from '@/products/bella-interior/domain/commercial-costing/types';
+import type { ContractAddendumItem } from '@/products/bella-interior/domain/contract-overview.types';
 import type { PaymentMethod } from '@/products/bella-interior/domain/commercial-costing/contract.types';
 
 export const dynamic = 'force-dynamic';
@@ -89,6 +90,56 @@ function isIsoCalendarDate(value: string): boolean {
   return date.getUTCFullYear() === year
     && date.getUTCMonth() === month - 1
     && date.getUTCDate() === day;
+}
+
+const persistedAddendumStatuses = ['pending_customer_approval', 'approved', 'rejected', 'superseded'] as const;
+type PersistedAddendumStatus = typeof persistedAddendumStatuses[number];
+
+function parseContractAddenda(
+  value: unknown,
+  tenantId: string,
+  contractId: string,
+): ContractAddendumItem[] | null {
+  if (!Array.isArray(value)) return null;
+  const addenda: ContractAddendumItem[] = [];
+  for (const row of value) {
+    if (!isInteriorRbacRecord(row) || typeof row.id !== 'string' || row.tenantId !== tenantId
+      || row.contractId !== contractId || typeof row.addendumNumber !== 'string' || !row.addendumNumber.trim()
+      || typeof row.title !== 'string' || typeof row.reason !== 'string'
+      || typeof row.status !== 'string' || !persistedAddendumStatuses.includes(row.status as PersistedAddendumStatus)
+      || (row.approvedAt !== undefined && row.approvedAt !== null && typeof row.approvedAt !== 'string')
+      || typeof row.approvalEvidenceStatus !== 'string'
+      || !['pending', 'verified', 'unverified'].includes(row.approvalEvidenceStatus)) return null;
+    const valueDelta = typeof row.valueDelta === 'number' ? row.valueDelta
+      : typeof row.valueDelta === 'string' && row.valueDelta.trim() !== '' ? Number(row.valueDelta) : Number.NaN;
+    if (!Number.isFinite(valueDelta)) return null;
+    const evidenceMatchesStatus = row.status === 'pending_customer_approval'
+      ? row.approvalEvidenceStatus === 'pending' : row.approvalEvidenceStatus === 'verified';
+    const unverified = row.approvalEvidenceStatus === 'unverified' || !evidenceMatchesStatus;
+    const displayStatus: ContractAddendumItem['status'] = unverified
+      ? 'legacy_unverified'
+      : row.status === 'pending_customer_approval' ? 'pending' : row.status as ContractAddendumItem['status'];
+    const approvedAt = typeof row.approvedAt === 'string' ? new Date(row.approvedAt) : null;
+    if (approvedAt && Number.isNaN(approvedAt.getTime())) return null;
+    const statusLabel = displayStatus === 'approved' ? 'Đã duyệt'
+      : displayStatus === 'rejected' ? 'Khách từ chối'
+        : displayStatus === 'superseded' ? 'Đã thay thế'
+          : displayStatus === 'pending' ? 'Đang chờ khách duyệt' : 'Chưa xác minh chấp thuận';
+    addenda.push({
+      id: row.id,
+      code: row.addendumNumber,
+      title: row.title,
+      reason: row.reason,
+      valueChange: valueDelta,
+      valueChangeFormatted: `${valueDelta >= 0 ? '+' : ''}${new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(valueDelta)} đ`,
+      effectiveDate: approvedAt ? approvedAt.toLocaleDateString('vi-VN') : 'Chưa được duyệt',
+      status: displayStatus,
+      statusLabel,
+      statusBadgeVariant: displayStatus === 'approved' ? 'success'
+        : displayStatus === 'rejected' ? 'danger' : 'warning',
+    });
+  }
+  return addenda;
 }
 
 export async function GET(request: Request): Promise<NextResponse> {
@@ -221,6 +272,10 @@ export async function GET(request: Request): Promise<NextResponse> {
     || (signedDate !== null && signedDate !== undefined && typeof signedDate !== 'string')) {
     return NextResponse.json({ success: false, error: 'INTERIOR_CONTRACT_LOOKUP_FAILED' }, { status: 503 });
   }
+  const addendaView = parseContractAddenda(contractRow.addenda, contractRow.tenantId, contractRow.id);
+  if (!addendaView) {
+    return NextResponse.json({ success: false, error: 'INTERIOR_CONTRACT_LOOKUP_FAILED' }, { status: 503 });
+  }
   const contract: InteriorContract = {
     id: contractRow.id,
     tenantId: contractRow.tenantId,
@@ -250,11 +305,13 @@ export async function GET(request: Request): Promise<NextResponse> {
     milestones,
     addenda: [],
   };
-  const overview = {
-    ...InteriorContractAnalyticsService.buildResponseFromDBContract(
+  const baseOverview = InteriorContractAnalyticsService.buildResponseFromDBContract(
       contract,
       typeof data.project.code === 'string' ? data.project.code : requestedProjectId,
-    ),
+    );
+  const overview = {
+    ...baseOverview,
+    detailedTabs: { ...baseOverview.detailedTabs, addenda: addendaView },
     financeAccess: true,
     workflowCommands,
     commercialWorkflow,

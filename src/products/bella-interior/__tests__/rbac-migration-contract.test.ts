@@ -21,6 +21,10 @@ const customerApprovedAddendumMigrationSql = readFileSync(
   join(process.cwd(), 'supabase/migrations/20261114120200_interior_contract_addendum_customer_approval.sql'),
   'utf8',
 ).replace(/\r\n/g, '\n');
+const addendumFinanceReadMigrationSql = readFileSync(
+  join(process.cwd(), 'supabase/migrations/20261114120300_interior_contract_addenda_finance_scoped_read.sql'),
+  'utf8',
+).replace(/\r\n/g, '\n');
 
 function explicitRolePermissions(): Map<string, Set<string>> {
   const seedStart = migrationSql.indexOf('INSERT INTO public.interior_role_permissions(role_key,permission_id) VALUES');
@@ -337,5 +341,25 @@ describe('Bella Interior RBAC migration contract', () => {
     expect(customerApprovedAddendumMigrationSql).toContain(
       'REVOKE ALL ON FUNCTION public.advance_interior_addendum_after_customer_approval()\n  FROM PUBLIC, anon, authenticated, service_role',
     );
+  });
+
+  it('keeps addenda private from direct Data API access and exposes them only through project Finance Read', () => {
+    expect(addendumFinanceReadMigrationSql).toContain(
+      'REVOKE ALL ON TABLE public.interior_contract_addenda FROM PUBLIC, anon, authenticated',
+    );
+    expect(addendumFinanceReadMigrationSql).toContain(
+      'CREATE POLICY interior_contract_addenda_no_direct_client_access',
+    );
+    expect(addendumFinanceReadMigrationSql).toContain('USING (false)');
+    expect(addendumFinanceReadMigrationSql).toContain('WITH CHECK (false)');
+    expect(addendumFinanceReadMigrationSql).toContain(
+      "v_finance_access := public.interior_has_permission('interior:finance:read', v_tenant, p_project_id, NULL)",
+    );
+    expect(addendumFinanceReadMigrationSql).toContain(
+      "'addenda', CASE WHEN v_finance_access THEN v_addenda ELSE '[]'::JSONB END",
+    );
+    expect(addendumFinanceReadMigrationSql).toContain("a.subject_type = 'contract_addendum'");
+    expect(addendumFinanceReadMigrationSql).toContain('a.subject_id = d.id');
+    expect(addendumFinanceReadMigrationSql).toContain("WHEN d.status = 'approved' AND a.status = 'approved' THEN 'verified'");
   });
 });
