@@ -3,7 +3,7 @@
 **Date:** 2026-11-14
 **Branch:** `codex/commercial-transaction-engine-20261113`
 **Base:** latest observed `origin/main` at `9290fc08cdf402f4ad40a6075e59cb29059e0a19` (includes PR #537 merge)
-**Production:** no migration or write issued; read-only migration-list check failed before returning ledger results
+**Production:** no migration or write issued; Supabase read-only migration-list and catalog checks succeeded on 2026-11-14
 **PR #537:** not accessed or changed
 
 ## Recovery status retained
@@ -14,6 +14,13 @@
 - The reported 38 orphan accounting rows remain unmodified and unexplained.
 
 Recovery investigation is paused while Commercial work proceeds.
+
+## Production read-only findings (2026-11-14)
+
+- The Production migration list includes `20261112230707` (`interior_trigger_function_hardening`). The five migrations in this worktree (`20261113165251` and `20261114110000`–`20261114120200`) are absent from that list; none was applied by this work.
+- Production catalog checks returned no `manufacturing_production_orders`, `manufacturing_production_plans`, `manufacturing_bom_revisions`, or `manufacturing_routing_revisions` table. The tenant catalog showed 1 `bella_interior` tenant and 0 `bella_manufacturing` tenants. This confirms there is no deployed Manufacturing runtime/schema target to receive an Interior order in the inspected Production project.
+- Supabase's Production schema advisory reported 30 public tables with RLS disabled. A read-only privilege check confirmed 27 grant `SELECT`, `INSERT`, `UPDATE`, and `DELETE` to both `anon` and `authenticated`; 3 have no direct grants to either role. This includes Platform, Healthcare, proof-data, and verification tables outside Bella Interior ownership. No RLS or grants were changed. Each owning team must choose the correct access policies before remediation; enabling RLS alone would block existing access.
+- These were metadata/catalog reads only. No business rows were read, and no Production mutation was issued. The duplicate-version migration ledger reconciliation remains outside this work and unresolved.
 
 ## Implemented in this worktree
 
@@ -44,17 +51,18 @@ Recovery investigation is paused while Commercial work proceeds.
 - The full Bella Interior Jest scope passed **46/46 suites and 544/544 tests**. The runner used the shared Next/SWC transformer without loading the checkout's `next.config`; no test connected to a database.
 - A scoped strict TypeScript check passed for the changed Commercial core files. This is not a full repository typecheck and does not cover every API route.
 - `git diff --check` passed; `node scripts/check-zero-downtime-migrations.cjs --base origin/main` passed for **5 migrations**; and the RPC grant guard passed **36/36**. The addendum migration contract test passed **17/17 assertions** within the full suite.
-- `node scripts/check-supabase-migrations.cjs` did not complete: its linked read-only migration-list call failed before returning ledger results because the CLI could not write its local telemetry file. No migration command or DDL was issued; remote ledger state was not reverified.
+- `node scripts/check-supabase-migrations.cjs` did not complete: its linked read-only migration-list call failed before returning ledger results because the CLI could not write its local telemetry file. A separate Supabase read-only migration-list call succeeded later; the current five worktree migrations are absent from the returned Production ledger. No migration command or DDL was issued.
 - The five new migrations have **not** been applied or executed by PostgreSQL. No database runtime result is claimed; the application tests are in-memory/static contract tests and mocked route tests.
-- Production database and deployment remain unchanged. PR #537 was not accessed or changed.
+- Production database and deployment remain unchanged by this work. PR #537 was not accessed or changed.
 
 ## Still needed before calling Commercial operational
 
 1. The five migrations have application/static-contract evidence only. Database behavior remains `NOT_PROVEN`; do not represent unit tests or catalog checks as a database runtime result. Any later database execution requires its own authorized release action.
 2. Complete a bounded E2E using real authorized customer approval and signature evidence through the configured private storage bucket. No synthetic customer decision/signature is used here.
 3. Verify payment receipt permissions, row locking, balance limits, Finance outbox insertion, and milestone reconciliation against an authorized database runtime. Finance receipts persist through PostgreSQL triggers; general domain notifications still use the process-local Host Event Bus.
-4. Connect validated intake to the canonical Manufacturing order contract. Manufacturing actor, factory access, finished-good identity, and approved BOM must come from existing authorized records; Interior role names or BOQ item IDs must not be invented as substitutes. Order creation, lineage persistence, idempotency, and concurrency remain `NOT_PROVEN`.
+4. Deploy and reconcile the authorized Manufacturing schema/tenant foundation before connecting validated intake to its canonical order contract. The Production catalog currently has no Manufacturing tables or `bella_manufacturing` tenant. Once that target exists, resolve the Manufacturing actor, factory access, finished-good identity, and approved BOM from authorized records; do not substitute Interior roles or BOQ item IDs. Order creation, lineage persistence, idempotency, and concurrency remain `NOT_PROVEN`.
 5. Run applicable authorization, tenant-isolation, concurrency, and application E2E checks before any Go-Live conclusion.
 
 **Current product decision:** `COMMERCIAL_TRANSACTION_ENGINE = IN_PROGRESS`; `COMMERCIAL_GO_LIVE = NOT_READY`.
 **Production database and deployment:** unchanged by this worktree.
+**Separate Production security finding:** 27 RLS-disabled tables grant full CRUD to `anon` and `authenticated`; owner-specific policy design and remediation are still required.
