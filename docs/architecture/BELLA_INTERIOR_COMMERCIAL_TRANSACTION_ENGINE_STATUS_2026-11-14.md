@@ -22,6 +22,11 @@ Recovery investigation is paused while Commercial work proceeds.
 - Supabase's Production schema advisory reported 30 public tables with RLS disabled. A read-only privilege check confirmed 27 grant `SELECT`, `INSERT`, `UPDATE`, and `DELETE` to both `anon` and `authenticated`; 3 have no direct grants to either role. This includes Platform, Healthcare, proof-data, and verification tables outside Bella Interior ownership. No RLS or grants were changed. Each owning team must choose the correct access policies before remediation; enabling RLS alone would block existing access.
 - These were metadata/catalog reads only. No business rows were read, and no Production mutation was issued. The duplicate-version migration ledger reconciliation remains outside this work and unresolved.
 
+## Existing UI/API handoff check
+
+- Static source inspection found the Interior contracts screen calls `GET /api/interior/contracts` and `POST /api/interior/contracts` with `release-to-workshop` only. No in-repository UI caller was found for the new quotation endpoint, customer-approval request endpoint, or `create-contract`, `record-payment`, and `create-addendum` actions. Those APIs may be consumed by an external client, but that integration is not represented or verified in this repository.
+- No UI was changed. The existing contracts screen's release action still reaches a route that returns `INTERIOR_PRODUCTION_RELEASE_PERSISTENCE_UNAVAILABLE`; there is no in-repo flow from that action to a persisted Manufacturing order.
+
 ## Implemented in this worktree
 
 - New quotations are created as `draft`; requesting customer review moves the exact quotation version to `sent_to_client`.
@@ -62,6 +67,7 @@ Recovery investigation is paused while Commercial work proceeds.
 3. Verify payment receipt permissions, row locking, balance limits, Finance outbox insertion, and milestone reconciliation against an authorized database runtime. Finance receipts persist through PostgreSQL triggers; general domain notifications still use the process-local Host Event Bus.
 4. Deploy and reconcile the authorized Manufacturing schema/tenant foundation before connecting validated intake to its canonical order contract. The Production catalog currently has no Manufacturing tables or `bella_manufacturing` tenant. Once that target exists, resolve the Manufacturing actor, factory access, finished-good identity, and approved BOM from authorized records; do not substitute Interior roles or BOQ item IDs. Order creation, lineage persistence, idempotency, and concurrency remain `NOT_PROVEN`.
 5. Run applicable authorization, tenant-isolation, concurrency, and application E2E checks before any Go-Live conclusion.
+6. Verify the external Sales/customer client handoff for quotation and customer-approval APIs. If these workflows are expected to run from the current Interior UI, the existing UI has no caller for them; no UI changes were made under the current scope.
 
 **Current product decision:** `COMMERCIAL_TRANSACTION_ENGINE = IN_PROGRESS`; `COMMERCIAL_GO_LIVE = NOT_READY`.
 **Production database and deployment:** unchanged by this worktree.
