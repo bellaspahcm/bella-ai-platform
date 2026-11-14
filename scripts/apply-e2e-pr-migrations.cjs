@@ -507,6 +507,9 @@ function normalizeRecordedMigrationStatements(statements) {
   return normalizeMigrationSql(sql);
 }
 
+// Shared with the read-only migration drift checker so both gates compare the
+// same canonical SQL representation when resolving an isolated E2E alias.
+
 async function findEquivalentRecordedMigration(client, migration) {
   const columns = await getMigrationHistoryColumns(client);
   if (!columns.has('statements')) return null;
@@ -1121,6 +1124,8 @@ module.exports = {
   isPristineInteriorHistoryBaseline,
   inspectInteriorTriggerHardeningBaseline,
   needsInteriorTriggerHardeningDiagnostic,
+  normalizeMigrationSql,
+  normalizeRecordedMigrationStatements,
   listChangedMigrationFiles,
   parseMigration,
 };

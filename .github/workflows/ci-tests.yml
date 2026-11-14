@@ -458,6 +458,8 @@ jobs:
         env:
           BASE_REF: ${{ steps.migration-base.outputs.base }}
           SUPABASE_DB_URL: ${{ secrets.E2E_SUPABASE_DB_URL }}
+          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          EXPECTED_E2E_PROJECT_REF: bmnbqbcdbuklhopfbopv
           DB_MIGRATION_CHECK_ALLOW_REMOTE_AHEAD_ONLY: '1'
         run: npm run db:migration:check
 
