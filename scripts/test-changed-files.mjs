@@ -19,6 +19,8 @@ const DIRECT_TEST_EXCLUDED_PATTERNS = [
   /^src\/products\/beauty-spa-v2\/__tests__\/beauty-spa-v2-real-db\.test\.ts$/,
   /^src\/products\/bella-education\/__tests__\/preschool-chain-real-db\.test\.ts$/,
   /^src\/products\/bella-hospitality\/__tests__\/(tenant-profile|housekeeping|maintenance)-real-db\.test\.ts$/,
+  // This guarded suite runs only in the scoped Real Database Business E2E job.
+  /^src\/products\/bella-interior\/__tests__\/commercial-customer-real-db\.test\.ts$/,
 ];
 const EXCLUDED_PATTERNS = [
   /^scripts\//,

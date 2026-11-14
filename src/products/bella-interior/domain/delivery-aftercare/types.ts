@@ -61,6 +61,7 @@ export type HandoverStatus =
   | 'pending_inspection'
   | 'punch_list_rectification'
   | 'ready_for_handover'
+  | 'pending_customer_acceptance'
   | 'completed';
 
 export interface HandoverDossier {

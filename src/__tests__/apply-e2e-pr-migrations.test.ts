@@ -214,12 +214,7 @@ describe('Interior hardening E2E diagnostic', () => {
 });
 
 describe('apply-e2e-pr-migrations', () => {
-  it('skips a migration recorded under another version only when SQL matches apart from standalone comments', async () => {
-    const existingSql = [
-      '-- Bella Platform direct action grants',
-      'CREATE TABLE public.example (id uuid PRIMARY KEY);',
-      'CREATE INDEX example_id_idx ON public.example (id);',
-    ].join('\n');
+  it('skips an equivalent migration when the ledger uses another name, version, and statement split', async () => {
     const migration = {
       version: '20261106120000',
       name: 'example_migration',
@@ -237,8 +232,17 @@ describe('apply-e2e-pr-migrations', () => {
         if (sql.includes('information_schema.columns')) {
           return { rows: [{ column_name: 'name' }, { column_name: 'statements' }] };
         }
-        if (sql.includes('WHERE name = $1 AND version <> $2')) {
-          return { rows: [{ version: '20261105110000', statements: [existingSql] }] };
+        if (sql.includes('WHERE version <> $1 AND statements IS NOT NULL')) {
+          return {
+            rows: [{
+              version: '20261105110000',
+              name: 'generated_cli_alias',
+              statements: [
+                '-- Bella Platform direct action grants\nCREATE TABLE public.example (id uuid PRIMARY KEY)',
+                'CREATE INDEX example_id_idx ON public.example (id)',
+              ],
+            }],
+          };
         }
         appliedSql.push(sql);
         return { rowCount: 1, rows: [] };
@@ -263,7 +267,7 @@ describe('apply-e2e-pr-migrations', () => {
         if (sql.includes('information_schema.columns')) {
           return { rows: [{ column_name: 'name' }, { column_name: 'statements' }] };
         }
-        if (sql.includes('WHERE name = $1 AND version <> $2')) {
+        if (sql.includes('WHERE version <> $1 AND statements IS NOT NULL')) {
           return {
             rows: [{
               version: '20261105110000',
@@ -294,7 +298,7 @@ describe('apply-e2e-pr-migrations', () => {
         if (sql.includes('information_schema.columns')) {
           return { rows: [{ column_name: 'name' }, { column_name: 'statements' }] };
         }
-        if (sql.includes('WHERE name = $1 AND version <> $2')) {
+        if (sql.includes('WHERE version <> $1 AND statements IS NOT NULL')) {
           return {
             rows: [{
               version: '20261105110000',

@@ -46,6 +46,7 @@ export const CANONICAL_CONTRACT_MANAGEMENT_ROLES = [
 export const CANONICAL_PAYMENT_RECORDING_ROLES = [
   'owner',
   'admin',
+  'accountant',
   'qs',
 ] as const;
 
@@ -204,11 +205,37 @@ export class InteriorContractLifecycleService {
       );
     }
 
+    if (quotation.status === 'accepted' && quotation.boqVersionNumber == null) {
+      throw new Error('QuotationBOQLineageMissing: accepted quotation has no captured BOQ version.');
+    }
+
     // Checkpoint 1: Accepted Quotation Prerequisite
     if (quotation.status !== 'accepted') {
       throw new Error(
         `ContractQuotationStatusViolation: Cannot create contract from quotation in "${quotation.status}" status. Quotation must be 'accepted'.`
       );
+    }
+
+    const quotationApproval = await this.repository.getCustomerApproval(
+      input.tenantId,
+      input.quotationCustomerApprovalId,
+    );
+    if (!quotationApproval
+      || quotationApproval.tenantId !== input.tenantId
+      || quotationApproval.subjectType !== 'quotation'
+      || quotationApproval.subjectId !== quotation.id
+      || quotationApproval.subjectVersionNumber !== quotation.versionNumber
+      || quotationApproval.status !== 'approved'
+      || !quotationApproval.approvedAt) {
+      throw new Error('QuotationCustomerApprovalRequired: exact quotation version approval evidence is required.');
+    }
+    const boq = await this.repository.getBOQ(input.tenantId, quotation.boqId);
+    if (!boq || boq.versionNumber !== quotation.boqVersionNumber) {
+      throw new Error('QuotationBOQLineageMismatch: contract must use the exact BOQ version quoted to the customer.');
+    }
+    const designRevision = await this.repository.getDesignRevision(input.tenantId, boq.designRevisionId);
+    if (!designRevision) {
+      throw new Error('ContractDesignLineageMissing: referenced design revision was not found.');
     }
 
     const now = new Date().toISOString();
@@ -292,10 +319,11 @@ export class InteriorContractLifecycleService {
       quotationId: quotation.id,
       contractNumber: input.contractNumber,
       title: input.title,
-      status: 'signed',
+      status: 'draft',
       baselineContractValue: contractValue,
       currentContractValue: contractValue,
-      signedDate: now,
+      signedDate: null,
+      quotationCustomerApprovalId: quotationApproval.id,
       clientRepresentative: input.clientRepresentative,
       contractorRepresentative: input.contractorRepresentative,
       milestones,
@@ -303,7 +331,9 @@ export class InteriorContractLifecycleService {
       quotationNumber: quotation.quotationNumber,
       quotationVersionNumber: quotation.versionNumber,
       boqId: quotation.boqId,
-      boqVersionNumber: quotation.boqVersionNumber ?? 1,
+      boqVersionNumber: boq.versionNumber,
+      designRevisionId: designRevision.id,
+      designVersionNumber: designRevision.versionNumber,
       paymentTerms: input.paymentTerms ?? quotation.paymentTerms,
       executionStartDate: input.executionStartDate,
       executionEndDate: input.executionEndDate,
@@ -313,56 +343,7 @@ export class InteriorContractLifecycleService {
     };
 
     // 4. Save contract to repository
-    await this.repository.saveContract(input.tenantId, contract);
-
-    // 5. Update Project Status to 'contracted'
-    const project = await this.repository.getProject(input.tenantId, input.projectId);
-    if (project) {
-      await this.repository.saveProject(input.tenantId, {
-        ...project,
-        status: 'contracted',
-        updatedAt: now,
-      });
-    }
-
-    // 6. Checkpoint 6: Emit Platform Finance Outbox Events
-    if (this.outbox) {
-      await this.outbox.publishDomainEvent({
-        id: randomUUID(),
-        tenantId: input.tenantId,
-        aggregateType: 'interior_contract',
-        aggregateId: contract.id,
-        eventType: 'interior.contract.signed.v1',
-        occurredAt: now,
-        actorId: input.actorId ?? input.contractorRepresentative,
-        actorName: input.contractorRepresentative,
-        payload: {
-          projectId: input.projectId,
-          contractId: contract.id,
-          contractNumber: contract.contractNumber,
-          baselineContractValue: contract.baselineContractValue,
-          quotationId: quotation.id,
-          boqId: quotation.boqId,
-          clientName: input.clientRepresentative,
-        },
-      });
-
-      // Enqueue Milestone #1 (Tạm ứng) to Finance Outbox
-      const firstMilestone = milestones[0];
-      if (firstMilestone) {
-        await this.outbox.enqueueFinanceMilestone({
-          tenantId: input.tenantId,
-          projectId: input.projectId,
-          contractId: contract.id,
-          milestoneOrder: firstMilestone.milestoneOrder,
-          milestoneName: firstMilestone.name,
-          amount: firstMilestone.amount,
-          currency: 'VND',
-          clientName: input.clientRepresentative,
-          occurredAt: now,
-        });
-      }
-    }
+    await this.repository.createContractWithMilestones(input.tenantId, contract);
 
     return contract;
   }
@@ -380,75 +361,74 @@ export class InteriorContractLifecycleService {
       throw new Error(`ContractNotFound: Contract "${input.contractId}" not found for tenant "${input.tenantId}".`);
     }
 
-    if (contract.status === 'completed' || contract.status === 'terminated') {
-      throw new Error(`ContractLifecycleError: Cannot add addendum to a "${contract.status}" contract.`);
+    if (contract.status !== 'signed' && contract.status !== 'active') {
+      throw new Error(`ContractLifecycleError: Cannot add an addendum to a "${contract.status}" contract.`);
+    }
+    if (!input.addendumNumber.trim() || !input.title.trim() || !input.reason.trim()
+      || !Number.isFinite(input.valueDelta) || input.valueDelta === 0
+      || !Number.isInteger(input.valueDelta * 100)) {
+      throw new Error('ContractAddendumInputInvalid: number, title, reason and non-zero value delta are required.');
     }
 
-    const now = input.approvedAt ?? new Date().toISOString();
+    const proposed = input.proposedPaymentSchedule;
+    if (proposed.length !== contract.milestones.length || proposed.length === 0) {
+      throw new Error('ContractAddendumScheduleInvalid: submit the complete existing milestone schedule.');
+    }
+    const byId = new Map(contract.milestones.map((milestone) => [milestone.id, milestone]));
+    const seen = new Set<string>();
+    let amountTotal = 0;
+    let percentageTotal = 0;
+    const proposedPaymentSchedule: PaymentMilestone[] = proposed.map((item) => {
+      const current = byId.get(item.id);
+      if (!current || seen.has(item.id) || item.milestoneOrder !== current.milestoneOrder
+        || !item.name.trim() || !item.triggerCondition.trim()
+        || !Number.isFinite(item.percentage) || item.percentage <= 0
+        || !Number.isInteger(item.percentage * 100)
+        || !Number.isFinite(item.amount) || item.amount <= 0 || !Number.isInteger(item.amount * 100)
+        || (item.dueDate !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(item.dueDate))) {
+        throw new Error('ContractAddendumScheduleInvalid: milestone identity or terms are invalid.');
+      }
+      seen.add(item.id);
+      amountTotal += item.amount;
+      percentageTotal += item.percentage;
+      const immutable = current.status === 'paid' || (current.collectedAmount ?? 0) > 0
+        || current.invoiceStatus === 'issued' || current.invoiceStatus === 'adjusted';
+      if (immutable && (item.name !== current.name || item.percentage !== current.percentage
+        || item.amount !== current.amount || item.triggerCondition !== current.triggerCondition
+        || item.dueDate !== current.dueDate)) {
+        throw new Error('ContractAddendumScheduleInvalid: collected or invoiced milestone terms are immutable.');
+      }
+      return {
+        ...current,
+        name: item.name.trim(),
+        percentage: item.percentage,
+        amount: item.amount,
+        triggerCondition: item.triggerCondition.trim(),
+        ...(item.dueDate ? { dueDate: item.dueDate } : { dueDate: undefined }),
+      };
+    });
+    const revisedValue = Math.round((contract.currentContractValue + input.valueDelta) * 100) / 100;
+    if (revisedValue <= 0
+      || Math.round(amountTotal * 100) / 100 !== revisedValue
+      || Math.round(percentageTotal * 100) / 100 !== 100) {
+      throw new Error('ContractAddendumScheduleInvalid: payment milestones must reconcile to the revised contract value and 100%.');
+    }
+
     const addendum: ContractAddendum = {
       id: randomUUID(),
       tenantId: input.tenantId,
       contractId: input.contractId,
-      addendumNumber: input.addendumNumber,
-      title: input.title,
+      addendumNumber: input.addendumNumber.trim(),
+      title: input.title.trim(),
       valueDelta: input.valueDelta,
-      reason: input.reason,
-      approvedAt: now,
+      reason: input.reason.trim(),
+      status: 'pending_customer_approval',
+      approvedAt: null,
+      customerApprovalId: null,
+      baseContractValue: contract.currentContractValue,
+      proposedPaymentSchedule,
     };
-
-    // Save addendum (repository automatically adjusts contract currentContractValue)
     await this.repository.saveContractAddendum(input.tenantId, addendum);
-
-    // If requested, adjust unpaid milestones proportionally
-    if (input.adjustUnpaidMilestones) {
-      const refreshedContract = await this.repository.getContract(input.tenantId, input.contractId);
-      if (refreshedContract) {
-        const unpaidMilestones = refreshedContract.milestones.filter((m) => m.status !== 'paid');
-        if (unpaidMilestones.length > 0) {
-          const totalUnpaidPercentage = unpaidMilestones.reduce((acc, m) => acc + m.percentage, 0);
-          if (totalUnpaidPercentage > 0) {
-            const adjustedMilestones = refreshedContract.milestones.map((m) => {
-              if (m.status !== 'paid') {
-                const proportion = m.percentage / totalUnpaidPercentage;
-                const additionalAmount = Math.round(input.valueDelta * proportion);
-                return {
-                  ...m,
-                  amount: m.amount + additionalAmount,
-                };
-              }
-              return m;
-            });
-            await this.repository.saveContract(input.tenantId, {
-              ...refreshedContract,
-              milestones: adjustedMilestones,
-              updatedAt: new Date().toISOString(),
-            });
-          }
-        }
-      }
-    }
-
-    // Publish Outbox event for addendum
-    if (this.outbox) {
-      await this.outbox.publishDomainEvent({
-        id: randomUUID(),
-        tenantId: input.tenantId,
-        aggregateType: 'interior_contract',
-        aggregateId: contract.id,
-        eventType: 'interior.contract.addendum_approved.v1',
-        occurredAt: now,
-        actorId: input.actorId ?? 'system',
-        actorName: input.userRole,
-        payload: {
-          contractId: contract.id,
-          contractNumber: contract.contractNumber,
-          addendumNumber: addendum.addendumNumber,
-          valueDelta: addendum.valueDelta,
-          newCurrentValue: contract.currentContractValue + addendum.valueDelta,
-        },
-      });
-    }
-
     return addendum;
   }
 
@@ -460,8 +440,11 @@ export class InteriorContractLifecycleService {
     if (!input.tenantId) throw new TenantIsolationViolationError('tenantId is required');
     this.assertAuthorizedRole(input.userRole, CANONICAL_PAYMENT_RECORDING_ROLES);
 
-    if (input.amount <= 0) {
+    if (!Number.isFinite(input.amount) || input.amount <= 0) {
       throw new Error(`InvalidPaymentAmount: Payment amount must be greater than 0, received ${input.amount}.`);
+    }
+    if (!input.referenceCode.trim()) {
+      throw new Error('PaymentReferenceCodeRequired: payment reference code must not be blank.');
     }
 
     const contract = await this.repository.getContract(input.tenantId, input.contractId);
@@ -469,21 +452,14 @@ export class InteriorContractLifecycleService {
       throw new Error(`ContractNotFound: Contract "${input.contractId}" not found for tenant "${input.tenantId}".`);
     }
 
+    if (contract.status !== 'signed' && contract.status !== 'active') {
+      throw new Error(`ContractLifecycleError: Cannot record payment against a "${contract.status}" contract.`);
+    }
+
     const milestone = contract.milestones.find((m) => m.id === input.milestoneId);
     if (!milestone) {
       throw new Error(
         `MilestoneNotFound: Milestone "${input.milestoneId}" not found in contract "${input.contractId}".`
-      );
-    }
-
-    // Checkpoint 7B: Duplicate Payment Prevention (Idempotency Guard)
-    const existingTransactions = await this.repository.listPaymentTransactions(input.tenantId, input.contractId);
-    const isDuplicate = existingTransactions.some(
-      (tx) => tx.referenceCode.trim().toLowerCase() === input.referenceCode.trim().toLowerCase()
-    );
-    if (isDuplicate) {
-      throw new Error(
-        `DuplicatePaymentTransaction: A transaction with referenceCode "${input.referenceCode}" has already been recorded for contract "${input.contractId}".`
       );
     }
 
@@ -495,7 +471,7 @@ export class InteriorContractLifecycleService {
       milestoneId: input.milestoneId,
       amount: input.amount,
       paymentMethod: input.paymentMethod,
-      referenceCode: input.referenceCode,
+      referenceCode: input.referenceCode.trim(),
       transactionDate: input.transactionDate,
       proofUrl: input.proofUrl,
       notes: input.notes,
@@ -513,7 +489,7 @@ export class InteriorContractLifecycleService {
         tenantId: input.tenantId,
         aggregateType: 'interior_contract',
         aggregateId: contract.id,
-        eventType: 'interior.milestone.paid.v1',
+        eventType: 'interior.payment.transaction_recorded.v1',
         occurredAt: now,
         actorId: input.recordedBy,
         actorName: input.userRole,
@@ -541,6 +517,10 @@ export class InteriorContractLifecycleService {
     const contract = await this.repository.getContract(input.tenantId, input.contractId);
     if (!contract) {
       throw new Error(`ContractNotFound: Contract "${input.contractId}" not found for tenant "${input.tenantId}".`);
+    }
+
+    if (contract.status !== 'signed' && contract.status !== 'active') {
+      throw new Error(`ContractLifecycleError: Cannot issue an invoice for a "${contract.status}" contract.`);
     }
 
     const milestone = contract.milestones.find((m) => m.id === input.milestoneId);

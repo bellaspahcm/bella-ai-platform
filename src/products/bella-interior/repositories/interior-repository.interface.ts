@@ -42,6 +42,23 @@ export interface SaveBOQOptions {
   readonly auditActorId?: string;
 }
 
+export interface InteriorCustomerApprovalContractSubject {
+  readonly id: string;
+  readonly tenantId: string;
+  readonly projectId: string;
+  readonly status: InteriorContract['status'];
+  readonly quotationVersionNumber: number;
+}
+
+export interface InteriorCustomerApprovalAddendumSubject {
+  readonly id: string;
+  readonly tenantId: string;
+  readonly projectId: string;
+  readonly status: ContractAddendum['status'];
+  readonly versionNumber: number;
+  readonly customerApprovalId: string | null;
+}
+
 export interface IInteriorRepository {
   // Design & Specification
   saveProject(tenantId: string, project: InteriorProject): Promise<void>;
@@ -67,12 +84,17 @@ export interface IInteriorRepository {
   forkBOQRevision(tenantId: string, input: ForkBOQRevisionInput): Promise<InteriorBOQ>;
   /** List all BOQ revisions for a project with fork lineage metadata (Phase 1 — Versioning) */
   listBOQVersionHistory(tenantId: string, projectId: string): Promise<BOQVersionHistoryItem[]>;
+  /** Atomically persist a quotation header and its immutable line snapshots. */
+  createQuotationSnapshot(tenantId: string, quotation: InteriorQuotation): Promise<void>;
   saveQuotation(tenantId: string, quotation: InteriorQuotation): Promise<void>;
   getQuotation(tenantId: string, quotationId: string): Promise<InteriorQuotation | null>;
   listQuotationsByProject(tenantId: string, projectId: string): Promise<InteriorQuotation[]>;
   listQuotationRevisions(tenantId: string, projectId: string): Promise<InteriorQuotation[]>;
+  createContractWithMilestones(tenantId: string, contract: InteriorContract): Promise<void>;
   saveContract(tenantId: string, contract: InteriorContract): Promise<void>;
   getContract(tenantId: string, contractId: string): Promise<InteriorContract | null>;
+  getContractForCustomerApproval(tenantId: string, contractId: string): Promise<InteriorCustomerApprovalContractSubject | null>;
+  getContractAddendumForCustomerApproval(tenantId: string, addendumId: string): Promise<InteriorCustomerApprovalAddendumSubject | null>;
   getContractByProject(tenantId: string, projectId: string): Promise<InteriorContract | null>;
   listContractsByProject(tenantId: string, projectId: string): Promise<InteriorContract[]>;
   saveContractAddendum(tenantId: string, addendum: ContractAddendum): Promise<void>;

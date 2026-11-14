@@ -112,6 +112,13 @@ test('E2E and unsupported real-DB suites remain outside the non-DB Jest selector
   assert.equal(r.calls[0].args.some(arg => arg.includes('47-automove') || arg.includes('preschool-chain-real-db.test.ts')), false);
 });
 
+test('Bella Interior Commercial real-DB suite is routed to the dedicated database job', () => {
+  const r = select(['src/products/bella-interior/__tests__/commercial-customer-real-db.test.ts'], 0, true);
+  assert.equal(r.exit, 0);
+  assert.equal(r.calls.length, 0);
+  assert.equal(r.writes[0].value.numTotalTests, 0);
+});
+
 test('no covered changes writes truthful empty counters without spawning Jest', () => {
   const r = select(['docs/example.md'], 0, true);
   assert.equal(r.exit, 0); assert.equal(r.calls.length, 0);

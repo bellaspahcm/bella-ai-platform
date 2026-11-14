@@ -11,6 +11,7 @@ import { randomUUID } from 'crypto';
 import {
   TenantIsolationViolationError,
   OpenCriticalPunchListError,
+  HandoverCustomerApprovalRequiredError,
 } from '../domain/errors';
 import type {
   SiteDiaryEntry,
@@ -159,84 +160,7 @@ export class DeliveryAftercareService {
     if (openCritical.length > 0) {
       throw new OpenCriticalPunchListError(openCritical.length);
     }
-
-    const now = new Date();
-    const nowIso = now.toISOString();
-
-    const dossierId = randomUUID();
-    const dossier: HandoverDossier = {
-      id: dossierId,
-      tenantId: input.tenantId,
-      projectId: input.projectId,
-      contractId: input.contractId,
-      handoverDate: nowIso,
-      status: 'completed',
-      totalPunchListItems: punchList.length,
-      openPunchListItems: punchList.filter((i) => i.status !== 'verified').length,
-      clientAccepted: true,
-      clientSignoffName: input.clientSignoffName,
-      finalSettlementValue: input.finalSettlementValue,
-    };
-
-    await this.repository.saveHandoverDossier(input.tenantId, dossier);
-
-    // Create Warranty Certificate
-    const project = await this.repository.getProject(input.tenantId, input.projectId);
-    const woodworkMonths = input.woodworkWarrantyMonths ?? 24;
-    const hardwareMonths = input.hardwareWarrantyMonths ?? 60;
-    const stoneMonths = input.stoneWarrantyMonths ?? 120;
-
-    const expirationDate = new Date(now);
-    expirationDate.setMonth(expirationDate.getMonth() + woodworkMonths);
-
-    const certificate: WarrantyCertificate = {
-      id: randomUUID(),
-      tenantId: input.tenantId,
-      projectId: input.projectId,
-      contractId: input.contractId,
-      certificateNumber: `WAR-${project?.code || 'INT'}-${now.getFullYear()}`,
-      customerName: project?.customerName || input.clientSignoffName,
-      siteAddress: project?.siteAddress || 'Địa chỉ công trình',
-      effectiveDate: nowIso,
-      expirationDate: expirationDate.toISOString(),
-      woodworkWarrantyMonths: woodworkMonths,
-      hardwareWarrantyMonths: hardwareMonths,
-      stoneWarrantyMonths: stoneMonths,
-      termsSummary: 'Bảo hành kết cấu gỗ 24 tháng, phụ kiện bản lề/ray trượt 60 tháng, mặt đá 120 tháng.',
-    };
-
-    await this.repository.saveWarrantyCertificate(input.tenantId, certificate);
-
-    // Update project status to completed / warranty
-    if (project) {
-      await this.repository.saveProject(input.tenantId, {
-        ...project,
-        status: 'warranty',
-        updatedAt: nowIso,
-      });
-    }
-
-    // Publish HandoverCompletedEvent
-    if (this.outbox) {
-      await this.outbox.publishDomainEvent({
-        id: randomUUID(),
-        tenantId: input.tenantId,
-        aggregateType: 'handover',
-        aggregateId: dossier.id,
-        eventType: 'interior.delivery.handover_completed.v1',
-        occurredAt: nowIso,
-        actorId: input.clientSignoffName,
-        actorName: input.clientSignoffName,
-        payload: {
-          projectId: input.projectId,
-          contractId: input.contractId,
-          handoverDossierId: dossier.id,
-          finalSettlementValue: input.finalSettlementValue,
-        },
-      });
-    }
-
-    return { dossier, certificate };
+    throw new HandoverCustomerApprovalRequiredError();
   }
 
   async createWarrantyTicket(input: {

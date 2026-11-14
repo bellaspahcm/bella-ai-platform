@@ -45,12 +45,18 @@ import type {
   WarrantyServiceTicket,
 } from '../domain/delivery-aftercare/types';
 
-import type { IInteriorRepository, SaveBOQOptions } from './interior-repository.interface';
+import type {
+  InteriorCustomerApprovalAddendumSubject,
+  InteriorCustomerApprovalContractSubject,
+  IInteriorRepository,
+  SaveBOQOptions,
+} from './interior-repository.interface';
 import type {
   BOQVersionHistoryItem,
   ForkBOQRevisionInput,
 } from '../domain/commercial-costing/boq-version-diff.types';
 import { ensureUuid, isUuid } from '../lib/uuid-helper';
+import { interiorRbacRpcClient, isInteriorRbacRecord } from '../lib/rbac-api';
 
 // ---------------------------------------------------------------------------
 // Row types (DB columns → TS)
@@ -167,6 +173,7 @@ interface BOQItemRow {
   client_total_price: string | number;
   gross_margin_amount: string | number;
   gross_margin_percent: string | number;
+  stable_component_id?: string | null;
 }
 
 interface InteriorQuotationRow {
@@ -185,6 +192,17 @@ interface InteriorQuotationRow {
   payment_terms: string;
   validity_days: number;
   created_at: string;
+  boq_version_number?: number;
+  total_internal_cogs?: string | number;
+  total_gross_margin?: string | number;
+  gross_margin_percent?: string | number;
+  forked_from_quotation_id?: string | null;
+  prepared_by?: string | null;
+  approved_by?: string | null;
+  sent_to_client_at?: string | null;
+  accepted_at?: string | null;
+  rejected_at?: string | null;
+  rejection_reason?: string | null;
 }
 
 interface InteriorContractRow {
@@ -197,13 +215,17 @@ interface InteriorContractRow {
   status: string;
   baseline_contract_value: string | number;
   current_contract_value: string | number;
-  signed_date: string;
+  signed_date: string | null;
+  quotation_customer_approval_id?: string | null;
+  customer_approval_id?: string | null;
   client_representative: string;
   contractor_representative: string;
   quotation_number?: string | null;
   quotation_version_number?: number | null;
   boq_id?: string | null;
   boq_version_number?: number | null;
+  design_revision_id?: string | null;
+  design_version_number?: number | null;
   payment_terms?: string | null;
   execution_start_date?: string | null;
   execution_end_date?: string | null;
@@ -238,7 +260,11 @@ interface ContractAddendumRow {
   title: string;
   value_delta: string | number;
   reason: string;
-  approved_at: string;
+  status?: ContractAddendum['status'];
+  approved_at: string | null;
+  customer_approval_id?: string | null;
+  base_contract_value?: string | number | null;
+  proposed_payment_schedule?: unknown;
 }
 
 interface PaymentTransactionRow {
@@ -576,6 +602,7 @@ function mapRowToBOQItem(row: BOQItemRow): BOQItem {
     clientTotalPrice: toNum(row.client_total_price),
     grossMarginAmount: toNum(row.gross_margin_amount),
     grossMarginPercent: toNum(row.gross_margin_percent),
+    ...(typeof row.stable_component_id === 'string' ? { stableComponentId: row.stable_component_id } : {}),
   };
 }
 
@@ -653,6 +680,17 @@ function mapRowToQuotation(row: InteriorQuotationRow): InteriorQuotation {
     paymentTerms: row.payment_terms,
     validityDays: row.validity_days,
     createdAt: row.created_at,
+    ...(typeof row.boq_version_number === 'number' ? { boqVersionNumber: row.boq_version_number } : {}),
+    ...(row.total_internal_cogs !== undefined ? { totalInternalCogs: toNum(row.total_internal_cogs) } : {}),
+    ...(row.total_gross_margin !== undefined ? { totalGrossMargin: toNum(row.total_gross_margin) } : {}),
+    ...(row.gross_margin_percent !== undefined ? { grossMarginPercent: toNum(row.gross_margin_percent) } : {}),
+    ...(typeof row.forked_from_quotation_id === 'string' ? { forkedFromQuotationId: row.forked_from_quotation_id } : {}),
+    ...(typeof row.prepared_by === 'string' ? { preparedBy: row.prepared_by } : {}),
+    ...(typeof row.approved_by === 'string' ? { approvedBy: row.approved_by } : {}),
+    ...(typeof row.sent_to_client_at === 'string' ? { sentToClientAt: row.sent_to_client_at } : {}),
+    ...(typeof row.accepted_at === 'string' ? { acceptedAt: row.accepted_at } : {}),
+    ...(typeof row.rejected_at === 'string' ? { rejectedAt: row.rejected_at } : {}),
+    ...(typeof row.rejection_reason === 'string' ? { rejectionReason: row.rejection_reason } : {}),
   };
 }
 
@@ -675,6 +713,42 @@ function mapQuotationToRow(
     grand_total: quotation.grandTotal,
     payment_terms: quotation.paymentTerms,
     validity_days: quotation.validityDays,
+    boq_version_number: quotation.boqVersionNumber ?? 1,
+    total_internal_cogs: quotation.totalInternalCogs ?? 0,
+    total_gross_margin: quotation.totalGrossMargin ?? 0,
+    gross_margin_percent: quotation.grossMarginPercent ?? 0,
+    forked_from_quotation_id: quotation.forkedFromQuotationId ?? null,
+    prepared_by: quotation.preparedBy ?? null,
+    approved_by: quotation.approvedBy ?? null,
+    sent_to_client_at: quotation.sentToClientAt ?? null,
+    accepted_at: quotation.acceptedAt ?? null,
+    rejected_at: quotation.rejectedAt ?? null,
+    rejection_reason: quotation.rejectionReason ?? null,
+  };
+}
+
+function mapQuotationItemToRow(item: NonNullable<InteriorQuotation['items']>[number], tenantId: string) {
+  return {
+    id: ensureUuid(item.id),
+    tenant_id: ensureUuid(tenantId),
+    quotation_id: ensureUuid(item.quotationId),
+    boq_item_id: item.boqItemId ? ensureUuid(item.boqItemId) : null,
+    stable_component_id: item.stableComponentId ?? null,
+    room_zone_name: item.roomZoneName,
+    item_code: item.itemCode,
+    item_name: item.itemName,
+    category: item.category,
+    specifications: item.specifications,
+    unit: item.unit,
+    quantity: item.quantity,
+    internal_unit_cost: item.internalUnitCost,
+    internal_total_cost: item.internalTotalCost,
+    markup_percent: item.markupPercent,
+    client_unit_price: item.clientUnitPrice,
+    client_total_price: item.clientTotalPrice,
+    gross_margin_amount: item.grossMarginAmount,
+    gross_margin_percent: item.grossMarginPercent,
+    cost_breakdown_json: item.costBreakdown ?? null,
   };
 }
 
@@ -699,6 +773,22 @@ function mapRowToMilestone(row: PaymentMilestoneRow): PaymentMilestone {
 }
 
 function mapRowToAddendum(row: ContractAddendumRow): ContractAddendum {
+  const schedule = Array.isArray(row.proposed_payment_schedule)
+    ? row.proposed_payment_schedule.filter(isInteriorRbacRecord).map((item) => ({
+      id: String(item.id ?? ''),
+      tenantId: row.tenant_id,
+      contractId: row.contract_id,
+      milestoneOrder: Number(item.milestoneOrder),
+      name: String(item.name ?? ''),
+      percentage: toNum(item.percentage as string | number),
+      amount: toNum(item.amount as string | number),
+      triggerCondition: String(item.triggerCondition ?? ''),
+      status: 'pending' as const,
+      dueDate: typeof item.dueDate === 'string' ? item.dueDate : undefined,
+      collectedAmount: 0,
+      invoiceStatus: 'unissued' as const,
+    }))
+    : [];
   return {
     id: row.id,
     tenantId: row.tenant_id,
@@ -707,7 +797,11 @@ function mapRowToAddendum(row: ContractAddendumRow): ContractAddendum {
     title: row.title,
     valueDelta: toNum(row.value_delta),
     reason: row.reason,
+    status: row.status ?? (row.approved_at ? 'approved' : 'pending_customer_approval'),
     approvedAt: row.approved_at,
+    customerApprovalId: row.customer_approval_id ?? null,
+    baseContractValue: toNum(row.base_contract_value ?? 0),
+    proposedPaymentSchedule: schedule,
   };
 }
 
@@ -744,6 +838,8 @@ function mapRowToContract(
     baselineContractValue: toNum(row.baseline_contract_value),
     currentContractValue: toNum(row.current_contract_value),
     signedDate: row.signed_date,
+    quotationCustomerApprovalId: row.quotation_customer_approval_id ?? undefined,
+    customerApprovalId: row.customer_approval_id ?? undefined,
     clientRepresentative: row.client_representative,
     contractorRepresentative: row.contractor_representative,
     milestones,
@@ -752,6 +848,8 @@ function mapRowToContract(
     quotationVersionNumber: row.quotation_version_number ?? undefined,
     boqId: row.boq_id ?? undefined,
     boqVersionNumber: row.boq_version_number ?? undefined,
+    designRevisionId: row.design_revision_id ?? undefined,
+    designVersionNumber: row.design_version_number ?? undefined,
     paymentTerms: row.payment_terms ?? undefined,
     executionStartDate: row.execution_start_date ?? undefined,
     executionEndDate: row.execution_end_date ?? undefined,
@@ -776,12 +874,16 @@ function mapContractToRow(
     baseline_contract_value: contract.baselineContractValue,
     current_contract_value: contract.currentContractValue,
     signed_date: contract.signedDate,
+    quotation_customer_approval_id: contract.quotationCustomerApprovalId ?? null,
+    customer_approval_id: contract.customerApprovalId ?? null,
     client_representative: contract.clientRepresentative,
     contractor_representative: contract.contractorRepresentative,
     quotation_number: contract.quotationNumber ?? null,
     quotation_version_number: contract.quotationVersionNumber ?? null,
     boq_id: contract.boqId ? ensureUuid(contract.boqId) : null,
     boq_version_number: contract.boqVersionNumber ?? null,
+    design_revision_id: contract.designRevisionId ? ensureUuid(contract.designRevisionId) : null,
+    design_version_number: contract.designVersionNumber ?? null,
     payment_terms: contract.paymentTerms ?? null,
     execution_start_date: contract.executionStartDate ?? null,
     execution_end_date: contract.executionEndDate ?? null,
@@ -1262,32 +1364,28 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   }
 
   async getDesignRevision(tenantId: string, revisionId: string): Promise<DesignRevision | null> {
-    const { data, error } = await this.supabase
-      .from('interior_design_revisions')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('id', revisionId)
-      .single();
-    if (error?.code === 'PGRST116') return null;
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_read_design_revision_commercial',
+      { p_revision_id: revisionId },
+    );
     if (error) throw new Error(`[InteriorRepo] getDesignRevision failed: ${error.message}`);
-
-    const { data: assetData, error: assetErr } = await this.supabase
-      .from('interior_design_assets')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('revision_id', revisionId);
-    if (assetErr) throw new Error(`[InteriorRepo] getDesignRevision (assets) failed: ${assetErr.message}`);
-
-    const { data: specData, error: specErr } = await this.supabase
-      .from('interior_design_material_specs')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('revision_id', revisionId);
-    if (specErr) throw new Error(`[InteriorRepo] getDesignRevision (specs) failed: ${specErr.message}`);
-
-    const assets = (assetData as DesignAssetRow[]).map(mapRowToDesignAsset);
-    const materialSpecs = (specData as DesignMaterialSpecRow[]).map(mapRowToMaterialSpec);
-    return mapRowToRevision(data as DesignRevisionRow, assets, materialSpecs);
+    if (!isInteriorRbacRecord(data)) return null;
+    const row: DesignRevisionRow = {
+      id: String(data.id),
+      tenant_id: String(data.tenant_id),
+      project_id: String(data.project_id),
+      version_number: Number(data.version_number),
+      title: String(data.title),
+      status: String(data.status),
+      change_summary: typeof data.change_summary === 'string' ? data.change_summary : null,
+      submitted_by: String(data.submitted_by),
+      submitted_at: String(data.submitted_at),
+      approved_by: typeof data.approved_by === 'string' ? data.approved_by : null,
+      approved_at: typeof data.approved_at === 'string' ? data.approved_at : null,
+      client_signoff_name: typeof data.client_signoff_name === 'string' ? data.client_signoff_name : null,
+      client_signoff_date: typeof data.client_signoff_date === 'string' ? data.client_signoff_date : null,
+    };
+    return mapRowToRevision(row, [], []);
   }
 
   async listDesignRevisions(tenantId: string, projectId: string): Promise<DesignRevision[]> {
@@ -1492,24 +1590,17 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   }
 
   async getBOQ(tenantId: string, boqId: string): Promise<InteriorBOQ | null> {
-    const { data, error } = await this.supabase
-      .from('interior_boqs')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('id', boqId)
-      .single();
-    if (error?.code === 'PGRST116') return null;
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_read_boq_for_commercial',
+      { p_boq_id: boqId },
+    );
     if (error) throw new Error(`[InteriorRepo] getBOQ failed: ${error.message}`);
-
-    const { data: itemData, error: itemErr } = await this.supabase
-      .from('interior_boq_items')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('boq_id', boqId);
-    if (itemErr) throw new Error(`[InteriorRepo] getBOQ (items) failed: ${itemErr.message}`);
-
-    const items = ((itemData || []) as BOQItemRow[]).map(mapRowToBOQItem);
-    return mapRowToBOQ(data as InteriorBOQRow, items);
+    if (!isInteriorRbacRecord(data) || !isInteriorRbacRecord(data.boq)) return null;
+    const items = Array.isArray(data.items)
+      ? data.items.filter(isInteriorRbacRecord).map((item) => mapRowToBOQItem(item as unknown as BOQItemRow))
+      : [];
+    return mapRowToBOQ(data.boq as unknown as InteriorBOQRow, items);
   }
 
   async getBOQByProject(tenantId: string, projectId: string): Promise<InteriorBOQ | null> {
@@ -1536,50 +1627,97 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     return mapRowToBOQ(boqRow, items);
   }
 
+  async createQuotationSnapshot(tenantId: string, quotation: InteriorQuotation): Promise<void> {
+    if (!tenantId || quotation.tenantId !== tenantId || !quotation.items?.length) {
+      throw new Error('[InteriorRepo] Quotation snapshot requires a matching tenant and at least one line item');
+    }
+    const boq = await this.getBOQ(tenantId, quotation.boqId);
+    if (!boq || boq.projectId !== quotation.projectId
+      || boq.versionNumber !== quotation.boqVersionNumber
+      || (boq.status !== 'approved' && boq.status !== 'locked_for_contract')) {
+      throw new Error('[InteriorRepo] Quotation must reference the exact approved BOQ version in the project');
+    }
+    if (quotation.items.some((item) => item.tenantId !== tenantId || item.quotationId !== quotation.id)) {
+      throw new Error('[InteriorRepo] Quotation line snapshot tenant or parent does not match');
+    }
+
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_create_quotation_snapshot',
+      {
+        p_quotation: { ...mapQuotationToRow(quotation, tenantId), created_at: quotation.createdAt },
+        p_items: quotation.items.map((item) => mapQuotationItemToRow(item, tenantId)),
+      },
+    );
+    if (error || data !== quotation.id) {
+      throw new Error(`[InteriorRepo] atomic quotation snapshot creation failed: ${error?.message ?? 'unexpected result'}`);
+    }
+  }
+
   async saveQuotation(tenantId: string, quotation: InteriorQuotation): Promise<void> {
     if (!tenantId || quotation.tenantId !== tenantId) {
       throw new Error('[InteriorRepo] Tenant isolation violation: quotation tenant does not match request tenant');
     }
-    const [project, boq] = await Promise.all([
-      this.getProject(tenantId, quotation.projectId),
-      this.getBOQ(tenantId, quotation.boqId),
-    ]);
-    if (!project || !boq || boq.projectId !== project.id || boq.tenantId !== tenantId) {
-      throw new Error('[InteriorRepo] Tenant isolation violation: quotation project/BOQ is not in request tenant');
-    }
-    const { error } = await this.supabase
-      .from('interior_quotations')
-      .upsert({ ...mapQuotationToRow(quotation, tenantId) })
-      .eq('tenant_id', tenantId);
-    if (error) throw new Error(`[InteriorRepo] saveQuotation failed: ${error.message}`);
+    throw new Error('INTERIOR_QUOTATION_WORKFLOW_RPC_REQUIRED: use the atomic customer approval request flow');
   }
 
   async getQuotation(tenantId: string, quotationId: string): Promise<InteriorQuotation | null> {
-    const { data, error } = await this.supabase
-      .from('interior_quotations')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('id', quotationId)
-      .single();
-    if (error?.code === 'PGRST116') return null;
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_read_quotation',
+      { p_quotation_id: quotationId },
+    );
     if (error) throw new Error(`[InteriorRepo] getQuotation failed: ${error.message}`);
-    return mapRowToQuotation(data as InteriorQuotationRow);
+    if (!isInteriorRbacRecord(data)) return null;
+    return mapRowToQuotation(data as unknown as InteriorQuotationRow);
   }
 
   async listQuotationsByProject(tenantId: string, projectId: string): Promise<InteriorQuotation[]> {
-    const { data, error } = await this.supabase
-      .from('interior_quotations')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('project_id', projectId)
-      .order('version_number', { ascending: false });
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_read_quotations_by_project',
+      { p_project_id: projectId },
+    );
     if (error) throw new Error(`[InteriorRepo] listQuotationsByProject failed: ${error.message}`);
-    if (!data || data.length === 0) return [];
-    return (data as InteriorQuotationRow[]).map(mapRowToQuotation);
+    if (!Array.isArray(data)) return [];
+    return data.filter(isInteriorRbacRecord).map((row) => mapRowToQuotation(row as unknown as InteriorQuotationRow));
   }
 
   async listQuotationRevisions(tenantId: string, projectId: string): Promise<InteriorQuotation[]> {
     return this.listQuotationsByProject(tenantId, projectId);
+  }
+
+  async createContractWithMilestones(tenantId: string, contract: InteriorContract): Promise<void> {
+    if (!tenantId || contract.tenantId !== tenantId
+      || contract.milestones.some((milestone) => milestone.tenantId !== tenantId || milestone.contractId !== contract.id)) {
+      throw new Error('[InteriorRepo] Tenant isolation violation: contract or milestone tenant/parent does not match');
+    }
+    const milestoneRows = contract.milestones.map((milestone) => ({
+      id: ensureUuid(milestone.id),
+      tenant_id: ensureUuid(tenantId),
+      contract_id: ensureUuid(contract.id),
+      milestone_order: milestone.milestoneOrder,
+      name: milestone.name,
+      percentage: milestone.percentage,
+      amount: milestone.amount,
+      trigger_condition: milestone.triggerCondition,
+      status: milestone.status,
+      due_date: milestone.dueDate ?? null,
+      paid_at: milestone.paidAt ?? null,
+      collected_amount: milestone.collectedAmount ?? 0,
+      invoice_status: milestone.invoiceStatus ?? 'unissued',
+      invoice_number: milestone.invoiceNumber ?? null,
+      invoiced_at: milestone.invoicedAt ?? null,
+    }));
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_create_contract_with_milestones',
+      {
+        p_contract: mapContractToRow(contract, tenantId),
+        p_milestones: milestoneRows,
+      },
+    );
+    if (error || data !== contract.id) {
+      throw new Error(`[InteriorRepo] atomic contract creation failed: ${error?.message ?? 'unexpected result'}`);
+    }
   }
 
   async saveContract(tenantId: string, contract: InteriorContract): Promise<void> {
@@ -1592,42 +1730,56 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     if (!quotation || quotation.projectId !== project.id) {
       throw new Error('[InteriorRepo] Tenant isolation violation: contract quotation is not in the requested project');
     }
-    // Upsert contract header
+    const existingContract = await this.getContract(tenantId, contract.id);
+    if (!existingContract) {
+      await this.createContractWithMilestones(tenantId, contract);
+      return;
+    }
+    const milestoneRows = contract.milestones.map((milestone) => ({
+      id: ensureUuid(milestone.id),
+      tenant_id: ensureUuid(tenantId),
+      contract_id: ensureUuid(milestone.contractId),
+      milestone_order: milestone.milestoneOrder,
+      name: milestone.name,
+      percentage: milestone.percentage,
+      amount: milestone.amount,
+      trigger_condition: milestone.triggerCondition,
+      status: milestone.status,
+      due_date: milestone.dueDate ?? null,
+      paid_at: milestone.paidAt ?? null,
+      collected_amount: milestone.collectedAmount ?? 0,
+      invoice_status: milestone.invoiceStatus ?? 'unissued',
+      invoice_number: milestone.invoiceNumber ?? null,
+      invoiced_at: milestone.invoicedAt ?? null,
+    }));
+
+    if (!existingContract) {
+      const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+        'interior_create_contract_with_milestones',
+        {
+          p_contract: mapContractToRow(contract, tenantId),
+          p_milestones: milestoneRows,
+        },
+      );
+      if (error || data !== contract.id) {
+        throw new Error(`[InteriorRepo] atomic contract creation failed: ${error?.message ?? 'unexpected result'}`);
+      }
+      return;
+    }
+
+    // Existing contracts are updated without deleting paid milestone rows.
     const { error } = await this.supabase
       .from('interior_contracts')
       .upsert({ ...mapContractToRow(contract, tenantId) })
       .eq('tenant_id', tenantId);
     if (error) throw new Error(`[InteriorRepo] saveContract (header) failed: ${error.message}`);
 
-    // Replace milestones
-    const { error: milestoneDeleteError } = await this.supabase
-      .from('interior_payment_milestones')
-      .delete()
-      .eq('tenant_id', tenantId)
-      .eq('contract_id', contract.id);
-    if (milestoneDeleteError) throw new Error(`[InteriorRepo] saveContract (delete milestones) failed: ${milestoneDeleteError.message}`);
-
-    for (const milestone of contract.milestones) {
+    if (milestoneRows.length > 0) {
       const { error: msErr } = await this.supabase
         .from('interior_payment_milestones')
-        .insert({
-          id: milestone.id,
-          tenant_id: tenantId,
-          contract_id: milestone.contractId,
-          milestone_order: milestone.milestoneOrder,
-          name: milestone.name,
-          percentage: milestone.percentage,
-          amount: milestone.amount,
-          trigger_condition: milestone.triggerCondition,
-          status: milestone.status,
-          due_date: milestone.dueDate ?? null,
-          paid_at: milestone.paidAt ?? null,
-          collected_amount: milestone.collectedAmount ?? 0,
-          invoice_status: milestone.invoiceStatus ?? 'unissued',
-          invoice_number: milestone.invoiceNumber ?? null,
-          invoiced_at: milestone.invoicedAt ?? null,
-        });
-      if (msErr) throw new Error(`[InteriorRepo] saveContract (milestone) failed: ${msErr.message}`);
+        .upsert(milestoneRows, { onConflict: 'id' })
+        .eq('tenant_id', tenantId);
+      if (msErr) throw new Error(`[InteriorRepo] saveContract (milestones) failed: ${msErr.message}`);
     }
   }
 
@@ -1662,6 +1814,57 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
 
     const milestones = (msData as PaymentMilestoneRow[]).map(mapRowToMilestone);
     return mapRowToContract(data as InteriorContractRow, milestones, addenda);
+  }
+
+  async getContractForCustomerApproval(
+    tenantId: string,
+    contractId: string,
+  ): Promise<InteriorCustomerApprovalContractSubject | null> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_read_contract_for_customer_approval',
+      { p_contract_id: contractId },
+    );
+    if (error) throw new Error(`[InteriorRepo] getContractForCustomerApproval failed: ${error.message}`);
+    if (!isInteriorRbacRecord(data)
+      || data.tenant_id !== tenantId
+      || typeof data.id !== 'string'
+      || typeof data.project_id !== 'string'
+      || typeof data.status !== 'string'
+      || typeof data.quotation_version_number !== 'number') return null;
+    return {
+      id: data.id,
+      tenantId,
+      projectId: data.project_id,
+      status: data.status as InteriorCustomerApprovalContractSubject['status'],
+      quotationVersionNumber: data.quotation_version_number,
+    };
+  }
+
+  async getContractAddendumForCustomerApproval(
+    tenantId: string,
+    addendumId: string,
+  ): Promise<InteriorCustomerApprovalAddendumSubject | null> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_read_contract_addendum_for_approval',
+      { p_addendum_id: addendumId },
+    );
+    if (error) throw new Error(`[InteriorRepo] getContractAddendumForCustomerApproval failed: ${error.message}`);
+    if (!isInteriorRbacRecord(data)
+      || data.tenant_id !== tenantId
+      || typeof data.id !== 'string'
+      || typeof data.project_id !== 'string'
+      || typeof data.status !== 'string'
+      || typeof data.version_number !== 'number') return null;
+    return {
+      id: data.id,
+      tenantId,
+      projectId: data.project_id,
+      status: data.status as InteriorCustomerApprovalAddendumSubject['status'],
+      versionNumber: data.version_number,
+      customerApprovalId: typeof data.customer_approval_id === 'string' ? data.customer_approval_id : null,
+    };
   }
 
   async getContractByProject(tenantId: string, projectId: string): Promise<InteriorContract | null> {
@@ -1725,38 +1928,33 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     if (!tenantId || addendum.tenantId !== tenantId) {
       throw new Error('[InteriorRepo] Tenant isolation violation: addendum tenant does not match');
     }
-    const contract = await this.getContract(tenantId, addendum.contractId);
-    if (!contract) {
-      throw new Error(`[InteriorRepo] Contract not found: ${addendum.contractId}`);
-    }
-
-    const { error } = await this.supabase
-      .from('interior_contract_addenda')
-      .upsert({
-        id: ensureUuid(addendum.id),
-        tenant_id: ensureUuid(tenantId),
-        contract_id: ensureUuid(addendum.contractId),
-        addendum_number: addendum.addendumNumber,
-        title: addendum.title,
-        value_delta: addendum.valueDelta,
-        reason: addendum.reason,
-        approved_at: addendum.approvedAt,
-      })
-      .eq('tenant_id', tenantId);
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_create_contract_addendum_request',
+      {
+        p_addendum: {
+          id: ensureUuid(addendum.id),
+          tenant_id: ensureUuid(tenantId),
+          contract_id: ensureUuid(addendum.contractId),
+          addendum_number: addendum.addendumNumber,
+          title: addendum.title,
+          value_delta: addendum.valueDelta,
+          reason: addendum.reason,
+          proposed_payment_schedule: addendum.proposedPaymentSchedule.map((milestone) => ({
+            id: ensureUuid(milestone.id),
+            milestoneOrder: milestone.milestoneOrder,
+            name: milestone.name,
+            percentage: milestone.percentage,
+            amount: milestone.amount,
+            triggerCondition: milestone.triggerCondition,
+            dueDate: milestone.dueDate ?? null,
+          })),
+        },
+      },
+    );
     if (error) throw new Error(`[InteriorRepo] saveContractAddendum failed: ${error.message}`);
-
-    // Update parent contract's currentContractValue
-    const allAddenda = await this.listContractAddenda(tenantId, addendum.contractId);
-    const totalDelta = allAddenda.reduce((acc, a) => acc + a.valueDelta, 0);
-    const updatedValue = contract.baselineContractValue + totalDelta;
-    await this.supabase
-      .from('interior_contracts')
-      .update({
-        current_contract_value: updatedValue,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('tenant_id', tenantId)
-      .eq('id', addendum.contractId);
+    if (!isInteriorRbacRecord(data) || data.id !== addendum.id || data.status !== 'pending_customer_approval') {
+      throw new Error('[InteriorRepo] saveContractAddendum returned an invalid persisted record');
+    }
   }
 
   async listContractAddenda(tenantId: string, contractId: string): Promise<ContractAddendum[]> {
@@ -1775,6 +1973,10 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     if (!tenantId || transaction.tenantId !== tenantId) {
       throw new Error('[InteriorRepo] Tenant isolation violation: transaction tenant does not match');
     }
+    const normalizedReferenceCode = transaction.referenceCode.trim();
+    if (!normalizedReferenceCode) {
+      throw new Error('PaymentReferenceCodeRequired: payment reference code must not be blank.');
+    }
     const { error } = await this.supabase
       .from('interior_payment_transactions')
       .insert({
@@ -1784,7 +1986,7 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
         milestone_id: ensureUuid(transaction.milestoneId),
         amount: transaction.amount,
         payment_method: transaction.paymentMethod,
-        reference_code: transaction.referenceCode,
+        reference_code: normalizedReferenceCode,
         transaction_date: transaction.transactionDate,
         proof_url: transaction.proofUrl ?? null,
         notes: transaction.notes ?? null,
@@ -1800,21 +2002,8 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
       throw new Error(`[InteriorRepo] savePaymentTransaction failed: ${error.message}`);
     }
 
-    // Recompute collected amount on milestone
-    const { data: txs } = await this.supabase
-      .from('interior_payment_transactions')
-      .select('amount')
-      .eq('tenant_id', tenantId)
-      .eq('milestone_id', transaction.milestoneId);
-    const totalCollected = txs ? txs.reduce((acc, t) => acc + toNum(t.amount), 0) : transaction.amount;
-
-    await this.supabase
-      .from('interior_payment_milestones')
-      .update({
-        collected_amount: totalCollected,
-      })
-      .eq('tenant_id', tenantId)
-      .eq('id', transaction.milestoneId);
+    // A database trigger locks the milestone and updates its collected total
+    // and paid state in the same transaction as this receipt insert.
   }
 
   async listPaymentTransactions(
@@ -2553,10 +2742,10 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
       id: row.id as string,
       tenantId: row.tenant_id as string,
       projectId: row.project_id as string,
-      subjectType: row.subject_type as 'quotation' | 'contract',
+      subjectType: row.subject_type as CustomerApproval['subjectType'],
       subjectId: row.subject_id as string,
       subjectVersionNumber: (row.subject_version_number as number) ?? 1,
-      approvalToken: row.approval_token as string,
+      approvalToken: typeof row.approval_token === 'string' ? row.approval_token : '',
       status: row.status as CustomerApproval['status'],
       clientRepresentative: row.client_representative as string,
       clientContact: row.client_contact as string,
@@ -2578,11 +2767,14 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
     if (approval.tenantId !== tenantId) throw new Error('[InteriorRepo] Tenant isolation violation — approval.tenantId mismatch');
 
-    const { error } = await this.supabase
-      .from('interior_customer_approvals')
-      .upsert({
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      approval.subjectType === 'contract_addendum'
+        ? 'interior_create_customer_addendum_approval_request'
+        : 'interior_create_customer_approval_request',
+      {
+        p_approval: {
         id: approval.id,
-        tenant_id: approval.tenantId,
+        tenant_id: tenantId,
         project_id: approval.projectId,
         subject_type: approval.subjectType,
         subject_id: approval.subjectId,
@@ -2605,25 +2797,26 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
         signature_uploaded_at: approval.signatureReference?.uploadedAt ?? null,
         sent_by_actor_id: approval.sentByActorId,
         sent_by_actor_name: approval.sentByActorName,
+        created_at: approval.createdAt,
         updated_at: approval.updatedAt,
-      }, { onConflict: 'tenant_id,id' });
+        },
+      },
+    );
 
     if (error) throw new Error(`[InteriorRepo] saveCustomerApproval failed: ${error.message}`);
+    if (!isInteriorRbacRecord(data) || data.id !== approval.id) {
+      throw new Error('[InteriorRepo] saveCustomerApproval returned an invalid persisted record');
+    }
   }
 
   async getCustomerApproval(tenantId: string, approvalId: string): Promise<CustomerApproval | null> {
     if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
 
-    const { data, error } = await this.supabase
-      .from('interior_customer_approvals')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('id', approvalId)
-      .maybeSingle();
-
-    if (error?.code === 'PGRST116') return null;
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_read_customer_approval', { p_approval_id: approvalId },
+    );
     if (error) throw new Error(`[InteriorRepo] getCustomerApproval failed: ${error.message}`);
-    if (!data) return null;
+    if (!isInteriorRbacRecord(data)) return null;
 
     return this.mapRowToCustomerApproval(data as Record<string, unknown>);
   }
@@ -2631,14 +2824,11 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   async getCustomerApprovalByToken(tenantId: string, approvalToken: string): Promise<CustomerApproval | null> {
     if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
 
-    const { data, error } = await this.supabase
-      .from('interior_customer_approvals')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('approval_token', approvalToken)
-      .maybeSingle();
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_read_customer_approval_by_token',
+      { p_tenant_id: tenantId, p_approval_token: approvalToken },
+    );
 
-    if (error?.code === 'PGRST116') return null;
     if (error) throw new Error(`[InteriorRepo] getCustomerApprovalByToken failed: ${error.message}`);
     if (!data) return null;
 
@@ -2648,32 +2838,23 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
   async listCustomerApprovals(tenantId: string, subjectId: string): Promise<CustomerApproval[]> {
     if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
 
-    const { data, error } = await this.supabase
-      .from('interior_customer_approvals')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('subject_id', subjectId)
-      .order('sent_at', { ascending: true });
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_read_customer_approvals', { p_subject_id: subjectId },
+    );
 
     if (error) throw new Error(`[InteriorRepo] listCustomerApprovals failed: ${error.message}`);
-    if (!data) return [];
+    if (!Array.isArray(data)) return [];
 
-    return (data as Record<string, unknown>[]).map((row) => this.mapRowToCustomerApproval(row));
+    return data.filter(isInteriorRbacRecord).map((row) => this.mapRowToCustomerApproval(row));
   }
 
   async supersedePendingApprovals(tenantId: string, subjectId: string, reason: string): Promise<void> {
     if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
 
-    const { error } = await this.supabase
-      .from('interior_customer_approvals')
-      .update({
-        status: 'superseded',
-        customer_notes: reason,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('tenant_id', tenantId)
-      .eq('subject_id', subjectId)
-      .eq('status', 'pending');
+    const { error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_supersede_pending_customer_approvals',
+      { p_tenant_id: tenantId, p_subject_id: subjectId, p_reason: reason },
+    );
 
     if (error) throw new Error(`[InteriorRepo] supersedePendingApprovals failed: ${error.message}`);
   }
@@ -2686,29 +2867,25 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
     if (targetApproval.tenantId !== tenantId) throw new Error('[InteriorRepo] Tenant isolation violation — tenantId mismatch');
 
-    const { data, error } = await this.supabase
-      .from('interior_customer_approvals')
-      .update({
-        status: targetApproval.status,
-        approved_at: targetApproval.approvedAt ?? null,
-        rejected_at: targetApproval.rejectedAt ?? null,
-        rejection_reason: targetApproval.rejectionReason ?? null,
-        customer_notes: targetApproval.customerNotes ?? null,
-        signature_storage_path: targetApproval.signatureReference?.storagePath ?? null,
-        signature_storage_url: targetApproval.signatureReference?.storageUrl ?? null,
-        signature_mime_type: targetApproval.signatureReference?.mimeType ?? null,
-        signature_file_size_bytes: targetApproval.signatureReference?.fileSizeBytes ?? null,
-        signature_sha256_hash: targetApproval.signatureReference?.sha256Hash ?? null,
-        signature_uploaded_at: targetApproval.signatureReference?.uploadedAt ?? null,
-        updated_at: targetApproval.updatedAt,
-      })
-      .eq('tenant_id', tenantId)
-      .eq('id', approvalId)
-      .eq('status', 'pending')
-      .gt('expires_at', new Date().toISOString())
-      .select('id');
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_transition_customer_approval',
+      {
+        p_tenant_id: tenantId,
+        p_approval_id: approvalId,
+        p_approval_token: targetApproval.approvalToken,
+        p_target_status: targetApproval.status,
+        p_rejection_reason: targetApproval.rejectionReason ?? null,
+        p_customer_notes: targetApproval.customerNotes ?? null,
+        p_signature_storage_path: targetApproval.signatureReference?.storagePath ?? null,
+        p_signature_storage_url: targetApproval.signatureReference?.storageUrl ?? null,
+        p_signature_mime_type: targetApproval.signatureReference?.mimeType ?? null,
+        p_signature_file_size_bytes: targetApproval.signatureReference?.fileSizeBytes ?? null,
+        p_signature_sha256_hash: targetApproval.signatureReference?.sha256Hash ?? null,
+        p_signature_uploaded_at: targetApproval.signatureReference?.uploadedAt ?? null,
+      },
+    );
 
     if (error) throw new Error(`[InteriorRepo] transitionCustomerApproval failed: ${error.message}`);
-    return Array.isArray(data) && data.length === 1;
+    return data === true;
   }
 }

@@ -46,6 +46,13 @@ export class OpenCriticalPunchListError extends Error {
   }
 }
 
+export class HandoverCustomerApprovalRequiredError extends Error {
+  constructor() {
+    super('Cannot complete project handover without a persisted, customer-issued acceptance record.');
+    this.name = 'HandoverCustomerApprovalRequiredError';
+  }
+}
+
 export class BOQItemNotFoundError extends Error {
   constructor(boqItemId: string) {
     super(`BOQ Item not found: ${boqItemId}`);

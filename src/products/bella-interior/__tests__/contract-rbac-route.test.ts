@@ -2,7 +2,17 @@ import { GET as readContract } from '@/app/api/interior/contracts/route';
 import { resolveInteriorContext } from '../lib/server-context';
 import { interiorRbacRpcClient } from '../lib/rbac-api';
 
-jest.mock('../lib/server-context', () => ({ resolveInteriorContext: jest.fn() }));
+jest.mock('../lib/server-context', () => ({
+  INTERIOR_PERMISSIONS: {
+    boqRead: 'interior:boq:read',
+    financeRead: 'interior:finance:read',
+    contractCreate: 'interior:contract:create',
+    contractWrite: 'interior:contract:write',
+    paymentRecord: 'interior:payment:record',
+    contractAmend: 'interior:contract:amend',
+  },
+  resolveInteriorContext: jest.fn(),
+}));
 jest.mock('../lib/rbac-api', () => ({
   interiorRbacRpcClient: jest.fn(),
   isInteriorRbacRecord: (value: unknown): value is Record<string, unknown> =>
@@ -13,23 +23,30 @@ jest.mock('../lib/rbac-api', () => ({
 
 const resolveContextMock = jest.mocked(resolveInteriorContext);
 const rpcClientFactoryMock = jest.mocked(interiorRbacRpcClient);
+const authorizationAuthorizeMock = jest.fn(async ({ permissionId }: { permissionId: string }) => ({
+  status: 'ALLOW',
+  reason: 'AUTHORIZED',
+}));
 const projectId = '123e4567-e89b-42d3-a456-426614174000';
 const contract = {
   id: '123e4567-e89b-42d3-a456-426614174001', tenantId: 'tenant-a', projectId,
-  quotationId: '123e4567-e89b-42d3-a456-426614174002', contractNumber: 'C-001',
+  quotationId: '123e4567-e89b-42d3-a456-426614174002', quotationVersionNumber: 1, contractNumber: 'C-001',
   title: 'Interior fitout', status: 'signed', baselineContractValue: 100000,
   currentContractValue: 100000, signedDate: '2026-11-01T00:00:00.000Z',
   clientRepresentative: 'Client', contractorRepresentative: 'Owner',
   milestones: [{ id: 'milestone-1', tenantId: 'tenant-a', contractId: '123e4567-e89b-42d3-a456-426614174001',
     milestoneOrder: 1, name: 'Deposit', percentage: 30, amount: 30000,
     triggerCondition: 'On signature', status: 'paid', dueDate: null, paidAt: null }],
+  addenda: [],
 };
 
 describe('Interior contract read RBAC route', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    authorizationAuthorizeMock.mockImplementation(async () => ({ status: 'ALLOW', reason: 'AUTHORIZED' }));
     resolveContextMock.mockResolvedValue({
       ok: true, tenantId: 'tenant-a', actor: { id: 'auth-user-a' }, supabase: {},
+      authorization: { authorize: authorizationAuthorizeMock },
     } as unknown as Awaited<ReturnType<typeof resolveInteriorContext>>);
   });
 
@@ -52,6 +69,10 @@ describe('Interior contract read RBAC route', () => {
   });
 
   it('returns only non-financial contract summary when the RPC masks finance fields', async () => {
+    authorizationAuthorizeMock.mockImplementation(async ({ permissionId }) => ({
+      status: permissionId === 'interior:finance:read' ? 'DENY' : 'ALLOW',
+      reason: permissionId === 'interior:finance:read' ? 'NO_GRANT' : 'AUTHORIZED',
+    }));
     const rpc = jest.fn().mockResolvedValue({ data: {
       hasContract: true, financeAccess: false,
       project: { id: projectId, code: 'INT-001', name: 'Project 1' },
@@ -69,6 +90,7 @@ describe('Interior contract read RBAC route', () => {
       contractSummary: expect.objectContaining({ contractNumber: 'C-001', clientRepresentative: null }),
     }));
     expect(body.data.overview).not.toHaveProperty('kpis');
+    expect((body.data.overview['workflowCommands'] as Record<string, unknown>).createQuotationAvailable).toBe(false);
   });
 
   it('supports unsigned contracts with no finance fields and keeps the UI release gate closed', async () => {

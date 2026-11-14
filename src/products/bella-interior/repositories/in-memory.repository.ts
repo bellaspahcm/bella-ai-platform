@@ -8,7 +8,12 @@
  */
 
 import { TenantIsolationViolationError, TakeoffRunImmutableError } from '../domain/errors';
-import type { IInteriorRepository, SaveBOQOptions } from './interior-repository.interface';
+import type {
+  InteriorCustomerApprovalAddendumSubject,
+  InteriorCustomerApprovalContractSubject,
+  IInteriorRepository,
+  SaveBOQOptions,
+} from './interior-repository.interface';
 import type {
   BOQVersionHistoryItem,
   ForkBOQRevisionInput,
@@ -346,6 +351,20 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
     this.quotations.set(key, JSON.parse(JSON.stringify(quotation)) as InteriorQuotation);
   }
 
+  async createQuotationSnapshot(tenantId: string, quotation: InteriorQuotation): Promise<void> {
+    if (!tenantId || quotation.tenantId !== tenantId) throw new TenantIsolationViolationError();
+    if (!quotation.items?.length) throw new Error('QuotationSnapshotItemsRequired');
+    if (this.quotations.has(this.makeKey(tenantId, quotation.id))) {
+      throw new Error('QuotationSnapshotAlreadyExists');
+    }
+    const boq = await this.getBOQ(tenantId, quotation.boqId);
+    if (!boq || boq.projectId !== quotation.projectId || boq.versionNumber !== quotation.boqVersionNumber
+      || (boq.status !== 'approved' && boq.status !== 'locked_for_contract')) {
+      throw new Error('QuotationBOQVersionMustBeApproved');
+    }
+    await this.saveQuotation(tenantId, quotation);
+  }
+
   async getQuotation(tenantId: string, quotationId: string): Promise<InteriorQuotation | null> {
     return this.quotations.get(this.makeKey(tenantId, quotationId)) ?? null;
   }
@@ -378,8 +397,45 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
     this.contracts.set(this.makeKey(tenantId, contract.id), contract);
   }
 
+  async createContractWithMilestones(tenantId: string, contract: InteriorContract): Promise<void> {
+    if (this.contracts.has(this.makeKey(tenantId, contract.id))) {
+      throw new Error('INTERIOR_CONTRACT_ALREADY_EXISTS');
+    }
+    await this.saveContract(tenantId, contract);
+  }
+
   async getContract(tenantId: string, contractId: string): Promise<InteriorContract | null> {
     return this.contracts.get(this.makeKey(tenantId, contractId)) ?? null;
+  }
+
+  async getContractForCustomerApproval(tenantId: string, contractId: string): Promise<InteriorCustomerApprovalContractSubject | null> {
+    const contract = await this.getContract(tenantId, contractId);
+    if (!contract) return null;
+    return {
+      id: contract.id,
+      tenantId: contract.tenantId,
+      projectId: contract.projectId,
+      status: contract.status,
+      quotationVersionNumber: contract.quotationVersionNumber ?? 1,
+    };
+  }
+
+  async getContractAddendumForCustomerApproval(
+    tenantId: string,
+    addendumId: string,
+  ): Promise<InteriorCustomerApprovalAddendumSubject | null> {
+    const addendum = this.contractAddenda.get(this.makeKey(tenantId, addendumId));
+    if (!addendum) return null;
+    const contract = await this.getContract(tenantId, addendum.contractId);
+    if (!contract) return null;
+    return {
+      id: addendum.id,
+      tenantId: addendum.tenantId,
+      projectId: contract.projectId,
+      status: addendum.status,
+      versionNumber: 1,
+      customerApprovalId: addendum.customerApprovalId ?? null,
+    };
   }
 
   async getContractByProject(tenantId: string, projectId: string): Promise<InteriorContract | null> {
@@ -405,19 +461,25 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
 
   async saveContractAddendum(tenantId: string, addendum: ContractAddendum): Promise<void> {
     if (addendum.tenantId !== tenantId) throw new TenantIsolationViolationError();
+    if (addendum.status !== 'pending_customer_approval' || addendum.approvedAt !== null) {
+      throw new Error('INTERIOR_ADDENDUM_MUST_START_PENDING_CUSTOMER_APPROVAL');
+    }
     const contract = await this.getContract(tenantId, addendum.contractId);
     if (!contract) {
       throw new Error(`[InteriorRepo] Contract not found: ${addendum.contractId}`);
     }
+    if (contract.addenda.some((existing) => existing.id !== addendum.id
+      && existing.addendumNumber === addendum.addendumNumber)) {
+      throw new Error('INTERIOR_ADDENDUM_NUMBER_ALREADY_EXISTS');
+    }
     this.contractAddenda.set(this.makeKey(tenantId, addendum.id), addendum);
 
-    // Synchronize parent contract addenda and currentContractValue
+    // A pending proposal is visible on the contract but does not change its
+    // commercial value or payment terms until the customer capability is used.
     const existingAddenda = contract.addenda.filter((a) => a.id !== addendum.id);
     const updatedAddenda = [...existingAddenda, addendum];
-    const totalAddendaDelta = updatedAddenda.reduce((acc, a) => acc + a.valueDelta, 0);
     const updatedContract: InteriorContract = {
       ...contract,
-      currentContractValue: contract.baselineContractValue + totalAddendaDelta,
       addenda: updatedAddenda,
       updatedAt: new Date().toISOString(),
     };
@@ -437,7 +499,13 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
 
   async savePaymentTransaction(tenantId: string, transaction: PaymentTransaction): Promise<void> {
     if (transaction.tenantId !== tenantId) throw new TenantIsolationViolationError();
-    const contract = await this.getContract(tenantId, transaction.contractId);
+    if (!transaction.referenceCode.trim()) {
+      throw new Error('PaymentReferenceCodeRequired: payment reference code must not be blank.');
+    }
+    await this.getContract(tenantId, transaction.contractId);
+    // Re-read after the await so concurrent calls serialize on the current
+    // in-memory aggregate just as the database trigger serializes on its row.
+    const contract = this.contracts.get(this.makeKey(tenantId, transaction.contractId));
     if (!contract) {
       throw new Error(`[InteriorRepo] Contract not found: ${transaction.contractId}`);
     }
@@ -447,7 +515,7 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
       if (
         existing.tenantId === tenantId &&
         existing.contractId === transaction.contractId &&
-        existing.referenceCode.trim().toLowerCase() === transaction.referenceCode.trim().toLowerCase()
+        existing.referenceCode.trim().toLocaleLowerCase('en-US') === transaction.referenceCode.trim().toLocaleLowerCase('en-US')
       ) {
         throw new Error(
           `DuplicatePaymentTransaction: A transaction with referenceCode "${transaction.referenceCode}" has already been recorded for contract "${transaction.contractId}".`
@@ -455,18 +523,28 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
       }
     }
 
-    this.paymentTransactions.set(this.makeKey(tenantId, transaction.id), transaction);
+    const paymentMilestone = contract.milestones.find((m) => m.id === transaction.milestoneId);
+    if (!paymentMilestone || paymentMilestone.contractId !== contract.id) {
+      throw new Error(`[InteriorRepo] Payment milestone not found: ${transaction.milestoneId}`);
+    }
+    const newCollectedAmount = (paymentMilestone.collectedAmount ?? 0) + transaction.amount;
+    if (!Number.isFinite(transaction.amount) || transaction.amount <= 0 || newCollectedAmount > paymentMilestone.amount) {
+      throw new Error('INTERIOR_PAYMENT_EXCEEDS_MILESTONE_BALANCE');
+    }
 
-    // Update the corresponding milestone's collectedAmount
+    this.paymentTransactions.set(this.makeKey(tenantId, transaction.id), {
+      ...transaction,
+      referenceCode: transaction.referenceCode.trim(),
+    });
+
+    // Update receipt total and paid state atomically with the in-memory insert.
     const updatedMilestones = contract.milestones.map((m) => {
       if (m.id === transaction.milestoneId) {
-        const prevCollected = m.collectedAmount ?? 0;
-        const newCollected = prevCollected + transaction.amount;
-        const isPaid = newCollected >= m.amount;
+        const isPaid = newCollectedAmount >= m.amount;
         return {
           ...m,
-          collectedAmount: newCollected,
-          status: (isPaid ? 'paid' : 'pending') as PaymentMilestone['status'],
+          collectedAmount: newCollectedAmount,
+          status: (isPaid ? 'paid' : m.status) as PaymentMilestone['status'],
           paidAt: isPaid ? transaction.transactionDate : m.paidAt,
         };
       }
@@ -637,6 +715,55 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
 
   async saveCustomerApproval(tenantId: string, approval: CustomerApproval): Promise<void> {
     if (approval.tenantId !== tenantId) throw new TenantIsolationViolationError();
+    if (approval.status !== 'pending' || approval.approvedAt || approval.rejectedAt || approval.signatureReference) {
+      throw new Error('INTERIOR_APPROVAL_MUST_START_PENDING');
+    }
+    if (approval.subjectType === 'quotation') {
+      const key = this.makeKey(tenantId, approval.subjectId);
+      const quotation = this.quotations.get(key);
+      if (!quotation || quotation.projectId !== approval.projectId
+        || quotation.versionNumber !== approval.subjectVersionNumber
+        || !['draft', 'sent_to_client', 'negotiating'].includes(quotation.status)) {
+        throw new Error('ApprovalSubjectStatusError: quotation changed before approval request persistence');
+      }
+      if (quotation.status === 'draft') {
+        this.quotations.set(key, { ...quotation, status: 'sent_to_client', sentToClientAt: approval.sentAt });
+      }
+    } else if (approval.subjectType === 'contract') {
+      const contract = this.contracts.get(this.makeKey(tenantId, approval.subjectId));
+      if (!contract || contract.projectId !== approval.projectId || !['draft', 'in_review'].includes(contract.status)) {
+        throw new Error('ApprovalSubjectStatusError: contract changed before approval request persistence');
+      }
+      if (contract.status === 'draft') {
+        this.contracts.set(this.makeKey(tenantId, contract.id), { ...contract, status: 'in_review' });
+      }
+    } else {
+      const addendum = this.contractAddenda.get(this.makeKey(tenantId, approval.subjectId));
+      if (!addendum || addendum.status !== 'pending_customer_approval'
+        || addendum.customerApprovalId !== null) {
+        throw new Error('ApprovalSubjectStatusError: addendum changed before approval request persistence');
+      }
+      this.contractAddenda.set(this.makeKey(tenantId, addendum.id), {
+        ...addendum,
+        customerApprovalId: approval.id,
+      });
+      const contract = await this.getContract(tenantId, addendum.contractId);
+      if (contract) {
+        this.contracts.set(this.makeKey(tenantId, contract.id), {
+          ...contract,
+          addenda: contract.addenda.map((item) => item.id === addendum.id
+            ? { ...item, customerApprovalId: approval.id }
+            : item),
+        });
+      }
+    }
+    await this.supersedePendingApprovals(tenantId, approval.subjectId, 'Superseded by a newer approval request');
+    this.customerApprovals.set(this.makeKey(tenantId, approval.id), approval);
+  }
+
+  /** Seed an existing approval only in fixture setup; production writes use the pending-only RPC path. */
+  seedCustomerApproval(tenantId: string, approval: CustomerApproval): void {
+    if (approval.tenantId !== tenantId) throw new TenantIsolationViolationError();
     this.customerApprovals.set(this.makeKey(tenantId, approval.id), approval);
   }
 
@@ -689,8 +816,154 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
     const existing = this.customerApprovals.get(key);
     if (!existing) return false;
     // Atomic check: must be pending and not expired
-    if (existing.status !== 'pending') return false;
+    if (existing.status !== 'pending' || targetApproval.status === 'pending'
+      || targetApproval.tenantId !== tenantId || targetApproval.id !== existing.id
+      || targetApproval.approvalToken !== existing.approvalToken
+      || targetApproval.subjectId !== existing.subjectId
+      || targetApproval.subjectType !== existing.subjectType
+      || targetApproval.subjectVersionNumber !== existing.subjectVersionNumber) return false;
     if (new Date(existing.expiresAt) <= new Date()) return false;
+
+    // Mirror the PostgreSQL AFTER UPDATE trigger: consume the approval token
+    // and advance its exact commercial subject as one in-memory operation.
+    if (targetApproval.status === 'rejected' && targetApproval.subjectType === 'quotation') {
+      const quoteKey = this.makeKey(tenantId, targetApproval.subjectId);
+      const quotation = this.quotations.get(quoteKey);
+      if (!quotation
+        || quotation.projectId !== targetApproval.projectId
+        || quotation.versionNumber !== targetApproval.subjectVersionNumber
+        || (quotation.status !== 'sent_to_client' && quotation.status !== 'negotiating')) {
+        return false;
+      }
+      this.quotations.set(quoteKey, {
+        ...quotation,
+        status: 'rejected',
+        rejectedAt: targetApproval.rejectedAt ?? new Date().toISOString(),
+        rejectionReason: targetApproval.rejectionReason ?? null,
+      });
+    } else if (targetApproval.status === 'rejected' && targetApproval.subjectType === 'contract') {
+      const contractKey = this.makeKey(tenantId, targetApproval.subjectId);
+      const contract = this.contracts.get(contractKey);
+      if (!contract || contract.projectId !== targetApproval.projectId
+        || (contract.status !== 'draft' && contract.status !== 'in_review')) return false;
+      this.contracts.set(contractKey, {
+        ...contract,
+        status: 'rejected',
+        updatedAt: targetApproval.rejectedAt ?? new Date().toISOString(),
+      });
+    } else if (targetApproval.status === 'approved' && targetApproval.subjectType === 'quotation') {
+      const quoteKey = this.makeKey(tenantId, targetApproval.subjectId);
+      const quotation = this.quotations.get(quoteKey);
+      if (!quotation
+        || quotation.projectId !== targetApproval.projectId
+        || quotation.versionNumber !== targetApproval.subjectVersionNumber
+        || (quotation.status !== 'sent_to_client' && quotation.status !== 'negotiating')) {
+        return false;
+      }
+      this.quotations.set(quoteKey, {
+        ...quotation,
+        status: 'accepted',
+        acceptedAt: targetApproval.approvedAt ?? new Date().toISOString(),
+      });
+    } else if (targetApproval.status === 'approved' && targetApproval.subjectType === 'contract') {
+      const contractKey = this.makeKey(tenantId, targetApproval.subjectId);
+      const contract = this.contracts.get(contractKey);
+      const quotation = contract ? this.quotations.get(this.makeKey(tenantId, contract.quotationId)) : null;
+      const quotationApproval = contract?.quotationCustomerApprovalId
+        ? this.customerApprovals.get(this.makeKey(tenantId, contract.quotationCustomerApprovalId))
+        : null;
+      const boq = contract?.boqId ? this.boqs.get(this.makeKey(tenantId, contract.boqId)) : null;
+      const designRevision = contract?.designRevisionId
+        ? this.designRevisions.get(this.makeKey(tenantId, contract.designRevisionId))
+        : null;
+      if (!contract
+        || contract.projectId !== targetApproval.projectId
+        || (contract.status !== 'draft' && contract.status !== 'in_review')
+        || !quotation || quotation.status !== 'accepted'
+        || quotation.versionNumber !== contract.quotationVersionNumber
+        || !quotationApproval || quotationApproval.status !== 'approved'
+        || quotationApproval.subjectType !== 'quotation'
+        || quotationApproval.subjectId !== quotation.id
+        || quotationApproval.subjectVersionNumber !== quotation.versionNumber
+        || !boq || boq.versionNumber !== contract.boqVersionNumber
+        || !designRevision || designRevision.versionNumber !== contract.designVersionNumber
+        || !targetApproval.signatureReference
+        || !/^[0-9a-f]{64}$/i.test(targetApproval.signatureReference.sha256Hash)
+        || !targetApproval.signatureReference.storagePath.trim()
+        || targetApproval.signatureReference.fileSizeBytes <= 0) {
+        return false;
+      }
+      const approvedAt = targetApproval.approvedAt ?? new Date().toISOString();
+      this.contracts.set(contractKey, {
+        ...contract,
+        status: 'signed',
+        signedDate: approvedAt,
+        customerApprovalId: targetApproval.id,
+        updatedAt: approvedAt,
+      });
+      const projectKey = this.makeKey(tenantId, contract.projectId);
+      const project = this.projects.get(projectKey);
+      if (project) {
+        this.projects.set(projectKey, { ...project, status: 'contracted', updatedAt: approvedAt });
+      }
+    } else if (targetApproval.subjectType === 'contract_addendum') {
+      const addendumKey = this.makeKey(tenantId, targetApproval.subjectId);
+      const addendum = this.contractAddenda.get(addendumKey);
+      const contractKey = addendum ? this.makeKey(tenantId, addendum.contractId) : '';
+      const contract = addendum ? this.contracts.get(contractKey) : null;
+      if (!addendum || !contract || addendum.status !== 'pending_customer_approval'
+        || addendum.customerApprovalId !== targetApproval.id
+        || contract.projectId !== targetApproval.projectId
+        || contract.currentContractValue !== addendum.baseContractValue) return false;
+
+      if (targetApproval.status === 'approved') {
+        const proposedById = new Map(addendum.proposedPaymentSchedule.map((milestone) => [milestone.id, milestone]));
+        if (proposedById.size !== contract.milestones.length
+          || contract.milestones.some((current) => {
+            const proposed = proposedById.get(current.id);
+            if (!proposed) return true;
+            const immutable = current.status === 'paid' || (current.collectedAmount ?? 0) > 0
+              || current.invoiceStatus === 'issued' || current.invoiceStatus === 'adjusted';
+            return immutable && (current.name !== proposed.name
+              || current.percentage !== proposed.percentage || current.amount !== proposed.amount
+              || current.triggerCondition !== proposed.triggerCondition || current.dueDate !== proposed.dueDate);
+          })) return false;
+        const approvedAt = targetApproval.approvedAt ?? new Date().toISOString();
+        const milestones = contract.milestones.map((current) => {
+          const proposed = proposedById.get(current.id)!;
+          const immutable = current.status === 'paid' || (current.collectedAmount ?? 0) > 0
+            || current.invoiceStatus === 'issued' || current.invoiceStatus === 'adjusted';
+          return immutable ? current : {
+            ...current,
+            name: proposed.name,
+            percentage: proposed.percentage,
+            amount: proposed.amount,
+            triggerCondition: proposed.triggerCondition,
+            dueDate: proposed.dueDate,
+          };
+        });
+        this.contracts.set(contractKey, {
+          ...contract,
+          currentContractValue: contract.currentContractValue + addendum.valueDelta,
+          milestones,
+          addenda: contract.addenda.map((item) => item.id === addendum.id
+            ? { ...item, status: 'approved', approvedAt, customerApprovalId: targetApproval.id }
+            : item),
+          updatedAt: approvedAt,
+        });
+        this.contractAddenda.set(addendumKey, { ...addendum, status: 'approved', approvedAt });
+      } else if (targetApproval.status === 'rejected') {
+        this.contractAddenda.set(addendumKey, { ...addendum, status: 'rejected', approvedAt: null });
+        this.contracts.set(contractKey, {
+          ...contract,
+          addenda: contract.addenda.map((item) => item.id === addendum.id
+            ? { ...item, status: 'rejected', approvedAt: null, customerApprovalId: targetApproval.id }
+            : item),
+        });
+      } else {
+        return false;
+      }
+    }
 
     this.customerApprovals.set(key, targetApproval);
     return true;

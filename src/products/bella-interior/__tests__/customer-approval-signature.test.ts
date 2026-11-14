@@ -3,7 +3,7 @@
  * Customer Approval & Digital Signature Tests
  *
  * 8 Architectural Checkpoints:
- *   CP-1: Only sent_to_client / signed items can be submitted for approval
+ *   CP-1: Only customer-facing quotation / unsigned contract states can be submitted for approval
  *   CP-2: Approval token is single-use and tenant-scoped
  *   CP-3: Rejection triggers new quotation version (immutable prior version)
  *   CP-4: Approval record is immutable after recording
@@ -23,6 +23,8 @@ import {
   ApprovalImmutabilityError,
 } from '../services/interior-customer-approval.service';
 import type { InteriorQuotation, InteriorContract } from '../domain/commercial-costing/types';
+import type { InteriorBOQ } from '../domain/commercial-costing/types';
+import type { DesignRevision } from '../domain/design-specification/types';
 import type { BaseInteriorDomainEvent } from '../domain/events';
 
 // ─── Test Doubles ─────────────────────────────────────────────────────────────
@@ -85,7 +87,7 @@ function makeSignedContract(tenantId: string, overrides: Partial<InteriorContrac
     status: 'in_review',
     baselineContractValue: 550_000_000,
     currentContractValue: 550_000_000,
-    signedDate: new Date().toISOString(),
+    signedDate: null,
     clientRepresentative: 'Nguyen Van A',
     contractorRepresentative: 'Bella Design Director',
     milestones: [],
@@ -110,12 +112,11 @@ describe('Bella Interior OS — Commercial Proposal Phase 4 (Customer Approval &
   // ─── Checkpoint 1: Subject Status Prerequisite ───────────────────────────────
 
   describe('Checkpoint 1: Subject Status Prerequisite', () => {
-    it('rejects approval request for a draft quotation', async () => {
+    it('sends a draft quotation to the customer before creating an approval request', async () => {
       const q = makeSentQuotation(TENANT_A, { status: 'draft' });
       await repo.saveQuotation(TENANT_A, q);
 
-      await expect(
-        svc.sendApprovalRequest({
+      const approval = await svc.sendApprovalRequest({
           tenantId: TENANT_A,
           projectId: PROJECT_ID,
           subjectType: 'quotation',
@@ -126,8 +127,10 @@ describe('Bella Interior OS — Commercial Proposal Phase 4 (Customer Approval &
           actorId: randomUUID(),
           actorName: 'Sales Director',
           userRole: 'admin',
-        })
-      ).rejects.toThrow(ApprovalSubjectStatusError);
+        });
+
+      expect(approval.status).toBe('pending');
+      expect((await repo.getQuotation(TENANT_A, q.id))?.status).toBe('sent_to_client');
     });
 
     it('accepts approval request for a sent_to_client quotation', async () => {
@@ -171,6 +174,24 @@ describe('Bella Interior OS — Commercial Proposal Phase 4 (Customer Approval &
 
       expect(approval.status).toBe('pending');
       expect(approval.subjectType).toBe('contract');
+    });
+
+    it('rejects a contract approval request with a different project or quotation version', async () => {
+      const c = makeSignedContract(TENANT_A, { quotationVersionNumber: 2 });
+      await repo.saveContract(TENANT_A, c);
+
+      await expect(svc.sendApprovalRequest({
+        tenantId: TENANT_A,
+        projectId: PROJECT_ID,
+        subjectType: 'contract',
+        subjectId: c.id,
+        subjectVersionNumber: 1,
+        clientRepresentative: 'Nguyen Van A',
+        clientContact: 'nguyen@example.com',
+        actorId: randomUUID(),
+        actorName: 'PM',
+        userRole: 'pm',
+      })).rejects.toThrow(ApprovalSubjectStatusError);
     });
 
     it('rejects approval for a completed contract', async () => {
@@ -458,7 +479,41 @@ describe('Bella Interior OS — Commercial Proposal Phase 4 (Customer Approval &
     });
 
     it('emits interior.contract.customer_approved.v1 for contract approval', async () => {
-      const c = makeSignedContract(TENANT_A);
+      const designRevision: DesignRevision = {
+        id: randomUUID(), tenantId: TENANT_A, projectId: PROJECT_ID, versionNumber: 1,
+        title: 'Approved revision', status: 'approved', submittedBy: 'designer',
+        submittedAt: new Date().toISOString(), assets: [], materialSpecs: [],
+      };
+      await repo.saveDesignRevision(TENANT_A, designRevision);
+      const boq: InteriorBOQ = {
+        id: randomUUID(), tenantId: TENANT_A, projectId: PROJECT_ID,
+        designRevisionId: designRevision.id, boqNumber: 'BOQ-APPROVAL-1', versionNumber: 1,
+        status: 'approved', totalInternalCost: 100, totalClientPrice: 120,
+        totalGrossMargin: 20, grossMarginPercent: 16.67, items: [], preparedBy: 'QS',
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+      };
+      await repo.saveBOQ(TENANT_A, boq);
+      const quote = makeSentQuotation(TENANT_A, { boqId: boq.id });
+      await repo.saveQuotation(TENANT_A, quote);
+      const quoteApprovalRequest = await svc.sendApprovalRequest({
+        tenantId: TENANT_A, projectId: PROJECT_ID, subjectType: 'quotation', subjectId: quote.id,
+        subjectVersionNumber: quote.versionNumber, clientRepresentative: 'Nguyen Van A',
+        clientContact: 'customer@example.com', actorId: 'internal-sales', actorName: 'Sales', userRole: 'pm',
+      });
+      const quoteApproval = await svc.recordApproval({
+        tenantId: TENANT_A, approvalId: quoteApprovalRequest.id,
+        approvalToken: quoteApprovalRequest.approvalToken,
+        actorId: 'customer-quote', actorName: 'Customer', userRole: 'admin',
+      });
+      const c = makeSignedContract(TENANT_A, {
+        quotationId: quote.id,
+        quotationVersionNumber: quote.versionNumber,
+        quotationCustomerApprovalId: quoteApproval.id,
+        boqId: boq.id,
+        boqVersionNumber: boq.versionNumber,
+        designRevisionId: designRevision.id,
+        designVersionNumber: designRevision.versionNumber,
+      });
       await repo.saveContract(TENANT_A, c);
 
       const approval = await svc.sendApprovalRequest({
@@ -473,11 +528,20 @@ describe('Bella Interior OS — Commercial Proposal Phase 4 (Customer Approval &
         tenantId: TENANT_A,
         approvalId: approval.id,
         approvalToken: approval.approvalToken,
+        signatureReference: {
+          storagePath: 'interior/approvals/contract-signature.pdf',
+          storageUrl: 'https://storage.example.test/interior/approvals/contract-signature.pdf',
+          mimeType: 'application/pdf',
+          fileSizeBytes: 1000,
+          sha256Hash: 'a'.repeat(64),
+        },
         actorId: randomUUID(), actorName: 'Portal', userRole: 'admin',
       });
 
       const events = outbox.getPublishedEvents();
       expect(events[0].eventType).toBe('interior.contract.customer_approved.v1');
+      expect(events[1].eventType).toBe('interior.contract.signed.v1');
+      expect((await repo.getContract(TENANT_A, c.id))?.status).toBe('signed');
     });
   });
 
@@ -609,6 +673,9 @@ describe('Bella Interior OS — Commercial Proposal Phase 4 (Customer Approval &
         rejectionReason: 'Need revision',
         actorId: randomUUID(), actorName: 'Portal', userRole: 'admin',
       });
+
+      // A new quotation revision is a distinct immutable commercial version.
+      await repo.saveQuotation(TENANT_A, { ...q, versionNumber: 2, status: 'sent_to_client' });
 
       const a2 = await svc.sendApprovalRequest({
         tenantId: TENANT_A, projectId: PROJECT_ID,

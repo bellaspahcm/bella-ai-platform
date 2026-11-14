@@ -26,6 +26,7 @@ describe('Bella Interior OS — Supabase Persistence & Durable Outbox', () => {
 
     beforeEach(() => {
       mockSupabase = {
+        rpc: jest.fn().mockResolvedValue({ data: null, error: null }),
         from: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
         insert: jest.fn().mockReturnThis(),

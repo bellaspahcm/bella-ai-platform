@@ -497,21 +497,32 @@ function normalizeMigrationSql(sql) {
     .trim();
 }
 
+function normalizeRecordedMigrationStatements(statements) {
+  if (!Array.isArray(statements) || statements.some((statement) => typeof statement !== 'string')) return null;
+  const nonEmptyStatements = statements.map((statement) => statement.trim()).filter(Boolean);
+  if (nonEmptyStatements.length === 0) return null;
+  const sql = nonEmptyStatements.map((statement) => (
+    /;\s*$/.test(statement) ? statement : `${statement};`
+  )).join('\n');
+  return normalizeMigrationSql(sql);
+}
+
+// Shared with the read-only migration drift checker so both gates compare the
+// same canonical SQL representation when resolving an isolated E2E alias.
+
 async function findEquivalentRecordedMigration(client, migration) {
   const columns = await getMigrationHistoryColumns(client);
-  if (!columns.has('name') || !columns.has('statements')) return null;
+  if (!columns.has('statements')) return null;
 
   const result = await client.query(
     `SELECT version, statements
      FROM supabase_migrations.schema_migrations
-     WHERE name = $1 AND version <> $2`,
-    [migration.name, migration.version],
+     WHERE version <> $1 AND statements IS NOT NULL`,
+    [migration.version],
   );
 
   return result.rows.find((row) => (
-    Array.isArray(row.statements)
-    && row.statements.length === 1
-    && normalizeMigrationSql(row.statements[0]) === normalizeMigrationSql(migration.sql)
+    normalizeRecordedMigrationStatements(row.statements) === normalizeMigrationSql(migration.sql)
   ))?.version ?? null;
 }
 
@@ -1113,6 +1124,8 @@ module.exports = {
   isPristineInteriorHistoryBaseline,
   inspectInteriorTriggerHardeningBaseline,
   needsInteriorTriggerHardeningDiagnostic,
+  normalizeMigrationSql,
+  normalizeRecordedMigrationStatements,
   listChangedMigrationFiles,
   parseMigration,
 };

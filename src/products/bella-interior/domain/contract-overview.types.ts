@@ -127,12 +127,13 @@ export interface ContractAddendumItem {
   id: string;
   code: string;
   title: string;
+  reason?: string;
   valueChange: number;
   valueChangeFormatted: string;
   effectiveDate: string;
-  status: 'approved' | 'pending' | 'signed';
+  status: 'approved' | 'pending' | 'signed' | 'rejected' | 'superseded' | 'legacy_unverified';
   statusLabel: string;
-  statusBadgeVariant: 'success' | 'warning';
+  statusBadgeVariant: 'success' | 'warning' | 'danger';
   fileAttachment?: string;
 }
 
@@ -202,8 +203,19 @@ export interface ContractOverviewResponse {
     clientRepresentative?: string | null;
   };
   workflowCommands?: {
+    createQuotationAvailable: boolean;
+    requestCustomerApprovalAvailable: boolean;
     createContractAvailable: boolean;
+    recordPaymentAvailable: boolean;
+    createAddendumAvailable: boolean;
     releaseProductionAvailable: boolean;
+  };
+  /** Exact persisted IDs used only to call the already-authorized lifecycle API. */
+  commercialWorkflow?: {
+    contractId: string;
+    contractStatus: string;
+    quotationId: string;
+    quotationVersionNumber: number;
   };
   header: ContractProjectHeader;
   kpis: ContractOverviewKPIs;

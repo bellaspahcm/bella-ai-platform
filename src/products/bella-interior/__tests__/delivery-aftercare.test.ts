@@ -11,7 +11,7 @@ import { InMemoryInteriorRepository } from '../repositories/in-memory.repository
 import { DesignSpecificationService } from '../services/design-specification.service';
 import { DeliveryAftercareService } from '../services/delivery-aftercare.service';
 import { PlatformFinanceOutboxAdapter } from '../adapters/platform-finance-outbox.adapter';
-import { OpenCriticalPunchListError } from '../domain/errors';
+import { HandoverCustomerApprovalRequiredError, OpenCriticalPunchListError } from '../domain/errors';
 
 describe('Bounded Context 4: Project Delivery & Aftercare', () => {
   const tenantId = '00000000-0000-0000-0000-000000000001';
@@ -72,7 +72,7 @@ describe('Bounded Context 4: Project Delivery & Aftercare', () => {
     expect(diaries[0].supervisorName).toBe('Chỉ huy trưởng Hoàng Văn Lợi');
   });
 
-  it('should block Handover if critical Punch List defects are open', async () => {
+  it('blocks handover on critical defects and requires persisted customer evidence after repair', async () => {
     const project = await designService.createProject({
       tenantId,
       code: 'INT-DELIV-02',
@@ -130,8 +130,9 @@ describe('Bounded Context 4: Project Delivery & Aftercare', () => {
       verifiedBy: 'KTS. Phan Hải (Giám sát thiết kế)',
     });
 
-    // Now handover should complete cleanly!
-    const { dossier, certificate } = await deliveryService.completeHandover({
+    const saveDossier = jest.spyOn(repository, 'saveHandoverDossier');
+    const saveWarranty = jest.spyOn(repository, 'saveWarrantyCertificate');
+    await expect(deliveryService.completeHandover({
       tenantId,
       projectId: project.id,
       contractId: 'contract-deliv-02',
@@ -140,20 +141,47 @@ describe('Bounded Context 4: Project Delivery & Aftercare', () => {
       woodworkWarrantyMonths: 24,
       hardwareWarrantyMonths: 60,
       stoneWarrantyMonths: 120,
+    })).rejects.toThrow(HandoverCustomerApprovalRequiredError);
+    expect(saveDossier).not.toHaveBeenCalled();
+    expect(saveWarranty).not.toHaveBeenCalled();
+  });
+
+  it('tracks warranty tickets against an existing certificate', async () => {
+    const project = await designService.createProject({
+      tenantId,
+      code: 'INT-WARRANTY-01',
+      name: 'Warranty ticket project',
+      customerId: 'cust-warranty-1',
+      customerName: 'Customer One',
+      customerPhone: '0901000000',
+      siteAddress: 'Ho Chi Minh City',
+      projectType: 'residential_apartment',
+      estimatedBudget: 500000000,
+      targetCompletionDate: '2026-12-31',
+      leadArchitectId: 'arch-warranty-1',
+      leadArchitectName: 'Architect One',
     });
-
-    expect(dossier.status).toBe('completed');
-    expect(dossier.clientAccepted).toBe(true);
-
-    expect(certificate.certificateNumber).toContain('INT-DELIV-02');
-    expect(certificate.woodworkWarrantyMonths).toBe(24);
-    expect(certificate.hardwareWarrantyMonths).toBe(60);
-    expect(certificate.stoneWarrantyMonths).toBe(120);
+    const certificateId = 'warranty-certificate-fixture';
+    await repository.saveWarrantyCertificate(tenantId, {
+      id: certificateId,
+      tenantId,
+      projectId: project.id,
+      contractId: 'contract-warranty-fixture',
+      certificateNumber: 'WAR-INT-WARRANTY-01-2026',
+      customerName: project.customerName,
+      siteAddress: project.siteAddress,
+      effectiveDate: '2026-11-14T00:00:00.000Z',
+      expirationDate: '2028-11-14T00:00:00.000Z',
+      woodworkWarrantyMonths: 24,
+      hardwareWarrantyMonths: 60,
+      stoneWarrantyMonths: 120,
+      termsSummary: 'Fixture certificate for warranty service tests',
+    });
 
     // Create a warranty service ticket 3 months later
     const ticket = await deliveryService.createWarrantyTicket({
       tenantId,
-      certificateId: certificate.id,
+      certificateId,
       projectId: project.id,
       roomZoneName: 'Phòng Bếp',
       itemName: 'Bản lề cánh tủ dưới',

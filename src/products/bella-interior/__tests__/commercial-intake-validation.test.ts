@@ -55,8 +55,10 @@ const BOQ_ID = randomUUID();
 const QUOTATION_ID = randomUUID();
 const CONTRACT_ID = randomUUID();
 const APPROVAL_ID = randomUUID();
+const QUOTATION_APPROVAL_ID = randomUUID();
 const APPROVAL_TOKEN = randomUUID();
 const ADDENDUM_ID = randomUUID();
+const ADDENDUM_APPROVAL_ID = randomUUID();
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -64,15 +66,18 @@ function makeProject(tenantId = TENANT_ID): InteriorProject {
   return {
     id: PROJECT_ID,
     tenantId,
-    projectCode: 'INT-INTAKE-01',
+    code: 'INT-INTAKE-01',
     name: 'Vinhomes Smart City Interior',
-    clientName: 'Nguyễn Thị Lan',
-    clientPhone: '0901234567',
-    propertyType: 'residential_apartment',
-    totalAreaM2: 120,
+    customerId: 'customer-intake-01',
+    customerName: 'Nguyễn Thị Lan',
+    customerPhone: '0901234567',
+    siteAddress: 'Vinhomes Smart City',
+    projectType: 'residential_apartment',
     status: 'contracted',
-    startDate: '2026-11-01',
+    estimatedBudget: 27_500_000,
     targetCompletionDate: '2027-03-31',
+    leadArchitectId: 'architect-intake-01',
+    leadArchitectName: 'KTS. Vũ Thị Hoa',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -195,7 +200,11 @@ function makeAddendum(
     title: 'Bổ sung tủ bếp trên đảo',
     valueDelta: 15_000_000,
     reason: 'Khách yêu cầu thêm công năng đảo bếp',
-    approvedAt: approved ? new Date().toISOString() : '',
+    status: approved ? 'approved' : 'pending_customer_approval',
+    approvedAt: approved ? new Date().toISOString() : null,
+    customerApprovalId: approved ? ADDENDUM_APPROVAL_ID : null,
+    baseContractValue: 27_500_000,
+    proposedPaymentSchedule: [],
   };
 }
 
@@ -219,12 +228,16 @@ function makeContract(
     signedDate: status === 'signed' || status === 'active' ? '2026-11-01' : '',
     clientRepresentative: 'Nguyễn Thị Lan',
     contractorRepresentative: 'GĐ. Trần Văn Minh',
+    quotationCustomerApprovalId: QUOTATION_APPROVAL_ID,
+    customerApprovalId: APPROVAL_ID,
     milestones: [],
     addenda,
     quotationNumber: 'QT-INTAKE-2026-001',
     quotationVersionNumber,
     boqId: BOQ_ID,
     boqVersionNumber,
+    designRevisionId: DESIGN_REV_ID,
+    designVersionNumber: 1,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -236,11 +249,12 @@ function makeApproval(
   subjectType: CustomerApproval['subjectType'] = 'contract',
   subjectId = CONTRACT_ID,
   subjectVersionNumber = 1,
+  approvalId = APPROVAL_ID,
 ): CustomerApproval {
   const now = new Date();
   const future = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
   return {
-    id: APPROVAL_ID,
+    id: approvalId,
     tenantId,
     projectId: PROJECT_ID,
     subjectType,
@@ -254,14 +268,14 @@ function makeApproval(
     expiresAt: future.toISOString(),
     approvedAt: approvalStatus === 'approved' ? now.toISOString() : null,
     rejectedAt: approvalStatus === 'rejected' ? now.toISOString() : null,
-    signatureReference: {
+    signatureReference: subjectType === 'contract' ? {
       storagePath: 'tenants/t1/signatures/sig-contract-001.png',
       storageUrl: 'https://storage.bella.vn/signatures/sig-001.png',
       mimeType: 'image/png',
       fileSizeBytes: 42100,
       sha256Hash: 'a1b2c3d4e5f60718293a4b5c6d7e8f901234567890abcdef1234567890abcdef',
       uploadedAt: now.toISOString(),
-    },
+    } : null,
     sentByActorId: 'actor-intake-1',
     sentByActorName: 'GĐ. Trần Văn Minh',
     createdAt: now.toISOString(),
@@ -285,6 +299,7 @@ async function seedValidChain(
     contractBoqVersionNumber?: number;
     approvalSubjectVersionNumber?: number;
     approvalSubjectId?: string;
+  quotationApprovalStatus?: CustomerApproval['status'];
     boqSnapshotSealedAt?: string | null;
   } = {},
 ): Promise<void> {
@@ -317,7 +332,7 @@ async function seedValidChain(
       contractBoqVer,
     ),
   );
-  await repo.saveCustomerApproval(
+  repo.seedCustomerApproval(
     TENANT_ID,
     makeApproval(
       overrides.approvalStatus ?? 'approved',
@@ -325,6 +340,24 @@ async function seedValidChain(
       'contract',
       overrides.approvalSubjectId ?? CONTRACT_ID,
       overrides.approvalSubjectVersionNumber ?? 1,
+    ),
+  );
+  for (const addendum of overrides.addenda ?? []) {
+    if (addendum.status === 'approved' && addendum.customerApprovalId) {
+      repo.seedCustomerApproval(TENANT_ID, makeApproval(
+        'approved', TENANT_ID, 'contract_addendum', addendum.id, 1, addendum.customerApprovalId,
+      ));
+    }
+  }
+  repo.seedCustomerApproval(
+    TENANT_ID,
+    makeApproval(
+      overrides.quotationApprovalStatus ?? 'approved',
+      TENANT_ID,
+      'quotation',
+      QUOTATION_ID,
+      quoteVer,
+      QUOTATION_APPROVAL_ID,
     ),
   );
 }
@@ -417,6 +450,34 @@ describe('CommercialIntakeValidationService — Complete Invariant Battery', () 
 
       await expect(service.validateAndBuildProductionRequest(baseInput))
         .rejects.toThrow(CustomerApprovalVersionMismatchError);
+    });
+
+    it('requires the exact approved quotation evidence captured on the contract', async () => {
+      repository = new InMemoryInteriorRepository();
+      service = new CommercialIntakeValidationService(repository);
+      await seedValidChain(repository, { quotationApprovalStatus: 'pending' });
+
+      await expect(service.validateAndBuildProductionRequest(baseInput))
+        .rejects.toThrow(CustomerApprovalVersionMismatchError);
+    });
+
+    it('requires the contract signature approval, not the earlier quotation approval, for production', async () => {
+      await expect(service.validateAndBuildProductionRequest({
+        ...baseInput,
+        customerApprovalId: QUOTATION_APPROVAL_ID,
+      })).rejects.toThrow(CustomerApprovalVersionMismatchError);
+    });
+
+    it('rejects a contract whose captured design revision differs from the sealed BOQ', async () => {
+      const contract = await repository.getContract(TENANT_ID, CONTRACT_ID);
+      if (!contract) throw new Error('test contract fixture missing');
+      await repository.saveContract(TENANT_ID, {
+        ...contract,
+        designRevisionId: randomUUID(),
+      });
+
+      await expect(service.validateAndBuildProductionRequest(baseInput))
+        .rejects.toThrow(CommercialChainVersionMismatchError);
     });
 
     it('should throw CommercialChainVersionMismatchError if contract references wrong quotation version', async () => {
@@ -539,6 +600,7 @@ describe('CommercialIntakeValidationService — Complete Invariant Battery', () 
 
       expect(result.productionRequestInput.commercialSourceOfTruth.addendumId).toBe(ADDENDUM_ID);
       expect(result.productionRequestInput.commercialSourceOfTruth.addendumNumber).toBe('ADD-INTAKE-001');
+      expect(result.productionRequestInput.commercialSourceOfTruth.addendumCustomerApprovalId).toBe(ADDENDUM_APPROVAL_ID);
       expect(result.validatedChain.addendumNumber).toBe('ADD-INTAKE-001');
     });
 
@@ -551,11 +613,17 @@ describe('CommercialIntakeValidationService — Complete Invariant Battery', () 
       ).rejects.toThrow(UnapprovedAddendumError);
     });
 
-    it('should throw UnapprovedAddendumError if addendum is not yet approved (missing approvedAt)', async () => {
+    it('should throw UnapprovedAddendumError if a legacy addendum has no customer approval evidence', async () => {
       const unapprovedAddendum = makeAddendum(ADDENDUM_ID, false);
+      const legacyAddendum: ContractAddendum = {
+        ...unapprovedAddendum,
+        status: 'approved',
+        approvedAt: new Date().toISOString(),
+        customerApprovalId: null,
+      };
       repository = new InMemoryInteriorRepository();
       service = new CommercialIntakeValidationService(repository);
-      await seedValidChain(repository, { addenda: [unapprovedAddendum] });
+      await seedValidChain(repository, { addenda: [legacyAddendum] });
 
       await expect(
         service.validateAndBuildProductionRequest({

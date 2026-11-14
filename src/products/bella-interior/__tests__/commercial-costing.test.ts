@@ -10,6 +10,7 @@
 import { InMemoryInteriorRepository } from '../repositories/in-memory.repository';
 import { DesignSpecificationService } from '../services/design-specification.service';
 import { CommercialCostingService } from '../services/commercial-costing.service';
+import { InteriorCustomerApprovalService } from '../services/interior-customer-approval.service';
 import { PlatformFinanceOutboxAdapter } from '../adapters/platform-finance-outbox.adapter';
 import {
   ApprovedDesignLockViolationError,
@@ -229,10 +230,23 @@ describe('Bounded Context 2: Commercial & Costing', () => {
       projectId: project.id,
       boqId: boq.id,
       quotationNumber: 'QUO-VIN-01',
+      actorId: 'sales-actor',
+      actorName: 'Sales',
       vatPercent: 8,
     });
 
     expect(quotation.grandTotal).toBe(27000000); // 25tr + 8% VAT = 27tr
+
+    const approvalService = new InteriorCustomerApprovalService(repository, outbox);
+    const approvalRequest = await approvalService.sendApprovalRequest({
+      tenantId, projectId: project.id, subjectType: 'quotation', subjectId: quotation.id,
+      subjectVersionNumber: quotation.versionNumber, clientRepresentative: 'Vũ Mạnh Cường',
+      clientContact: 'customer@example.com', actorId: 'sales-actor', actorName: 'Sales', userRole: 'pm',
+    });
+    const quoteApproval = await approvalService.recordApproval({
+      tenantId, approvalId: approvalRequest.id, approvalToken: approvalRequest.approvalToken,
+      actorId: 'customer-actor', actorName: 'Vũ Mạnh Cường', userRole: 'admin',
+    });
 
     // Invalid milestones totaling 90% (Must fail!)
     await expect(
@@ -240,6 +254,7 @@ describe('Bounded Context 2: Commercial & Costing', () => {
         tenantId,
         projectId: project.id,
         quotationId: quotation.id,
+        quotationCustomerApprovalId: quoteApproval.id,
         contractNumber: 'HD-VIN-2026-01',
         title: 'Hợp đồng thi công nội thất văn phòng',
         clientRepresentative: 'Vũ Mạnh Cường (Giám đốc)',
@@ -257,6 +272,7 @@ describe('Bounded Context 2: Commercial & Costing', () => {
       tenantId,
       projectId: project.id,
       quotationId: quotation.id,
+      quotationCustomerApprovalId: quoteApproval.id,
       contractNumber: 'HD-VIN-2026-01',
       title: 'Hợp đồng thi công nội thất văn phòng',
       clientRepresentative: 'Vũ Mạnh Cường (Giám đốc)',
@@ -270,15 +286,14 @@ describe('Bounded Context 2: Commercial & Costing', () => {
       ],
     });
 
-    expect(contract.status).toBe('signed');
+    expect(contract.status).toBe('draft');
+    expect(contract.signedDate).toBeNull();
     expect(contract.baselineContractValue).toBe(27000000);
     expect(contract.milestones.length).toBe(5);
 
-    // Verify milestone 1 enqueued to Finance Outbox
+    // Finance is not notified until a real customer signature on this contract.
     const queuedFinance = outbox.getQueuedFinanceRecords();
-    expect(queuedFinance.length).toBe(1);
-    expect(queuedFinance[0].milestoneOrder).toBe(1);
-    expect(queuedFinance[0].amount).toBe(8100000); // 30% * 27tr = 8.1tr
+    expect(queuedFinance).toHaveLength(0);
   });
 });
 
