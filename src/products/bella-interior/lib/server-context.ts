@@ -173,6 +173,14 @@ export function requiredInteriorPermission(request: Request, body: JsonRecord | 
       }
     }
   }
+  if (pathname === '/api/interior/quotations') {
+    if (method === 'GET') return INTERIOR_PERMISSIONS.contractRead;
+    if (method === 'POST') return INTERIOR_PERMISSIONS.contractCreate;
+  }
+  if (pathname === '/api/interior/customer-approvals') {
+    if (method === 'GET') return INTERIOR_PERMISSIONS.contractRead;
+    if (method === 'POST') return INTERIOR_PERMISSIONS.contractWrite;
+  }
   if (pathname === '/api/interior/finance' && method === 'GET') return INTERIOR_PERMISSIONS.financeRead;
   if (pathname === '/api/interior/reports/analytics' && method === 'GET') return INTERIOR_PERMISSIONS.reportsRead;
   if (pathname === '/api/interior/schedule') {

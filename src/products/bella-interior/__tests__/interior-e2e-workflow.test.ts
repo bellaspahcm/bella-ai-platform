@@ -11,6 +11,7 @@
 
 import { InMemoryInteriorRepository } from '../repositories/in-memory.repository';
 import { InteriorOSService } from '../services/interior-os.service';
+import { InteriorCustomerApprovalService } from '../services/interior-customer-approval.service';
 import { PlatformFinanceOutboxAdapter } from '../adapters/platform-finance-outbox.adapter';
 
 describe('Bella Interior OS — End-to-End Core Value Chain', () => {
@@ -162,6 +163,8 @@ describe('Bella Interior OS — End-to-End Core Value Chain', () => {
       projectId: project.id,
       boqId: boq.id,
       quotationNumber: 'QUO-DUBAI-001',
+      actorId: 'sales-actor',
+      actorName: 'Sales',
       discountAmount: 10000000, // Chiết khấu tri ân 10 triệu
       vatPercent: 8,
     });
@@ -170,10 +173,22 @@ describe('Bella Interior OS — End-to-End Core Value Chain', () => {
     expect(quotation.discountAmount).toBe(10000000);
     expect(quotation.grandTotal).toBe(378000000); // (360tr - 10tr) * 1.08 = 378tr
 
+    const customerApproval = new InteriorCustomerApprovalService(repository, outbox);
+    const quoteApprovalRequest = await customerApproval.sendApprovalRequest({
+      tenantId, projectId: project.id, subjectType: 'quotation', subjectId: quotation.id,
+      subjectVersionNumber: quotation.versionNumber, clientRepresentative: 'Sheikh Mansoor',
+      clientContact: '+971501234567', actorId: 'sales-actor', actorName: 'Sales', userRole: 'pm',
+    });
+    const quoteApproval = await customerApproval.recordApproval({
+      tenantId, approvalId: quoteApprovalRequest.id, approvalToken: quoteApprovalRequest.approvalToken,
+      actorId: 'customer-actor', actorName: 'Sheikh Mansoor', userRole: 'admin',
+    });
+
     const contract = await interiorOS.commercial.finalizeContract({
       tenantId,
       projectId: project.id,
       quotationId: quotation.id,
+      quotationCustomerApprovalId: quoteApproval.id,
       contractNumber: 'HD-DUBAI-2026',
       title: 'Hợp đồng trọn gói thiết kế và sản xuất thi công nội thất',
       clientRepresentative: 'Sheikh Mansoor',
@@ -187,8 +202,24 @@ describe('Bella Interior OS — End-to-End Core Value Chain', () => {
       ],
     });
 
-    expect(contract.status).toBe('signed');
+    expect(contract.status).toBe('draft');
     expect(contract.baselineContractValue).toBe(378000000);
+
+    const contractApprovalRequest = await customerApproval.sendApprovalRequest({
+      tenantId, projectId: project.id, subjectType: 'contract', subjectId: contract.id,
+      subjectVersionNumber: contract.quotationVersionNumber ?? 1,
+      clientRepresentative: 'Sheikh Mansoor', clientContact: '+971501234567',
+      actorId: 'sales-actor', actorName: 'Sales', userRole: 'pm',
+    });
+    await customerApproval.recordApproval({
+      tenantId, approvalId: contractApprovalRequest.id, approvalToken: contractApprovalRequest.approvalToken,
+      signatureReference: {
+        storagePath: `interior/approvals/${contract.id}/signed.pdf`,
+        storageUrl: `https://storage.example.test/interior/approvals/${contract.id}/signed.pdf`,
+        mimeType: 'application/pdf', fileSizeBytes: 1024, sha256Hash: 'b'.repeat(64),
+      },
+      actorId: 'customer-actor', actorName: 'Sheikh Mansoor', userRole: 'admin',
+    });
 
     // Milestone 1 auto-enqueued to Finance Outbox
     const queuedFinance = outbox.getQueuedFinanceRecords();
@@ -310,8 +341,8 @@ describe('Bella Interior OS — End-to-End Core Value Chain', () => {
       verifiedBy: 'KTS. Lê Hoàng Sơn',
     });
 
-    // Complete Handover
-    const { dossier, certificate } = await interiorOS.delivery.completeHandover({
+    // A staff provided name cannot stand in for customer-issued acceptance.
+    await expect(interiorOS.delivery.completeHandover({
       tenantId,
       projectId: project.id,
       contractId: contract.id,
@@ -320,12 +351,7 @@ describe('Bella Interior OS — End-to-End Core Value Chain', () => {
       woodworkWarrantyMonths: 24,
       hardwareWarrantyMonths: 60,
       stoneWarrantyMonths: 120,
-    });
-
-    expect(dossier.status).toBe('completed');
-    expect(dossier.clientAccepted).toBe(true);
-    expect(certificate.woodworkWarrantyMonths).toBe(24);
-    expect(certificate.hardwareWarrantyMonths).toBe(60);
+    })).rejects.toThrow(/persisted, customer-issued acceptance record/);
 
     // -------------------------------------------------------------
     // STAGE 8: REAL-TIME PROJECT P&L PROFITABILITY SUMMARY
@@ -335,7 +361,7 @@ describe('Bella Interior OS — End-to-End Core Value Chain', () => {
     expect(pnl.internalCostEstimate).toBe(215000000);
     expect(pnl.expectedGrossProfit).toBe(163000000); // 378tr - 215tr = 163tr
     expect(pnl.grossMarginPercent).toBeCloseTo(43.12, 1);
-    expect(pnl.activeStatus).toBe('warranty');
+    expect(pnl.activeStatus).not.toBe('warranty');
   });
 });
 

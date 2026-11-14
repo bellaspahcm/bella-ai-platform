@@ -29,6 +29,7 @@ import type {
   ProjectSummaryCardData,
   WorkshopReleaseGating,
   WorkshopReleaseCriterion,
+  ContractAddendumItem,
 } from '../domain/contract-overview.types';
 
 export interface ComputeFinancialTruthInput {
@@ -1518,16 +1519,19 @@ export class InteriorContractAnalyticsService {
       });
 
     // Map addenda from domain
-    const addenda = contract.addenda.map((a) => ({
+    const addenda: ContractAddendumItem[] = contract.addenda.map((a) => ({
       id: a.id,
       code: a.addendumNumber,
       title: a.title,
       valueChange: a.valueDelta,
       valueChangeFormatted: `${a.valueDelta >= 0 ? '+' : ''}${this.formatVND(a.valueDelta)}`,
-      effectiveDate: new Date(a.approvedAt).toLocaleDateString('vi-VN'),
-      status: 'approved' as const,
-      statusLabel: 'Đã duyệt',
-      statusBadgeVariant: 'success' as const,
+      effectiveDate: a.approvedAt ? new Date(a.approvedAt).toLocaleDateString('vi-VN') : '—',
+      status: (a.status === 'pending_customer_approval' ? 'pending' : a.status) as ContractAddendumItem['status'],
+      statusLabel: a.status === 'approved' ? 'Đã duyệt'
+        : a.status === 'rejected' ? 'Khách từ chối'
+          : a.status === 'superseded' ? 'Đã thay thế' : 'Chờ khách duyệt',
+      statusBadgeVariant: a.status === 'approved' ? 'success' as const
+        : a.status === 'rejected' ? 'danger' as const : 'warning' as const,
     }));
 
     return {

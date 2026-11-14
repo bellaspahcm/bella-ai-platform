@@ -3,6 +3,24 @@ import { join } from 'node:path';
 
 const migrationPath = join(process.cwd(), 'supabase/migrations/20261109130000_bella_interior_rbac_scopes.sql');
 const migrationSql = readFileSync(migrationPath, 'utf8').replace(/\r\n/g, '\n');
+const commercialEngineMigrationPath = join(process.cwd(), 'supabase/migrations/20261113165251_interior_commercial_transaction_engine.sql');
+const commercialEngineMigrationSql = readFileSync(commercialEngineMigrationPath, 'utf8').replace(/\r\n/g, '\n');
+const legacyHandoverHardeningSql = readFileSync(
+  join(process.cwd(), 'supabase/migrations/20261114110000_interior_handover_requires_customer_evidence.sql'),
+  'utf8',
+).replace(/\r\n/g, '\n');
+const customerHandoverMigrationSql = readFileSync(
+  join(process.cwd(), 'supabase/migrations/20261114120000_interior_customer_evidenced_handover.sql'),
+  'utf8',
+).replace(/\r\n/g, '\n');
+const addendumSubjectMigrationSql = readFileSync(
+  join(process.cwd(), 'supabase/migrations/20261114120100_interior_customer_approval_addendum_subject.sql'),
+  'utf8',
+).replace(/\r\n/g, '\n');
+const customerApprovedAddendumMigrationSql = readFileSync(
+  join(process.cwd(), 'supabase/migrations/20261114120200_interior_contract_addendum_customer_approval.sql'),
+  'utf8',
+).replace(/\r\n/g, '\n');
 
 function explicitRolePermissions(): Map<string, Set<string>> {
   const seedStart = migrationSql.indexOf('INSERT INTO public.interior_role_permissions(role_key,permission_id) VALUES');
@@ -227,6 +245,39 @@ describe('Bella Interior RBAC migration contract', () => {
     expect(migrationSql).toContain('reported_by_user_id,reported_by_contact,priority,updated_at');
     expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_create_handover_dossier(uuid,text) TO authenticated');
     expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_create_warranty_ticket(uuid,uuid,text,text,text,text) TO authenticated');
+    expect(legacyHandoverHardeningSql).toContain(
+      'REVOKE ALL ON FUNCTION public.interior_create_handover_dossier(uuid, text)',
+    );
+    expect(customerHandoverMigrationSql).toContain('CREATE TABLE IF NOT EXISTS public.interior_handover_acceptance_requests');
+    expect(customerHandoverMigrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_request_handover_acceptance');
+    expect(customerHandoverMigrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_read_public_handover_acceptance');
+    expect(customerHandoverMigrationSql).toContain('CREATE OR REPLACE FUNCTION public.interior_transition_public_handover_acceptance');
+    expect(customerHandoverMigrationSql).toContain('customerAcceptanceRequestId');
+    expect(customerHandoverMigrationSql).toContain('customerAcceptanceSignatureSha256');
+    expect(customerHandoverMigrationSql).toContain("THEN 'legacy_unverified'");
+    expect(customerHandoverMigrationSql).toContain('INTERIOR_HANDOVER_CUSTOMER_EVIDENCE_REQUIRED');
+    expect(customerHandoverMigrationSql).toContain("o.bucket_id = 'interior-customer-signatures'");
+    expect(customerHandoverMigrationSql).toContain("q.severity IN ('critical', 'major') AND q.status <> 'verified'");
+    expect(customerHandoverMigrationSql).toContain('signature_sha256_hash');
+    expect(commercialEngineMigrationSql).toContain('FROM public.platform_current_actor_profile() actor');
+    expect(customerHandoverMigrationSql).toContain('INTERIOR_HANDOVER_CUSTOMER_CONTACT_REQUIRED');
+    expect(customerHandoverMigrationSql).toContain(
+      'FROM public.platform_current_actor_profile() actor',
+    );
+    expect(customerHandoverMigrationSql).toContain(
+      'REVOKE ALL ON FUNCTION public.interior_request_handover_acceptance(UUID, UUID)',
+    );
+    expect(customerHandoverMigrationSql).toContain(
+      'NEW.client_accepted IS DISTINCT FROM OLD.client_accepted',
+    );
+    expect(customerHandoverMigrationSql).toContain(
+      'NEW.status IS DISTINCT FROM OLD.status',
+    );
+    const handoverTransitionGrant = customerHandoverMigrationSql.slice(
+      customerHandoverMigrationSql.indexOf('REVOKE ALL ON FUNCTION public.interior_transition_public_handover_acceptance('),
+    );
+    expect(handoverTransitionGrant).toContain(') TO service_role;');
+    expect(handoverTransitionGrant).not.toContain('TO anon, service_role;');
   });
 
   it('masks contract finance and customer fields at the scoped read boundary', () => {
@@ -237,5 +288,54 @@ describe('Bella Interior RBAC migration contract', () => {
     expect(migrationSql).toContain("'baselineContractValue',CASE WHEN v_finance_access THEN v_contract.baseline_contract_value END");
     expect(migrationSql).toContain("'clientRepresentative',CASE WHEN v_customer_access THEN v_contract.client_representative END");
     expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_read_contract_project(uuid) TO authenticated');
+  });
+
+  it('scopes authenticated approval-token lookup and returns only transition-service fields', () => {
+    const start = commercialEngineMigrationSql.indexOf(
+      'CREATE OR REPLACE FUNCTION public.interior_read_customer_approval_by_token(',
+    );
+    const end = commercialEngineMigrationSql.indexOf(
+      'CREATE OR REPLACE FUNCTION public.interior_create_customer_approval_request(',
+      start,
+    );
+    const functionSql = commercialEngineMigrationSql.slice(start, end);
+
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(functionSql).toContain("'interior:contract:write'");
+    expect(functionSql).toContain("'approval_token', p_approval_token");
+    expect(functionSql).toContain("'sent_by_actor_id', v_approval.sent_by_actor_id");
+    expect(functionSql).not.toContain('to_jsonb(v_approval)');
+    expect(functionSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_read_customer_approval_by_token(UUID, UUID)');
+  });
+
+  it('binds contract approvals to exact quote lineage and freezes terms while customer review is pending', () => {
+    expect(commercialEngineMigrationSql).toContain("OLD.status = 'in_review'");
+    expect(commercialEngineMigrationSql).toContain('INTERIOR_CONTRACT_IMMUTABLE_DURING_CUSTOMER_REVIEW');
+    expect(commercialEngineMigrationSql).toContain('c.quotation_version_number = NEW.subject_version_number');
+    expect(commercialEngineMigrationSql).toContain('c.quotation_version_number = v_approval.subject_version_number');
+  });
+
+  it('requires exact customer approval and serialized payment reconciliation for contract addenda', () => {
+    expect(addendumSubjectMigrationSql).toContain("ADD VALUE IF NOT EXISTS 'contract_addendum'");
+    expect(customerApprovedAddendumMigrationSql).toContain('proposed_payment_schedule JSONB');
+    expect(customerApprovedAddendumMigrationSql).toContain('base_contract_value NUMERIC(15, 2)');
+    expect(customerApprovedAddendumMigrationSql).toContain(
+      "GRANT EXECUTE ON FUNCTION public.interior_create_contract_addendum_request(JSONB)\n  TO authenticated",
+    );
+    expect(customerApprovedAddendumMigrationSql).toContain(
+      "GRANT EXECUTE ON FUNCTION public.interior_read_public_customer_addendum_approval(UUID, UUID)\n  TO anon",
+    );
+    expect(customerApprovedAddendumMigrationSql).toContain('d.customer_approval_id = NEW.id');
+    expect(customerApprovedAddendumMigrationSql).toContain('v_contract.current_contract_value IS DISTINCT FROM v_addendum.base_contract_value');
+    expect(customerApprovedAddendumMigrationSql).toContain('INTERIOR_ADDENDUM_CANNOT_CHANGE_INVOICED_OR_PAID_MILESTONE');
+    expect(customerApprovedAddendumMigrationSql).toContain('INTERIOR_ADDENDUM_SCHEDULE_TOTAL_MISMATCH');
+    expect(customerApprovedAddendumMigrationSql).toContain('Lock in contract -> addendum -> milestone order');
+    expect(customerApprovedAddendumMigrationSql).toContain('FOR UPDATE OF c');
+    expect(customerApprovedAddendumMigrationSql).toContain('FOR UPDATE;');
+    expect(customerApprovedAddendumMigrationSql).toContain('current_contract_value = c.current_contract_value + v_addendum.value_delta');
+    expect(customerApprovedAddendumMigrationSql).toContain('CREATE TRIGGER trg_advance_interior_addendum_after_customer_approval');
+    expect(customerApprovedAddendumMigrationSql).toContain(
+      'REVOKE ALL ON FUNCTION public.advance_interior_addendum_after_customer_approval()\n  FROM PUBLIC, anon, authenticated, service_role',
+    );
   });
 });

@@ -40,6 +40,7 @@ export interface CreateContractFromQuotationInput {
   readonly tenantId: string;
   readonly projectId: string;
   readonly quotationId: string;
+  readonly quotationCustomerApprovalId: string;
   readonly contractNumber: string;
   readonly title: string;
   readonly clientRepresentative: string;
@@ -69,9 +70,16 @@ export interface CreateAddendumInput {
   readonly reason: string;
   readonly userRole: string;
   readonly actorId?: string;
-  readonly approvedAt?: string;
-  /** If true, adjusts existing unpaid milestone amounts proportionally */
-  readonly adjustUnpaidMilestones?: boolean;
+  /** Full customer-facing replacement schedule, including unchanged paid/invoiced milestones. */
+  readonly proposedPaymentSchedule: ReadonlyArray<{
+    readonly id: string;
+    readonly milestoneOrder: number;
+    readonly name: string;
+    readonly percentage: number;
+    readonly amount: number;
+    readonly triggerCondition: string;
+    readonly dueDate?: string;
+  }>;
 }
 
 export type PaymentMethod =

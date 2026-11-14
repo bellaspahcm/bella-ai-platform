@@ -130,9 +130,9 @@ export interface ContractAddendumItem {
   valueChange: number;
   valueChangeFormatted: string;
   effectiveDate: string;
-  status: 'approved' | 'pending' | 'signed';
+  status: 'approved' | 'pending' | 'signed' | 'rejected' | 'superseded';
   statusLabel: string;
-  statusBadgeVariant: 'success' | 'warning';
+  statusBadgeVariant: 'success' | 'warning' | 'danger';
   fileAttachment?: string;
 }
 

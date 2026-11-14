@@ -128,31 +128,82 @@ export class CommercialCostingService {
     readonly projectId: string;
     readonly boqId: string;
     readonly quotationNumber: string;
+    readonly actorId: string;
+    readonly actorName?: string;
     readonly discountAmount?: number;
     readonly vatPercent?: number;
     readonly paymentTerms?: string;
     readonly validityDays?: number;
   }): Promise<InteriorQuotation> {
-    if (!input.tenantId) throw new TenantIsolationViolationError();
+    if (!input.tenantId || !input.actorId.trim()) throw new TenantIsolationViolationError();
 
     const boq = await this.repository.getBOQ(input.tenantId, input.boqId);
     if (!boq) throw new Error(`BOQ ${input.boqId} not found`);
 
-    const subtotal = boq.totalClientPrice;
+    const quotationId = randomUUID();
+    const now = new Date().toISOString();
+    const items = boq.items.map((item) => {
+      const internalTotalCost = Math.round(item.internalUnitCost * item.quantity);
+      const clientTotalPrice = Math.round(item.clientUnitPrice * item.quantity);
+      const grossMarginAmount = clientTotalPrice - internalTotalCost;
+      return {
+        id: randomUUID(),
+        tenantId: input.tenantId,
+        quotationId,
+        boqItemId: item.id,
+        stableComponentId: item.stableComponentId,
+        roomZoneName: item.roomZoneName,
+        itemCode: item.itemCode,
+        itemName: item.itemName,
+        category: item.category,
+        specifications: [
+          item.specifications?.carcassMaterial,
+          item.specifications?.doorFrontMaterial,
+          item.specifications?.surfaceFinish,
+          item.specifications?.hardwareSpec,
+          item.specifications?.stoneOrGlassSpec,
+        ].filter(Boolean).join('; '),
+        unit: item.unit,
+        quantity: item.quantity,
+        internalUnitCost: item.internalUnitCost,
+        internalTotalCost,
+        markupPercent: item.internalUnitCost > 0
+          ? Math.round(((item.clientUnitPrice - item.internalUnitCost) / item.internalUnitCost) * 1000) / 10
+          : 0,
+        clientUnitPrice: item.clientUnitPrice,
+        clientTotalPrice,
+        grossMarginAmount,
+        grossMarginPercent: clientTotalPrice > 0
+          ? Math.round((grossMarginAmount / clientTotalPrice) * 1000) / 10
+          : 0,
+      };
+    });
+    if (items.length === 0 || items.some((item) => item.clientUnitPrice <= 0)) {
+      throw new Error('QuotationPriceRequired: every BOQ item must have an approved client unit price.');
+    }
+    const subtotal = items.reduce((total, item) => total + item.clientTotalPrice, 0);
+    const totalInternalCogs = items.reduce((total, item) => total + item.internalTotalCost, 0);
     const discountAmount = input.discountAmount ?? 0;
-    const discountedTotal = Math.max(0, subtotal - discountAmount);
+    if (!Number.isFinite(discountAmount) || discountAmount < 0 || discountAmount > subtotal) {
+      throw new Error('QuotationTermsInvalid: discount must be between zero and the quotation subtotal.');
+    }
+    const discountedTotal = subtotal - discountAmount;
     const vatPercent = input.vatPercent ?? 8;
-    const vatAmount = (discountedTotal * vatPercent) / 100;
+    if (!Number.isFinite(vatPercent) || vatPercent < 0 || vatPercent > 100) {
+      throw new Error('QuotationTermsInvalid: VAT percentage must be from 0 to 100.');
+    }
+    const vatAmount = Math.round((discountedTotal * vatPercent) / 100);
     const grandTotal = discountedTotal + vatAmount;
 
     const quotation: InteriorQuotation = {
-      id: randomUUID(),
+      id: quotationId,
       tenantId: input.tenantId,
       projectId: input.projectId,
       boqId: input.boqId,
+      boqVersionNumber: boq.versionNumber,
       quotationNumber: input.quotationNumber,
       versionNumber: 1,
-      status: 'accepted',
+      status: 'draft',
       subtotal,
       discountAmount,
       vatPercent,
@@ -160,10 +211,17 @@ export class CommercialCostingService {
       grandTotal,
       paymentTerms: input.paymentTerms ?? 'Thanh toán chia làm 5 đợt theo mốc tiến độ thi công',
       validityDays: input.validityDays ?? 30,
-      createdAt: new Date().toISOString(),
+      createdAt: now,
+      totalInternalCogs,
+      totalGrossMargin: subtotal - discountAmount - totalInternalCogs,
+      grossMarginPercent: discountedTotal > 0
+        ? Math.round(((subtotal - discountAmount - totalInternalCogs) / discountedTotal) * 1000) / 10
+        : 0,
+      preparedBy: input.actorName?.trim() || input.actorId,
+      items,
     };
 
-    await this.repository.saveQuotation(input.tenantId, quotation);
+    await this.repository.createQuotationSnapshot(input.tenantId, quotation);
     return quotation;
   }
 
@@ -171,6 +229,7 @@ export class CommercialCostingService {
     readonly tenantId: string;
     readonly projectId: string;
     readonly quotationId: string;
+    readonly quotationCustomerApprovalId: string;
     readonly contractNumber: string;
     readonly title: string;
     readonly clientRepresentative: string;
@@ -187,6 +246,31 @@ export class CommercialCostingService {
 
     const quotation = await this.repository.getQuotation(input.tenantId, input.quotationId);
     if (!quotation) throw new Error(`Quotation ${input.quotationId} not found`);
+    if (quotation.status !== 'accepted') {
+      throw new Error(`ContractQuotationStatusViolation: quotation must be accepted; current status is '${quotation.status}'.`);
+    }
+    const quotationApproval = await this.repository.getCustomerApproval(
+      input.tenantId,
+      input.quotationCustomerApprovalId,
+    );
+    if (!quotationApproval
+      || quotationApproval.tenantId !== input.tenantId
+      || quotationApproval.subjectType !== 'quotation'
+      || quotationApproval.subjectId !== quotation.id
+      || quotationApproval.subjectVersionNumber !== quotation.versionNumber
+      || quotationApproval.status !== 'approved'
+      || !quotationApproval.approvedAt) {
+      throw new Error('QuotationCustomerApprovalRequired: exact quotation version approval evidence is required.');
+    }
+
+    const boq = await this.repository.getBOQ(input.tenantId, quotation.boqId);
+    if (!boq || boq.versionNumber !== quotation.boqVersionNumber) {
+      throw new Error('QuotationBOQLineageMismatch: contract must use the exact BOQ version quoted to the customer.');
+    }
+    const designRevision = await this.repository.getDesignRevision(input.tenantId, boq.designRevisionId);
+    if (!designRevision) {
+      throw new Error('ContractDesignLineageMissing: referenced design revision was not found.');
+    }
 
     // Verify milestone percentages sum to 100%
     const totalPercentage = input.milestones.reduce((acc, m) => acc + m.percentage, 0);
@@ -218,63 +302,24 @@ export class CommercialCostingService {
       quotationId: input.quotationId,
       contractNumber: input.contractNumber,
       title: input.title,
-      status: 'signed',
+      status: 'draft',
       baselineContractValue: contractValue,
       currentContractValue: contractValue,
-      signedDate: now,
+      signedDate: null,
+      quotationCustomerApprovalId: quotationApproval.id,
       clientRepresentative: input.clientRepresentative,
       contractorRepresentative: input.contractorRepresentative,
       milestones,
       addenda: [],
+      quotationNumber: quotation.quotationNumber,
+      quotationVersionNumber: quotation.versionNumber,
+      boqId: boq.id,
+      boqVersionNumber: boq.versionNumber,
+      designRevisionId: designRevision.id,
+      designVersionNumber: designRevision.versionNumber,
     };
 
-    await this.repository.saveContract(input.tenantId, contract);
-
-    // Update project status to contracted
-    const project = await this.repository.getProject(input.tenantId, input.projectId);
-    if (project) {
-      await this.repository.saveProject(input.tenantId, {
-        ...project,
-        status: 'contracted',
-        updatedAt: now,
-      });
-    }
-
-    // Publish ContractSignedEvent & Queue First Milestone to Finance Outbox
-    if (this.outbox) {
-      await this.outbox.publishDomainEvent({
-        id: randomUUID(),
-        tenantId: input.tenantId,
-        aggregateType: 'interior_contract',
-        aggregateId: contract.id,
-        eventType: 'interior.contract.signed.v1',
-        occurredAt: now,
-        actorId: input.contractorRepresentative,
-        actorName: input.clientRepresentative,
-        payload: {
-          projectId: input.projectId,
-          contractId: contract.id,
-          contractValue,
-          clientName: input.clientRepresentative,
-        },
-      });
-
-      // Enqueue Milestone #1 (Tạm ứng) to Finance Outbox
-      const milestone1 = milestones[0];
-      if (milestone1) {
-        await this.outbox.enqueueFinanceMilestone({
-          tenantId: input.tenantId,
-          projectId: input.projectId,
-          contractId: contract.id,
-          milestoneOrder: milestone1.milestoneOrder,
-          milestoneName: milestone1.name,
-          amount: milestone1.amount,
-          currency: 'VND',
-          clientName: input.clientRepresentative,
-          occurredAt: now,
-        });
-      }
-    }
+    await this.repository.createContractWithMilestones(input.tenantId, contract);
 
     return contract;
   }

@@ -17,6 +17,7 @@
 import { InMemoryInteriorRepository } from '../repositories/in-memory.repository';
 import { PlatformFinanceOutboxAdapter } from '../adapters/platform-finance-outbox.adapter';
 import { InteriorContractLifecycleService } from '../services/interior-contract-lifecycle.service';
+import { InteriorCustomerApprovalService } from '../services/interior-customer-approval.service';
 import { TenantIsolationViolationError } from '../domain/errors';
 import type {
   InteriorProject,
@@ -27,6 +28,7 @@ import type {
   InteriorQuotation,
   InteriorContract,
 } from '../domain/commercial-costing/types';
+import type { CustomerApproval } from '../domain/commercial-costing/approval.types';
 
 describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment Milestones)', () => {
   let repository: InMemoryInteriorRepository;
@@ -41,6 +43,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
   let testRevision: DesignRevision;
   let testBOQ: InteriorBOQ;
   let acceptedQuotation: InteriorQuotation;
+  let acceptedQuotationApproval: CustomerApproval;
   let draftQuotation: InteriorQuotation;
 
   beforeEach(async () => {
@@ -52,15 +55,18 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
     testProject = {
       id: PROJECT_ID,
       tenantId: TENANT_ID,
-      projectCode: 'INT-2026-PTH01',
+      code: 'INT-2026-PTH01',
       name: 'Thao Dien Luxury Penthouse',
-      clientName: 'Madam Tran Thi Thu',
-      clientPhone: '+84901234567',
-      propertyType: 'penthouse',
-      totalAreaM2: 280,
-      status: 'in_design',
-      startDate: '2026-03-01',
+      customerId: 'customer-pth-01',
+      customerName: 'Madam Tran Thi Thu',
+      customerPhone: '+84901234567',
+      siteAddress: 'Thao Dien, Ho Chi Minh City',
+      projectType: 'residential_villa',
+      status: 'technical_design',
+      estimatedBudget: 148_500_000,
       targetCompletionDate: '2026-08-30',
+      leadArchitectId: 'architect-le-01',
+      leadArchitectName: 'Lead Architect Le',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -71,14 +77,15 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
       id: 'rev-pth-v1',
       tenantId: TENANT_ID,
       projectId: PROJECT_ID,
-      revisionNumber: 1,
+      versionNumber: 1,
       title: 'Detailed Fitout Design V1',
       status: 'approved',
+      submittedBy: 'Lead Architect Le',
+      submittedAt: new Date().toISOString(),
       approvedAt: new Date().toISOString(),
       approvedBy: 'Lead Architect Le',
-      notes: 'Final client signoff',
-      fileUrl: 'https://storage.bella.vn/revisions/pth-v1.pdf',
-      createdAt: new Date().toISOString(),
+      assets: [],
+      materialSpecs: [],
     };
     await repository.saveDesignRevision(TENANT_ID, testRevision);
 
@@ -127,6 +134,18 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
     };
     await repository.saveQuotation(TENANT_ID, acceptedQuotation);
 
+    acceptedQuotationApproval = {
+      id: 'approval-pth-quote-v1', tenantId: TENANT_ID, projectId: PROJECT_ID,
+      subjectType: 'quotation', subjectId: acceptedQuotation.id,
+      subjectVersionNumber: acceptedQuotation.versionNumber,
+      approvalToken: 'approval-token-pth-quote-v1', status: 'approved',
+      clientRepresentative: testProject.customerName, clientContact: testProject.customerPhone,
+      sentAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+      approvedAt: new Date().toISOString(), sentByActorId: 'actor-sales',
+      sentByActorName: 'Sales Director', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+    };
+    repository.seedCustomerApproval(TENANT_ID, acceptedQuotationApproval);
+
     // Setup draft quotation
     draftQuotation = {
       id: 'quot-pth-v1-draft',
@@ -148,6 +167,42 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
     await repository.saveQuotation(TENANT_ID, draftQuotation);
   });
 
+  const signContractWithCustomerEvidence = async (contract: InteriorContract): Promise<InteriorContract> => {
+    const approvalService = new InteriorCustomerApprovalService(repository, outbox);
+    const approval = await approvalService.sendApprovalRequest({
+      tenantId: TENANT_ID,
+      projectId: contract.projectId,
+      subjectType: 'contract',
+      subjectId: contract.id,
+      subjectVersionNumber: contract.quotationVersionNumber ?? 1,
+      clientRepresentative: contract.clientRepresentative,
+      clientContact: testProject.customerPhone,
+      actorId: 'test-sales-actor',
+      actorName: 'Sales',
+      userRole: 'pm',
+    });
+    await approvalService.recordApproval({
+      tenantId: TENANT_ID,
+      approvalId: approval.id,
+      approvalToken: approval.approvalToken,
+      signatureReference: {
+        storagePath: `interior/approvals/${contract.id}/signed.pdf`,
+        storageUrl: `https://storage.example.test/interior/approvals/${contract.id}/signed.pdf`,
+        mimeType: 'application/pdf',
+        fileSizeBytes: 1024,
+        sha256Hash: 'a'.repeat(64),
+      },
+      actorId: 'test-customer-actor',
+      actorName: contract.clientRepresentative,
+      userRole: 'admin',
+    });
+    const signed = await repository.getContract(TENANT_ID, contract.id);
+    if (!signed || signed.status !== 'signed' || !signed.customerApprovalId) {
+      throw new Error('Customer signature evidence did not advance the contract');
+    }
+    return signed;
+  };
+
   // ─── CHECKPOINT 1: Accepted Quotation Prerequisite ─────────────────────────
   describe('Checkpoint 1: Accepted Quotation Prerequisite', () => {
     it('rejects contract creation from a draft quotation', async () => {
@@ -156,6 +211,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
           tenantId: TENANT_ID,
           projectId: PROJECT_ID,
           quotationId: draftQuotation.id,
+          quotationCustomerApprovalId: acceptedQuotationApproval.id,
           contractNumber: 'HD-2026-PTH01',
           title: 'Hợp đồng thi công nội thất Penthouse Thảo Điền',
           clientRepresentative: 'Madam Tran Thi Thu',
@@ -178,6 +234,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
           tenantId: TENANT_ID,
           projectId: PROJECT_ID,
           quotationId: sentQuotation.id,
+          quotationCustomerApprovalId: acceptedQuotationApproval.id,
           contractNumber: 'HD-2026-PTH02',
           title: 'Hợp đồng thi công',
           clientRepresentative: 'Madam Tran Thi Thu',
@@ -192,6 +249,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
         tenantId: TENANT_ID,
         projectId: PROJECT_ID,
         quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
         contractNumber: 'HD-2026-PTH01',
         title: 'Hợp đồng thi công hoàn thiện nội thất Penthouse Thảo Điền',
         clientRepresentative: 'Madam Tran Thi Thu',
@@ -203,7 +261,8 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
       expect(contract).toBeDefined();
       expect(contract.id).toBeDefined();
       expect(contract.contractNumber).toBe('HD-2026-PTH01');
-      expect(contract.status).toBe('signed');
+      expect(contract.status).toBe('draft');
+      expect(contract.signedDate).toBeNull();
       expect(contract.baselineContractValue).toBe(148_500_000);
       expect(contract.currentContractValue).toBe(148_500_000);
     });
@@ -216,6 +275,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
         tenantId: TENANT_ID,
         projectId: PROJECT_ID,
         quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
         contractNumber: 'HD-2026-PTH01',
         title: 'Hợp đồng thi công nội thất',
         clientRepresentative: 'Madam Tran Thi Thu',
@@ -229,9 +289,9 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
       expect(contract.boqId).toBe(testBOQ.id);
       expect(contract.boqVersionNumber).toBe(1);
 
-      // Verify project status transition to contracted
+      // A drafted agreement does not yet represent customer signature.
       const updatedProject = await repository.getProject(TENANT_ID, PROJECT_ID);
-      expect(updatedProject?.status).toBe('contracted');
+      expect(updatedProject?.status).toBe('technical_design');
     });
   });
 
@@ -242,6 +302,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
         tenantId: TENANT_ID,
         projectId: PROJECT_ID,
         quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
         contractNumber: 'HD-2026-PTH01',
         title: 'Hợp đồng thi công 5 đợt',
         clientRepresentative: 'Madam Tran Thi Thu',
@@ -278,6 +339,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
         tenantId: TENANT_ID,
         projectId: PROJECT_ID,
         quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
         contractNumber: 'HD-2026-3STEP',
         title: 'Hợp đồng 3 đợt',
         clientRepresentative: 'Madam Tran Thi Thu',
@@ -294,6 +356,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
         tenantId: TENANT_ID,
         projectId: PROJECT_ID,
         quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
         contractNumber: 'HD-2026-4STEP',
         title: 'Hợp đồng 4 đợt',
         clientRepresentative: 'Madam Tran Thi Thu',
@@ -313,6 +376,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
           tenantId: TENANT_ID,
           projectId: PROJECT_ID,
           quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
           contractNumber: 'HD-INVALID-PCT',
           title: 'Hợp đồng sai tỷ lệ',
           clientRepresentative: 'Madam Tran Thi Thu',
@@ -329,23 +393,41 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
 
   // ─── CHECKPOINT 4: Baseline vs Current Value Separation (Addenda) ─────────
   describe('Checkpoint 4: Baseline vs Current Contract Value Separation (Addenda)', () => {
-    it('preserves immutable baselineContractValue while dynamically adjusting currentContractValue', async () => {
+    it('changes contract value and schedule only after the customer approves the exact addendum', async () => {
       const contract = await service.createContractFromQuotation({
         tenantId: TENANT_ID,
         projectId: PROJECT_ID,
         quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
         contractNumber: 'HD-2026-PTH01',
         title: 'Hợp đồng gốc',
         clientRepresentative: 'Madam Tran Thi Thu',
         contractorRepresentative: 'Director Vu',
         userRole: 'director',
       });
+      await signContractWithCustomerEvidence(contract);
 
       expect(contract.baselineContractValue).toBe(148_500_000);
       expect(contract.currentContractValue).toBe(148_500_000);
 
-      // Create Addendum 01: Additional Smart Home Automation (+35,000,000 VND)
-      const addendum1 = await service.createAddendum({
+      const revisedValue = contract.currentContractValue + 35_000_000;
+      let assigned = 0;
+      const proposedPaymentSchedule = contract.milestones.map((milestone, index) => {
+        const amount = index === contract.milestones.length - 1
+          ? revisedValue - assigned
+          : Math.round(revisedValue * milestone.percentage) / 100;
+        assigned += amount;
+        return {
+          id: milestone.id,
+          milestoneOrder: milestone.milestoneOrder,
+          name: milestone.name,
+          percentage: milestone.percentage,
+          amount,
+          triggerCondition: milestone.triggerCondition,
+          dueDate: milestone.dueDate,
+        };
+      });
+      const addendum = await service.createAddendum({
         tenantId: TENANT_ID,
         contractId: contract.id,
         addendumNumber: 'PL-01',
@@ -353,33 +435,41 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
         valueDelta: 35_000_000,
         reason: 'Chủ đầu tư yêu cầu nâng cấp gói smarthome',
         userRole: 'pm',
+        proposedPaymentSchedule,
       });
 
-      expect(addendum1.addendumNumber).toBe('PL-01');
-      expect(addendum1.valueDelta).toBe(35_000_000);
-
-      // Verify contract values after Addendum 01
-      const reloaded1 = await repository.getContract(TENANT_ID, contract.id);
-      expect(reloaded1?.baselineContractValue).toBe(148_500_000); // IMMUTABLE!
-      expect(reloaded1?.currentContractValue).toBe(183_500_000); // 148.5M + 35M
-      expect(reloaded1?.addenda).toHaveLength(1);
-
-      // Create Addendum 02: Material Deduction (-8,500,000 VND)
-      await service.createAddendum({
+      expect(addendum.status).toBe('pending_customer_approval');
+      expect((await repository.getContract(TENANT_ID, contract.id))?.currentContractValue).toBe(148_500_000);
+      const approvalService = new InteriorCustomerApprovalService(repository, outbox);
+      const approval = await approvalService.sendApprovalRequest({
         tenantId: TENANT_ID,
-        contractId: contract.id,
-        addendumNumber: 'PL-02',
-        title: 'Giảm trừ sàn gỗ phòng ngủ phụ',
-        valueDelta: -8_500_000,
-        reason: 'Khách hàng tự mua vật tư sàn',
-        userRole: 'director',
+        projectId: PROJECT_ID,
+        subjectType: 'contract_addendum',
+        subjectId: addendum.id,
+        subjectVersionNumber: 1,
+        clientRepresentative: 'Madam Tran Thi Thu',
+        clientContact: '+84901234567',
+        actorId: 'contract-manager',
+        actorName: 'Contract Manager',
+        userRole: 'pm',
+      });
+      await approvalService.recordApproval({
+        tenantId: TENANT_ID,
+        approvalId: approval.id,
+        approvalToken: approval.approvalToken,
+        actorId: 'customer-portal',
+        actorName: 'Madam Tran Thi Thu',
+        userRole: 'client',
+        customerNotes: 'Tôi chấp thuận phụ lục và lịch thanh toán đã gửi.',
       });
 
-      // Verify contract values after Addendum 02
-      const reloaded2 = await repository.getContract(TENANT_ID, contract.id);
-      expect(reloaded2?.baselineContractValue).toBe(148_500_000); // IMMUTABLE!
-      expect(reloaded2?.currentContractValue).toBe(175_000_000); // 148.5M + 35M - 8.5M
-      expect(reloaded2?.addenda).toHaveLength(2);
+      const reloaded = await repository.getContract(TENANT_ID, contract.id);
+      expect(reloaded?.baselineContractValue).toBe(148_500_000);
+      expect(reloaded?.currentContractValue).toBe(revisedValue);
+      expect(reloaded?.addenda).toHaveLength(1);
+      expect(reloaded?.addenda[0].customerApprovalId).toBe(approval.id);
+      expect(reloaded?.addenda[0].status).toBe('approved');
+      expect(reloaded?.milestones.reduce((sum, milestone) => sum + milestone.amount, 0)).toBe(revisedValue);
     });
 
     it('rejects direct in-place mutation of baselineContractValue on a signed contract', async () => {
@@ -387,12 +477,14 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
         tenantId: TENANT_ID,
         projectId: PROJECT_ID,
         quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
         contractNumber: 'HD-2026-IMMUTABLE',
         title: 'Hợp đồng kiểm tra bất biến',
         clientRepresentative: 'Madam Tran Thi Thu',
         contractorRepresentative: 'Director Vu',
         userRole: 'owner',
       });
+      await signContractWithCustomerEvidence(contract);
 
       // Attempting to save contract with mutated baselineContractValue must be rejected
       const maliciousContract: InteriorContract = {
@@ -414,6 +506,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
           tenantId: '',
           projectId: PROJECT_ID,
           quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
           contractNumber: 'HD-FAIL',
           title: 'Hợp đồng',
           clientRepresentative: 'Client',
@@ -429,6 +522,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
           tenantId: OTHER_TENANT_ID,
           projectId: PROJECT_ID,
           quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
           contractNumber: 'HD-CROSS-TENANT',
           title: 'Hợp đồng xâm nhập',
           clientRepresentative: 'Madam Tran',
@@ -441,11 +535,12 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
 
   // ─── CHECKPOINT 6: Platform Finance Outbox Event Emission ───────────────────
   describe('Checkpoint 6: Platform Finance Outbox Event-After-Persistence Publication', () => {
-    it('emits interior.contract.signed.v1 and enqueues Milestone #1 into Finance Outbox', async () => {
+    it('does not publish a signed event or enqueue finance before customer signature', async () => {
       const contract = await service.createContractFromQuotation({
         tenantId: TENANT_ID,
         projectId: PROJECT_ID,
         quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
         contractNumber: 'HD-2026-OUTBOX',
         title: 'Hợp đồng Outbox Test',
         clientRepresentative: 'Madam Tran Thi Thu',
@@ -453,21 +548,9 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
         userRole: 'pm',
       });
 
-      const queuedEvents = outbox.getPublishedEvents();
-      expect(queuedEvents).toHaveLength(1);
-      const signedEvent = queuedEvents[0];
-      expect(signedEvent.eventType).toBe('interior.contract.signed.v1');
-      expect(signedEvent.aggregateId).toBe(contract.id);
-      expect(signedEvent.payload.baselineContractValue).toBe(148_500_000);
-
-      // Verify milestone #1 queued for finance billing
-      const financeRecords = outbox.getQueuedFinanceRecords();
-      expect(financeRecords).toHaveLength(1);
-      const firstMilestone = financeRecords[0];
-      expect(firstMilestone.contractId).toBe(contract.id);
-      expect(firstMilestone.milestoneOrder).toBe(1);
-      expect(firstMilestone.amount).toBe(44_550_000); // 30% of 148.5M
-      expect(firstMilestone.clientName).toBe('Madam Tran Thi Thu');
+      expect(contract.status).toBe('draft');
+      expect(outbox.getPublishedEvents().some((event) => event.eventType === 'interior.contract.signed.v1')).toBe(false);
+      expect(outbox.getQueuedFinanceRecords()).toHaveLength(0);
     });
 
     it('emits interior.milestone.invoiced.v1 when milestone invoice is issued', async () => {
@@ -475,12 +558,14 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
         tenantId: TENANT_ID,
         projectId: PROJECT_ID,
         quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
         contractNumber: 'HD-2026-INV',
         title: 'Hợp đồng Hóa đơn',
         clientRepresentative: 'Madam Tran Thi Thu',
         contractorRepresentative: 'Director Vu',
         userRole: 'pm',
       });
+      await signContractWithCustomerEvidence(contract);
 
       const m1 = contract.milestones[0];
       await service.issueMilestoneInvoice({
@@ -506,6 +591,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
         tenantId: TENANT_ID,
         projectId: PROJECT_ID,
         quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
         contractNumber: 'HD-2026-LIFECYCLE',
         title: 'Hợp đồng Thu chi',
         clientRepresentative: 'Madam Tran Thi Thu',
@@ -513,8 +599,9 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
         userRole: 'director',
         milestoneTemplate: '3_STEP_STANDARD', // 40% (59.4M) - 40% (59.4M) - 20% (29.7M)
       });
+      const signedContract = await signContractWithCustomerEvidence(contract);
 
-      const m1 = contract.milestones[0]; // 59,400,000 VND
+      const m1 = signedContract.milestones[0]; // 59,400,000 VND
       expect(m1.amount).toBe(59_400_000);
 
       // 1. Initial Financial Summary
@@ -553,7 +640,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
       let updatedContract = await repository.getContract(TENANT_ID, contract.id);
       let updatedM1 = updatedContract?.milestones.find((m) => m.id === m1.id);
       expect(updatedM1?.collectedAmount).toBe(30_000_000);
-      expect(updatedM1?.status).toBe('pending'); // Still pending/partial (needs 59.4M)
+      expect(updatedM1?.status).toBe('invoiced'); // The issued invoice remains open while partially paid.
 
       // 4. Remaining Payment of 29,400,000 VND to complete Milestone 1
       await service.recordPayment({
@@ -591,12 +678,74 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
           milestoneId: m1.id,
           amount: 10_000_000,
           paymentMethod: 'bank_transfer',
-          referenceCode: 'VCB-TX-98765', // Duplicate reference code!
+          referenceCode: 'vcb-tx-98765', // Case-insensitive duplicate reference code.
           transactionDate: '2026-03-09',
           recordedBy: 'Accountant Nguyen',
           userRole: 'owner',
         })
       ).rejects.toThrow(/DuplicatePaymentTransaction/);
+    });
+
+    it('serializes concurrent receipts and rejects payments above a milestone balance', async () => {
+      const contract = await service.createContractFromQuotation({
+        tenantId: TENANT_ID,
+        projectId: PROJECT_ID,
+        quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
+        contractNumber: 'HD-2026-PAYMENT-GUARD',
+        title: 'Hợp đồng kiểm soát thanh toán',
+        clientRepresentative: 'Madam Tran Thi Thu',
+        contractorRepresentative: 'Director Vu',
+        userRole: 'pm',
+        milestoneTemplate: '3_STEP_STANDARD',
+      });
+      const signedContract = await signContractWithCustomerEvidence(contract);
+      const milestone = signedContract.milestones[0];
+
+      const results = await Promise.allSettled([
+        service.recordPayment({
+          tenantId: TENANT_ID,
+          contractId: contract.id,
+          milestoneId: milestone.id,
+          amount: 1_000_000,
+          paymentMethod: 'bank_transfer',
+          referenceCode: 'RACE-REF-01',
+          transactionDate: '2026-03-05',
+          recordedBy: 'accountant-1',
+          userRole: 'qs',
+        }),
+        service.recordPayment({
+          tenantId: TENANT_ID,
+          contractId: contract.id,
+          milestoneId: milestone.id,
+          amount: 1_000_000,
+          paymentMethod: 'bank_transfer',
+          referenceCode: ' race-ref-01 ',
+          transactionDate: '2026-03-05',
+          recordedBy: 'accountant-1',
+          userRole: 'qs',
+        }),
+      ]);
+
+      expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+      expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1);
+      const afterConcurrentInsert = await repository.getContract(TENANT_ID, contract.id);
+      expect(afterConcurrentInsert?.milestones[0].collectedAmount).toBe(1_000_000);
+
+      await expect(service.recordPayment({
+        tenantId: TENANT_ID,
+        contractId: contract.id,
+        milestoneId: milestone.id,
+        amount: milestone.amount,
+        paymentMethod: 'bank_transfer',
+        referenceCode: 'OVER-MILESTONE',
+        transactionDate: '2026-03-06',
+        recordedBy: 'accountant-1',
+        userRole: 'qs',
+      })).rejects.toThrow(/INTERIOR_PAYMENT_EXCEEDS_MILESTONE_BALANCE/);
+
+      const finalContract = await repository.getContract(TENANT_ID, contract.id);
+      expect(finalContract?.milestones[0].collectedAmount).toBe(1_000_000);
     });
   });
 
@@ -609,6 +758,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
           tenantId: TENANT_ID,
           projectId: PROJECT_ID,
           quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
           contractNumber: `HD-ROLE-${role.toUpperCase()}`,
           title: `Hợp đồng tạo bởi role ${role}`,
           clientRepresentative: 'Madam Tran',
@@ -627,6 +777,7 @@ describe('Bella Interior OS — Commercial Proposal Phase 3 (Contract & Payment 
             tenantId: TENANT_ID,
             projectId: PROJECT_ID,
             quotationId: acceptedQuotation.id,
+        quotationCustomerApprovalId: acceptedQuotationApproval.id,
             contractNumber: 'HD-UNAUTH',
             title: 'Hợp đồng bất hợp pháp',
             clientRepresentative: 'Client',

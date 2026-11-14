@@ -1,11 +1,12 @@
 /**
- * Bella Interior OS — Supabase Durable Finance Outbox Adapter
+ * Bella Interior OS — Supabase Finance Outbox Adapter
  *
- * Implements InteriorOutboxPort using public.interior_finance_outbox and the
- * enqueue_interior_finance_event PostgreSQL RPC function.
+ * Persists finance events through public.interior_finance_outbox and dispatches
+ * domain notifications to the Host Event Bus after the source data is persisted.
  *
  * Durability & Invariants:
- *   - Events are written to the database in the same transaction or persistent DB call
+ *   - Finance records are written to the database in a persistent DB call or trigger transaction
+ *   - Domain notifications are process-local; persisted domain rows remain the source of truth
  *   - Idempotency enforced via UNIQUE (tenant_id, event_type, reference_type, reference_id)
  *   - Gracefully handles duplicate events by returning existing/idempotent status
  *
@@ -13,6 +14,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { eventBus } from '@/platform/host/event-bus';
 import type { BaseInteriorDomainEvent } from '../domain/events';
 import type {
   FinanceMilestoneOutboxPayload,
@@ -28,8 +30,22 @@ export class SupabaseInteriorFinanceOutboxAdapter implements InteriorOutboxPort 
   constructor(private readonly supabase: SupabaseClient) {}
 
   async publishDomainEvent(event: BaseInteriorDomainEvent): Promise<void> {
-    void event;
-    throw new Error('INTERIOR_DOMAIN_EVENT_OUTBOX_NOT_CONFIGURED');
+    await eventBus.publish({
+      eventType: event.eventType,
+      eventVersion: event.eventType.endsWith('.v1') ? 'v1' : '1.0',
+      tenantId: event.tenantId,
+      aggregateId: event.aggregateId,
+      aggregateType: event.aggregateType,
+      payload: {
+        ...event.payload,
+        eventId: event.id,
+        occurredAt: event.occurredAt,
+        actorId: event.actorId,
+        actorName: event.actorName,
+      },
+      userId: event.actorId,
+      correlationId: event.id,
+    });
   }
 
   async enqueueFinanceMilestone(

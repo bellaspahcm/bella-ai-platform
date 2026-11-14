@@ -17,6 +17,7 @@ jest.mock('../lib/rbac-api', () => ({
 
 const resolveContextMock = jest.mocked(resolveInteriorContext);
 const rpcClientFactoryMock = jest.mocked(interiorRbacRpcClient);
+const testCustomerHandoverToken = ['00000000', '0000', '4000', '8000', '000000000001'].join('-');
 const projectId = '123e4567-e89b-42d3-a456-426614174000';
 const certificateId = '123e4567-e89b-42d3-a456-426614174001';
 
@@ -26,29 +27,39 @@ describe('Interior handover and warranty RBAC routes', () => {
     resolveContextMock.mockResolvedValue({
       ok: true,
       tenantId: 'tenant-a',
-      actor: { id: 'auth-user-a' },
+      actor: { id: 'auth-user-a', full_name: 'Project Manager' },
       supabase: {},
     } as unknown as Awaited<ReturnType<typeof resolveInteriorContext>>);
   });
 
-  it('creates handover through a project-scoped approval command', async () => {
-    const dossier = { id: 'dossier-a', projectId, status: 'completed', clientAccepted: true };
+  it('creates a pending customer acceptance request through the scoped command', async () => {
     const rpc = jest.fn().mockResolvedValue({
-      data: [{ status: 'COMMITTED', reason: 'HANDOVER_APPROVED', dossier }], error: null,
+      data: {
+        status: 'COMMITTED',
+        dossier: { id: 'dossier-a', projectId, status: 'pending_customer_acceptance', clientAccepted: false },
+        approval: {
+          id: '123e4567-e89b-42d3-a456-426614174081',
+          token: testCustomerHandoverToken,
+          expiresAt: '2026-12-14T00:00:00.000Z',
+          status: 'pending',
+        },
+      }, error: null,
     });
     rpcClientFactoryMock.mockReturnValue({ rpc } as unknown as ReturnType<typeof interiorRbacRpcClient>);
 
     const response = await createHandover(new Request('https://bella.example/api/interior/delivery/handover', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId, clientRepresentative: 'Client representative' }),
+      body: JSON.stringify({ projectId, clientRepresentative: 'Untrusted caller name' }),
     }));
 
     expect(response.status).toBe(201);
-    expect(rpc).toHaveBeenCalledWith('interior_create_handover_dossier', {
+    expect(rpc).toHaveBeenCalledWith('interior_request_handover_acceptance', {
       p_project_id: projectId,
-      p_client_representative: 'Client representative',
+      p_contract_id: null,
     });
+    const body = await response.json() as { data: Record<string, unknown> };
+    expect(body.data.customerAcceptanceEndpoint).toContain('/acceptances/123e4567-e89b-42d3-a456-426614174081?token=');
   });
 
   it('reads warranty certificates through a scoped RPC and preserves database field masking', async () => {

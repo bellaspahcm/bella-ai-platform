@@ -3,7 +3,7 @@
  *
  * Verifies:
  * - Generation of Quotations from approved BOQ with Tiered Markups
- * - 4-part Cost Breakdown computation (material, labor, hardware, finishing)
+ * - Persisted line snapshots contain only source-backed cost values
  * - CRITICAL AUTHORIZATION BOUNDARY:
  *   - ClientQuotationView strictly strips all internal COGS, margins, and markups (zero financial leakage)
  *   - InternalQuotationCostingView grants access to authorized roles and rejects unauthorized roles
@@ -208,10 +208,10 @@ describe('InteriorQuotationMarginService (Phase 2)', () => {
     });
   });
 
-  // ── 2. Cost Breakdown ─────────────────────────────────────────────────────
+  // ── 2. Source-Backed Cost Data ────────────────────────────────────────────
 
-  describe('4-Part Cost Breakdown', () => {
-    test('computes material, labor, hardware, and finishing summing to exact COGS', async () => {
+  describe('Source-Backed Cost Data', () => {
+    test('does not invent a cost breakdown when the BOQ contains only a total unit cost', async () => {
       const quotation = await service.generateQuotationFromBOQ({
         tenantId: TENANT_A,
         projectId: PROJECT_ID,
@@ -220,13 +220,7 @@ describe('InteriorQuotationMarginService (Phase 2)', () => {
       });
 
       for (const item of quotation.items) {
-        expect(item.costBreakdown).toBeDefined();
-        const cb = item.costBreakdown!;
-        const sum = cb.materialCost + cb.laborCost + cb.hardwareCost + cb.finishingCost;
-        expect(sum).toBe(item.internalTotalCost);
-        expect(cb.materialCost).toBeGreaterThan(0);
-        expect(cb.laborCost).toBeGreaterThan(0);
-        expect(cb.hardwareCost).toBeGreaterThan(0);
+        expect(item.costBreakdown).toBeUndefined();
       }
     });
   });
@@ -364,6 +358,26 @@ describe('InteriorQuotationMarginService (Phase 2)', () => {
       expect(v2.discountAmount).toBe(5_000_000);
       expect(v2.subtotal).toBeLessThan(v1.subtotal);
       expect(v2.totalGrossMargin).toBeLessThan(v1.totalGrossMargin);
+      expect(await repo.getQuotation(TENANT_A, v2.id)).toMatchObject({
+        id: v2.id,
+        versionNumber: 2,
+        forkedFromQuotationId: v1.id,
+      });
+    });
+
+    test('requires a new BOQ revision before changing a quoted quantity', async () => {
+      const v1 = await service.generateQuotationFromBOQ({
+        tenantId: TENANT_A,
+        projectId: PROJECT_ID,
+        boqId: 'boq-canonical-001',
+        actorId: ACTOR_ID,
+      });
+      await expect(service.reviseQuotation({
+        tenantId: TENANT_A,
+        sourceQuotationId: v1.id,
+        actorId: ACTOR_ID,
+        itemPriceAdjustments: [{ itemId: v1.items[0].id, newQuantity: v1.items[0].quantity + 1 }],
+      }, v1)).rejects.toThrow('BOQRevisionRequiredForQuantityChange');
     });
 
     test('compares V1 vs V2 revisions producing exact financial deltas', async () => {
