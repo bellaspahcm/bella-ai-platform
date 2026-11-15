@@ -26,7 +26,6 @@ import type {
   GenerateQuotationFromBOQInput,
   ReviseQuotationInput,
   TieredMarkupConfig,
-  ItemCostBreakdown,
 } from '../domain/commercial-costing/quotation.types';
 import { CANONICAL_TIERED_MARKUP_CONFIG } from '../domain/commercial-costing/quotation.types';
 import type { BOQItem, FurnitureItemCategory } from '../domain/commercial-costing/types';
@@ -99,11 +98,19 @@ export class InteriorQuotationMarginService {
     if (!boq) {
       throw new Error(`QuotationGenerationError: BOQ "${input.boqId}" not found for tenant "${input.tenantId}".`);
     }
+    if (boq.projectId !== input.projectId) {
+      throw new Error('QuotationGenerationError: requested project does not own the selected BOQ.');
+    }
 
     if (boq.status !== 'approved' && boq.status !== 'locked_for_contract') {
       throw new Error(
         `QuotationGenerationError: Cannot generate quotation from BOQ in status "${boq.status}". BOQ must be "approved" or "locked_for_contract".`
       );
+    }
+    if (!Number.isFinite(input.discountAmount ?? 0) || (input.discountAmount ?? 0) < 0
+      || !Number.isFinite(input.vatPercent ?? 8) || (input.vatPercent ?? 8) < 0 || (input.vatPercent ?? 8) > 100
+      || !Number.isInteger(input.validityDays ?? 30) || (input.validityDays ?? 30) < 1 || (input.validityDays ?? 30) > 365) {
+      throw new Error('QuotationTermsInvalid: discount, VAT, or validity is outside the supported range.');
     }
 
     const markupConfig: TieredMarkupConfig = {
@@ -125,12 +132,15 @@ export class InteriorQuotationMarginService {
     let runningCogs = 0;
 
     const items: QuotationLineItem[] = boq.items.map((item: BOQItem) => {
-      const markupPercent = markupConfig.categoryMarkups[item.category] ?? markupConfig.defaultMarkupPercent;
+      const configuredMarkup = markupConfig.categoryMarkups[item.category] ?? markupConfig.defaultMarkupPercent;
       
       // Determine client unit price: if already set in BOQ, respect it; otherwise calculate from markup
       const clientUnitPrice = item.clientUnitPrice > 0
         ? item.clientUnitPrice
-        : Math.round(item.internalUnitCost * (1 + markupPercent / 100));
+        : Math.round(item.internalUnitCost * (1 + configuredMarkup / 100));
+      const markupPercent = item.internalUnitCost > 0
+        ? Math.round(((clientUnitPrice - item.internalUnitCost) / item.internalUnitCost) * 1000) / 10
+        : 0;
 
       const internalTotalCost = Math.round(item.internalUnitCost * item.quantity);
       const clientTotalPrice = Math.round(clientUnitPrice * item.quantity);
@@ -138,14 +148,6 @@ export class InteriorQuotationMarginService {
       const grossMarginPercent = clientTotalPrice > 0
         ? Math.round((grossMarginAmount / clientTotalPrice) * 1000) / 10
         : 0;
-
-      // Estimate granular 4-part cost breakdown based on industry heuristics
-      const costBreakdown: ItemCostBreakdown = {
-        materialCost: Math.round(internalTotalCost * 0.55),
-        laborCost: Math.round(internalTotalCost * 0.20),
-        hardwareCost: Math.round(internalTotalCost * 0.15),
-        finishingCost: internalTotalCost - Math.round(internalTotalCost * 0.55) - Math.round(internalTotalCost * 0.20) - Math.round(internalTotalCost * 0.15),
-      };
 
       runningSubtotal += clientTotalPrice;
       runningCogs += internalTotalCost;
@@ -165,6 +167,7 @@ export class InteriorQuotationMarginService {
           item.specifications?.doorFrontMaterial,
           item.specifications?.surfaceFinish,
           item.specifications?.hardwareSpec,
+          item.specifications?.stoneOrGlassSpec,
         ].filter(Boolean).join('; ') || 'Theo tiêu chuẩn hoàn thiện Bella',
         unit: item.unit,
         quantity: item.quantity,
@@ -175,12 +178,14 @@ export class InteriorQuotationMarginService {
         clientTotalPrice,
         grossMarginAmount,
         grossMarginPercent,
-        costBreakdown,
       };
     });
 
     const discountAmount = input.discountAmount ?? 0;
-    const discountedSubtotal = Math.max(0, runningSubtotal - discountAmount);
+    if (discountAmount > runningSubtotal) {
+      throw new Error('QuotationTermsInvalid: discount cannot exceed the quotation subtotal.');
+    }
+    const discountedSubtotal = runningSubtotal - discountAmount;
     const vatPercent = input.vatPercent ?? 8;
     const vatAmount = Math.round((discountedSubtotal * vatPercent) / 100);
     const grandTotal = discountedSubtotal + vatAmount;
@@ -225,8 +230,8 @@ export class InteriorQuotationMarginService {
       items,
     };
 
-    // Save to repository (saves header and items)
-    await this.repo.saveQuotation(input.tenantId, {
+    // Save the commercial header and all version-specific line values atomically.
+    await this.repo.createQuotationSnapshot(input.tenantId, {
       id: fullQuotation.id,
       tenantId: fullQuotation.tenantId,
       projectId: fullQuotation.projectId,
@@ -247,6 +252,7 @@ export class InteriorQuotationMarginService {
       totalGrossMargin: fullQuotation.totalGrossMargin,
       grossMarginPercent: fullQuotation.grossMarginPercent,
       preparedBy: fullQuotation.preparedBy,
+      items: fullQuotation.items,
     });
 
     return fullQuotation;
@@ -470,6 +476,14 @@ export class InteriorQuotationMarginService {
     if (!input.tenantId || input.tenantId !== source.tenantId) {
       throw new TenantIsolationViolationError();
     }
+    if (!['draft', 'sent_to_client', 'negotiating', 'rejected'].includes(source.status)) {
+      throw new Error('QuotationRevisionStatusViolation: a signed or accepted quotation cannot be revised.');
+    }
+    const storedSource = await this.repo.getQuotation(input.tenantId, input.sourceQuotationId);
+    if (!storedSource || storedSource.id !== source.id || storedSource.versionNumber !== source.versionNumber
+      || storedSource.boqId !== source.boqId || storedSource.status !== source.status) {
+      throw new Error('QuotationRevisionSourceMismatch: source must match a persisted quotation version.');
+    }
 
     const newVersionNumber = source.versionNumber + 1;
     const newQuotationNumber = source.quotationNumber.replace(/-Q\d+$/, '') + `-Q${newVersionNumber}`;
@@ -478,7 +492,18 @@ export class InteriorQuotationMarginService {
 
     const priceAdjustmentMap = new Map<string, { newPrice?: number; newQty?: number }>();
     if (input.itemPriceAdjustments) {
+      const sourceItemIds = new Set(source.items.map((item) => item.id));
       for (const adj of input.itemPriceAdjustments) {
+        if (!sourceItemIds.has(adj.itemId) || priceAdjustmentMap.has(adj.itemId)) {
+          throw new Error('QuotationRevisionItemInvalid: every adjusted item must occur once in the source quotation.');
+        }
+        if (adj.newClientUnitPrice !== undefined
+          && (!Number.isFinite(adj.newClientUnitPrice) || adj.newClientUnitPrice < 0)) {
+          throw new Error('QuotationRevisionPriceInvalid: adjusted price must be a non-negative finite amount.');
+        }
+        if (adj.newQuantity !== undefined && adj.newQuantity !== source.items.find((item) => item.id === adj.itemId)?.quantity) {
+          throw new Error('BOQRevisionRequiredForQuantityChange: quantity changes require a new BOQ revision.');
+        }
         priceAdjustmentMap.set(adj.itemId, { newPrice: adj.newClientUnitPrice, newQty: adj.newQuantity });
       }
     }
@@ -489,7 +514,7 @@ export class InteriorQuotationMarginService {
     const revisedItems: QuotationLineItem[] = source.items.map((item) => {
       const adj = priceAdjustmentMap.get(item.id);
       const clientUnitPrice = adj?.newPrice !== undefined ? adj.newPrice : item.clientUnitPrice;
-      const quantity = adj?.newQty !== undefined ? adj.newQty : item.quantity;
+      const quantity = item.quantity;
       const clientTotalPrice = Math.round(clientUnitPrice * quantity);
       const internalTotalCost = Math.round(item.internalUnitCost * quantity);
       const grossMarginAmount = clientTotalPrice - internalTotalCost;
@@ -518,7 +543,10 @@ export class InteriorQuotationMarginService {
     });
 
     const discountAmount = input.discountAmount !== undefined ? input.discountAmount : source.discountAmount;
-    const discountedSubtotal = Math.max(0, runningSubtotal - discountAmount);
+    if (!Number.isFinite(discountAmount) || discountAmount < 0 || discountAmount > runningSubtotal) {
+      throw new Error('QuotationTermsInvalid: discount must be between zero and the revised subtotal.');
+    }
+    const discountedSubtotal = runningSubtotal - discountAmount;
     const vatPercent = input.vatPercent !== undefined ? input.vatPercent : source.vatPercent;
     const vatAmount = Math.round((discountedSubtotal * vatPercent) / 100);
     const grandTotal = discountedSubtotal + vatAmount;
@@ -560,6 +588,31 @@ export class InteriorQuotationMarginService {
       updatedAt: now,
       items: revisedItems,
     };
+
+    await this.repo.createQuotationSnapshot(input.tenantId, {
+      id: revisedQuotation.id,
+      tenantId: revisedQuotation.tenantId,
+      projectId: revisedQuotation.projectId,
+      boqId: revisedQuotation.boqId,
+      boqVersionNumber: revisedQuotation.boqVersionNumber,
+      quotationNumber: revisedQuotation.quotationNumber,
+      versionNumber: revisedQuotation.versionNumber,
+      status: revisedQuotation.status,
+      subtotal: revisedQuotation.subtotal,
+      discountAmount: revisedQuotation.discountAmount,
+      vatPercent: revisedQuotation.vatPercent,
+      vatAmount: revisedQuotation.vatAmount,
+      grandTotal: revisedQuotation.grandTotal,
+      paymentTerms: revisedQuotation.paymentTerms,
+      validityDays: revisedQuotation.validityDays,
+      createdAt: revisedQuotation.createdAt,
+      totalInternalCogs: revisedQuotation.totalInternalCogs,
+      totalGrossMargin: revisedQuotation.totalGrossMargin,
+      grossMarginPercent: revisedQuotation.grossMarginPercent,
+      forkedFromQuotationId: source.id,
+      preparedBy: revisedQuotation.preparedBy,
+      items: revisedQuotation.items,
+    });
 
     return revisedQuotation;
   }

@@ -28,7 +28,7 @@ export type ApprovalStatus =
 /**
  * The subject of an approval request — quotation or contract.
  */
-export type ApprovalSubjectType = 'quotation' | 'contract';
+export type ApprovalSubjectType = 'quotation' | 'contract' | 'contract_addendum';
 
 // ─── Signature Reference ──────────────────────────────────────────────────────
 

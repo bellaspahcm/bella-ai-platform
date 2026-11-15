@@ -26,6 +26,7 @@ describe('Bella Interior OS — Supabase Persistence & Durable Outbox', () => {
 
     beforeEach(() => {
       mockSupabase = {
+        rpc: jest.fn().mockResolvedValue({ data: null, error: null }),
         from: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
         insert: jest.fn().mockReturnThis(),
@@ -120,6 +121,73 @@ describe('Bella Interior OS — Supabase Persistence & Durable Outbox', () => {
         'Tenant isolation violation: production order project or revision is not in request tenant',
       );
       expect(mockSupabase.insert).not.toHaveBeenCalled();
+    });
+
+    it('reads payment lifecycle context through the permission-scoped RPC', async () => {
+      const contractId = '00000000-0000-0000-0000-000000000002';
+      const context = {
+        id: contractId,
+        tenantId,
+        projectId,
+        status: 'signed',
+        milestones: [{ id: '00000000-0000-0000-0000-000000000003', milestoneOrder: 1 }],
+      };
+      mockSupabase.rpc.mockResolvedValue({ data: context, error: null });
+
+      await expect(repository.getPaymentContractContext(tenantId, contractId)).resolves.toEqual(context);
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('interior_read_contract_lifecycle_context', {
+        p_contract_id: contractId,
+        p_context: 'payment',
+      });
+    });
+
+    it('maps authorized amendment schedule context and rejects a mismatched tenant', async () => {
+      const contractId = '00000000-0000-0000-0000-000000000002';
+      mockSupabase.rpc.mockResolvedValue({
+        data: {
+          id: contractId,
+          tenantId,
+          projectId,
+          status: 'active',
+          currentContractValue: '1200.00',
+          milestones: [{
+            id: '00000000-0000-0000-0000-000000000003',
+            tenantId,
+            contractId,
+            milestoneOrder: 1,
+            name: 'Deposit',
+            percentage: '100.00',
+            amount: '1200.00',
+            triggerCondition: 'On approval',
+            status: 'pending',
+            dueDate: null,
+            paidAt: null,
+            collectedAmount: '0.00',
+            invoiceStatus: null,
+            invoiceNumber: null,
+            invoicedAt: null,
+          }],
+        },
+        error: null,
+      });
+
+      const context = await repository.getContractAmendmentContext(tenantId, contractId);
+      expect(context).toEqual(expect.objectContaining({
+        id: contractId,
+        currentContractValue: 1200,
+        milestones: [expect.objectContaining({
+          id: '00000000-0000-0000-0000-000000000003',
+          percentage: 100,
+          amount: 1200,
+          invoiceStatus: 'unissued',
+        })],
+      }));
+
+      mockSupabase.rpc.mockResolvedValue({
+        data: { id: contractId, tenantId: '00000000-0000-0000-0000-000000000099', projectId, status: 'active', milestones: [] },
+        error: null,
+      });
+      await expect(repository.getPaymentContractContext(tenantId, contractId)).resolves.toBeNull();
     });
   });
 

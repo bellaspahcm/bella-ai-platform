@@ -205,23 +205,39 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
   });
 
   afterAll(async () => {
-    await dropAllAuditFaults();
+    const cleanupErrors: unknown[] = [];
 
     if (databaseAdmin) {
       try {
+        await dropAllAuditFaults();
         await cleanupDatabaseFixtures();
+      } catch (error) {
+        cleanupErrors.push(error);
       } finally {
-        await databaseAdmin.end();
+        try {
+          await databaseAdmin.end();
+        } catch (error) {
+          cleanupErrors.push(error);
+        }
       }
     }
 
     if (supabaseAdmin) {
       for (const userId of authUserIds) {
-        const result = await supabaseAdmin.auth.admin.deleteUser(userId);
-        if (result.error && result.error.code !== 'user_not_found') {
-          throw new Error('CONSTRUCTION_E2E_AUTH_FIXTURE_CLEANUP_FAILED');
+        try {
+          const result = await supabaseAdmin.auth.admin.deleteUser(userId);
+          if (result.error && result.error.code !== 'user_not_found') {
+            cleanupErrors.push(new Error('CONSTRUCTION_E2E_AUTH_FIXTURE_CLEANUP_FAILED'));
+          }
+        } catch {
+          cleanupErrors.push(new Error('CONSTRUCTION_E2E_AUTH_FIXTURE_CLEANUP_FAILED'));
         }
       }
+    }
+
+    if (cleanupErrors.length === 1) throw cleanupErrors[0];
+    if (cleanupErrors.length > 1) {
+      throw new AggregateError(cleanupErrors, 'CONSTRUCTION_E2E_FIXTURE_CLEANUP_FAILED');
     }
   });
 
@@ -665,50 +681,60 @@ describeWithE2e('Construction Direct Grant real E2E on isolated Supabase project
 
   async function cleanupDatabaseFixtures(): Promise<void> {
     const tenantIds = [tenantA, tenantB];
-    await requireDatabaseAdmin().query('SET row_security = off');
-    await requireDatabaseAdmin().query(
-      'DELETE FROM public.platform_direct_user_action_grant_audit WHERE tenant_id = ANY($1::uuid[])',
-      [tenantIds]
-    );
-    await requireDatabaseAdmin().query(
-      'DELETE FROM public.platform_direct_user_action_grants WHERE tenant_id = ANY($1::uuid[])',
-      [tenantIds]
-    );
-    await requireDatabaseAdmin().query(
-      'DELETE FROM public.construction_boq_lines WHERE tenant_id = ANY($1::uuid[])',
-      [tenantIds]
-    );
-    await requireDatabaseAdmin().query(
-      'DELETE FROM public.construction_work_packages WHERE tenant_id = ANY($1::uuid[])',
-      [tenantIds]
-    );
-    await requireDatabaseAdmin().query(
-      'DELETE FROM public.construction_sites WHERE tenant_id = ANY($1::uuid[])',
-      [tenantIds]
-    );
-    await requireDatabaseAdmin().query(
-      'DELETE FROM public.construction_projects WHERE tenant_id = ANY($1::uuid[])',
-      [tenantIds]
-    );
-    await requireDatabaseAdmin().query(
-      'DELETE FROM public.org_relationships WHERE tenant_id = ANY($1::uuid[])',
-      [tenantIds]
-    );
-    await requireDatabaseAdmin().query(
-      'DELETE FROM public.people_directory WHERE id = ANY($1::uuid[])',
-      [[personA, personDenied, personB]]
-    );
-    await requireDatabaseAdmin().query(
-      'DELETE FROM public.org_units WHERE id = ANY($1::uuid[])',
-      [[orgA, orgASecondary, orgADenied, orgB]]
-    );
-    await requireDatabaseAdmin().query(
-      'DELETE FROM public.users WHERE id = ANY($1::uuid[])',
-      [authUserIds]
-    );
-    await requireDatabaseAdmin().query(
-      'DELETE FROM public.tenants WHERE id = ANY($1::uuid[])',
-      [tenantIds]
+    const database = requireDatabaseAdmin();
+    await database.query('BEGIN');
+    try {
+      await database.query('SET LOCAL row_security = off');
+      // This bounded window is limited to fixture cleanup on this transaction.
+      await database.query("SET LOCAL statement_timeout = '60s'");
+      await database.query(
+        'DELETE FROM public.platform_direct_user_action_grant_audit WHERE tenant_id = ANY($1::uuid[])',
+        [tenantIds]
+      );
+      await database.query(
+        'DELETE FROM public.platform_direct_user_action_grants WHERE tenant_id = ANY($1::uuid[])',
+        [tenantIds]
+      );
+      await database.query(
+        'DELETE FROM public.construction_boq_lines WHERE tenant_id = ANY($1::uuid[])',
+        [tenantIds]
+      );
+      await database.query(
+        'DELETE FROM public.construction_work_packages WHERE tenant_id = ANY($1::uuid[])',
+        [tenantIds]
+      );
+      await database.query(
+        'DELETE FROM public.construction_sites WHERE tenant_id = ANY($1::uuid[])',
+        [tenantIds]
+      );
+      await database.query(
+        'DELETE FROM public.construction_projects WHERE tenant_id = ANY($1::uuid[])',
+        [tenantIds]
+      );
+      await database.query(
+        'DELETE FROM public.org_relationships WHERE tenant_id = ANY($1::uuid[])',
+        [tenantIds]
+      );
+      await database.query(
+        'DELETE FROM public.people_directory WHERE id = ANY($1::uuid[])',
+        [[personA, personDenied, personB]]
+      );
+      await database.query(
+        'DELETE FROM public.org_units WHERE id = ANY($1::uuid[])',
+        [[orgA, orgASecondary, orgADenied, orgB]]
+      );
+      await database.query(
+        'DELETE FROM public.users WHERE id = ANY($1::uuid[])',
+        [authUserIds]
+      );
+      await database.query('COMMIT');
+    } catch (error) {
+      await database.query('ROLLBACK').catch(() => undefined);
+      throw error;
+    }
+
+    console.warn(
+      `[Construction E2E cleanup] retained isolated tenant shells because timeline_events is append-only: ${tenantIds.join(', ')}`
     );
   }
 

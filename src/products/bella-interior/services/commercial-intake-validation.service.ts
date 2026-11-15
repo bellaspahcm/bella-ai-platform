@@ -264,12 +264,17 @@ export class CommercialIntakeValidationService {
     if (contract.tenantId !== input.tenantId) {
       throw new TenantIsolationViolationError();
     }
+    const project = await this.repository.getProject(input.tenantId, input.interiorProjectId);
+    if (!project || project.id !== contract.projectId || project.code !== input.projectCode) {
+      throw new CommercialChainVersionMismatchError('project identity/code does not match the contract release scope');
+    }
     if (contract.status !== 'signed' && contract.status !== 'active') {
       throw new ContractNotExecutedError(input.contractId, contract.status);
     }
 
     // ── I10: Addendum Lineage (if variation release) ────────────────────────
     let matchedAddendumNumber: string | undefined;
+    let matchedAddendumApprovalId: string | undefined;
     if (input.addendumId) {
       const addendum = contract.addenda?.find((a) => a.id === input.addendumId);
       if (!addendum) {
@@ -278,13 +283,26 @@ export class CommercialIntakeValidationService {
           `Addendum '${input.addendumId}' not found in contract '${contract.id}'`,
         );
       }
-      if (!addendum.approvedAt) {
+      if (addendum.status !== 'approved' || !addendum.approvedAt || !addendum.customerApprovalId) {
         throw new UnapprovedAddendumError(
           input.addendumId,
-          `Addendum '${addendum.addendumNumber}' is not approved (approvedAt is missing)`,
+          `Addendum '${addendum.addendumNumber}' is missing customer approval evidence`,
+        );
+      }
+      const addendumApproval = await this.repository.getCustomerApproval(input.tenantId, addendum.customerApprovalId);
+      if (!addendumApproval || addendumApproval.tenantId !== input.tenantId
+        || addendumApproval.projectId !== project.id
+        || addendumApproval.subjectType !== 'contract_addendum'
+        || addendumApproval.subjectId !== addendum.id
+        || addendumApproval.subjectVersionNumber !== 1
+        || addendumApproval.status !== 'approved' || !addendumApproval.approvedAt) {
+        throw new UnapprovedAddendumError(
+          input.addendumId,
+          `Addendum '${addendum.addendumNumber}' does not reference its exact approved customer evidence`,
         );
       }
       matchedAddendumNumber = addendum.addendumNumber;
+      matchedAddendumApprovalId = addendumApproval.id;
     }
 
     // ── I2: Resolve Quotation and verify acceptance ─────────────────────────
@@ -297,9 +315,32 @@ export class CommercialIntakeValidationService {
     if (quotation.status !== 'accepted') {
       throw new QuotationNotAcceptedError(quotation.id, quotation.status);
     }
+    if (quotation.projectId !== project.id || contract.projectId !== project.id) {
+      throw new CommercialChainVersionMismatchError('contract and accepted quotation must belong to the requested project');
+    }
+    if (contract.quotationVersionNumber !== quotation.versionNumber
+      || !contract.boqId || contract.boqId !== quotation.boqId
+      || contract.boqVersionNumber == null || quotation.boqVersionNumber == null
+      || contract.boqVersionNumber !== quotation.boqVersionNumber) {
+      throw new CommercialChainVersionMismatchError('contract must capture the exact accepted quotation and BOQ versions');
+    }
+
+    const quotationApprovalId = contract.quotationCustomerApprovalId;
+    if (!quotationApprovalId) {
+      throw new CustomerApprovalRequiredError(contract.id, 'quotation-approval-missing');
+    }
+    const quotationApproval = await this.repository.getCustomerApproval(input.tenantId, quotationApprovalId);
+    if (!quotationApproval || quotationApproval.tenantId !== input.tenantId
+      || quotationApproval.projectId !== project.id
+      || quotationApproval.subjectType !== 'quotation'
+      || quotationApproval.subjectId !== quotation.id
+      || quotationApproval.subjectVersionNumber !== quotation.versionNumber
+      || quotationApproval.status !== 'approved' || !quotationApproval.approvedAt) {
+      throw new CustomerApprovalVersionMismatchError('contract quotation approval must prove the exact accepted quotation version');
+    }
 
     // ── I1: Resolve BOQ and verify sealed status ────────────────────────────
-    const boq = await this.repository.getBOQ(input.tenantId, quotation.boqId);
+    const boq = await this.repository.getBOQ(input.tenantId, contract.boqId ?? quotation.boqId);
     if (!boq) {
       throw new Error(`BOQ ${quotation.boqId} linked to quotation ${quotation.id} not found`);
     }
@@ -345,10 +386,11 @@ export class CommercialIntakeValidationService {
     // ── I4 & I5: Version-Locked Approval & Cross-Reference Integrity ────────
     // 1. Approval subject must match Contract (or Quotation)
     if (customerApproval.subjectType === 'contract') {
-      if (customerApproval.subjectId !== contract.id) {
+      if (contract.customerApprovalId !== customerApproval.id
+        || customerApproval.projectId !== project.id
+        || customerApproval.subjectId !== contract.id) {
         throw new CustomerApprovalVersionMismatchError(
-          `Customer Approval ${input.customerApprovalId} targets subject '${customerApproval.subjectId}' ` +
-            `but expected contract '${contract.id}'`,
+          `Customer Approval ${input.customerApprovalId} is not the exact signature evidence stored on contract '${contract.id}'`,
         );
       }
       // Subject version must match contract formation version (1 for initial execution)
@@ -359,22 +401,17 @@ export class CommercialIntakeValidationService {
             `contract execution version ${expectedSubjectVersion}`,
         );
       }
-    } else if (customerApproval.subjectType === 'quotation') {
-      if (customerApproval.subjectId !== quotation.id) {
-        throw new CustomerApprovalVersionMismatchError(
-          `Customer Approval targets quotation '${customerApproval.subjectId}' but contract uses '${quotation.id}'`,
-        );
+      const signature = customerApproval.signatureReference;
+      if (!signature || !signature.storagePath.trim() || signature.fileSizeBytes <= 0
+        || !/^[0-9a-f]{64}$/i.test(signature.sha256Hash)) {
+        throw new CustomerApprovalVersionMismatchError('contract signature evidence is incomplete or has an invalid checksum');
       }
-      if (customerApproval.subjectVersionNumber !== quotation.versionNumber) {
-        throw new CustomerApprovalVersionMismatchError(
-          `Customer Approval targets quotation version ${customerApproval.subjectVersionNumber} ` +
-            `but accepted quotation is version ${quotation.versionNumber}`,
-        );
-      }
+    } else {
+      throw new CustomerApprovalVersionMismatchError('production release requires the approved customer signature for the exact contract');
     }
 
     // 2. Quotation version cross-reference to BOQ
-    if (quotation.boqVersionNumber !== undefined && quotation.boqVersionNumber !== boq.versionNumber) {
+    if (quotation.boqVersionNumber !== boq.versionNumber || contract.boqVersionNumber !== boq.versionNumber) {
       throw new CommercialChainVersionMismatchError(
         `Quotation ${quotation.id} references BOQ version ${quotation.boqVersionNumber} ` +
           `but BOQ ${boq.id} has version ${boq.versionNumber}`,
@@ -382,10 +419,7 @@ export class CommercialIntakeValidationService {
     }
 
     // 3. Contract cross-reference to Quotation version
-    if (
-      contract.quotationVersionNumber !== undefined &&
-      contract.quotationVersionNumber !== quotation.versionNumber
-    ) {
+    if (contract.quotationVersionNumber !== quotation.versionNumber) {
       throw new CommercialChainVersionMismatchError(
         `Contract ${contract.id} references Quotation version ${contract.quotationVersionNumber} ` +
           `but accepted Quotation is version ${quotation.versionNumber}`,
@@ -393,10 +427,10 @@ export class CommercialIntakeValidationService {
     }
 
     // 4. Contract cross-reference to BOQ version
-    if (contract.boqVersionNumber !== undefined && contract.boqVersionNumber !== boq.versionNumber) {
+    if (contract.designRevisionId !== designRevision.id
+      || contract.designVersionNumber !== designRevision.versionNumber) {
       throw new CommercialChainVersionMismatchError(
-        `Contract ${contract.id} references BOQ version ${contract.boqVersionNumber} ` +
-          `but sealed BOQ is version ${boq.versionNumber}`,
+        `Contract ${contract.id} does not reference the exact sealed BOQ design revision/version`,
       );
     }
 
@@ -420,6 +454,7 @@ export class CommercialIntakeValidationService {
       idempotencyKey: input.idempotencyKey,
       addendumId: input.addendumId,
       addendumNumber: matchedAddendumNumber,
+      addendumCustomerApprovalId: matchedAddendumApprovalId,
     };
 
     // ── Build Production Items (Derived without internal cost fields) ────────

@@ -1,6 +1,12 @@
 const { spawnSync } = require('node:child_process');
-const { readdirSync } = require('node:fs');
+const { readFileSync, readdirSync } = require('node:fs');
 const { join } = require('node:path');
+const { Client } = require('pg');
+const {
+  assertIsolatedE2eTarget,
+  normalizeMigrationSql,
+  normalizeRecordedMigrationStatements,
+} = require('./apply-e2e-pr-migrations.cjs');
 
 const MIGRATION_FILE_PATTERN = /^(\d{8}|\d{14})_.+\.sql$/;
 
@@ -27,6 +33,61 @@ function listLocalMigrationVersions(migrationsDir = join(process.cwd(), 'supabas
     .map((name) => normalizeMigrationVersion(name.match(MIGRATION_FILE_PATTERN)?.[1]))
     .filter(Boolean);
   return Array.from(new Set(versions)).sort();
+}
+
+function listLocalMigrations(migrationsDir = join(process.cwd(), 'supabase', 'migrations')) {
+  return readdirSync(migrationsDir)
+    .map((name) => {
+      const version = normalizeMigrationVersion(name.match(MIGRATION_FILE_PATTERN)?.[1]);
+      if (!version) return null;
+      return { version, sql: readFileSync(join(migrationsDir, name), 'utf8') };
+    })
+    .filter(Boolean)
+    .sort((left, right) => left.version.localeCompare(right.version));
+}
+
+function resolveContentVerifiedMigrationAliases(localMigrations, remoteRecords) {
+  const localBySql = new Map();
+  const localVersions = new Set(localMigrations.map((migration) => migration.version));
+  for (const migration of localMigrations) {
+    const normalized = normalizeMigrationSql(migration.sql);
+    if (!localBySql.has(normalized)) localBySql.set(normalized, []);
+    localBySql.get(normalized).push(migration.version);
+  }
+
+  const candidates = [];
+  for (const record of remoteRecords) {
+    const remote = normalizeMigrationVersion(record.version);
+    const normalized = normalizeRecordedMigrationStatements(record.statements);
+    if (!remote || localVersions.has(remote) || !normalized) continue;
+    const matchingLocalVersions = (localBySql.get(normalized) || []).filter((version) => version !== remote);
+    if (matchingLocalVersions.length === 1) candidates.push({ remote, local: matchingLocalVersions[0] });
+  }
+
+  const localMatchCount = new Map();
+  for (const alias of candidates) {
+    localMatchCount.set(alias.local, (localMatchCount.get(alias.local) || 0) + 1);
+  }
+  return candidates.filter((alias) => localMatchCount.get(alias.local) === 1);
+}
+
+async function readE2eMigrationHistory(databaseUrl, env = process.env) {
+  if (!databaseUrl || !env.EXPECTED_E2E_PROJECT_REF || !env.SUPABASE_URL) {
+    throw new Error('E2E migration history verification requires guarded E2E connection settings.');
+  }
+  assertIsolatedE2eTarget(databaseUrl, env.EXPECTED_E2E_PROJECT_REF, env.SUPABASE_URL);
+  const client = new Client({ connectionString: databaseUrl });
+  try {
+    await client.connect();
+    const result = await client.query(
+      'SELECT version, statements FROM supabase_migrations.schema_migrations WHERE statements IS NOT NULL',
+    );
+    return result.rows;
+  } catch {
+    throw new Error('Could not read migration SQL history from the guarded isolated E2E database.');
+  } finally {
+    await client.end().catch(() => {});
+  }
 }
 
 function listGitMigrationVersions(ref) {
@@ -93,15 +154,17 @@ function analyzeMigrationState(
   remoteVersions,
   baselineLocalVersions = null,
   allowVerifiedE2eVersionAliases = false,
+  contentVerifiedAliases = [],
 ) {
   const localSet = new Set(localVersions);
   const baselineLocalSet = baselineLocalVersions ? new Set(baselineLocalVersions) : null;
   const satisfiedLocalVersions = new Set(remoteVersions);
   const recognizedRemoteAliases = [];
+  const contentAliasByRemote = new Map(contentVerifiedAliases.map((alias) => [alias.remote, alias.local]));
 
   for (const remoteVersion of remoteVersions) {
     const localAlias = allowVerifiedE2eVersionAliases
-      ? MIGRATION_VERSION_ALIASES.get(remoteVersion)
+      ? (contentAliasByRemote.get(remoteVersion) || MIGRATION_VERSION_ALIASES.get(remoteVersion))
       : null;
     if (localAlias && localSet.has(localAlias)) {
       satisfiedLocalVersions.add(localAlias);
@@ -178,7 +241,7 @@ function printState(state) {
   console.log(`Remote latest migration: ${state.latestRemote || 'none'}`);
 }
 
-function main() {
+async function main() {
   const hasDbUrl = Boolean(process.env.SUPABASE_DB_URL || process.env.SUPABASE_DATABASE_URL);
   const optional = process.env.DB_MIGRATION_CHECK_OPTIONAL === '1';
   const allowRemoteAheadOnly = process.env.DB_MIGRATION_CHECK_ALLOW_REMOTE_AHEAD_ONLY === '1';
@@ -218,11 +281,24 @@ function main() {
   }
 
   const remoteVersions = rows.map((row) => row.remote).filter(Boolean).sort();
+  let contentVerifiedAliases = [];
+  if (allowRemoteAheadOnly) {
+    try {
+      const history = await readE2eMigrationHistory(
+        process.env.SUPABASE_DB_URL || process.env.SUPABASE_DATABASE_URL,
+      );
+      contentVerifiedAliases = resolveContentVerifiedMigrationAliases(listLocalMigrations(), history);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : 'E2E migration SQL history verification failed.');
+      process.exit(1);
+    }
+  }
   const state = analyzeMigrationState(
     localVersions,
     remoteVersions,
     baselineLocalVersions,
     allowRemoteAheadOnly,
+    contentVerifiedAliases,
   );
   const remoteAheadOnly = allowRemoteAheadOnly
     ? state.remoteOnly.filter((version) => state.latestLocal && version > state.latestLocal)
@@ -248,7 +324,7 @@ function main() {
   }
 
   if (state.recognizedRemoteAliases.length > 0) {
-    console.log('Recognized verified migration version aliases:');
+    console.log('Recognized migration version aliases (exact normalized SQL match):');
     for (const alias of state.recognizedRemoteAliases) {
       console.log(`- Remote ${alias.remote} satisfies local ${alias.local}`);
     }
@@ -290,13 +366,19 @@ function main() {
 }
 
 if (require.main === module) {
-  main();
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : 'Supabase migration check failed.');
+    process.exitCode = 1;
+  });
 }
 
 module.exports = {
   analyzeMigrationState,
   getSupabaseMigrationListArgs,
   listGitMigrationVersions,
+  listLocalMigrations,
   listLocalMigrationVersions,
   parseSupabaseMigrationList,
+  readE2eMigrationHistory,
+  resolveContentVerifiedMigrationAliases,
 };

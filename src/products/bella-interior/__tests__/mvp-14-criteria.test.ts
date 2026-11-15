@@ -13,7 +13,7 @@
  *   9. Punch List transition to 'rectified' with rectifiedBy
  *  10. Punch List transition to 'verified' with verifiedBy bound to actor.id
  *  11. Handover gate blocks on unverified critical defect (422)
- *  12. Handover succeeds when all critical defects verified (201 + warranty)
+ *  12. Handover still requires persisted customer-issued acceptance evidence
  *  13. Cross-tenant data isolation strictly enforced (Gate 0)
  *  14. Transactional Finance Outbox idempotency (no duplicate entries)
  *
@@ -300,7 +300,7 @@ describe('Bella Interior OS — 14-Criteria MVP Runtime Verification', () => {
 
   // ── Criteria 11 & 12: Handover Gate & Warranty Start ─────────────────────
   describe('Criteria 11 & 12: Handover Defect Barrier & Warranty Activation', () => {
-    it('blocks handover when critical punch item is not verified, and completes handover when verified', async () => {
+    it('blocks unresolved critical punch items and refuses unsigned customer acceptance after repair', async () => {
       const projId = 'proj-handover-test';
 
       // Criterion 11: Handover blocked by unverified critical item
@@ -340,17 +340,15 @@ describe('Bella Interior OS — 14-Criteria MVP Runtime Verification', () => {
         verifiedBy: authenticatedActorId,
       });
 
-      // Criterion 12: Handover succeeds and issues warranty
-      const { dossier, certificate } = await service.delivery.completeHandover({
+      // A clear punch list is necessary, but a caller supplied name is not
+      // customer evidence. The in-memory service must not issue a warranty.
+      await expect(service.delivery.completeHandover({
         tenantId: tenantA,
         projectId: projId,
         contractId: 'contract-001',
         clientSignoffName: 'Sheikh Mansoor',
         finalSettlementValue: 500_000_000,
-      });
-      expect(dossier.status).toBe('completed');
-      expect(certificate.id).toBeDefined();
-      expect(certificate.effectiveDate).toBeDefined();
+      })).rejects.toThrow(/persisted, customer-issued acceptance record/);
     });
   });
 

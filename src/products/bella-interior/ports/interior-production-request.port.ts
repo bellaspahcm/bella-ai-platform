@@ -90,6 +90,8 @@ export interface CommercialSourceOfTruth {
   readonly addendumId?: string;
   /** Addendum number (e.g. 'ADD-01') if applicable */
   readonly addendumNumber?: string;
+  /** Exact customer approval evidence for the approved addendum. */
+  readonly addendumCustomerApprovalId?: string;
 }
 
 export interface FurnitureProductionItem {

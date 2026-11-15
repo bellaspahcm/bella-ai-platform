@@ -3,6 +3,7 @@ const {
   getSupabaseMigrationListArgs,
   listLocalMigrationVersions,
   parseSupabaseMigrationList,
+  resolveContentVerifiedMigrationAliases,
 } = require('../../scripts/check-supabase-migrations.cjs');
 const { mkdtempSync, rmSync, writeFileSync } = require('node:fs');
 const { tmpdir } = require('node:os');
@@ -179,6 +180,44 @@ A new version of Supabase CLI is available.`;
     expect(state.recognizedRemoteAliases).toEqual([
       { remote: '20261104223802', local: '20261104135713' },
     ]);
+  });
+
+  it('resolves remote-only versions only when normalized SQL matches one local migration exactly', () => {
+    const aliases = resolveContentVerifiedMigrationAliases(
+      [
+        { version: '20261114110000', sql: '-- zero-downtime: note\r\nCREATE TABLE example (id uuid);\r\n' },
+        { version: '20261114120000', sql: 'CREATE TABLE another (id uuid);' },
+      ],
+      [
+        { version: '20261114083605', statements: ['-- zero-downtime: stored note\nCREATE TABLE example (id uuid)'] },
+        { version: '20261114084959', statements: ['CREATE TABLE another (id uuid);'] },
+        { version: '20261114085747', statements: ['CREATE TABLE example (id uuid);'] },
+      ],
+    );
+
+    expect(aliases).toEqual([{ remote: '20261114084959', local: '20261114120000' }]);
+    const state = analyzeMigrationState(
+      ['20261114110000', '20261114120000'],
+      ['20261114084959'],
+      null,
+      true,
+      aliases,
+    );
+    expect(state.recognizedRemoteAliases).toEqual(aliases);
+    expect(state.pendingLocal).toEqual(['20261114110000']);
+    expect(state.remoteOnly).toEqual([]);
+  });
+
+  it('does not resolve content aliases when SQL differs or is ambiguous', () => {
+    const aliases = resolveContentVerifiedMigrationAliases(
+      [
+        { version: '20261114110000', sql: 'CREATE TABLE example (id uuid);' },
+        { version: '20261114120000', sql: 'CREATE TABLE example (id uuid);' },
+      ],
+      [{ version: '20261114083605', statements: ['CREATE TABLE example (id uuid)'] }],
+    );
+
+    expect(aliases).toEqual([]);
   });
 
   it('does not ignore an alias when its local migration is absent', () => {

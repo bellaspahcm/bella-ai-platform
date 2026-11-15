@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
+import CommercialWorkflowModal from './commercial-workflow-modal';
 import {
   Handshake,
   Coins,
@@ -72,6 +73,13 @@ export default function InteriorContractsPage() {
   const [showNewContractModal, setShowNewContractModal] = useState<boolean>(false);
   const [showContractDocModal, setShowContractDocModal] = useState<boolean>(false);
   const [showPaymentHistoryModal, setShowPaymentHistoryModal] = useState<boolean>(false);
+  const [showPaymentEntry, setShowPaymentEntry] = useState<boolean>(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentReferenceCode, setPaymentReferenceCode] = useState('');
+  const [paymentTransactionDate, setPaymentTransactionDate] = useState('');
+  const [paymentNotes, setPaymentNotes] = useState('');
+  const [savingPayment, setSavingPayment] = useState(false);
   const [releaseSuccessOrder, setReleaseSuccessOrder] = useState<string | null>(null);
   const [releasing, setReleasing] = useState<boolean>(false);
 
@@ -157,6 +165,15 @@ export default function InteriorContractsPage() {
     }
   }, [loadData, selectedProjectId]);
 
+  useEffect(() => {
+    setShowPaymentEntry(false);
+    setPaymentAmount('');
+    setPaymentMethod('');
+    setPaymentReferenceCode('');
+    setPaymentTransactionDate('');
+    setPaymentNotes('');
+  }, [selectedMilestone?.id]);
+
   const handleSelectProject = (id: string) => {
     setSelectedProjectId(id);
     setShowProjectDropdown(false);
@@ -171,6 +188,10 @@ export default function InteriorContractsPage() {
     if (selectedProjectId) loadData(selectedProjectId);
     else setRefreshing(false);
   };
+
+  const canOpenCommercialWorkflow = (commands?: ContractOverviewResponse['workflowCommands']) => Boolean(
+    commands?.createQuotationAvailable || commands?.requestCustomerApprovalAvailable || commands?.createContractAvailable,
+  );
 
   const handleConfirmWorkshopRelease = async () => {
     if (!data) return;
@@ -199,6 +220,64 @@ export default function InteriorContractsPage() {
       toast.error(err instanceof Error ? err.message : 'Không thể lưu lệnh chuyển xưởng.');
     } finally {
       setReleasing(false);
+    }
+  };
+
+  const handleRecordPayment = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedMilestone || !data?.commercialWorkflow || !data.workflowCommands?.recordPaymentAvailable) return;
+    const amount = Number(paymentAmount);
+    if (!Number.isFinite(amount) || amount <= 0 || amount > selectedMilestone.remainingAmount) {
+      toast.error('Nhập số tiền thực nhận lớn hơn 0 và không vượt số dư đợt thu.');
+      return;
+    }
+    if (!paymentMethod || !paymentReferenceCode.trim() || !paymentTransactionDate) {
+      toast.error('Cần nhập phương thức, mã tham chiếu chứng từ và ngày giao dịch thực tế.');
+      return;
+    }
+
+    setSavingPayment(true);
+    try {
+      const response = await fetch('/api/interior/contracts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'record-payment',
+          projectId: data.header.projectId,
+          contractId: data.commercialWorkflow.contractId,
+          milestoneId: selectedMilestone.id,
+          paymentAmount: amount,
+          paymentMethod,
+          referenceCode: paymentReferenceCode.trim(),
+          transactionDate: paymentTransactionDate,
+          ...(paymentNotes.trim() ? { notes: paymentNotes.trim() } : {}),
+        }),
+      });
+      const body: unknown = await response.json().catch(() => null);
+      if (!response.ok || !body || typeof body !== 'object' || !('success' in body) || body.success !== true) {
+        const code = body && typeof body === 'object' && 'error' in body && typeof body.error === 'string'
+          ? body.error : '';
+        const message = code === 'INTERIOR_PERMISSION_DENIED' ? 'Tài khoản không có quyền ghi nhận thanh toán.'
+          : code === 'INTERIOR_PAYMENT_REFERENCE_DUPLICATE' ? 'Mã tham chiếu thanh toán đã tồn tại trong hợp đồng này.'
+            : code === 'INTERIOR_PAYMENT_TARGET_NOT_FOUND_OR_UNSIGNED' ? 'Chỉ ghi nhận thanh toán cho đúng hợp đồng đã ký.'
+              : code === 'INTERIOR_PAYMENT_PRECONDITION_FAILED' ? 'Số tiền vượt số dư hoặc kỳ thanh toán không còn hợp lệ.'
+                : code === 'INTERIOR_PAYMENT_INPUT_INVALID' ? 'Thông tin giao dịch chưa hợp lệ.'
+                  : 'Chưa ghi nhận được giao dịch; số dư không được cập nhật từ giao diện.';
+        throw new Error(message);
+      }
+      toast.success('Đã ghi nhận giao dịch. Đang đọc lại số dư từ dữ liệu đã lưu.');
+      setShowPaymentEntry(false);
+      setSelectedMilestone(null);
+      setPaymentAmount('');
+      setPaymentMethod('');
+      setPaymentReferenceCode('');
+      setPaymentTransactionDate('');
+      setPaymentNotes('');
+      await loadData(data.header.projectId);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể ghi nhận giao dịch.');
+    } finally {
+      setSavingPayment(false);
     }
   };
 
@@ -285,11 +364,11 @@ export default function InteriorContractsPage() {
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
               <span>Làm mới</span>
             </button>
-            <button type="button" onClick={() => setShowNewContractModal(true)} disabled={!data?.workflowCommands?.createContractAvailable}
-              title="Tạo hợp đồng chưa có backend persistence."
+            <button type="button" onClick={() => setShowNewContractModal(true)} disabled={!canOpenCommercialWorkflow(data?.workflowCommands)}
+              title="Mở quy trình báo giá, chấp thuận khách hàng và hợp đồng."
               className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 text-white rounded-lg text-xs font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-50">
               <Plus className="w-4 h-4" />
-              <span>+ Tạo Hợp Đồng Mới</span>
+              <span>{data?.hasContract ? 'Báo giá & Duyệt' : '+ Tạo Hợp Đồng Mới'}</span>
             </button>
           </div>
         </div>
@@ -317,8 +396,8 @@ export default function InteriorContractsPage() {
             <button
               type="button"
               onClick={() => setShowNewContractModal(true)}
-              disabled={!data?.workflowCommands?.createContractAvailable}
-              title="Tạo hợp đồng chưa có backend persistence."
+              disabled={!canOpenCommercialWorkflow(data?.workflowCommands)}
+              title="Mở quy trình báo giá, chấp thuận khách hàng và hợp đồng."
               className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 text-white rounded-lg text-sm font-semibold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Plus className="w-4 h-4" />
@@ -334,31 +413,17 @@ export default function InteriorContractsPage() {
           </div>
         </div>
 
-        {/* New Contract Modal (empty-state entry point) */}
-        {showNewContractModal && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-slate-900 dark:text-white">Tạo Hợp Đồng Mới</h2>
-                <button type="button" onClick={() => setShowNewContractModal(false)}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Dự án: <span className="font-semibold text-slate-700 dark:text-slate-300">{selectedProjectId}</span>
-              </p>
-              <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg">
-                Chức năng lập hợp đồng từ BOQ đang được phát triển. Vui lòng liên hệ Trưởng phòng Thương mại để tạo hợp đồng thủ công.
-              </p>
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setShowNewContractModal(false)}
-                  className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg font-medium">
-                  Đóng
-                </button>
-              </div>
-            </div>
-          </div>
+        {showNewContractModal && selectedProjectId && (
+          <CommercialWorkflowModal
+            projectId={selectedProjectId}
+            permissions={{
+              createQuotationAvailable: data?.workflowCommands?.createQuotationAvailable === true,
+              requestCustomerApprovalAvailable: data?.workflowCommands?.requestCustomerApprovalAvailable === true,
+              createContractAvailable: data?.workflowCommands?.createContractAvailable === true,
+            }}
+            onClose={() => setShowNewContractModal(false)}
+            onChanged={() => loadData(selectedProjectId)}
+          />
         )}
       </div>
     );
@@ -389,7 +454,31 @@ export default function InteriorContractsPage() {
             </dl>
           ) : <p className="mt-3 text-sm text-rose-600">Không tải được thông tin hợp đồng.</p>}
           <p className="mt-5 text-xs text-slate-500">Khoản tiền và tiến độ thu chỉ hiển thị cho người có quyền Finance Read.</p>
+          {data.workflowCommands?.requestCustomerApprovalAvailable && data.commercialWorkflow ? (
+            <button type="button" onClick={() => setShowNewContractModal(true)}
+              className="mt-4 rounded-lg bg-emerald-700 px-4 py-2 text-xs font-semibold text-white">
+              Gửi hợp đồng cho khách hàng chấp thuận
+            </button>
+          ) : null}
         </section>
+        {showNewContractModal && selectedProjectId && data.commercialWorkflow ? (
+          <CommercialWorkflowModal
+            projectId={selectedProjectId}
+            permissions={{
+              createQuotationAvailable: false,
+              requestCustomerApprovalAvailable: data.workflowCommands?.requestCustomerApprovalAvailable === true,
+              createContractAvailable: false,
+            }}
+            contract={{
+              id: data.commercialWorkflow.contractId,
+              status: data.commercialWorkflow.contractStatus,
+              quotationId: data.commercialWorkflow.quotationId,
+              quotationVersionNumber: data.commercialWorkflow.quotationVersionNumber,
+            }}
+            onClose={() => setShowNewContractModal(false)}
+            onChanged={() => loadData(selectedProjectId)}
+          />
+        ) : null}
       </div>
     );
   }
@@ -450,12 +539,12 @@ export default function InteriorContractsPage() {
           <button
             type="button"
             onClick={() => setShowNewContractModal(true)}
-            disabled={!data.workflowCommands?.createContractAvailable}
-            title="Tạo hợp đồng chưa có backend persistence."
+            disabled={!canOpenCommercialWorkflow(data.workflowCommands)}
+            title="Mở quy trình báo giá, chấp thuận khách hàng và hợp đồng."
             className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 text-white rounded-lg text-xs font-semibold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Tạo Hợp Đồng Mới</span>
+            <span>{data.hasContract ? 'Báo giá & Duyệt' : '+ Tạo Hợp Đồng Mới'}</span>
           </button>
 
           <button
@@ -989,41 +1078,51 @@ export default function InteriorContractsPage() {
             <div className="p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Danh mục phụ lục bổ sung giá trị &amp; hồ sơ ký kết điện tử:
+                  Danh mục phụ lục lấy từ hồ sơ hợp đồng đã lưu:
                 </p>
-                <button
-                  type="button"
-                  onClick={() => toast.error('API lưu phụ lục chưa khả dụng; không có thay đổi nào được lưu.')}
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Thêm phụ lục</span>
-                </button>
+                <span className="rounded-md bg-slate-100 px-2.5 py-1.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                  Danh sách chỉ đọc
+                </span>
               </div>
 
-              <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-                {detailedTabs.addenda.map((ad) => (
-                  <div key={ad.id} className="py-3 flex items-center justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900 dark:text-white">{ad.code}</span>
-                        <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          {ad.statusLabel}
-                        </span>
-                        <span className="text-slate-400 text-[11px]">({ad.effectiveDate})</span>
+              {detailedTabs.addenda.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-slate-200 px-4 py-6 text-center text-xs text-slate-500 dark:border-slate-800">
+                  Chưa có phụ lục được ghi nhận cho hợp đồng này.
+                </p>
+              ) : (
+                <div className="divide-y divide-slate-100 text-xs dark:divide-slate-800">
+                  {detailedTabs.addenda.map((ad) => {
+                    const statusClass = ad.statusBadgeVariant === 'success'
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300'
+                      : ad.statusBadgeVariant === 'danger'
+                        ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300'
+                        : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300';
+                    return (
+                      <div key={ad.id} className="flex items-center justify-between gap-4 py-3">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-bold text-slate-900 dark:text-white">{ad.code}</span>
+                            <span className={`rounded border px-2 py-0.5 text-[10px] font-bold ${statusClass}`}>
+                              {ad.statusLabel}
+                            </span>
+                            <span className="text-[11px] text-slate-400">({ad.effectiveDate})</span>
+                          </div>
+                          <p className="mt-1 text-slate-700 dark:text-slate-300">{ad.title}</p>
+                          {ad.reason ? <p className="mt-1 whitespace-pre-wrap text-[11px] text-slate-500">Lý do: {ad.reason}</p> : null}
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <div className="font-bold text-emerald-600">{ad.valueChangeFormatted}</div>
+                          {ad.fileAttachment ? (
+                            <span className="mt-0.5 flex items-center justify-end gap-1 text-[11px] text-slate-400">
+                              <FileText className="h-3 w-3" />{ad.fileAttachment}
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
-                      <p className="text-slate-600 dark:text-slate-400 mt-1">{ad.title}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="font-bold text-emerald-600">{ad.valueChangeFormatted}</div>
-                      <span className="text-[11px] text-slate-400 flex items-center gap-1 justify-end cursor-pointer hover:text-emerald-600 mt-0.5">
-                        <FileText className="w-3 h-3" />
-                        <span>{ad.fileAttachment}</span>
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -1218,6 +1317,72 @@ export default function InteriorContractsPage() {
                 </div>
               )}
             </div>
+
+            {data?.workflowCommands?.recordPaymentAvailable === true
+              && (data.commercialWorkflow?.contractStatus === 'signed' || data.commercialWorkflow?.contractStatus === 'active')
+              && selectedMilestone.remainingAmount > 0 ? (
+              <div className="border-t border-slate-200 pt-3 dark:border-slate-800">
+                {!showPaymentEntry ? (
+                  <button type="button" onClick={() => setShowPaymentEntry(true)}
+                    className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white">
+                    Ghi nhận khoản tiền đã thực nhận
+                  </button>
+                ) : (
+                  <form onSubmit={handleRecordPayment} className="space-y-3">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white">Ghi nhận chứng từ thanh toán thực tế</h4>
+                    <p className="text-[11px] text-slate-500">Nhập dữ liệu theo chứng từ đã nhận. Mã giao dịch và ngày không được tự sinh; máy chủ sẽ kiểm tra hạn mức và mã trùng trong cùng một giao dịch.</p>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                        Số tiền thực nhận (VND)
+                        <input type="number" min="1" max={selectedMilestone.remainingAmount} step="1" required value={paymentAmount}
+                          onChange={(event) => setPaymentAmount(event.target.value)}
+                          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+                      </label>
+                      <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                        Phương thức
+                        <select required value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)}
+                          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                          <option value="">Chọn phương thức</option>
+                          <option value="bank_transfer">Chuyển khoản</option>
+                          <option value="cash">Tiền mặt</option>
+                          <option value="credit_card">Thẻ</option>
+                          <option value="escrow">Ký quỹ</option>
+                          <option value="other">Khác</option>
+                        </select>
+                      </label>
+                      <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                        Mã tham chiếu chứng từ
+                        <input type="text" required maxLength={160} value={paymentReferenceCode}
+                          onChange={(event) => setPaymentReferenceCode(event.target.value)}
+                          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+                      </label>
+                      <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                        Ngày giao dịch trên chứng từ
+                        <input type="date" required value={paymentTransactionDate}
+                          onChange={(event) => setPaymentTransactionDate(event.target.value)}
+                          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+                      </label>
+                      <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300 sm:col-span-2">
+                        Ghi chú đối soát (không bắt buộc)
+                        <input type="text" maxLength={1000} value={paymentNotes}
+                          onChange={(event) => setPaymentNotes(event.target.value)}
+                          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+                      </label>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <button type="button" onClick={() => setShowPaymentEntry(false)} disabled={savingPayment}
+                        className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-50 dark:bg-slate-800 dark:text-slate-200">
+                        Hủy
+                      </button>
+                      <button type="submit" disabled={savingPayment}
+                        className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">
+                        {savingPayment ? 'Đang lưu…' : 'Lưu giao dịch'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            ) : null}
 
             <div className="pt-2 flex justify-end">
               <button
@@ -1466,71 +1631,23 @@ export default function InteriorContractsPage() {
         </div>
       )}
 
-      {/* ─── MODAL 5: TẠO HỢP ĐỒNG MỚI ────────────────────────────────────────── */}
-      {showNewContractModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Tạo Hợp đồng Thi công mới
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowNewContractModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">
-                  Chủ đầu tư / Khách hàng:
-                </label>
-                <input
-                  type="text"
-                  placeholder="Chưa có dữ liệu khách hàng"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">
-                  Tổng giá trị hợp đồng (VND):
-                </label>
-                <input
-                  type="text"
-                  placeholder="Chưa nhập giá trị"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                />
-              </div>
-
-              <div className="p-3 bg-emerald-50/60 dark:bg-emerald-950/20 rounded-lg border border-emerald-200 dark:border-emerald-800 text-[11px] text-emerald-800 dark:text-emerald-300">
-                Lịch thanh toán chuẩn 5 giai đoạn: Đặt cọc 30% — Khóa thiết kế 20% — Khởi công xuất xưởng 30% — Hoàn thành lắp đặt 15% — Bàn giao &amp; bảo hành 5% (Tổng 100%).
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowNewContractModal(false)}
-                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  toast.error('API tạo hợp đồng chưa khả dụng; không có hợp đồng hoặc đồng bộ BOQ nào được tạo.');
-                }}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold shadow-sm"
-              >
-                Lưu Hợp đồng
-              </button>
-            </div>
-          </div>
-        </div>
+      {showNewContractModal && selectedProjectId && (
+        <CommercialWorkflowModal
+          projectId={selectedProjectId}
+          permissions={{
+            createQuotationAvailable: data.workflowCommands?.createQuotationAvailable === true,
+            requestCustomerApprovalAvailable: data.workflowCommands?.requestCustomerApprovalAvailable === true,
+            createContractAvailable: data.workflowCommands?.createContractAvailable === true,
+          }}
+          contract={data.commercialWorkflow ? {
+            id: data.commercialWorkflow.contractId,
+            status: data.commercialWorkflow.contractStatus,
+            quotationId: data.commercialWorkflow.quotationId,
+            quotationVersionNumber: data.commercialWorkflow.quotationVersionNumber,
+          } : undefined}
+          onClose={() => setShowNewContractModal(false)}
+          onChanged={() => loadData(selectedProjectId)}
+        />
       )}
     </div>
   );

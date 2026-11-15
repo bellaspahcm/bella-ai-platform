@@ -156,6 +156,37 @@ export interface InteriorQuotation {
   readonly sentToClientAt?: string | null;
   readonly acceptedAt?: string | null;
   readonly rejectedAt?: string | null;
+  readonly rejectionReason?: string | null;
+  /** Persisted, version-specific commercial line snapshot. */
+  readonly items?: readonly InteriorQuotationSnapshotItem[];
+}
+
+export interface InteriorQuotationSnapshotItem {
+  readonly id: string;
+  readonly tenantId: string;
+  readonly quotationId: string;
+  readonly boqItemId?: string;
+  readonly stableComponentId?: string;
+  readonly roomZoneName: string;
+  readonly itemCode: string;
+  readonly itemName: string;
+  readonly category: FurnitureItemCategory;
+  readonly specifications: string;
+  readonly unit: string;
+  readonly quantity: number;
+  readonly internalUnitCost: number;
+  readonly internalTotalCost: number;
+  readonly markupPercent: number;
+  readonly clientUnitPrice: number;
+  readonly clientTotalPrice: number;
+  readonly grossMarginAmount: number;
+  readonly grossMarginPercent: number;
+  readonly costBreakdown?: {
+    readonly materialCost: number;
+    readonly laborCost: number;
+    readonly hardwareCost: number;
+    readonly finishingCost: number;
+  };
 }
 
 export type PaymentMilestoneStatus =
@@ -187,6 +218,7 @@ export interface PaymentMilestone {
 export type InteriorContractStatus =
   | 'draft'
   | 'in_review'
+  | 'rejected'
   | 'signed'
   | 'active'
   | 'completed'
@@ -200,7 +232,11 @@ export interface ContractAddendum {
   readonly title: string;
   readonly valueDelta: number; // Giá trị phát sinh (+ hoặc -)
   readonly reason: string;
-  readonly approvedAt: string;
+  readonly status: 'pending_customer_approval' | 'approved' | 'rejected' | 'superseded';
+  readonly approvedAt: string | null;
+  readonly customerApprovalId?: string | null;
+  readonly baseContractValue: number;
+  readonly proposedPaymentSchedule: readonly PaymentMilestone[];
 }
 
 export interface InteriorContract {
@@ -213,7 +249,11 @@ export interface InteriorContract {
   readonly status: InteriorContractStatus;
   readonly baselineContractValue: number; // Giá trị hợp đồng gốc được chốt
   readonly currentContractValue: number;  // Đã cộng/trừ các phụ lục phát sinh
-  readonly signedDate: string;
+  readonly signedDate: string | null;
+  /** Approved quotation evidence used as the commercial source for this contract. */
+  readonly quotationCustomerApprovalId?: string;
+  /** Customer signature evidence that authorizes the signed state. */
+  readonly customerApprovalId?: string;
   readonly clientRepresentative: string;
   readonly contractorRepresentative: string;
   readonly milestones: PaymentMilestone[];
@@ -224,6 +264,8 @@ export interface InteriorContract {
   readonly quotationVersionNumber?: number;
   readonly boqId?: string;
   readonly boqVersionNumber?: number;
+  readonly designRevisionId?: string;
+  readonly designVersionNumber?: number;
   readonly paymentTerms?: string;
   readonly executionStartDate?: string;
   readonly executionEndDate?: string;

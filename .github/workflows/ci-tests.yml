@@ -407,7 +407,7 @@ jobs:
   migrations:
     name: Migration Gates
     needs: [detect_changes, real-db-e2e]
-    if: needs.detect_changes.outputs.needs_migration_gates == 'true'
+    if: always() && needs.detect_changes.outputs.needs_migration_gates == 'true' && needs.real-db-e2e.result != 'cancelled'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -458,6 +458,8 @@ jobs:
         env:
           BASE_REF: ${{ steps.migration-base.outputs.base }}
           SUPABASE_DB_URL: ${{ secrets.E2E_SUPABASE_DB_URL }}
+          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          EXPECTED_E2E_PROJECT_REF: bmnbqbcdbuklhopfbopv
           DB_MIGRATION_CHECK_ALLOW_REMOTE_AHEAD_ONLY: '1'
         run: npm run db:migration:check
 

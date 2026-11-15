@@ -37,6 +37,7 @@ const config: Config = {
     '<rootDir>/src/products/bella-hospitality/__tests__/tenant-profile-real-db.test.ts',
     '<rootDir>/src/products/bella-hospitality/__tests__/housekeeping-real-db.test.ts',
     '<rootDir>/src/products/bella-hospitality/__tests__/maintenance-real-db.test.ts',
+    '<rootDir>/src/products/bella-interior/__tests__/commercial-customer-real-db.test.ts',
   ],
 }
 

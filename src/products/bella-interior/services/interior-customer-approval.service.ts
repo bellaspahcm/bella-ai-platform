@@ -116,8 +116,10 @@ export class InteriorCustomerApprovalService {
     this.guardSendRole(input.userRole);
 
     // CP-1: Verify subject is in a sendable state
+    const quotation = input.subjectType === 'quotation'
+      ? await this.repo.getQuotation(input.tenantId, input.subjectId)
+      : null;
     if (input.subjectType === 'quotation') {
-      const quotation = await this.repo.getQuotation(input.tenantId, input.subjectId);
       if (!quotation) {
         throw new ApprovalSubjectStatusError(`quotation '${input.subjectId}' not found`);
       }
@@ -125,13 +127,16 @@ export class InteriorCustomerApprovalService {
       if (quotation.tenantId !== input.tenantId) {
         throw new ApprovalTenantIsolationError();
       }
-      if (quotation.status !== 'sent_to_client' && quotation.status !== 'negotiating') {
+      if (quotation.projectId !== input.projectId || quotation.versionNumber !== input.subjectVersionNumber) {
+        throw new ApprovalSubjectStatusError('quotation project or version does not match the approval request');
+      }
+      if (quotation.status !== 'draft' && quotation.status !== 'sent_to_client' && quotation.status !== 'negotiating') {
         throw new ApprovalSubjectStatusError(
-          `quotation must be 'sent_to_client' or 'negotiating' to request approval; current: '${quotation.status}'`
+          `quotation must be draft, sent_to_client, or negotiating to request approval; current: '${quotation.status}'`
         );
       }
-    } else {
-      const contract = await this.repo.getContract(input.tenantId, input.subjectId);
+    } else if (input.subjectType === 'contract') {
+      const contract = await this.repo.getContractForCustomerApproval(input.tenantId, input.subjectId);
       if (!contract) {
         throw new ApprovalSubjectStatusError(`contract '${input.subjectId}' not found`);
       }
@@ -139,23 +144,34 @@ export class InteriorCustomerApprovalService {
       if (contract.tenantId !== input.tenantId) {
         throw new ApprovalTenantIsolationError();
       }
+      if (contract.projectId !== input.projectId
+        || contract.quotationVersionNumber !== input.subjectVersionNumber) {
+        throw new ApprovalSubjectStatusError('contract project or quotation lineage does not match the approval request');
+      }
       if (contract.status !== 'draft' && contract.status !== 'in_review') {
         throw new ApprovalSubjectStatusError(
           `contract must be 'draft' or 'in_review' to request approval; current: '${contract.status}'`
         );
       }
+    } else {
+      const addendum = await this.repo.getContractAddendumForCustomerApproval(input.tenantId, input.subjectId);
+      if (!addendum) {
+        throw new ApprovalSubjectStatusError(`contract addendum '${input.subjectId}' not found`);
+      }
+      if (addendum.tenantId !== input.tenantId || addendum.projectId !== input.projectId
+        || addendum.versionNumber !== input.subjectVersionNumber
+        || addendum.status !== 'pending_customer_approval'
+        || addendum.customerApprovalId !== null) {
+        throw new ApprovalSubjectStatusError('contract addendum changed or already has a customer approval request');
+      }
     }
-
-    // Supersede any existing pending approvals for this subject (new request replaces old)
-    await this.repo.supersedePendingApprovals(
-      input.tenantId,
-      input.subjectId,
-      'Superseded by new approval request'
-    );
 
     const now = new Date();
     const validityDays = input.validityDays ??
       (input.subjectType === 'quotation' ? DEFAULT_VALIDITY_DAYS_QUOTATION : DEFAULT_VALIDITY_DAYS_CONTRACT);
+    if (!Number.isInteger(validityDays) || validityDays < 1 || validityDays > 365) {
+      throw new ApprovalTokenError('approval validity must be an integer from 1 to 365 days');
+    }
     const expiresAt = new Date(now.getTime() + validityDays * 24 * 60 * 60 * 1000).toISOString();
 
     // CP-2: Single-use, tenant-scoped token
@@ -207,7 +223,7 @@ export class InteriorCustomerApprovalService {
           expiresAt,
         },
       });
-    } else {
+    } else if (input.subjectType === 'contract') {
       await this.outbox.publishDomainEvent({
         id: randomUUID(),
         tenantId: input.tenantId,
@@ -221,6 +237,25 @@ export class InteriorCustomerApprovalService {
           projectId: input.projectId,
           contractId: input.subjectId,
           approvalId: approval.id,
+          clientRepresentative: input.clientRepresentative,
+          expiresAt,
+        },
+      });
+    } else {
+      await this.outbox.publishDomainEvent({
+        id: randomUUID(),
+        tenantId: input.tenantId,
+        aggregateType: 'interior_contract',
+        aggregateId: input.subjectId,
+        eventType: 'interior.contract.addendum.approval_sent.v1',
+        occurredAt: now.toISOString(),
+        actorId: input.actorId,
+        actorName: input.actorName,
+        payload: {
+          projectId: input.projectId,
+          addendumId: input.subjectId,
+          approvalId: approval.id,
+          versionNumber: input.subjectVersionNumber,
           clientRepresentative: input.clientRepresentative,
           expiresAt,
         },
@@ -252,13 +287,44 @@ export class InteriorCustomerApprovalService {
     if (!approval) {
       throw new ApprovalTokenError('approval token not found or belongs to a different tenant');
     }
+    if (approval.id !== input.approvalId) {
+      throw new ApprovalTokenError('approval id does not match the supplied customer token');
+    }
     if (approval.approvalToken !== input.approvalToken) {
       throw new ApprovalTokenError('approval token mismatch');
+    }
+    if (approval.sentByActorId === input.actorId) {
+      throw new ApprovalTokenError('the actor who sent the request cannot record the customer decision');
     }
 
     // CP-4: Immutability — cannot change a non-pending approval
     if (approval.status !== 'pending') {
       throw new ApprovalImmutabilityError(approval.id, approval.status);
+    }
+
+    const quotation = approval.subjectType === 'quotation'
+      ? await this.repo.getQuotation(input.tenantId, approval.subjectId)
+      : null;
+    const contract = approval.subjectType === 'contract'
+      ? await this.repo.getContract(input.tenantId, approval.subjectId)
+      : null;
+    const addendum = approval.subjectType === 'contract_addendum'
+      ? await this.repo.getContractAddendumForCustomerApproval(input.tenantId, approval.subjectId)
+      : null;
+    if (approval.subjectType === 'quotation'
+      && (!quotation || quotation.versionNumber !== approval.subjectVersionNumber
+        || (quotation.status !== 'sent_to_client' && quotation.status !== 'negotiating'))) {
+      throw new ApprovalSubjectStatusError('quotation version changed or is no longer awaiting customer approval');
+    }
+    if (approval.subjectType === 'contract'
+      && (!contract || (contract.status !== 'draft' && contract.status !== 'in_review'))) {
+      throw new ApprovalSubjectStatusError('contract is no longer awaiting customer signature');
+    }
+    if (approval.subjectType === 'contract_addendum'
+      && (!addendum || addendum.projectId !== approval.projectId
+        || addendum.status !== 'pending_customer_approval'
+        || addendum.customerApprovalId !== approval.id)) {
+      throw new ApprovalSubjectStatusError('contract addendum is no longer awaiting customer approval');
     }
 
     // Check token expiry
@@ -272,6 +338,13 @@ export class InteriorCustomerApprovalService {
     const signatureReference: SignatureReference | null = input.signatureReference
       ? { ...input.signatureReference, uploadedAt: now }
       : null;
+    if (approval.subjectType === 'contract'
+      && (!signatureReference
+        || !/^[0-9a-f]{64}$/i.test(signatureReference.sha256Hash)
+        || !signatureReference.storagePath.trim()
+        || signatureReference.fileSizeBytes <= 0)) {
+      throw new ApprovalTokenError('A valid customer signature file reference and SHA-256 are required to sign a contract.');
+    }
 
     const updated: CustomerApproval = {
       ...approval,
@@ -292,9 +365,14 @@ export class InteriorCustomerApprovalService {
       throw new ApprovalTokenError(`Atomic token consumption failed: token already consumed or expired for approval '${approval.id}'`);
     }
 
+    // The database trigger advances the exact quotation/contract/project in the
+    // same transaction as the conditional single-use token update.
+
     const eventType = updated.subjectType === 'quotation'
       ? 'interior.quotation.approved.v1'
-      : 'interior.contract.customer_approved.v1';
+      : updated.subjectType === 'contract'
+        ? 'interior.contract.customer_approved.v1'
+        : 'interior.contract.addendum.approved.v1';
 
     await this.outbox.publishDomainEvent({
       id: randomUUID(),
@@ -309,12 +387,53 @@ export class InteriorCustomerApprovalService {
         projectId: updated.projectId,
         ...(updated.subjectType === 'quotation'
           ? { quotationId: updated.subjectId, versionNumber: updated.subjectVersionNumber }
-          : { contractId: updated.subjectId }),
+          : updated.subjectType === 'contract'
+            ? { contractId: updated.subjectId }
+            : { addendumId: updated.subjectId, versionNumber: updated.subjectVersionNumber }),
         approvalId: updated.id,
         clientRepresentative: updated.clientRepresentative,
         hasSignature: signatureReference !== null,
       },
     });
+
+    if (updated.subjectType === 'contract' && contract) {
+      await this.outbox.publishDomainEvent({
+        id: randomUUID(),
+        tenantId: input.tenantId,
+        aggregateType: 'interior_contract',
+        aggregateId: contract.id,
+        eventType: 'interior.contract.signed.v1',
+        occurredAt: now,
+        actorId: input.actorId,
+        actorName: input.actorName,
+        payload: {
+          projectId: contract.projectId,
+          contractId: contract.id,
+          contractNumber: contract.contractNumber,
+          baselineContractValue: contract.baselineContractValue,
+          quotationId: contract.quotationId,
+          approvalId: updated.id,
+          signatureSha256: signatureReference?.sha256Hash,
+        },
+      });
+
+      const firstMilestone = contract.milestones
+        .slice()
+        .sort((left, right) => left.milestoneOrder - right.milestoneOrder)[0];
+      if (firstMilestone) {
+        await this.outbox.enqueueFinanceMilestone({
+          tenantId: input.tenantId,
+          projectId: contract.projectId,
+          contractId: contract.id,
+          milestoneOrder: firstMilestone.milestoneOrder,
+          milestoneName: firstMilestone.name,
+          amount: firstMilestone.amount,
+          currency: 'VND',
+          clientName: contract.clientRepresentative,
+          occurredAt: now,
+        });
+      }
+    }
 
     return updated;
   }
@@ -339,6 +458,12 @@ export class InteriorCustomerApprovalService {
 
     if (!approval) {
       throw new ApprovalTokenError('approval token not found or belongs to a different tenant');
+    }
+    if (approval.id !== input.approvalId) {
+      throw new ApprovalTokenError('approval id does not match the supplied customer token');
+    }
+    if (approval.sentByActorId === input.actorId) {
+      throw new ApprovalTokenError('the actor who sent the request cannot record the customer decision');
     }
 
     // CP-4: Immutability
@@ -367,20 +492,24 @@ export class InteriorCustomerApprovalService {
       throw new ApprovalTokenError(`Atomic token consumption failed: token already consumed or expired for approval '${approval.id}'`);
     }
 
-    // CP-3: Only quotations have a rejection event (triggers new revision workflow)
-    if (updated.subjectType === 'quotation') {
+    // Rejections are explicit domain events; no commercial value changes on rejection.
+    if (updated.subjectType === 'quotation' || updated.subjectType === 'contract_addendum') {
       await this.outbox.publishDomainEvent({
         id: randomUUID(),
         tenantId: input.tenantId,
         aggregateType: 'interior_contract',
         aggregateId: updated.subjectId,
-        eventType: 'interior.quotation.rejected.v1',
+        eventType: updated.subjectType === 'quotation'
+          ? 'interior.quotation.rejected.v1'
+          : 'interior.contract.addendum.rejected.v1',
         occurredAt: now,
         actorId: input.actorId,
         actorName: input.actorName,
         payload: {
           projectId: updated.projectId,
-          quotationId: updated.subjectId,
+          ...(updated.subjectType === 'quotation'
+            ? { quotationId: updated.subjectId, versionNumber: updated.subjectVersionNumber }
+            : { addendumId: updated.subjectId }),
           approvalId: updated.id,
           versionNumber: updated.subjectVersionNumber,
           rejectionReason: input.rejectionReason,
@@ -413,7 +542,7 @@ export class InteriorCustomerApprovalService {
    */
   async getApprovalSummary(
     tenantId: string,
-    subjectType: 'quotation' | 'contract',
+    subjectType: 'quotation' | 'contract' | 'contract_addendum',
     subjectId: string
   ): Promise<ApprovalSummary> {
     const approvals = await this.repo.listCustomerApprovals(tenantId, subjectId);
