@@ -230,13 +230,14 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
     const quotationActor = await db.query(
       `SELECT current_setting('request.jwt.claim.sub', true) AS request_actor_id,
         current_setting('request.jwt.claims', true)::jsonb ->> 'sub' AS claims_actor_id,
-        auth.uid()::text AS actor_id, public.interior_actor_tenant()::text AS tenant_id`,
+        current_setting('request.jwt.claims', true)::jsonb ->> 'tenant_id' AS claims_tenant_id,
+        auth.uid()::text AS actor_id`,
     );
     expect(quotationActor.rows[0]).toEqual({
       request_actor_id: staffApproverId,
       claims_actor_id: staffApproverId,
+      claims_tenant_id: tenantId,
       actor_id: staffApproverId,
-      tenant_id: tenantId,
     });
 
     const quoteCreated = await (async () => {
