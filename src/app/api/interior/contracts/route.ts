@@ -520,14 +520,11 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     const repository = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
     try {
-      const contract = await repository.getContract(ctx.tenantId, body.contractId);
-      if (!contract || contract.projectId !== body.projectId) {
-        return NextResponse.json({ success: false, error: 'INTERIOR_CONTRACT_NOT_FOUND' }, { status: 404 });
-      }
       const service = new InteriorContractLifecycleService(repository);
       const transaction = await service.recordPayment({
         tenantId: ctx.tenantId,
-        contractId: contract.id,
+        contractId: body.contractId,
+        projectId: body.projectId,
         milestoneId: body.milestoneId,
         amount: body.paymentAmount,
         paymentMethod: body.paymentMethod as PaymentMethod,
@@ -583,10 +580,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
     const repository = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
     try {
-      const contract = await repository.getContract(ctx.tenantId, body.contractId);
-      if (!contract || contract.projectId !== body.projectId) {
-        return NextResponse.json({ success: false, error: 'INTERIOR_CONTRACT_NOT_FOUND' }, { status: 404 });
-      }
       const { data: projectData, error: projectError } = await interiorRbacRpcClient(ctx.supabase).rpc(
         'interior_read_project_for_contract',
         { p_project_id: body.projectId },
@@ -606,7 +599,8 @@ export async function POST(request: Request): Promise<NextResponse> {
       const lifecycle = new InteriorContractLifecycleService(repository);
       const addendum = await lifecycle.createAddendum({
         tenantId: ctx.tenantId,
-        contractId: contract.id,
+        contractId: body.contractId,
+        projectId: body.projectId,
         addendumNumber: body.addendumNumber,
         title: body.addendumTitle,
         valueDelta: body.addendumValue,
@@ -629,7 +623,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
       const approval = await approvals.sendApprovalRequest({
         tenantId: ctx.tenantId,
-        projectId: contract.projectId,
+        projectId: body.projectId,
         subjectType: 'contract_addendum',
         subjectId: addendum.id,
         subjectVersionNumber: 1,
@@ -660,6 +654,9 @@ export async function POST(request: Request): Promise<NextResponse> {
       if (message.includes('ApprovalSubjectStatusError') || message.includes('already exists')
         || message.includes('duplicate key')) {
         return NextResponse.json({ success: false, error: 'INTERIOR_ADDENDUM_OR_APPROVAL_ALREADY_EXISTS' }, { status: 409 });
+      }
+      if (message.includes('ContractNotFound')) {
+        return NextResponse.json({ success: false, error: 'INTERIOR_CONTRACT_NOT_FOUND' }, { status: 404 });
       }
       return NextResponse.json({ success: false, error: 'INTERIOR_ADDENDUM_PERSISTENCE_FAILED' }, { status: 503 });
     }

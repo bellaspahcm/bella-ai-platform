@@ -16,6 +16,7 @@ import type {
   InteriorQuotation,
   InteriorContract,
   ContractAddendum,
+  PaymentMilestone,
 } from '../domain/commercial-costing/types';
 import type { PaymentTransaction } from '../domain/commercial-costing/contract.types';
 import type { CustomerApproval } from '../domain/commercial-costing/approval.types';
@@ -59,6 +60,19 @@ export interface InteriorCustomerApprovalAddendumSubject {
   readonly customerApprovalId: string | null;
 }
 
+export interface InteriorPaymentContractContext {
+  readonly id: string;
+  readonly tenantId: string;
+  readonly projectId: string;
+  readonly status: InteriorContract['status'];
+  readonly milestones: ReadonlyArray<Pick<PaymentMilestone, 'id' | 'milestoneOrder'>>;
+}
+
+export interface InteriorContractAmendmentContext extends InteriorPaymentContractContext {
+  readonly currentContractValue: number;
+  readonly milestones: ReadonlyArray<PaymentMilestone>;
+}
+
 export interface IInteriorRepository {
   // Design & Specification
   saveProject(tenantId: string, project: InteriorProject): Promise<void>;
@@ -93,6 +107,8 @@ export interface IInteriorRepository {
   createContractWithMilestones(tenantId: string, contract: InteriorContract): Promise<void>;
   saveContract(tenantId: string, contract: InteriorContract): Promise<void>;
   getContract(tenantId: string, contractId: string): Promise<InteriorContract | null>;
+  getPaymentContractContext(tenantId: string, contractId: string): Promise<InteriorPaymentContractContext | null>;
+  getContractAmendmentContext(tenantId: string, contractId: string): Promise<InteriorContractAmendmentContext | null>;
   getContractForCustomerApproval(tenantId: string, contractId: string): Promise<InteriorCustomerApprovalContractSubject | null>;
   getContractAddendumForCustomerApproval(tenantId: string, addendumId: string): Promise<InteriorCustomerApprovalAddendumSubject | null>;
   getContractByProject(tenantId: string, projectId: string): Promise<InteriorContract | null>;

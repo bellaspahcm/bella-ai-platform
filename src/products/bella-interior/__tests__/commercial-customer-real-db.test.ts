@@ -352,9 +352,14 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
     expect(contractApproval.id).toBe(contractApprovalId);
     await assumeAdminRole();
     const internalRpcAccess = await db.query(
-      `SELECT has_function_privilege('anon', 'public.interior_create_contract_with_milestones(jsonb,jsonb)', 'EXECUTE') AS anon_can_create_contract`,
+      `SELECT
+        has_function_privilege('anon', 'public.interior_create_contract_with_milestones(jsonb,jsonb)', 'EXECUTE') AS anon_can_create_contract,
+        has_function_privilege('anon', 'public.interior_read_contract_lifecycle_context(uuid,text)', 'EXECUTE') AS anon_can_read_contract_context,
+        has_function_privilege('anon', 'private.interior_payment_transaction_record_allowed(uuid,uuid)', 'EXECUTE') AS anon_can_check_payment_policy`,
     );
     expect(internalRpcAccess.rows[0].anon_can_create_contract).toBe(false);
+    expect(internalRpcAccess.rows[0].anon_can_read_contract_context).toBe(false);
+    expect(internalRpcAccess.rows[0].anon_can_check_payment_policy).toBe(false);
 
     const contractSignature = await uploadSyntheticEvidence(tenantId, contractApprovalId);
     await assumeDatabaseRole('service_role');
@@ -395,6 +400,18 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
     expect(contractOutbox.rows[0].count).toBe(1);
 
     await assumeDatabaseRole('authenticated', staffApproverId);
+    const amendmentContext = await db.query(
+      `SELECT public.interior_read_contract_lifecycle_context($1::uuid, 'amendment') AS context`,
+      [contractId],
+    );
+    expect(amendmentContext.rows[0].context).toMatchObject({
+      id: contractId,
+      tenantId,
+      projectId,
+      status: 'signed',
+      currentContractValue: 1080000,
+    });
+    expect(amendmentContext.rows[0].context.milestones).toHaveLength(2);
     const proposedSchedule = milestoneIds.map((id, index) => ({
       id, milestoneOrder: index + 1, name: index === 0 ? 'Deposit' : 'Completion',
       percentage: 50, amount: 600000,
@@ -448,6 +465,20 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
     });
 
     await assumeDatabaseRole('authenticated', staffApproverId);
+    const paymentContext = await db.query(
+      `SELECT public.interior_read_contract_lifecycle_context($1::uuid, 'payment') AS context`,
+      [contractId],
+    );
+    expect(paymentContext.rows[0].context).toMatchObject({
+      id: contractId,
+      tenantId,
+      projectId,
+      status: 'signed',
+    });
+    expect(paymentContext.rows[0].context.milestones).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: milestoneIds[0], milestoneOrder: 1 }),
+      expect.objectContaining({ id: milestoneIds[1], milestoneOrder: 2 }),
+    ]));
     await db.query(
       `INSERT INTO public.interior_payment_transactions (
         id, tenant_id, contract_id, milestone_id, amount, payment_method,

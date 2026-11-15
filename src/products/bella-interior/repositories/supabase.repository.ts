@@ -48,6 +48,8 @@ import type {
 import type {
   InteriorCustomerApprovalAddendumSubject,
   InteriorCustomerApprovalContractSubject,
+  InteriorContractAmendmentContext,
+  InteriorPaymentContractContext,
   IInteriorRepository,
   SaveBOQOptions,
 } from './interior-repository.interface';
@@ -769,6 +771,73 @@ function mapRowToMilestone(row: PaymentMilestoneRow): PaymentMilestone {
     invoiceStatus: (row.invoice_status as PaymentMilestone['invoiceStatus']) ?? 'unissued',
     invoiceNumber: row.invoice_number ?? undefined,
     invoicedAt: row.invoiced_at ?? undefined,
+  };
+}
+
+const INTERIOR_CONTRACT_STATUSES: readonly InteriorContract['status'][] = [
+  'draft', 'in_review', 'rejected', 'signed', 'active', 'completed', 'terminated',
+];
+const PAYMENT_MILESTONE_STATUSES: readonly PaymentMilestone['status'][] = [
+  'pending', 'invoiced', 'paid', 'overdue',
+];
+const PAYMENT_MILESTONE_INVOICE_STATUSES: readonly NonNullable<PaymentMilestone['invoiceStatus']>[] = [
+  'unissued', 'issued', 'adjusted',
+];
+
+function isInteriorContractStatus(value: unknown): value is InteriorContract['status'] {
+  return typeof value === 'string'
+    && INTERIOR_CONTRACT_STATUSES.includes(value as InteriorContract['status']);
+}
+
+function lifecycleContextNumber(value: unknown): number | null {
+  if (typeof value !== 'number' && typeof value !== 'string') return null;
+  const numeric = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function mapLifecycleContextMilestone(
+  value: unknown,
+  tenantId: string,
+  contractId: string,
+): PaymentMilestone | null {
+  if (!isInteriorRbacRecord(value)
+    || typeof value.id !== 'string'
+    || value.tenantId !== tenantId
+    || value.contractId !== contractId
+    || typeof value.milestoneOrder !== 'number' || !Number.isInteger(value.milestoneOrder)
+    || typeof value.name !== 'string'
+    || typeof value.triggerCondition !== 'string'
+    || !PAYMENT_MILESTONE_STATUSES.includes(value.status as PaymentMilestone['status'])) return null;
+
+  const percentage = lifecycleContextNumber(value.percentage);
+  const amount = lifecycleContextNumber(value.amount);
+  const collectedAmount = lifecycleContextNumber(value.collectedAmount);
+  if (percentage === null || amount === null || collectedAmount === null) return null;
+  if (value.invoiceStatus !== null
+    && !PAYMENT_MILESTONE_INVOICE_STATUSES.includes(value.invoiceStatus as NonNullable<PaymentMilestone['invoiceStatus']>)) {
+    return null;
+  }
+  if (value.dueDate !== null && typeof value.dueDate !== 'string') return null;
+  if (value.paidAt !== null && typeof value.paidAt !== 'string') return null;
+  if (value.invoiceNumber !== null && typeof value.invoiceNumber !== 'string') return null;
+  if (value.invoicedAt !== null && typeof value.invoicedAt !== 'string') return null;
+
+  return {
+    id: value.id,
+    tenantId,
+    contractId,
+    milestoneOrder: value.milestoneOrder,
+    name: value.name,
+    percentage,
+    amount,
+    triggerCondition: value.triggerCondition,
+    status: value.status as PaymentMilestone['status'],
+    dueDate: typeof value.dueDate === 'string' ? value.dueDate : undefined,
+    paidAt: typeof value.paidAt === 'string' ? value.paidAt : undefined,
+    collectedAmount,
+    invoiceStatus: (value.invoiceStatus as PaymentMilestone['invoiceStatus']) ?? 'unissued',
+    invoiceNumber: typeof value.invoiceNumber === 'string' ? value.invoiceNumber : undefined,
+    invoicedAt: typeof value.invoicedAt === 'string' ? value.invoicedAt : undefined,
   };
 }
 
@@ -1814,6 +1883,68 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
 
     const milestones = (msData as PaymentMilestoneRow[]).map(mapRowToMilestone);
     return mapRowToContract(data as InteriorContractRow, milestones, addenda);
+  }
+
+  private async readContractLifecycleContext(
+    tenantId: string,
+    contractId: string,
+    context: 'payment' | 'amendment',
+  ): Promise<Record<string, unknown> | null> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc(
+      'interior_read_contract_lifecycle_context',
+      { p_contract_id: contractId, p_context: context },
+    );
+    if (error) throw new Error(`[InteriorRepo] contract lifecycle context lookup failed: ${error.message}`);
+    if (!isInteriorRbacRecord(data)
+      || data.id !== contractId
+      || data.tenantId !== tenantId
+      || typeof data.projectId !== 'string'
+      || !isInteriorContractStatus(data.status)) return null;
+    return data;
+  }
+
+  async getPaymentContractContext(
+    tenantId: string,
+    contractId: string,
+  ): Promise<InteriorPaymentContractContext | null> {
+    const data = await this.readContractLifecycleContext(tenantId, contractId, 'payment');
+    if (!data || !Array.isArray(data.milestones)) return null;
+    const milestones = data.milestones.map((milestone) => {
+      if (!isInteriorRbacRecord(milestone)
+        || typeof milestone.id !== 'string'
+        || typeof milestone.milestoneOrder !== 'number'
+        || !Number.isInteger(milestone.milestoneOrder)) return null;
+      return { id: milestone.id, milestoneOrder: milestone.milestoneOrder };
+    });
+    if (milestones.some((milestone) => milestone === null)) return null;
+    return {
+      id: data.id as string,
+      tenantId,
+      projectId: data.projectId as string,
+      status: data.status as InteriorContract['status'],
+      milestones: milestones as Array<Pick<PaymentMilestone, 'id' | 'milestoneOrder'>>,
+    };
+  }
+
+  async getContractAmendmentContext(
+    tenantId: string,
+    contractId: string,
+  ): Promise<InteriorContractAmendmentContext | null> {
+    const data = await this.readContractLifecycleContext(tenantId, contractId, 'amendment');
+    const currentContractValue = data ? lifecycleContextNumber(data.currentContractValue) : null;
+    if (!data || currentContractValue === null || !Array.isArray(data.milestones)) return null;
+    const milestones = data.milestones.map((milestone) =>
+      mapLifecycleContextMilestone(milestone, tenantId, contractId));
+    if (milestones.some((milestone) => milestone === null)) return null;
+    return {
+      id: data.id as string,
+      tenantId,
+      projectId: data.projectId as string,
+      status: data.status as InteriorContract['status'],
+      currentContractValue,
+      milestones: milestones as PaymentMilestone[],
+    };
   }
 
   async getContractForCustomerApproval(

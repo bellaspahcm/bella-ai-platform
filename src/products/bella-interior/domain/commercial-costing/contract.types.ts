@@ -64,6 +64,7 @@ export interface CreateContractFromQuotationInput {
 export interface CreateAddendumInput {
   readonly tenantId: string;
   readonly contractId: string;
+  readonly projectId?: string;
   readonly addendumNumber: string;
   readonly title: string;
   readonly valueDelta: number; // Positive or negative financial variance
@@ -107,6 +108,7 @@ export interface PaymentTransaction {
 export interface RecordPaymentTransactionInput {
   readonly tenantId: string;
   readonly contractId: string;
+  readonly projectId?: string;
   readonly milestoneId: string;
   readonly amount: number;
   readonly paymentMethod: PaymentMethod;

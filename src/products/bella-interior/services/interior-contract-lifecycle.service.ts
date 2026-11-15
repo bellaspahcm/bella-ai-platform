@@ -356,8 +356,8 @@ export class InteriorContractLifecycleService {
     if (!input.tenantId) throw new TenantIsolationViolationError('tenantId is required');
     this.assertAuthorizedRole(input.userRole, CANONICAL_CONTRACT_MANAGEMENT_ROLES);
 
-    const contract = await this.repository.getContract(input.tenantId, input.contractId);
-    if (!contract) {
+    const contract = await this.repository.getContractAmendmentContext(input.tenantId, input.contractId);
+    if (!contract || (input.projectId && contract.projectId !== input.projectId)) {
       throw new Error(`ContractNotFound: Contract "${input.contractId}" not found for tenant "${input.tenantId}".`);
     }
 
@@ -447,8 +447,8 @@ export class InteriorContractLifecycleService {
       throw new Error('PaymentReferenceCodeRequired: payment reference code must not be blank.');
     }
 
-    const contract = await this.repository.getContract(input.tenantId, input.contractId);
-    if (!contract) {
+    const contract = await this.repository.getPaymentContractContext(input.tenantId, input.contractId);
+    if (!contract || (input.projectId && contract.projectId !== input.projectId)) {
       throw new Error(`ContractNotFound: Contract "${input.contractId}" not found for tenant "${input.tenantId}".`);
     }
 

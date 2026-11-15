@@ -408,6 +408,31 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
     return this.contracts.get(this.makeKey(tenantId, contractId)) ?? null;
   }
 
+  async getPaymentContractContext(tenantId: string, contractId: string) {
+    const contract = await this.getContract(tenantId, contractId);
+    if (!contract) return null;
+    return {
+      id: contract.id,
+      tenantId: contract.tenantId,
+      projectId: contract.projectId,
+      status: contract.status,
+      milestones: contract.milestones.map(({ id, milestoneOrder }) => ({ id, milestoneOrder })),
+    };
+  }
+
+  async getContractAmendmentContext(tenantId: string, contractId: string) {
+    const contract = await this.getContract(tenantId, contractId);
+    if (!contract) return null;
+    return {
+      id: contract.id,
+      tenantId: contract.tenantId,
+      projectId: contract.projectId,
+      status: contract.status,
+      currentContractValue: contract.currentContractValue,
+      milestones: contract.milestones,
+    };
+  }
+
   async getContractForCustomerApproval(tenantId: string, contractId: string): Promise<InteriorCustomerApprovalContractSubject | null> {
     const contract = await this.getContract(tenantId, contractId);
     if (!contract) return null;

@@ -8,6 +8,7 @@ const repositoryState = {
     name: 'Project 1',
     customerId: '123e4567-e89b-42d3-a456-426614174020',
     customerName: 'Client One',
+    customerPhone: '0900000000',
   },
   quotation: {
     id: '123e4567-e89b-42d3-a456-426614174030',
@@ -57,6 +58,8 @@ const repositoryState = {
   },
   savedContract: null as unknown,
   savedPayment: null as unknown,
+  savedAddendum: null as unknown,
+  savedApproval: null as unknown,
   acceptedQuotations: [] as Record<string, unknown>[],
 };
 
@@ -67,6 +70,39 @@ jest.mock('@/products/bella-interior/repositories/supabase.repository', () => ({
     listCustomerApprovals: jest.fn(async () => [repositoryState.approval]),
     getCustomerApproval: jest.fn(async () => repositoryState.approval),
     getContract: jest.fn(async () => repositoryState.paymentContract),
+    getPaymentContractContext: jest.fn(async () => ({
+      id: repositoryState.paymentContract.id,
+      tenantId: repositoryState.paymentContract.tenantId,
+      projectId: repositoryState.paymentContract.projectId,
+      status: repositoryState.paymentContract.status,
+      milestones: repositoryState.paymentContract.milestones.map(({ id, milestoneOrder }) => ({ id, milestoneOrder })),
+    })),
+    getContractAmendmentContext: jest.fn(async () => ({
+      id: repositoryState.paymentContract.id,
+      tenantId: repositoryState.paymentContract.tenantId,
+      projectId: repositoryState.paymentContract.projectId,
+      status: repositoryState.paymentContract.status,
+      currentContractValue: 1000,
+      milestones: repositoryState.paymentContract.milestones,
+    })),
+    getContractAddendumForCustomerApproval: jest.fn(async () => {
+      const addendum = repositoryState.savedAddendum as Record<string, unknown> | null;
+      if (!addendum) return null;
+      return {
+        id: addendum.id as string,
+        tenantId: addendum.tenantId as string,
+        projectId: repositoryState.project.id,
+        status: addendum.status as 'pending_customer_approval',
+        versionNumber: 1,
+        customerApprovalId: null,
+      };
+    }),
+    saveContractAddendum: jest.fn(async (_tenantId: string, addendum: unknown) => {
+      repositoryState.savedAddendum = addendum;
+    }),
+    saveCustomerApproval: jest.fn(async (_tenantId: string, approval: unknown) => {
+      repositoryState.savedApproval = approval;
+    }),
     savePaymentTransaction: jest.fn(async (_tenantId: string, transaction: unknown) => {
       repositoryState.savedPayment = transaction;
     }),
@@ -88,6 +124,11 @@ jest.mock('@/products/bella-interior/repositories/supabase.repository', () => ({
     createContractWithMilestones: jest.fn(async (_tenantId: string, contract: unknown) => {
       repositoryState.savedContract = contract;
     }),
+  })),
+}));
+jest.mock('../adapters/supabase-finance-outbox.adapter', () => ({
+  SupabaseInteriorFinanceOutboxAdapter: jest.fn().mockImplementation(() => ({
+    publishDomainEvent: jest.fn(async () => undefined),
   })),
 }));
 
@@ -112,6 +153,7 @@ function projectLookupClient() {
           name: repositoryState.project.name,
           customerId: repositoryState.project.customerId,
           customerName: repositoryState.project.customerName,
+          customerPhone: repositoryState.project.customerPhone,
         },
         error: null,
       };
@@ -124,6 +166,8 @@ describe('Interior contract creation API', () => {
     jest.clearAllMocks();
     repositoryState.savedContract = null;
     repositoryState.savedPayment = null;
+    repositoryState.savedAddendum = null;
+    repositoryState.savedApproval = null;
     repositoryState.acceptedQuotations = [repositoryState.quotation];
     resolveInteriorContext.mockResolvedValue({
       ok: true,
@@ -201,6 +245,83 @@ describe('Interior contract creation API', () => {
     expect(body.success).toBe(true);
     expect(body.data.recordedBy).toBe('123e4567-e89b-42d3-a456-426614174090');
     expect(repositoryState.savedPayment).toEqual(body.data);
+  });
+
+  it('hides a payment contract when the requested project does not match its authorized scope', async () => {
+    resolveInteriorContext.mockResolvedValue({
+      ok: true,
+      tenantId: repositoryState.project.tenantId,
+      actor: { id: '123e4567-e89b-42d3-a456-426614174090', role: 'accountant', full_name: 'Accountant' },
+      supabase: projectLookupClient(),
+    });
+    const response = await createContract(new Request('https://bella.example/api/interior/contracts', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        action: 'record-payment',
+        projectId: '123e4567-e89b-42d3-a456-426614174099',
+        contractId: repositoryState.paymentContract.id,
+        milestoneId: repositoryState.paymentContract.milestones[0].id,
+        paymentAmount: 100,
+        paymentMethod: 'bank_transfer',
+        referenceCode: 'BANK-REF-WRONG-PROJECT',
+        transactionDate: '2026-11-14',
+      }),
+    }));
+    const body = await response.json() as { success: boolean; error: string };
+
+    expect(response.status).toBe(404);
+    expect(body.error).toBe('INTERIOR_PAYMENT_TARGET_NOT_FOUND_OR_UNSIGNED');
+    expect(repositoryState.savedPayment).toBeNull();
+  });
+
+  it('creates an addendum from scoped contract context and requests customer approval', async () => {
+    resolveInteriorContext.mockResolvedValue({
+      ok: true,
+      tenantId: repositoryState.project.tenantId,
+      actor: { id: '123e4567-e89b-42d3-a456-426614174090', role: 'owner', full_name: 'Owner' },
+      supabase: projectLookupClient(),
+    });
+    const response = await createContract(new Request('https://bella.example/api/interior/contracts', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        action: 'create-addendum',
+        projectId: repositoryState.project.id,
+        contractId: repositoryState.paymentContract.id,
+        addendumNumber: 'ADD-001',
+        addendumTitle: 'Scope update',
+        addendumReason: 'Approved scope change',
+        addendumValue: 10,
+        addendumMilestones: [{
+          id: repositoryState.paymentContract.milestones[0].id,
+          milestoneOrder: 1,
+          name: 'Deposit',
+          percentageOfTotal: 100,
+          amount: 1010,
+          triggerCondition: 'On approval',
+        }],
+      }),
+    }));
+    const body = await response.json() as {
+      success: boolean;
+      data: { addendum: Record<string, unknown>; approvalId: string };
+    };
+
+    expect(response.status).toBe(201);
+    expect(body.success).toBe(true);
+    expect(body.data.addendum).toEqual(expect.objectContaining({
+      contractId: repositoryState.paymentContract.id,
+      baseContractValue: 1000,
+      status: 'pending_customer_approval',
+    }));
+    expect(typeof body.data.approvalId).toBe('string');
+    expect(repositoryState.savedAddendum).toEqual(body.data.addendum);
+    expect(repositoryState.savedApproval).toEqual(expect.objectContaining({
+      subjectType: 'contract_addendum',
+      subjectId: body.data.addendum.id,
+      status: 'pending',
+    }));
   });
 
   it('rejects impossible payment calendar dates before persistence', async () => {
