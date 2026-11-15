@@ -121,7 +121,7 @@ const SCOPED_REAL_DB_SUITES = [
   {
     name: 'Bella Interior Commercial customer transaction chain',
     patterns: [
-      /^supabase\/migrations\/(20261110190000_interior_boq_versioning_snapshot|20261110200000_interior_quotation_and_margin_engine|20261110210000_interior_contract_and_payment_milestones|20261110220000_interior_customer_approval_and_signature|20261113165251_interior_commercial_transaction_engine|20261114110000_interior_handover_requires_customer_evidence|20261114120000_interior_customer_evidenced_handover|20261114120100_interior_customer_approval_addendum_subject|20261114120200_interior_contract_addendum_customer_approval|20261114120300_interior_contract_addenda_finance_scoped_read)\.sql$/,
+      /^supabase\/migrations\/\d+_interior_.*\.sql$/i,
       /^scripts\/(apply-e2e-pr-migrations|check-supabase-migrations)\.cjs$/,
       /^src\/__tests__\/supabase-migration-check\.test\.ts$/,
       /^src\/products\/bella-interior\//,

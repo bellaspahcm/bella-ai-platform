@@ -84,3 +84,12 @@ test('catalog forward migration routes to the existing focused Real DB verifier'
   assert.match(result.stdout, /verify-automove-catalog-reads.ts/);
   assert.doesNotMatch(result.stdout, /Running full real database/);
 });
+
+test('new Interior migrations stay on the focused Commercial Real DB suite', () => {
+  const result = spawnSync(process.execPath, ['scripts/run-scoped-real-db-e2e.mjs', '--list-only',
+    'supabase/migrations/20261115025227_interior_payment_duplicate_reference_precedence.sql'],
+  { encoding: 'utf8', windowsHide: true });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /commercial-customer-real-db\.test\.ts/);
+  assert.doesNotMatch(result.stdout, /Running full real database/);
+});
