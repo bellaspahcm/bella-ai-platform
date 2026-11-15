@@ -439,7 +439,7 @@ test.describe("Interior Commercial — Production UI Smoke (Read-Only)", () => {
     const milestoneApiCalls = networkEvidence.filter(
       (e) => e.path.includes("/api/interior/") && e.status < 400,
     );
-    console.log(`[S5] Interior API calls: ${milestoneApiCalls.length}`, milestoneApiCalls.map((e) => e.path));
+    console.log("[S5] Interior API calls count:", milestoneApiCalls.length);
 
     // Pass nếu milestone section visible và ít nhất 2 milestone orders tìm thấy
     // hoặc nếu API calls thành công (API đã verified, UI render là đủ)
