@@ -1,4 +1,4 @@
-﻿-- =============================================================================
+-- =============================================================================
 -- Bella Interior Commercial — External Technical Source (D12)
 -- Migration: 20261115120000_interior_external_technical_sources
 --
@@ -101,8 +101,10 @@ COMMENT ON COLUMN public.interior_external_technical_sources.superseded_by_id IS
   'D12: Nếu có phiên bản mới, trỏ đến record mới. Record cũ vẫn bất biến.';
 
 -- ── INDEX ─────────────────────────────────────────────────────────────────────
+-- zero-downtime: allow blocking-index - new table created in same migration; no existing rows to scan
 CREATE INDEX idx_iets_tenant_work_item
   ON public.interior_external_technical_sources (tenant_id, work_item_id);
+-- zero-downtime: allow blocking-index - new table created in same migration; no existing rows to scan
 CREATE INDEX idx_iets_active
   ON public.interior_external_technical_sources (work_item_id)
   WHERE superseded_by_id IS NULL;
@@ -207,8 +209,10 @@ ALTER TABLE public.interior_boq_items
   NOT VALID;
 
 -- Validate sau (không block existing data khi NOT VALID)
+-- zero-downtime: allow validate-constraint - interior_boq_items.ext_technical_source_id is newly added nullable column; all existing rows have NULL value, nothing to validate
 ALTER TABLE public.interior_boq_items
   VALIDATE CONSTRAINT interior_boq_items_ext_source_fkey;
+-- zero-downtime: allow validate-constraint - interior_boq_items.work_item_id is newly added nullable column; all existing rows have NULL value, nothing to validate
 ALTER TABLE public.interior_boq_items
   VALIDATE CONSTRAINT interior_boq_items_work_item_id_fkey;
 
@@ -221,6 +225,7 @@ ALTER TABLE public.interior_production_order_items
       REFERENCES public.interior_external_technical_sources(id) ON DELETE RESTRICT
   NOT VALID;
 
+-- zero-downtime: allow validate-constraint - interior_production_order_items.ext_technical_source_id is newly added nullable column; all existing rows have NULL value, nothing to validate
 ALTER TABLE public.interior_production_order_items
   VALIDATE CONSTRAINT interior_poi_ext_source_fkey;
 

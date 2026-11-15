@@ -1,4 +1,4 @@
-﻿-- =============================================================================
+-- =============================================================================
 -- Bella Interior Commercial — Work Item entity (D10)
 -- Migration: 20261115110000_interior_work_items
 --
@@ -94,10 +94,13 @@ COMMENT ON COLUMN public.interior_work_items.created_by_id IS
   'D14: UUID FK bắt buộc. Không được suy đoán từ TEXT lịch sử.';
 
 -- ── INDEX ─────────────────────────────────────────────────────────────────────
+-- zero-downtime: allow blocking-index - new table created in same migration; no existing rows to scan
 CREATE INDEX idx_iwi_tenant_project
   ON public.interior_work_items (tenant_id, project_id);
+-- zero-downtime: allow blocking-index - new table created in same migration; no existing rows to scan
 CREATE INDEX idx_iwi_work_type
   ON public.interior_work_items (tenant_id, work_type);
+-- zero-downtime: allow blocking-index - new table created in same migration; no existing rows to scan
 CREATE INDEX idx_iwi_active_status
   ON public.interior_work_items (status)
   WHERE status IN ('planning', 'active');

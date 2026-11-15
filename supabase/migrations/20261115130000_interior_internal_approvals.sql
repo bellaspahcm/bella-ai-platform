@@ -1,4 +1,4 @@
-﻿-- =============================================================================
+-- =============================================================================
 -- Bella Interior Commercial — Internal Approvals (D11, D13, D14)
 -- Migration: 20261115130000_interior_internal_approvals
 --
@@ -123,10 +123,13 @@ COMMENT ON COLUMN public.interior_internal_approvals.is_superseded IS
   'D14: TRUE khi record đã bị thay thế bởi superseded_by_id. Record cũ bất biến.';
 
 -- ── INDEX ─────────────────────────────────────────────────────────────────────
+-- zero-downtime: allow blocking-index - new table created in same migration; no existing rows to scan
 CREATE INDEX idx_iia_tenant_work_item
   ON public.interior_internal_approvals (tenant_id, work_item_id);
+-- zero-downtime: allow blocking-index - new table created in same migration; no existing rows to scan
 CREATE INDEX idx_iia_subject
   ON public.interior_internal_approvals (subject_type, subject_id);
+-- zero-downtime: allow blocking-index - new table created in same migration; no existing rows to scan
 CREATE INDEX idx_iia_pending
   ON public.interior_internal_approvals (tenant_id, status)
   WHERE status = 'pending' AND is_superseded = false;
@@ -243,6 +246,7 @@ ALTER TABLE public.interior_production_orders
   NOT VALID;
 
 -- production_orders rỗng — validate ngay được
+-- zero-downtime: allow validate-constraint - interior_production_orders confirmed empty on production (0 rows); no existing data to scan
 ALTER TABLE public.interior_production_orders
   VALIDATE CONSTRAINT interior_production_orders_work_item_id_fkey;
 
@@ -291,6 +295,7 @@ ALTER TABLE public.interior_warranty_certificates
     FOREIGN KEY (issued_by_id) REFERENCES auth.users(id) ON DELETE RESTRICT
   NOT VALID;
 
+-- zero-downtime: allow validate-constraint - interior_warranty_certificates.issued_by_id is newly added nullable column; all existing rows have NULL value, nothing to validate
 ALTER TABLE public.interior_warranty_certificates
   VALIDATE CONSTRAINT interior_warranty_certificates_issued_by_id_fkey;
 
