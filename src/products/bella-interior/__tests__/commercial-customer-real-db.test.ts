@@ -536,6 +536,7 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
     await requireDatabase().query('RESET ROLE');
     await setClaims(role, actorId, actorTenantId);
     await requireDatabase().query(`SET LOCAL ROLE ${role}`);
+    await requireDatabase().query('SET LOCAL row_security = on');
   }
 
   async function assumeAdminRole(): Promise<void> {
