@@ -168,9 +168,14 @@ function analyzeMigrationState(
   const contentAliasByRemote = new Map(contentVerifiedAliases.map((alias) => [alias.remote, alias.local]));
 
   for (const remoteVersion of remoteVersions) {
-    const localAlias = allowVerifiedE2eVersionAliases
-      ? (contentAliasByRemote.get(remoteVersion) || MIGRATION_VERSION_ALIASES.get(remoteVersion))
-      : null;
+    // MIGRATION_VERSION_ALIASES are unconditional production ledger aliases —
+    // applied regardless of allowVerifiedE2eVersionAliases because they record
+    // known timestamp mismatches between Production DB and Git filenames.
+    // contentVerifiedAliases (E2E content-verified) are only applied when the
+    // allowVerifiedE2eVersionAliases flag is set.
+    const localAlias = contentAliasByRemote.get(remoteVersion)
+      || MIGRATION_VERSION_ALIASES.get(remoteVersion)
+      || null;
     if (localAlias && localSet.has(localAlias)) {
       satisfiedLocalVersions.add(localAlias);
       recognizedRemoteAliases.push({ remote: remoteVersion, local: localAlias });
