@@ -239,6 +239,28 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
       claims_tenant_id: tenantId,
       actor_id: staffApproverId,
     });
+    const quotationUuidInputs = await db.query(
+      `SELECT ($1::jsonb ->> 'id')::uuid::text AS quotation_id,
+        ($1::jsonb ->> 'tenant_id')::uuid::text AS quotation_tenant_id,
+        ($1::jsonb ->> 'project_id')::uuid::text AS project_id,
+        ($1::jsonb ->> 'boq_id')::uuid::text AS boq_id,
+        (item.value ->> 'id')::uuid::text AS item_id,
+        (item.value ->> 'tenant_id')::uuid::text AS item_tenant_id,
+        (item.value ->> 'quotation_id')::uuid::text AS item_quotation_id,
+        (item.value ->> 'boq_item_id')::uuid::text AS item_boq_id
+      FROM jsonb_array_elements($2::jsonb) item(value)`,
+      [JSON.stringify(quoteDraft), JSON.stringify([quotationItem])],
+    );
+    expect(quotationUuidInputs.rows[0]).toEqual({
+      quotation_id: quoteId,
+      quotation_tenant_id: tenantId,
+      project_id: projectId,
+      boq_id: boqId,
+      item_id: quoteItemId,
+      item_tenant_id: tenantId,
+      item_quotation_id: quoteId,
+      item_boq_id: boqItemId,
+    });
 
     const quoteCreated = await (async () => {
       try {
