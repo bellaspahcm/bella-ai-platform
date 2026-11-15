@@ -413,6 +413,16 @@ function shouldRunFullSuite(files) {
   ));
 }
 
+const INTERIOR_COMMERCIAL_REAL_DB_TEST =
+  'src/products/bella-interior/__tests__/commercial-customer-real-db.test.ts';
+
+function shouldRunInteriorCommercialFirst(files) {
+  return files.some((file) => (
+    file === INTERIOR_COMMERCIAL_REAL_DB_TEST
+    || /^supabase\/migrations\/\d+_interior_/i.test(file)
+  ));
+}
+
 function addTest(tests, file) {
   tests.add(file);
 }
@@ -453,10 +463,30 @@ const changedFiles = resolveChangedFiles(explicitChangedFiles).map(normalizePath
 
 if (changedFiles.length === 0 || shouldRunFullSuite(changedFiles)) {
   console.log('Running full real database business E2E suite.');
+  const runInteriorCommercialFirst = shouldRunInteriorCommercialFirst(changedFiles);
+  if (runInteriorCommercialFirst) {
+    console.log(`Running first: ${INTERIOR_COMMERCIAL_REAL_DB_TEST}`);
+    console.log(`The remaining full suite will exclude: ${INTERIOR_COMMERCIAL_REAL_DB_TEST}`);
+  }
   if (listOnly) {
     process.exit(0);
   }
-  const jest = run('npx', ['jest', '--config', 'jest.real-db.config.ts', '--runInBand'], {
+
+  if (runInteriorCommercialFirst) {
+    const priority = run('npx', [
+      'jest', '--config', 'jest.real-db.config.ts', '--runInBand',
+      '--runTestsByPath', INTERIOR_COMMERCIAL_REAL_DB_TEST,
+    ], { stdio: 'inherit' });
+    if ((priority.status ?? 1) !== 0) {
+      process.exit(priority.status ?? 1);
+    }
+  }
+
+  const fullSuiteArgs = ['jest', '--config', 'jest.real-db.config.ts', '--runInBand'];
+  if (runInteriorCommercialFirst) {
+    fullSuiteArgs.push('--testPathIgnorePatterns', INTERIOR_COMMERCIAL_REAL_DB_TEST);
+  }
+  const jest = run('npx', fullSuiteArgs, {
     stdio: 'inherit',
   });
   process.exit(jest.status ?? 1);

@@ -227,10 +227,36 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
       total_gross_margin: 500000, gross_margin_percent: 50, payment_terms: 'E2E fixture terms',
       validity_days: 30, prepared_by: staffApproverId,
     };
-    const quoteCreated = await db.query(
-      'SELECT public.interior_create_quotation_snapshot($1::jsonb,$2::jsonb) AS id',
-      [JSON.stringify(quoteDraft), JSON.stringify([quotationItem])],
+    const quotationActor = await db.query(
+      `SELECT current_setting('request.jwt.claim.sub', true) AS request_actor_id,
+        current_setting('request.jwt.claims', true)::jsonb ->> 'sub' AS claims_actor_id,
+        auth.uid()::text AS actor_id, public.interior_actor_tenant()::text AS tenant_id`,
     );
+    expect(quotationActor.rows[0]).toEqual({
+      request_actor_id: staffApproverId,
+      claims_actor_id: staffApproverId,
+      actor_id: staffApproverId,
+      tenant_id: tenantId,
+    });
+
+    const quoteCreated = await (async () => {
+      try {
+        return await db.query(
+          'SELECT public.interior_create_quotation_snapshot($1::jsonb,$2::jsonb) AS id',
+          [JSON.stringify(quoteDraft), JSON.stringify([quotationItem])],
+        );
+      } catch (error) {
+        const postgresError = error as Error & { code?: string; where?: string; routine?: string };
+        const diagnostics = [
+          postgresError.code ? `code=${postgresError.code}` : '',
+          postgresError.routine ? `routine=${postgresError.routine}` : '',
+          postgresError.where ? `context=${postgresError.where.replace(/\s+/g, ' ').slice(0, 500)}` : '',
+        ].filter(Boolean).join(' ');
+        throw new Error(
+          `INTERIOR_QUOTATION_SNAPSHOT_FAILED${diagnostics ? ` ${diagnostics}` : ''}: ${postgresError.message}`,
+        );
+      }
+    })();
     expect(quoteCreated.rows[0].id).toBe(quoteId);
 
     const quotationApproval = await createApprovalRequest(db, {
