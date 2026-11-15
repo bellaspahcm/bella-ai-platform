@@ -386,7 +386,7 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
     });
     await expectRejectedUpdate(db,
       'UPDATE public.interior_contracts SET baseline_contract_value=1 WHERE id=$1::uuid',
-      [contractId], 'ContractImmutabilityViolation');
+      [contractId], 'INTERIOR_CONTRACT_BASELINE_MUST_MATCH_ACCEPTED_QUOTATION');
     const contractOutbox = await db.query(
       `SELECT count(*)::integer AS count FROM public.interior_finance_outbox
        WHERE tenant_id=$1::uuid AND event_type='INTERIOR_CONTRACT_MILESTONE_INVOICED' AND reference_id LIKE $2`,
