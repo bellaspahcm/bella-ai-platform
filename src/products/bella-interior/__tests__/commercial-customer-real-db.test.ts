@@ -208,6 +208,7 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
     expect(sealed.rows[0]).toMatchObject({ status: 'approved', version_number: 1 });
     expect(sealed.rows[0].snapshot_sealed_at).toBeTruthy();
 
+    await assumeDatabaseRole('authenticated', staffApproverId);
     const quotationItem = {
       id: quoteItemId, tenant_id: tenantId, quotation_id: quoteId, boq_item_id: boqItemId,
       stable_component_id: stableComponentId, room_zone_name: 'Living room', item_code: 'CAB-001',
