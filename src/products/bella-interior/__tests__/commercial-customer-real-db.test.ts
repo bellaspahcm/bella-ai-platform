@@ -200,6 +200,7 @@ describeWithE2e('Bella Interior Commercial customer chain on isolated E2E Postgr
       'SELECT public.fork_interior_boq_revision($1::uuid,$2::uuid,$3::uuid,$4,$5)',
       [tenantId, boqId, staffApproverId, `${marker} sealed snapshot`, marker],
     );
+    await assumeAdminRole();
     const sealed = await db.query(
       'SELECT status, version_number, snapshot_sealed_at FROM public.interior_boqs WHERE tenant_id=$1::uuid AND id=$2::uuid',
       [tenantId, boqId],
