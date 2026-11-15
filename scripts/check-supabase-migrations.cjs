@@ -18,6 +18,11 @@ const MIGRATION_VERSION_ALIASES = new Map([
   ['20261104223802', '20261104135713'],
   ['20261110161823', '20261110190000'],
   ['20261110162223', '20261110220000'],
+  // Production DB recorded this version when the migration was applied via
+  // codex/commercial-transaction-engine-20261113 before the file timestamp was
+  // normalized to 20261114120000 in Git (commit 03b852bd8, PR #538).
+  // Content verified: interior_customer_evidenced_handover — exact SQL match.
+  ['20261115085708', '20261114120000'],
 ]);
 
 function normalizeMigrationVersion(version) {

@@ -69,11 +69,6 @@ CREATE POLICY interior_payment_transactions_record
   FOR INSERT TO authenticated
   WITH CHECK (private.interior_payment_transaction_record_allowed(tenant_id, contract_id));
 
--- The trigger checks actor, tenant, project permission, signed status, and amount
--- itself. Definer rights let those checks read the contract and milestone tables,
--- whose direct table grants remain closed to authenticated users.
-ALTER FUNCTION public.guard_interior_payment_transaction_insert() SECURITY DEFINER;
-
 -- The API may read only the contract context needed for the requested lifecycle
 -- operation. It never needs a direct SELECT grant on interior_contracts.
 CREATE OR REPLACE FUNCTION public.interior_read_contract_lifecycle_context(
