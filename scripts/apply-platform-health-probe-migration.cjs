@@ -17,6 +17,19 @@ const MIGRATION_PATH = join(
   `${EXPECTED_VERSION}_platform_health_rest_database_probe.sql`,
 );
 
+// Production DB recorded these versions when migrations were applied before the
+// repository timestamps were normalized. Each remote version maps to its
+// canonical Git version; the mapping is validated by content in check-supabase-migrations.cjs.
+const PRODUCTION_MIGRATION_VERSION_ALIASES = new Map([
+  ['20261104223802', '20261104135713'],
+  ['20261110161823', '20261110190000'],
+  ['20261110162223', '20261110220000'],
+  // Applied via codex/commercial-transaction-engine-20261113 before filename was
+  // normalized to 20261114120000 in Git (commit 03b852bd8, PR #538).
+  // interior_customer_evidenced_handover — content verified in check-supabase-migrations.cjs.
+  ['20261115085708', '20261114120000'],
+]);
+
 function assertProductionTarget(connectionString) {
   let url;
   try {
@@ -48,9 +61,14 @@ function assertProductionTarget(connectionString) {
 
 function decideMigrationAction(localVersions, remoteVersions) {
   const localSet = new Set(localVersions);
-  const remoteSet = new Set(remoteVersions);
+  // Resolve known production version aliases before comparing.
+  // A remote version that maps to a known local version is treated as satisfied.
+  const resolvedRemoteVersions = remoteVersions.map(
+    version => PRODUCTION_MIGRATION_VERSION_ALIASES.get(version) ?? version,
+  );
+  const remoteSet = new Set(resolvedRemoteVersions);
   const pending = localVersions.filter(version => !remoteSet.has(version));
-  const remoteOnly = remoteVersions.filter(version => !localSet.has(version));
+  const remoteOnly = resolvedRemoteVersions.filter(version => !localSet.has(version));
 
   if (remoteOnly.length > 0) {
     throw new Error(`Production migration ledger has versions missing from Git: ${remoteOnly.join(', ')}`);
