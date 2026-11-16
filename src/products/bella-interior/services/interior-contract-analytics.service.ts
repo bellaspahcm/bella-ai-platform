@@ -1562,7 +1562,9 @@ export class InteriorContractAnalyticsService {
           contractValueFormatted: this.formatVND(contractValue),
           executionPeriod: 'Theo hợp đồng',
           paymentTerms: `${contract.milestones.length} đợt theo tiến độ`,
-          notes: `Hợp đồng số ${contract.contractNumber} — dữ liệu từ Supabase.`,
+          notes: contract.quotationNumber
+            ? `Hợp đồng số ${contract.contractNumber} (Báo giá ${contract.quotationNumber}) — dữ liệu từ Supabase.`
+            : `Hợp đồng số ${contract.contractNumber} — dữ liệu từ Supabase.`,
         },
         addenda,
         auditLogs: [],
