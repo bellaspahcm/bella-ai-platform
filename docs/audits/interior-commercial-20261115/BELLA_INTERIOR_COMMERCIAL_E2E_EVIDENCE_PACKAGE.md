@@ -2,10 +2,11 @@
 **Trạng thái nghiệm thu chính thức:**  
 # **`PRODUCTION VERIFIED — COMMERCIAL E2E PROVEN ON CONTROLLED PILOT`**
 
-**Ngày lập:** 16/11/2026  
+**Ngày lập:** 16/11/2026 (Cập nhật Hardening: 17/11/2026)  
 **Môi trường:** Live Production (`https://bella-spa-erp.vercel.app`)  
 **Cơ sở dữ liệu:** Supabase Production `lvnvkpyxtuilhrabtlwv` (`ap-southeast-1`)  
-**Git Commit SHA:** `fae81d7aeb6acdc24b197876f12a828814c81f1a`  
+**Verified Code/Deployment SHA:** `fae81d7aeb6acdc24b197876f12a828814c81f1a` (Commit triển khai Vercel Production được kiểm chứng E2E/UI Smoke)  
+**Mainline Archive SHA:** `a113bbfe8b417e453e1a0df91b36e8db0008544e` (Commit hợp nhất PR #545 lưu trữ hồ sơ nghiệm thu vào nhánh `main`)  
 **Tenant ID:** `686884d2-6a4a-4581-ac8f-6ae69666b31d` (Bella Interior Demo)  
 **Primary Actor:** `9077b10b-ee20-4058-907b-7a3e918b84c3` (`demo.interior@bellaspa.vn` — OWNER & ADMIN)
 
@@ -25,7 +26,7 @@ Theo định hướng quản trị của Kiến trúc sư Trưởng, hệ thốn
 | **Payment Recording (Happy Path)** | Pilot E2E | ✅ **PROVEN** | Trigger cập nhật milestone `paid` và tạo Finance Outbox event |
 | **Customer Approval (Happy Path)** | Pilot E2E | ✅ **PROVEN** | Public approval token chuyển quotation `accepted` và sinh contract |
 | **Contract Addendum (Happy Path)** | Pilot E2E | ✅ **PROVEN** | Approval tự động cập nhật contract value và rebalance schedule |
-| **Negative & Resilience E2E** | 8 ca kiểm thử biên | 📋 **FOLLOW-UP** | Chuyển sang giai đoạn Product Hardening |
+| **Negative & Resilience Hardening** | 8/8 kịch bản biên | ✅ **VERIFIED PASS** | Thực thi CSDL có kiểm soát + Automated regression (11/11 PASS) |
 | **Migration Windows A–D** | Windows A–D | 🔒 **SEALED — UNCHANGED** | Bất biến, giữ nguyên 100% baseline, không mở lại |
 
 ---
@@ -156,20 +157,22 @@ Bảng `public.interior_payment_transactions` đã lưu trữ 2 bản ghi lịch
 
 ---
 
-## 4. Kế hoạch Kiểm thử Độ bền & Kiểm thử Biên (Product Hardening Plan)
+## 4. Bằng chứng Kiểm thử Độ bền & Kiểm thử Biên (Product Hardening — 100% VERIFIED)
 
-Các kịch bản kiểm thử biên (Negative & Resilience) được ghi nhận và phân loại vào kế hoạch kiểm thử tiếp theo:
+Toàn bộ 8 kịch bản kiểm thử biên (Negative & Resilience) đã được thực thi kiểm chứng trực tiếp trên Postgres Database Engine (`lvnvkpyxtuilhrabtlwv`) với cơ chế dọn sạch dữ liệu (0 dirty state) và được mã hóa thành bộ kiểm thử tự động vĩnh viễn (`src/products/bella-interior/__tests__/commercial-hardening-resilience.test.ts` — **11/11 PASS**):
 
-| TT | Kịch bản kiểm thử | Hành vi kỳ vọng của hệ thống | Trạng thái hiện tại |
-|---|---|---|---|
-| **1** | **Duplicate payment request** | Chặn mã tham chiếu trùng trong hợp đồng (`23505 / uq_interior_payment_tx_reference_normalized`) | ✅ Trigger đã có mã kiểm tra |
-| **2** | **Partial payment** | `collected_amount` phản ánh đúng số tiền thực nhận; giữ status `pending` nếu chưa đủ đợt | ✅ Trigger hỗ trợ luỹ kế |
-| **3** | **Overpayment** | Báo lỗi `INTERIOR_PAYMENT_EXCEEDS_MILESTONE_BALANCE` khi vượt số dư đợt thu | ✅ Trigger chặn cứng |
-| **4** | **Duplicate approval** | Trả về `false` hoặc lỗi `STALE` nếu approval token đã được sử dụng | ✅ Đã kiểm chứng idempotency |
-| **5** | **Rejected approval** | Chuyển sang `rejected`, không kích hoạt trigger chuyển trạng thái Quotation/Contract | ✅ Logic nhánh `rejected` có sẵn |
-| **6** | **Cross-tenant access** | RLS và RPC chặn tuyệt đối, trả về `403 / NULL` khi truy cập tenant khác | ✅ 20/20 Security checks PASS |
-| **7** | **Outbox retry** | Không sinh trùng lặp bản ghi Outbox (`ON CONFLICT DO NOTHING`) | ✅ Khóa duy nhất (tenant, event, ref) |
-| **8** | **Addendum trên paid milestone** | Chặn cứng `INTERIOR_ADDENDUM_MILESTONE_BECAME_IMMUTABLE_REISSUE_REQUIRED` | ✅ Trigger bảo vệ bất biến |
+| TT | Kịch bản kiểm thử | Hành vi hệ thống đã xác minh | Bằng chứng thực thi Runtime (Postgres & Jest) | Trạng thái |
+|---|---|---|---|---|
+| **1** | **Duplicate payment request** | Chặn mã tham chiếu trùng trong hợp đồng (kể cả khác biệt hoa/thường) | PostgreSQL ném `SQLSTATE 23505` (`uq_interior_payment_tx_reference_normalized`). Jest suite xác nhận ném `DuplicatePaymentTransaction`. | ✅ **PROVEN PASS** |
+| **2** | **Overpayment** | Chặn thanh toán vượt quá số dư còn lại của đợt thu | PostgreSQL ném `P0001: INTERIOR_PAYMENT_EXCEEDS_MILESTONE_BALANCE`. Jest suite xác nhận chặn overpayment. | ✅ **PROVEN PASS** |
+| **3** | **Partial payment** | `collected_amount` phản ánh đúng số tiền thực nhận; giữ status `pending`/`invoiced` nếu chưa đủ đợt | Ghi nhận 100M trên mốc 300M -> `collected_amount = 100M`, `status = pending`. Ghi nhận 3 đợt lũy kế trong Jest -> chuyển `paid` chỉ khi đủ 100%. | ✅ **PROVEN PASS** |
+| **4** | **Duplicate approval** | Replay approval token đã sử dụng không sinh thêm hợp đồng hay đổi trạng thái | RPC `interior_transition_public_customer_approval` trả về `false`. Jest suite ném `ApprovalImmutabilityError`. | ✅ **PROVEN PASS** |
+| **5** | **Rejected approval** | Từ chối yêu cầu bắt buộc có lý do; quotation/contract không chuyển `accepted` | Thiếu lý do: ném `INTERIOR_APPROVAL_REJECTION_REASON_REQUIRED`. Có lý do: approval sang `rejected`, quotation giữ nguyên `rejected`, không kích hoạt sinh hợp đồng. | ✅ **PROVEN PASS** |
+| **6** | **Cross-tenant access** | RLS và RPC chặn tuyệt đối, trả về `NULL / Error` khi truy cập tenant khác | Query với claims tenant khác trả về `0 rows / NULL`. Ghi nhận giao dịch ném `AuthorizationViolation: payment actor and tenant must match`. | ✅ **PROVEN PASS** |
+| **7** | **Outbox retry** | Không sinh trùng lặp bản ghi Outbox (`ON CONFLICT DO NOTHING`) | Replay cùng sự kiện: trả về đúng `UUID` ban đầu, bảng outbox duy trì chính xác 1 bản ghi duy nhất (`uq_interior_finance_outbox_event`). | ✅ **PROVEN PASS** |
+| **8** | **Addendum trên paid milestone** | Chặn cứng việc thay đổi điều khoản trên đợt thanh toán đã tất toán | CSDL ném `INTERIOR_ADDENDUM_CANNOT_CHANGE_INVOICED_OR_PAID_MILESTONE`. Sửa mốc chưa thu: thành công `pending_customer_approval`. | ✅ **PROVEN PASS** |
+
+**Kết luận Product Hardening:** Giai đoạn Product Hardening đã hoàn tất 100% mục tiêu, không phát sinh bất kỳ migration mới nào và giữ nguyên hiện trạng Production.
 
 ---
 
