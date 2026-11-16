@@ -5,8 +5,9 @@
 **Ngày lập:** 16/11/2026 (Cập nhật Hardening: 17/11/2026)  
 **Môi trường:** Live Production (`https://bella-spa-erp.vercel.app`)  
 **Cơ sở dữ liệu:** Supabase Production `lvnvkpyxtuilhrabtlwv` (`ap-southeast-1`)  
-**Verified Code/Deployment SHA:** `fae81d7aeb6acdc24b197876f12a828814c81f1a` (Commit triển khai Vercel Production được kiểm chứng E2E/UI Smoke)  
+**Verified Code/Deployment SHA:** `fae81d7aeb6acdc24b197876f12a828814c81f1a` (Commit triển khai Vercel ban đầu được kiểm chứng E2E/UI Smoke)  
 **Mainline Archive SHA:** `a113bbfe8b417e453e1a0df91b36e8db0008544e` (Commit hợp nhất PR #545 lưu trữ hồ sơ nghiệm thu vào nhánh `main`)  
+**Production Hardening & Live Deployment SHA:** `be8b7f56110f0cf2d3ff3fc4c9a6239103e61c3d` (PR #546 — Triển khai thành công lên Production qua GitHub Actions Run `43973557093`, Vercel Deployment `https://bella-spa-gf9gxkqfa-bella-spa-s-projects.vercel.app`)  
 **Tenant ID:** `686884d2-6a4a-4581-ac8f-6ae69666b31d` (Bella Interior Demo)  
 **Primary Actor:** `9077b10b-ee20-4058-907b-7a3e918b84c3` (`demo.interior@bellaspa.vn` — OWNER & ADMIN)
 
@@ -180,17 +181,18 @@ Toàn bộ 8 kịch bản kiểm thử biên (Negative & Resilience) đã đư�
 
 Chạy kiểm thử trực tiếp trên môi trường Vercel Live Production:
 - **Lệnh chạy:** `npx playwright test e2e/tests/48-interior-commercial-ui-smoke.spec.ts --project=chromium`
-- **Kết quả:** **7/7 PASS (100%)** — Thời gian thực thi: **1.3 phút**
+- **Kết quả baseline (`fae81d7a`):** **7/7 PASS (100%)** — Thời gian thực thi: **1.3 phút**
+- **Kết quả sau triển khai Hardening (`be8b7f561` — Run ID `43973557093`):** **7/7 PASS (100%)** — Thời gian thực thi: **50.1 giây**
 - **Không có bất kỳ lỗi:** JavaScript runtime, React hydration, HTTP 403, HTTP 500 hay HTTP 503.
 
 ```
-[S1 PASS] Dashboard loaded. Interior links found: 22. Errors: 0 (11.4s)
-[S2 PASS] /dashboard/interior loaded. URL: https://bella-spa-erp.vercel.app/dashboard/interior. Errors: 0 (6.6s)
+[S1 PASS] Dashboard loaded. Interior links found: 22. Errors: 0 (8.5s)
+[S2 PASS] /dashboard/interior loaded. URL: https://bella-spa-erp.vercel.app/dashboard/interior. Errors: 0 (5.3s)
 [S3 PASS] Project Detail loaded: INT-THD-2026 Villa Riverside Thao Dien. Errors: 0 (9.1s)
-[S4 PASS] Contracts page: HD-NT-2026/08 & BG-THD-2026-01 visible. Errors: 0 (7.1s)
-[S5 PASS] 5 Milestones visible. 1.35B VND verified. Progress 50%. Errors: 0 (5.6s)
-[S6 PASS] Addendum section visible. 0 errors, 0 addenda on baseline contract. (11.7s)
-[S7 PASS] Permission boundary verified: unauthenticated challenged 307 to /login. (424ms)
+[S4 PASS] Contracts page: HD-NT-2026/08 & BG-THD-2026-01 visible. Errors: 0 (5.1s)
+[S5 PASS] 5 Milestones visible. 1.35B VND verified. Progress 50%. Errors: 0 (5.1s)
+[S6 PASS] Addendum section visible. 0 errors, 0 addenda on baseline contract. (4.6s)
+[S7 PASS] Permission boundary verified: unauthenticated challenged 307 to /login. (466ms)
 ```
 
 ---
