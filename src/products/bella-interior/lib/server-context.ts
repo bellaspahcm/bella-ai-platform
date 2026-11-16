@@ -251,7 +251,7 @@ type ProjectRequestScope =
   | { readonly status: 'OK'; readonly projectId?: string; readonly branchId?: string; readonly body: JsonRecord | null }
   | { readonly status: 'INVALID' };
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function projectIdCandidates(request: Request, body: JsonRecord | null): string[] {
   const url = new URL(request.url);
