@@ -125,4 +125,36 @@ describe('Interior contract read RBAC route', () => {
 
     expect(response.status).toBe(503);
   });
+
+  it('handles legacy contracts where quotationVersionNumber is NULL by falling back to version 1', async () => {
+    const rpc = jest.fn().mockResolvedValue({ data: {
+      hasContract: true, financeAccess: true,
+      project: { id: projectId, code: 'INT-001', name: 'Project 1' },
+      contract: { ...contract, quotationVersionNumber: null },
+    }, error: null });
+    rpcClientFactoryMock.mockReturnValue({ rpc } as unknown as ReturnType<typeof interiorRbacRpcClient>);
+
+    const response = await readContract(new Request(`https://bella.example/api/interior/contracts?projectId=${projectId}`));
+    const body = await response.json() as { data: { overview: Record<string, unknown> } };
+
+    expect(response.status).toBe(200);
+    const commercialWorkflow = body.data.overview['commercialWorkflow'] as { quotationVersionNumber: number };
+    expect(commercialWorkflow.quotationVersionNumber).toBe(1);
+  });
+
+  it('preserves explicit quotationVersionNumber when already present (> 1)', async () => {
+    const rpc = jest.fn().mockResolvedValue({ data: {
+      hasContract: true, financeAccess: true,
+      project: { id: projectId, code: 'INT-001', name: 'Project 1' },
+      contract: { ...contract, quotationVersionNumber: 3 },
+    }, error: null });
+    rpcClientFactoryMock.mockReturnValue({ rpc } as unknown as ReturnType<typeof interiorRbacRpcClient>);
+
+    const response = await readContract(new Request(`https://bella.example/api/interior/contracts?projectId=${projectId}`));
+    const body = await response.json() as { data: { overview: Record<string, unknown> } };
+
+    expect(response.status).toBe(200);
+    const commercialWorkflow = body.data.overview['commercialWorkflow'] as { quotationVersionNumber: number };
+    expect(commercialWorkflow.quotationVersionNumber).toBe(3);
+  });
 });

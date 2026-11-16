@@ -181,7 +181,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   const contractRow = data.contract;
-  const rawQuotationVersionNumber = contractRow.quotationVersionNumber;
+  const rawQuotationVersionNumber = contractRow.quotationVersionNumber ?? 1;
   const quotationVersionNumber = typeof rawQuotationVersionNumber === 'number'
     ? rawQuotationVersionNumber
     : typeof rawQuotationVersionNumber === 'string' && rawQuotationVersionNumber.trim() !== ''
@@ -291,8 +291,9 @@ export async function GET(request: Request): Promise<NextResponse> {
       ? { quotationCustomerApprovalId: contractRow.quotationCustomerApprovalId } : {}),
     ...(typeof contractRow.customerApprovalId === 'string'
       ? { customerApprovalId: contractRow.customerApprovalId } : {}),
-    ...(typeof contractRow.quotationVersionNumber === 'number'
-      ? { quotationVersionNumber: contractRow.quotationVersionNumber } : {}),
+    quotationVersionNumber,
+    ...(typeof contractRow.quotationNumber === 'string'
+      ? { quotationNumber: contractRow.quotationNumber } : {}),
     ...(typeof contractRow.boqId === 'string' ? { boqId: contractRow.boqId } : {}),
     ...(typeof contractRow.boqVersionNumber === 'number'
       ? { boqVersionNumber: contractRow.boqVersionNumber } : {}),
