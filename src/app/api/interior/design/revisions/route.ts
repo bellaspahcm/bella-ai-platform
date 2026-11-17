@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 import { interiorMutationRow, interiorRbacRpcClient, isInteriorRbacRecord, validInteriorUuid } from '@/products/bella-interior/lib/rbac-api';
+import { resolveTenantProject } from '@/products/bella-interior/lib/project-resolver';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,11 +35,20 @@ export async function GET(request: Request): Promise<NextResponse> {
   if (!ctx.ok) return ctx.response;
 
   const { searchParams } = new URL(request.url);
-  const projectId = searchParams.get('projectId');
+  const projectIdParam = searchParams.get('projectId');
 
-  if (!projectId) {
-    return NextResponse.json({ success: false, error: 'projectId query parameter is required' }, { status: 400 });
+  const projectResult = await resolveTenantProject(ctx.supabase, ctx.tenantId, projectIdParam);
+  if (!projectResult.ok) {
+    const status = projectResult.error === 'AMBIGUOUS_PROJECT_SELECTION' ? 400 : 404;
+    return NextResponse.json({
+      success: false,
+      error: projectResult.error,
+      message: projectResult.message,
+      ...(projectResult.availableProjects ? { availableProjects: projectResult.availableProjects } : {}),
+    }, { status });
   }
+
+  const projectId = projectResult.projectId;
 
   try {
     const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_list_design_revisions', {
@@ -95,12 +105,18 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   const parsed = body as Partial<CreateRevisionBody>;
 
-  if (!validInteriorUuid(parsed.projectId)) {
-    return NextResponse.json(
-      { success: false, error: 'Field "projectId" is required and must be a string' },
-      { status: 422 }
-    );
+  const projectResult = await resolveTenantProject(ctx.supabase, ctx.tenantId, parsed.projectId);
+  if (!projectResult.ok) {
+    const status = projectResult.error === 'AMBIGUOUS_PROJECT_SELECTION' ? 400 : 422;
+    return NextResponse.json({
+      success: false,
+      error: projectResult.error,
+      message: projectResult.message,
+      ...(projectResult.availableProjects ? { availableProjects: projectResult.availableProjects } : {}),
+    }, { status });
   }
+  const targetProjectId = projectResult.projectId;
+
   if (!parsed.revisionName || typeof parsed.revisionName !== 'string') {
     return NextResponse.json(
       { success: false, error: 'Field "revisionName" is required and must be a string' },
@@ -119,7 +135,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ success: false, error: 'revisionNumber must contain a positive revision number' }, { status: 422 });
   }
   const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_create_design_revision', {
-    p_project_id: parsed.projectId,
+    p_project_id: targetProjectId,
     p_title: parsed.revisionName.trim(),
     p_version_number: numParsed,
   });
@@ -138,7 +154,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   const now = new Date().toISOString();
   const newRevision: DesignRevision = {
     id: outcome.revision_id,
-    projectId: parsed.projectId,
+    projectId: targetProjectId,
     revisionName: parsed.revisionName.trim(),
     revisionNumber: `R${numParsed}.0`,
     status: 'draft',
