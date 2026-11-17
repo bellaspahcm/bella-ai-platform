@@ -4,7 +4,7 @@ import { join } from 'node:path';
 describe('Interior Design Audit Action Contract', () => {
   const migrationPath = join(
     process.cwd(),
-    'supabase/migrations/20261117195500_interior_design_audit_action_vocabulary.sql'
+    'supabase/migrations/20261117131034_interior_design_audit_action_vocabulary.sql'
   );
   let migrationSql: string;
 
