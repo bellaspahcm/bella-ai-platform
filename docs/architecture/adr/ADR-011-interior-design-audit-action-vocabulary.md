@@ -24,7 +24,7 @@ A direct precedent was established in `supabase/migrations/20261114171657_interi
 
 ## Decision
 Under governance directive for O1 remediation:
-1. Create additive migration `supabase/migrations/20261117195500_interior_design_audit_action_vocabulary.sql`.
+1. Create additive migration `supabase/migrations/20261117131034_interior_design_audit_action_vocabulary.sql`.
 2. Update `public.interior_create_design_revision` to write `action = 'INSERT'`.
 3. Update `public.interior_approve_design_revision` to write `action = 'UPDATE'`.
 4. Keep all RPC signatures, return types, error codes, Four-Eyes validation (`v_revision.submitted_by_user_id = v_actor`), permission checks (`interior:design:create`, `interior:design:approve`), and tenant isolation logic 100% intact.
