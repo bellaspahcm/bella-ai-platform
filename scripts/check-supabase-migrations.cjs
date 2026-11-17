@@ -26,6 +26,9 @@ const MIGRATION_VERSION_ALIASES = new Map([
   // E2E database applied initial BOQ approval fix under 20261117144000 before
   // version was aligned to applied Supabase version 20261117150604.
   ['20261117144000', '20261117150604'],
+  // E2E database applied initial design revision audit action fix under 20261117195500
+  // before version was aligned to applied Supabase version 20261117131034 (PR #550).
+  ['20261117195500', '20261117131034'],
 ]);
 
 function normalizeMigrationVersion(version) {
