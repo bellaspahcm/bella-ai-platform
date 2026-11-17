@@ -104,8 +104,8 @@ describe('Interior O3 Remediation: Storage, Lineage, and Audit Canonical Contrac
       expect(migrationSql).toContain('REVOKE ALL ON FUNCTION public.interior_create_site_diary(uuid,date,integer,text,text[],text) FROM PUBLIC,anon,authenticated,service_role;');
       expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_create_site_diary(uuid,date,integer,text,text[],text) TO authenticated;');
 
-      expect(migrationSql).toContain('REVOKE ALL ON FUNCTION public.interior_create_qc_item(uuid,uuid,text,text,text,text) FROM PUBLIC,anon,authenticated,service_role;');
-      expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_create_qc_item(uuid,uuid,text,text,text,text) TO authenticated;');
+      expect(migrationSql).toContain('REVOKE ALL ON FUNCTION public.interior_create_qc_item(uuid,uuid,text,text,text) FROM PUBLIC,anon,authenticated,service_role;');
+      expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_create_qc_item(uuid,uuid,text,text,text) TO authenticated;');
 
       expect(migrationSql).toContain('REVOKE ALL ON FUNCTION public.interior_update_qc_item(uuid,text,text) FROM PUBLIC,anon,authenticated,service_role;');
       expect(migrationSql).toContain('GRANT EXECUTE ON FUNCTION public.interior_update_qc_item(uuid,text,text) TO authenticated;');

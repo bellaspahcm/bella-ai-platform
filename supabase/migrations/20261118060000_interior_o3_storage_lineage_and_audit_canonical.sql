@@ -125,35 +125,33 @@ GRANT EXECUTE ON FUNCTION public.interior_create_site_diary(uuid,date,integer,te
 
 -- 3.2 interior_create_qc_item
 CREATE OR REPLACE FUNCTION public.interior_create_qc_item(
-  p_project_id uuid,p_room_zone_id uuid,p_room_name text,p_category text,
-  p_description text,p_severity text
+  p_project_id uuid,p_room_zone_id uuid,p_description text,p_category text,p_severity text
 )
 RETURNS TABLE(status text,reason text,item jsonb)
 LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
 AS $$
 DECLARE
-  v_actor uuid:=auth.uid();
   v_tenant uuid:=public.interior_actor_tenant();
+  v_actor uuid:=auth.uid();
+  v_room_name text:='Khu vực chính';
   v_item public.interior_qc_punch_list_items%ROWTYPE;
 BEGIN
-  IF v_actor IS NULL OR v_tenant IS NULL THEN
+  IF v_tenant IS NULL OR v_actor IS NULL THEN
     RETURN QUERY SELECT 'DENIED'::text,'ACTIVE_ACTOR_REQUIRED'::text,NULL::jsonb; RETURN;
   END IF;
-  IF p_project_id IS NULL OR nullif(trim(p_room_name),'') IS NULL OR length(trim(p_room_name))>100
-    OR p_category IS NULL OR p_category NOT IN ('woodwork','paint_finishing','hardware','installation_fit','cleaning','other')
-    OR nullif(trim(p_description),'') IS NULL OR length(trim(p_description))>2000
+  IF p_project_id IS NULL OR p_description IS NULL OR length(trim(p_description)) NOT BETWEEN 1 AND 4000
+    OR p_category IS NULL OR p_category NOT IN ('finishing','structural','furniture_fit','electrical_coordination','painting')
     OR p_severity IS NULL OR p_severity NOT IN ('critical','major','minor') THEN
-    RETURN QUERY SELECT 'DENIED'::text,'INVALID_QC_INPUT'::text,NULL::jsonb; RETURN;
+    RETURN QUERY SELECT 'DENIED'::text,'INVALID_QC_ITEM_INPUT'::text,NULL::jsonb; RETURN;
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM public.interior_projects p
-    WHERE p.id=p_project_id AND p.tenant_id=v_tenant) THEN
+  IF NOT EXISTS (SELECT 1 FROM public.interior_projects p WHERE p.id=p_project_id AND p.tenant_id=v_tenant) THEN
     RETURN QUERY SELECT 'DENIED'::text,'PROJECT_NOT_FOUND'::text,NULL::jsonb; RETURN;
   END IF;
   IF NOT public.interior_has_permission('interior:qc:create',v_tenant,p_project_id,NULL) THEN
     RETURN QUERY SELECT 'DENIED'::text,'QC_CREATE_PERMISSION_REQUIRED'::text,NULL::jsonb; RETURN;
   END IF;
   IF p_room_zone_id IS NOT NULL THEN
-    PERFORM 1 FROM public.interior_project_room_zones z
+    SELECT z.name INTO v_room_name FROM public.interior_project_room_zones z
     WHERE z.id=p_room_zone_id AND z.project_id=p_project_id AND z.tenant_id=v_tenant;
     IF NOT FOUND THEN
       RETURN QUERY SELECT 'DENIED'::text,'ROOM_ZONE_NOT_FOUND'::text,NULL::jsonb; RETURN;
@@ -162,13 +160,12 @@ BEGIN
   INSERT INTO public.interior_qc_punch_list_items(
     tenant_id,project_id,room_zone_id,reported_by_user_id,room_zone_name,item_name,defect_category,description,severity,
     assigned_fixer,deadline,status
-  ) VALUES(v_tenant,p_project_id,p_room_zone_id,v_actor,trim(p_room_name),left(trim(p_description),30),p_category,
+  ) VALUES(v_tenant,p_project_id,p_room_zone_id,v_actor,v_room_name,left(trim(p_description),30),p_category,
     trim(p_description),p_severity,'Chưa phân công',current_date+3,'open')
   RETURNING * INTO v_item;
   INSERT INTO public.audit_logs(tenant_id,table_name,record_id,action,old_data,new_data,changed_by_id,created_at)
   VALUES(v_tenant,'interior_qc_punch_list_items',v_item.id,'INSERT',NULL,
-    jsonb_build_object('project_id',p_project_id,'room_zone_id',p_room_zone_id,'severity',p_severity,
-      'status','open','business_action','CREATE'),
+    jsonb_build_object('project_id',p_project_id,'room_zone_id',p_room_zone_id,'severity',p_severity,'status','open','business_action','CREATE'),
     v_actor,statement_timestamp());
   RETURN QUERY SELECT 'COMMITTED'::text,'QC_ITEM_CREATED'::text,
     jsonb_build_object('id',v_item.id,'tenantId',v_item.tenant_id,'projectId',v_item.project_id,
@@ -181,8 +178,8 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.interior_create_qc_item(uuid,uuid,text,text,text,text) FROM PUBLIC,anon,authenticated,service_role;
-GRANT EXECUTE ON FUNCTION public.interior_create_qc_item(uuid,uuid,text,text,text,text) TO authenticated;
+REVOKE ALL ON FUNCTION public.interior_create_qc_item(uuid,uuid,text,text,text) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION public.interior_create_qc_item(uuid,uuid,text,text,text) TO authenticated;
 
 -- 3.3 interior_update_qc_item
 CREATE OR REPLACE FUNCTION public.interior_update_qc_item(
@@ -192,17 +189,18 @@ RETURNS TABLE(status text,reason text,item jsonb)
 LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
 AS $$
 DECLARE
-  v_actor uuid:=auth.uid();
   v_tenant uuid:=public.interior_actor_tenant();
+  v_actor uuid:=auth.uid();
   v_item public.interior_qc_punch_list_items%ROWTYPE;
   v_old_item public.interior_qc_punch_list_items%ROWTYPE;
+  v_permission text;
 BEGIN
-  IF v_actor IS NULL OR v_tenant IS NULL THEN
+  IF v_tenant IS NULL OR v_actor IS NULL THEN
     RETURN QUERY SELECT 'DENIED'::text,'ACTIVE_ACTOR_REQUIRED'::text,NULL::jsonb; RETURN;
   END IF;
-  IF p_item_id IS NULL OR p_status IS NULL OR p_status NOT IN ('in_progress','rectified','verified')
-    OR (p_rectification_note IS NOT NULL AND length(trim(p_rectification_note))>2000) THEN
-    RETURN QUERY SELECT 'DENIED'::text,'INVALID_QC_UPDATE_INPUT'::text,NULL::jsonb; RETURN;
+  IF p_item_id IS NULL OR p_status IS NULL OR p_status NOT IN ('open','in_progress','rectified','verified')
+    OR (p_rectification_note IS NOT NULL AND length(p_rectification_note)>4000) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'INVALID_QC_ITEM_INPUT'::text,NULL::jsonb; RETURN;
   END IF;
   SELECT * INTO v_item FROM public.interior_qc_punch_list_items q
   WHERE q.id=p_item_id AND q.tenant_id=v_tenant FOR UPDATE;
@@ -210,18 +208,13 @@ BEGIN
     RETURN QUERY SELECT 'DENIED'::text,'QC_ITEM_NOT_FOUND'::text,NULL::jsonb; RETURN;
   END IF;
   v_old_item:=v_item;
-  IF p_status IN ('in_progress','rectified') THEN
-    IF NOT public.interior_has_permission('interior:qc:update',v_tenant,v_item.project_id,NULL) THEN
-      RETURN QUERY SELECT 'DENIED'::text,'QC_UPDATE_PERMISSION_REQUIRED'::text,NULL::jsonb; RETURN;
-    END IF;
-  ELSIF p_status='verified' THEN
-    IF NOT public.interior_has_permission('interior:qc:approve',v_tenant,v_item.project_id,NULL) THEN
-      RETURN QUERY SELECT 'DENIED'::text,'QC_APPROVE_PERMISSION_REQUIRED'::text,NULL::jsonb; RETURN;
-    END IF;
+  v_permission:=CASE WHEN p_status='verified' THEN 'interior:qc:approve' ELSE 'interior:qc:update' END;
+  IF NOT public.interior_has_permission(v_permission,v_tenant,v_item.project_id,NULL) THEN
+    RETURN QUERY SELECT 'DENIED'::text,'QC_UPDATE_PERMISSION_REQUIRED'::text,NULL::jsonb; RETURN;
   END IF;
-  IF NOT (
+  IF p_status IS DISTINCT FROM v_item.status AND NOT (
     (v_item.status='open' AND p_status='in_progress')
-    OR (v_item.status IN ('open','in_progress') AND p_status='rectified')
+    OR (v_item.status='in_progress' AND p_status='rectified')
     OR (v_item.status='rectified' AND p_status='verified')
   ) THEN
     RETURN QUERY SELECT 'DENIED'::text,'INVALID_QC_STATE_TRANSITION'::text,NULL::jsonb; RETURN;
@@ -257,37 +250,34 @@ GRANT EXECUTE ON FUNCTION public.interior_update_qc_item(uuid,text,text) TO auth
 
 -- 3.4 interior_create_warranty_ticket
 CREATE OR REPLACE FUNCTION public.interior_create_warranty_ticket(
-  p_project_id uuid,p_certificate_id uuid,p_customer_report text,
-  p_defect_category text,p_priority text,p_reported_by_contact text DEFAULT NULL
+  p_certificate_id uuid,p_project_id uuid,p_reported_by_contact text,
+  p_defect_category text,p_customer_report text,p_priority text
 )
 RETURNS TABLE(status text,reason text,ticket jsonb)
 LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
 AS $$
 DECLARE
-  v_actor uuid:=auth.uid();
-  v_tenant uuid:=public.interior_actor_tenant();
-  v_ticket_number text:='WRN-'||to_char(statement_timestamp(),'YYYYMMDD')||'-'||lpad(floor(random()*10000)::text,4,'0');
+  v_tenant uuid:=public.interior_actor_tenant(); v_actor uuid:=auth.uid();
+  v_certificate public.interior_warranty_certificates%ROWTYPE;
   v_ticket public.interior_warranty_service_tickets%ROWTYPE;
+  v_ticket_number text:='WTK-'||upper(substr(replace(gen_random_uuid()::text,'-',''),1,10));
 BEGIN
-  IF v_actor IS NULL OR v_tenant IS NULL THEN
-    RETURN QUERY SELECT 'DENIED'::text,'ACTIVE_ACTOR_REQUIRED'::text,NULL::jsonb; RETURN;
-  END IF;
-  IF p_project_id IS NULL OR p_certificate_id IS NULL OR nullif(trim(p_customer_report),'') IS NULL
-    OR length(trim(p_customer_report))>3000
-    OR p_defect_category IS NULL OR p_defect_category NOT IN ('woodwork','paint_finishing','hardware','installation_fit','cleaning','other')
-    OR p_priority IS NULL OR p_priority NOT IN ('low','medium','high','urgent')
-    OR (p_reported_by_contact IS NOT NULL AND length(trim(p_reported_by_contact))>100) THEN
+  IF v_tenant IS NULL OR v_actor IS NULL THEN RETURN QUERY SELECT 'DENIED'::text,'ACTIVE_ACTOR_REQUIRED'::text,NULL::jsonb; RETURN; END IF;
+  IF p_certificate_id IS NULL OR p_project_id IS NULL OR nullif(trim(p_customer_report),'') IS NULL
+    OR length(trim(p_customer_report))>4000 OR length(coalesce(p_reported_by_contact,''))>200
+    OR p_defect_category IS NULL OR p_defect_category NOT IN ('misaligned_door','scratched_surface','color_mismatch','hardware_defect',
+      'stone_seam_flaw','lighting_failure','missing_accessory','dimensional_error')
+    OR p_priority IS NULL OR p_priority NOT IN ('urgent','high','medium','low') THEN
     RETURN QUERY SELECT 'DENIED'::text,'INVALID_WARRANTY_TICKET_INPUT'::text,NULL::jsonb; RETURN;
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM public.interior_projects p
-    WHERE p.id=p_project_id AND p.tenant_id=v_tenant) THEN
+  IF NOT EXISTS (SELECT 1 FROM public.interior_projects p WHERE p.id=p_project_id AND p.tenant_id=v_tenant) THEN
     RETURN QUERY SELECT 'DENIED'::text,'PROJECT_NOT_FOUND'::text,NULL::jsonb; RETURN;
   END IF;
   IF NOT public.interior_has_permission('interior:warranty:create',v_tenant,p_project_id,NULL) THEN
     RETURN QUERY SELECT 'DENIED'::text,'WARRANTY_CREATE_PERMISSION_REQUIRED'::text,NULL::jsonb; RETURN;
   END IF;
-  PERFORM 1 FROM public.interior_warranty_certificates w
-  WHERE w.id=p_certificate_id AND w.project_id=p_project_id AND w.tenant_id=v_tenant AND w.status='active';
+  SELECT * INTO v_certificate FROM public.interior_warranty_certificates w
+  WHERE w.id=p_certificate_id AND w.tenant_id=v_tenant AND w.project_id=p_project_id;
   IF NOT FOUND THEN RETURN QUERY SELECT 'DENIED'::text,'WARRANTY_CERTIFICATE_NOT_FOUND'::text,NULL::jsonb; RETURN; END IF;
   INSERT INTO public.interior_warranty_service_tickets(
     tenant_id,certificate_id,project_id,ticket_number,reported_date,customer_report,
@@ -310,8 +300,7 @@ BEGIN
       'defectCategory',v_ticket.defect_category,'priority',v_ticket.priority,'status',v_ticket.status,
       'assignedTechnician',v_ticket.assigned_technician,'scheduledFixDate',v_ticket.scheduled_fix_date,
       'resolvedDate',v_ticket.resolved_date,'resolutionDetails',v_ticket.resolution_details,
-      'customerFeedback',v_ticket.customer_feedback,'satisfactionRating',v_ticket.satisfaction_rating,
-      'createdAt',v_ticket.created_at,'updatedAt',v_ticket.updated_at);
+      'supplierChargebackEligible',v_ticket.supplier_chargeback_eligible,'updatedAt',v_ticket.updated_at);
 END;
 $$;
 
