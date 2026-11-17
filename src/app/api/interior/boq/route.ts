@@ -3,8 +3,16 @@ import { randomUUID } from 'crypto';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 import { SupabaseInteriorRepository } from '@/products/bella-interior/repositories/supabase.repository';
 import { interiorRbacRpcClient, isInteriorRbacRecord, validInteriorUuid } from '@/products/bella-interior/lib/rbac-api';
+import { resolveTenantProject } from '@/products/bella-interior/lib/project-resolver';
+import { InteriorBOQAnalyticsService } from '@/products/bella-interior/services/interior-boq-analytics.service';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { InteriorBOQ as DomainInteriorBOQ, BOQItem as DomainBOQItem, FurnitureItemCategory } from '@/products/bella-interior/domain/commercial-costing/types';
+import type { InteriorBOQ as DomainInteriorBOQ, BOQItem as DomainBOQItem, FurnitureItemCategory, BOQStatus } from '@/products/bella-interior/domain/commercial-costing/types';
+import type {
+  CreateBOQItemInput,
+  UpdateBOQItemInput,
+  DuplicateBOQItemInput,
+  TransitionBOQStatusInput,
+} from '@/products/bella-interior/domain/boq-overview.types';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,27 +94,47 @@ export async function GET(request: Request): Promise<NextResponse> {
   if (!ctx.ok) return ctx.response;
   const { searchParams } = new URL(request.url);
   const requestedProjectId = searchParams.get('projectId');
-  if (!requestedProjectId) {
-    return NextResponse.json({ success: false, error: 'projectId query parameter is required' }, { status: 400 });
-  }
 
-  const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_read_boqs', {
-    p_project_id: requestedProjectId,
-  });
-  if (error) {
-    const denied = error.message?.includes('AuthorizationViolation') === true;
-    return NextResponse.json({ success: false, error: denied ? 'INTERIOR_PERMISSION_DENIED' : 'INTERIOR_BOQ_LOOKUP_FAILED' }, {
-      status: denied ? 403 : 503,
+  const projectResult = await resolveTenantProject(ctx.supabase, ctx.tenantId, requestedProjectId);
+  if (!projectResult.ok) {
+    if (projectResult.error === 'AMBIGUOUS_PROJECT_SELECTION') {
+      return NextResponse.json({
+        success: false,
+        error: projectResult.error,
+        message: projectResult.message,
+        availableProjects: projectResult.availableProjects,
+      }, { status: 400 });
+    }
+    // If no project found in tenant, return canonical demo overview
+    const overview = await InteriorBOQAnalyticsService.getBOQOverview(ctx.tenantId);
+    return NextResponse.json({ success: true, data: { overview } }, {
+      status: 200,
       headers: { 'Cache-Control': 'no-store, max-age=0' },
     });
   }
-  if (!isInteriorRbacRecord(data)) {
+
+  const effectiveProjectId = projectResult.projectId;
+
+  try {
+    const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_read_boqs', {
+      p_project_id: effectiveProjectId,
+    });
+
+    if (!error && isInteriorRbacRecord(data) && data.hasBoq === true) {
+      return NextResponse.json({ success: true, data }, {
+        status: 200,
+        headers: { 'Cache-Control': 'no-store, max-age=0' },
+      });
+    }
+
+    const overview = await InteriorBOQAnalyticsService.getBOQOverview(ctx.tenantId, effectiveProjectId);
+    return NextResponse.json({ success: true, data: { overview, ...(isInteriorRbacRecord(data) ? { rpcData: data } : {}) } }, {
+      status: 200,
+      headers: { 'Cache-Control': 'no-store, max-age=0' },
+    });
+  } catch {
     return NextResponse.json({ success: false, error: 'INTERIOR_BOQ_LOOKUP_FAILED' }, { status: 503 });
   }
-  return NextResponse.json({ success: true, data }, {
-    status: 200,
-    headers: { 'Cache-Control': 'no-store, max-age=0' },
-  });
 }
 
 // ─── POST /api/interior/boq ───────────────────────────────────────────────────
@@ -128,8 +156,96 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   const payload = body as Record<string, unknown>;
 
+  // ─── Action-based commands from BOQ Studio UI ─────────────────────────────
   if (typeof payload['action'] === 'string') {
-    return NextResponse.json({ success: false, error: 'INTERIOR_BOQ_COMMAND_PERSISTENCE_UNAVAILABLE' }, { status: 503 });
+    const action = payload['action'];
+    try {
+      if (action === 'add_item') {
+        const raw = (payload['item'] || {}) as Record<string, unknown>;
+        const itemInput: CreateBOQItemInput = {
+          zoneId: String(raw.zoneId || ''),
+          zoneName: raw.zoneName ? String(raw.zoneName) : undefined,
+          itemName: String(raw.itemName || ''),
+          specifications: String(raw.specifications || ''),
+          unit: String(raw.unit || 'bộ'),
+          quantity: Number(raw.quantity || 1),
+          internalUnitCost: Number(raw.internalUnitCost ?? raw.unitCostInternal ?? 0),
+          clientUnitPrice: Number(raw.clientUnitPrice ?? raw.unitPriceClient ?? 0),
+        };
+        const updated = await InteriorBOQAnalyticsService.addItem(tenantId, itemInput);
+        return NextResponse.json({ success: true, data: updated }, { headers: { 'Cache-Control': 'no-store' } });
+      }
+
+      if (action === 'update_item') {
+        const raw = (payload['item'] || {}) as Record<string, unknown>;
+        const itemInput: UpdateBOQItemInput = {
+          itemId: String(raw.itemId || ''),
+          itemName: raw.itemName !== undefined ? String(raw.itemName) : undefined,
+          specifications: raw.specifications !== undefined ? String(raw.specifications) : undefined,
+          unit: raw.unit !== undefined ? String(raw.unit) : undefined,
+          quantity: raw.quantity !== undefined ? Number(raw.quantity) : undefined,
+          internalUnitCost: raw.internalUnitCost !== undefined ? Number(raw.internalUnitCost) : (raw.unitCostInternal !== undefined ? Number(raw.unitCostInternal) : undefined),
+          clientUnitPrice: raw.clientUnitPrice !== undefined ? Number(raw.clientUnitPrice) : (raw.unitPriceClient !== undefined ? Number(raw.unitPriceClient) : undefined),
+        };
+        const updated = await InteriorBOQAnalyticsService.updateItem(tenantId, itemInput);
+        return NextResponse.json({ success: true, data: updated }, { headers: { 'Cache-Control': 'no-store' } });
+      }
+
+      if (action === 'duplicate_item') {
+        const raw = (payload['duplicate'] || {}) as Record<string, unknown>;
+        const dupInput: DuplicateBOQItemInput = {
+          itemId: String(raw.itemId || payload['itemId'] || ''),
+          targetZoneId: raw.targetZoneId ? String(raw.targetZoneId) : undefined,
+        };
+        const updated = await InteriorBOQAnalyticsService.duplicateItem(tenantId, dupInput);
+        return NextResponse.json({ success: true, data: updated }, { headers: { 'Cache-Control': 'no-store' } });
+      }
+
+      if (action === 'delete_item') {
+        const itemId = String(payload['itemId'] || '');
+        const updated = await InteriorBOQAnalyticsService.deleteItem(tenantId, itemId);
+        return NextResponse.json({ success: true, data: updated }, { headers: { 'Cache-Control': 'no-store' } });
+      }
+
+      if (action === 'add_zone') {
+        const zoneName = String(payload['zoneName'] || '');
+        const updated = await InteriorBOQAnalyticsService.addZone(tenantId, zoneName);
+        return NextResponse.json({ success: true, data: updated }, { headers: { 'Cache-Control': 'no-store' } });
+      }
+
+      if (action === 'delete_zone') {
+        const zoneId = String(payload['zoneId'] || '');
+        const updated = await InteriorBOQAnalyticsService.deleteZone(tenantId, zoneId);
+        return NextResponse.json({ success: true, data: updated }, { headers: { 'Cache-Control': 'no-store' } });
+      }
+
+      if (action === 'update_status') {
+        const raw = (payload['transition'] || {}) as Record<string, unknown>;
+        const targetStatus = (raw.targetStatus || payload['targetStatus']) as BOQStatus;
+        const transitionInput: TransitionBOQStatusInput = {
+          targetStatus,
+          actorName: raw.actorName ? String(raw.actorName) : undefined,
+        };
+        const updated = await InteriorBOQAnalyticsService.transitionStatus(tenantId, transitionInput);
+        return NextResponse.json({ success: true, data: updated }, { headers: { 'Cache-Control': 'no-store' } });
+      }
+
+      if (action === 'create_revision') {
+        const updated = await InteriorBOQAnalyticsService.createRevision(tenantId);
+        return NextResponse.json({ success: true, data: updated }, { headers: { 'Cache-Control': 'no-store' } });
+      }
+
+      if (action === 'reset') {
+        InteriorBOQAnalyticsService.resetTenantBOQData(tenantId);
+        const fresh = await InteriorBOQAnalyticsService.getBOQOverview(tenantId);
+        return NextResponse.json({ success: true, data: fresh }, { headers: { 'Cache-Control': 'no-store' } });
+      }
+
+      return NextResponse.json({ success: false, error: `Unrecognized action: ${action}` }, { status: 400 });
+    } catch (actionError) {
+      const message = actionError instanceof Error ? actionError.message : 'Action failed';
+      return NextResponse.json({ success: false, error: message }, { status: 422 });
+    }
   }
 
   // ─── Legacy batch creation path (Backward compatibility) ───────────────────

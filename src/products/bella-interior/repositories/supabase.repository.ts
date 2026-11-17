@@ -9,6 +9,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { randomUUID } from 'node:crypto';
+import { ApprovedDesignLockViolationError } from '../domain/errors';
 
 import type {
   InteriorProject,
@@ -1367,6 +1368,13 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
     }
     const project = await this.getProject(tenantId, revision.projectId);
     if (!project) throw new Error('[InteriorRepo] Tenant isolation violation: design revision project is not in request tenant');
+
+    // Strict Approved Design Lock Invariant: Cannot overwrite or unlock an approved revision
+    const existing = await this.getDesignRevision(tenantId, revision.id);
+    if (existing && existing.status === 'approved') {
+      throw new ApprovedDesignLockViolationError(existing.versionNumber, existing.status);
+    }
+
     const roomZones = await this.listRoomZones(tenantId, project.id);
     const roomZoneIds = new Set(roomZones.map((roomZone) => roomZone.id));
     if (revision.assets.some((asset) => asset.tenantId !== tenantId || asset.revisionId !== revision.id)
