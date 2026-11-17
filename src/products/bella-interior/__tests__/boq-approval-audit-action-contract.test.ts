@@ -4,7 +4,7 @@ import { join } from 'node:path';
 describe('Interior BOQ Approval Audit Action Contract', () => {
   const migrationPath = join(
     process.cwd(),
-    'supabase/migrations/20261117144000_interior_boq_approval_audit_action_canonical.sql'
+    'supabase/migrations/20261117150604_interior_boq_approval_audit_action_canonical.sql'
   );
   let migrationSql: string;
 

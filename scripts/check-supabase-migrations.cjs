@@ -23,6 +23,9 @@ const MIGRATION_VERSION_ALIASES = new Map([
   // normalized to 20261114120000 in Git (commit 03b852bd8, PR #538).
   // Content verified: interior_customer_evidenced_handover — exact SQL match.
   ['20261115085708', '20261114120000'],
+  // E2E database applied initial BOQ approval fix under 20261117144000 before
+  // version was aligned to applied Supabase version 20261117150604.
+  ['20261117144000', '20261117150604'],
 ]);
 
 function normalizeMigrationVersion(version) {
