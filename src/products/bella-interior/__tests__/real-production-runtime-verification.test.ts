@@ -5,7 +5,11 @@ import { Customer360AggregatorService } from '../services/crm/customer-360-aggre
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://lvnvkpyxtuilhrabtlwv.supabase.co';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const isLiveVerificationEnabled = Boolean(supabaseKey && process.env.ENABLE_PROD_LIVE_VERIFICATION !== 'false');
+const isLiveVerificationEnabled = Boolean(
+  supabaseKey &&
+  !process.env.CI &&
+  process.env.ENABLE_PROD_LIVE_VERIFICATION !== 'false'
+);
 
 const describeLive = isLiveVerificationEnabled ? describe : describe.skip;
 
