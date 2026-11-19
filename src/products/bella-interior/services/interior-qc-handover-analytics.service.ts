@@ -272,6 +272,7 @@ export class InteriorQCHandoverAnalyticsService {
       projectHeader: InteriorQCHandoverAnalyticsService.getProjectHeader(),
       availableProjects: [
         { id: 'NT-2024-001', label: 'The Horizon Residence', code: 'INT-2024-001' },
+        { id: 'd450fc00-a593-484f-a8ad-ff8aebf756df', label: 'Aqua Bay Ecopark', code: 'INT-2024-004' },
         { id: 'NT-2024-002', label: 'Sky Garden Apartment', code: 'INT-2024-002' },
         { id: 'NT-2024-003', label: 'Ocean View Villa', code: 'INT-2024-003' },
       ],

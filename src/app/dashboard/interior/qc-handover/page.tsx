@@ -21,6 +21,7 @@ import type {
   QCHandoverOverviewResponse,
   PunchListTableRow,
 } from '@/products/bella-interior/domain/qc-handover-overview.types';
+import AcceptanceSessionModal from './acceptance-session-modal';
 
 // ─── Inline Clean Icons (Zero External Bundle Overhead) ──────────────────────
 
@@ -255,11 +256,6 @@ export default function InteriorQCHandoverPage() {
     } catch {
       setFeedback({ type: 'error', message: 'Không thể kết nối để lưu punch list.' });
     }
-  };
-
-  // Handle Confirm Handover
-  const handleConfirmHandover = () => {
-    setFeedback({ type: 'error', message: 'Cần gửi yêu cầu bàn giao qua API và xác nhận lưu thành công trước khi hoàn tất.' });
   };
 
   if (!hasLoaded) {
@@ -825,60 +821,14 @@ export default function InteriorQCHandoverPage() {
         </div>
       )}
 
-      {/* ═══ 9. MODAL: NGHIỆM THU BÀN GIAO ═══════════════════════════════════ */}
+      {/* ═══ 9. MODAL: CHIẾN DỊCH & ĐỢT NGHIỆM THU HIỆN TRƯỜNG ═══════════════ */}
       {showHandoverModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-emerald-50/60">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center">
-                  <IconShieldCheck className="w-4 h-4" />
-                </div>
-                <h3 className="font-bold text-slate-900 text-sm">Xác Nhận Nghiệm Thu Bàn Giao</h3>
-              </div>
-              <button
-                onClick={() => setShowHandoverModal(false)}
-                className="p-1 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-600"
-              >
-                <IconX className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-5 space-y-3.5 text-xs text-slate-700">
-              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
-                <div className="font-bold text-emerald-800 flex items-center gap-1.5">
-                  <IconCheckCircle className="w-4 h-4 text-emerald-600" />
-                  Cổng Kiểm Định: READY FOR HANDOVER
-                </div>
-                <p className="text-[11px] text-emerald-700">
-                  Tất cả các hạng mục Critical đã đạt Verified. Công trình đủ điều kiện ký biên bản bàn giao.
-                </p>
-              </div>
-
-              <p className="text-slate-600">
-                Thực hiện hành động này sẽ chính thức đóng giai đoạn thi công hiện trường và kích hoạt
-                <strong> Chứng Thư Bảo Hành</strong> cho dự án <strong>{projectHeader.name}</strong>.
-              </p>
-
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowHandoverModal(false)}
-                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium"
-                >
-                  Đóng
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmHandover}
-                  className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs"
-                >
-                  Xác Nhận &amp; Bàn Giao
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AcceptanceSessionModal
+          projectId={projectHeader.id}
+          projectName={projectHeader.name}
+          onClose={() => setShowHandoverModal(false)}
+          onUpdated={() => void fetchData()}
+        />
       )}
     </div>
   );

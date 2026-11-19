@@ -109,6 +109,7 @@ export interface InteriorProject {
   readonly code: string; // e.g. 'INT-2026-001'
   readonly name: string;
   readonly customerId: string;
+  readonly customerProfileId?: string; // Phase C3 CRM Profile Foreign Key
   readonly customerName: string;
   readonly customerPhone: string;
   readonly siteAddress: string;

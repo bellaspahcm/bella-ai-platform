@@ -133,6 +133,13 @@ export function requiredInteriorPermission(request: Request, body: JsonRecord | 
     return INTERIOR_PERMISSIONS.branchManage;
   }
   if (pathname === '/api/interior/customers' && method === 'GET') return INTERIOR_PERMISSIONS.customerRead;
+  if (pathname === '/api/interior/crm/customers') {
+    if (method === 'GET') return INTERIOR_PERMISSIONS.customerRead;
+    if (method === 'POST') return INTERIOR_PERMISSIONS.projectCreate;
+  }
+  if (/^\/api\/interior\/crm\/customers\/[^/]+$/.test(pathname) && method === 'GET') {
+    return INTERIOR_PERMISSIONS.customerRead;
+  }
   if (pathname === '/api/interior/design') {
     if (method === 'GET') return INTERIOR_PERMISSIONS.designRead;
     if (method === 'POST') return INTERIOR_PERMISSIONS.designCreate;

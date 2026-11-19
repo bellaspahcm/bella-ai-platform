@@ -36,6 +36,7 @@ import type {
   CustomerType,
   CustomerStatus,
 } from '@/products/bella-interior/domain/customer-overview.types';
+import { Customer360Modal } from './customer-360-modal';
 
 // Canonical initial overview matching domain layer definition exactly
 const INITIAL_CUSTOMER_OVERVIEW: CustomerOverviewResponse = {
@@ -264,6 +265,16 @@ export default function CustomersPage() {
   const [newCustomerType, setNewCustomerType] = useState('Khách hàng VIP');
   const [customerSuccessNotice, setCustomerSuccessNotice] = useState<string | null>(null);
 
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [selectedCustomerName, setSelectedCustomerName] = useState<string | undefined>(undefined);
+  const [is360ModalOpen, setIs360ModalOpen] = useState(false);
+
+  const handleOpenCustomer360 = (cust: CustomerItem) => {
+    setSelectedCustomerId(cust.id);
+    setSelectedCustomerName(cust.name);
+    setIs360ModalOpen(true);
+  };
+
   const handleAddCustomer = (e: React.FormEvent) => {
     e.preventDefault();
     const newCust: CustomerItem = {
@@ -311,7 +322,7 @@ export default function CustomersPage() {
 
     async function fetchCustomerOverview() {
       try {
-        const res = await fetch('/api/interior/customers');
+        const res = await fetch('/api/interior/customers?overview=true');
         if (res.ok) {
           const json = await res.json();
           if (isMounted && json) {
@@ -319,43 +330,48 @@ export default function CustomersPage() {
             if (Array.isArray(incomingCustomers) && incomingCustomers.length > 0) {
               setData((prev) => {
                 const mappedCustomers: CustomerItem[] = incomingCustomers.map(
-                  (c: { id: string; name?: string; projectCount?: number }, idx: number) => {
+                  (c: any, idx: number) => {
                     const fallback = prev.customers.find((df) => df.id === c.id || df.name === c.name);
                     const avatarFallback =
+                      c.avatar ||
                       fallback?.avatar ||
                       'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg';
                     const managerAvatarFallback =
+                      c.managerAvatar ||
                       fallback?.managerAvatar ||
                       'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg';
                     return {
                       id: c.id,
-                      code: fallback?.code || `KH-${String(idx + 1).padStart(3, '0')}`,
+                      code: c.code || fallback?.code || `KH-${String(idx + 1).padStart(3, '0')}`,
                       name: c.name || fallback?.name || `Khách hàng ${c.id}`,
                       avatar: avatarFallback,
-                      type: fallback?.type || 'individual',
-                      typeLabel: fallback?.typeLabel || 'Cá nhân',
-                      typeBadgeClass: fallback?.typeBadgeClass || 'bg-blue-50 text-blue-700 border-blue-200',
-                      source: fallback?.source || 'referral',
-                      sourceLabel: fallback?.sourceLabel || 'Giới thiệu',
-                      sourceClass: fallback?.sourceClass || 'bg-amber-50 text-amber-700 border-amber-200',
-                      managerName: fallback?.managerName || 'Trần Văn Quản Lý',
+                      type: c.type || fallback?.type || 'individual',
+                      typeLabel: c.typeLabel || fallback?.typeLabel || 'Cá nhân',
+                      typeBadgeClass: c.typeBadgeClass || fallback?.typeBadgeClass || 'bg-blue-50 text-blue-700 border-blue-200',
+                      source: c.source || fallback?.source || 'referral',
+                      sourceLabel: c.sourceLabel || fallback?.sourceLabel || 'Giới thiệu',
+                      sourceClass: c.sourceClass || fallback?.sourceClass || 'bg-amber-50 text-amber-700 border-amber-200',
+                      managerName: c.managerName || fallback?.managerName || 'Trần Văn Quản Lý',
                       managerAvatar: managerAvatarFallback,
-                      opportunityCount: fallback?.opportunityCount || 1,
-                      projectCount: c.projectCount || fallback?.projectCount || 1,
-                      totalValue: fallback?.totalValue || 1_200_000_000,
-                      totalValueFormatted: fallback?.totalValueFormatted || '1.200.000.000 ₫',
-                      debt: fallback?.debt || 0,
-                      debtFormatted: fallback?.debtFormatted || '0 ₫',
-                      hasDebt: fallback?.hasDebt || false,
-                      lastInteractionDate: fallback?.lastInteractionDate || 'Vừa xong',
-                      status: fallback?.status || 'transacting',
-                      statusLabel: fallback?.statusLabel || 'Đang theo dự án',
-                      statusBadgeClass: fallback?.statusBadgeClass || 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                      opportunityCount: c.opportunityCount || fallback?.opportunityCount || 1,
+                      projectCount: c.projectCount ?? fallback?.projectCount ?? 1,
+                      totalValue: c.totalValue ?? fallback?.totalValue ?? 1_200_000_000,
+                      totalValueFormatted: c.totalValueFormatted || fallback?.totalValueFormatted || '1.200.000.000 ₫',
+                      debt: c.debt ?? fallback?.debt ?? 0,
+                      debtFormatted: c.debtFormatted || fallback?.debtFormatted || '0 ₫',
+                      hasDebt: c.hasDebt ?? fallback?.hasDebt ?? false,
+                      lastInteractionDate: c.lastInteractionDate || fallback?.lastInteractionDate || 'Vừa xong',
+                      status: c.status || fallback?.status || 'transacting',
+                      statusLabel: c.statusLabel || fallback?.statusLabel || 'Đang theo dự án',
+                      statusBadgeClass: c.statusBadgeClass || fallback?.statusBadgeClass || 'bg-emerald-50 text-emerald-700 border-emerald-200',
                     };
                   }
                 );
                 return {
                   ...prev,
+                  kpis: json.data?.kpis || prev.kpis,
+                  salesFunnel: json.data?.salesFunnel || prev.salesFunnel,
+                  growthChart: json.data?.growthChart || prev.growthChart,
                   customers: mappedCustomers,
                 };
               });
@@ -956,7 +972,8 @@ export default function CustomersPage() {
                 {filteredCustomers.map((cust) => (
                   <tr
                     key={cust.id}
-                    className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                    onClick={() => handleOpenCustomer360(cust)}
+                    className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
                   >
                     {/* KHÁCH HÀNG */}
                     <td className="py-3.5 px-4">
@@ -1076,11 +1093,13 @@ export default function CustomersPage() {
                     </td>
 
                     {/* THAO TÁC */}
-                    <td className="py-3.5 px-2 text-center">
+                    <td className="py-3.5 px-2 text-center" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                        aria-label="Thao tác"
+                        onClick={() => handleOpenCustomer360(cust)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
+                        aria-label="Xem hồ sơ Khách hàng 360"
+                        title="Xem hồ sơ Khách hàng 360"
                       >
                         <MoreHorizontal className="w-4 h-4" />
                       </button>
@@ -1130,12 +1149,21 @@ export default function CustomersPage() {
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800">
                   <span className="text-[11px] text-slate-400 font-medium">{cust.projectCount} dự án</span>
-                  <Link
-                    href="/dashboard/interior/projects"
-                    className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[11px] font-semibold text-slate-700 dark:text-slate-300 transition-colors"
-                  >
-                    Xem dự án →
-                  </Link>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCustomer360(cust)}
+                      className="px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-[11px] font-semibold text-blue-700 dark:text-blue-300 transition-colors"
+                    >
+                      Hồ sơ 360
+                    </button>
+                    <Link
+                      href="/dashboard/interior/projects"
+                      className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[11px] font-semibold text-slate-700 dark:text-slate-300 transition-colors"
+                    >
+                      Dự án →
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}
@@ -1474,6 +1502,14 @@ export default function CustomersPage() {
           </div>
         </div>
       )}
+
+      {/* Customer 360 Detail Modal */}
+      <Customer360Modal
+        isOpen={is360ModalOpen}
+        onClose={() => setIs360ModalOpen(false)}
+        customerId={selectedCustomerId}
+        initialCustomerName={selectedCustomerName}
+      />
     </div>
   );
 }
