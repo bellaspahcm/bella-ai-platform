@@ -54,6 +54,13 @@ import type {
   IInteriorRepository,
   SaveBOQOptions,
 } from './interior-repository.interface';
+import type { IInteriorAcceptanceRepository } from './acceptance-repository.interface';
+import type {
+  AcceptanceCampaign,
+  AcceptanceSession,
+  AcceptanceNoteItem,
+  AcceptanceEvidenceObject,
+} from '../domain/acceptance-handover.types';
 import type {
   BOQVersionHistoryItem,
   ForkBOQRevisionInput,
@@ -71,6 +78,7 @@ interface InteriorProjectRow {
   code: string;
   name: string;
   customer_id: string;
+  customer_profile_id?: string | null;
   customer_name: string;
   customer_phone: string;
   site_address: string;
@@ -445,6 +453,7 @@ function mapRowToProject(row: InteriorProjectRow): InteriorProject {
     code: row.code,
     name: row.name,
     customerId: row.customer_id,
+    customerProfileId: row.customer_profile_id ?? undefined,
     customerName: row.customer_name,
     customerPhone: row.customer_phone,
     siteAddress: row.site_address,
@@ -464,7 +473,7 @@ function mapProjectToRow(
   project: InteriorProject,
   tenantId: string
 ): Omit<InteriorProjectRow, 'created_at' | 'updated_at'> & { tenant_id: string } {
-  return {
+  const row: Omit<InteriorProjectRow, 'created_at' | 'updated_at'> & { tenant_id: string } = {
     id: ensureUuid(project.id),
     tenant_id: ensureUuid(tenantId),
     code: project.code,
@@ -481,6 +490,10 @@ function mapProjectToRow(
     lead_architect_name: project.leadArchitectName,
     active_approved_revision_id: project.activeApprovedRevisionId ? ensureUuid(project.activeApprovedRevisionId) : null,
   };
+  if (project.customerProfileId) {
+    row.customer_profile_id = ensureUuid(project.customerProfileId);
+  }
+  return row;
 }
 
 function mapRowToRoomZone(row: ProjectRoomZoneRow): ProjectRoomZone {
@@ -1279,7 +1292,7 @@ function mapWarrantyTicketToRow(
 // Repository Implementation
 // ---------------------------------------------------------------------------
 
-export class SupabaseInteriorRepository implements IInteriorRepository {
+export class SupabaseInteriorRepository implements IInteriorRepository, IInteriorAcceptanceRepository {
   constructor(private readonly supabase: SupabaseClient) {}
 
   // ─── Design & Specification ────────────────────────────────────────────────
@@ -3026,5 +3039,276 @@ export class SupabaseInteriorRepository implements IInteriorRepository {
 
     if (error) throw new Error(`[InteriorRepo] transitionCustomerApproval failed: ${error.message}`);
     return data === true;
+  }
+
+  // ─── Batch O4: Acceptance & Evidence Operations ─────────────────────────────
+
+  async saveAcceptanceCampaign(tenantId: string, campaign: AcceptanceCampaign): Promise<void> {
+    if (!tenantId || campaign.tenantId !== tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { error } = await this.supabase.from('interior_acceptance_campaigns').upsert({
+      id: campaign.id,
+      tenant_id: tenantId,
+      project_id: campaign.projectId,
+      campaign_code: campaign.campaignCode,
+      campaign_name: campaign.campaignName,
+      description: campaign.description,
+      created_by_user_id: campaign.createdByUserId,
+      created_at: campaign.createdAt,
+      updated_at: campaign.updatedAt,
+    });
+    if (error) throw new Error(`[InteriorRepo] saveAcceptanceCampaign failed: ${error.message}`);
+  }
+
+  async getAcceptanceCampaign(tenantId: string, campaignId: string): Promise<AcceptanceCampaign | null> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { data, error } = await this.supabase
+      .from('interior_acceptance_campaigns')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('id', campaignId)
+      .maybeSingle();
+    if (error) throw new Error(`[InteriorRepo] getAcceptanceCampaign failed: ${error.message}`);
+    if (!data) return null;
+    return this.mapRowToAcceptanceCampaign(data);
+  }
+
+  async listAcceptanceCampaigns(tenantId: string, projectId: string): Promise<AcceptanceCampaign[]> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { data, error } = await this.supabase
+      .from('interior_acceptance_campaigns')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(`[InteriorRepo] listAcceptanceCampaigns failed: ${error.message}`);
+    return (data || []).map((row) => this.mapRowToAcceptanceCampaign(row));
+  }
+
+  async saveAcceptanceSession(tenantId: string, session: AcceptanceSession): Promise<void> {
+    if (!tenantId || session.tenantId !== tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { error } = await this.supabase.from('interior_acceptance_sessions').upsert({
+      id: session.id,
+      tenant_id: tenantId,
+      campaign_id: session.campaignId,
+      project_id: session.projectId,
+      session_code: session.sessionCode,
+      session_type: session.sessionType,
+      inspection_scope: session.inspectionScope,
+      inspection_date: session.inspectionDate,
+      recorder_actor_id: session.recorderActorId,
+      customer_representative: session.customerRepresentative,
+      customer_contact: session.customerContact,
+      related_boq_item_ids: [...session.relatedBoqItemIds],
+      inspection_result: session.inspectionResult,
+      approval_status: session.approvalStatus,
+      documentation_status: session.documentationStatus,
+      approved_by_actor_id: session.approvedByActorId,
+      approved_at: session.approvedAt,
+      rejection_reason: session.rejectionReason,
+      approval_notes: session.approvalNotes,
+      created_at: session.createdAt,
+      updated_at: session.updatedAt,
+    });
+    if (error) throw new Error(`[InteriorRepo] saveAcceptanceSession failed: ${error.message}`);
+  }
+
+  async getAcceptanceSession(tenantId: string, sessionId: string): Promise<AcceptanceSession | null> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { data, error } = await this.supabase
+      .from('interior_acceptance_sessions')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('id', sessionId)
+      .maybeSingle();
+    if (error) throw new Error(`[InteriorRepo] getAcceptanceSession failed: ${error.message}`);
+    if (!data) return null;
+    return this.mapRowToAcceptanceSession(data);
+  }
+
+  async listAcceptanceSessions(tenantId: string, campaignId: string): Promise<AcceptanceSession[]> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { data, error } = await this.supabase
+      .from('interior_acceptance_sessions')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('campaign_id', campaignId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(`[InteriorRepo] listAcceptanceSessions failed: ${error.message}`);
+    return (data || []).map((row) => this.mapRowToAcceptanceSession(row));
+  }
+
+  async listAcceptanceSessionsByProject(tenantId: string, projectId: string): Promise<AcceptanceSession[]> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { data, error } = await this.supabase
+      .from('interior_acceptance_sessions')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(`[InteriorRepo] listAcceptanceSessionsByProject failed: ${error.message}`);
+    return (data || []).map((row) => this.mapRowToAcceptanceSession(row));
+  }
+
+  async saveAcceptanceNote(tenantId: string, note: AcceptanceNoteItem): Promise<void> {
+    if (!tenantId || note.tenantId !== tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { error } = await this.supabase.from('interior_acceptance_notes').upsert({
+      id: note.id,
+      tenant_id: tenantId,
+      session_id: note.sessionId,
+      category: note.category,
+      severity: note.severity,
+      assessment_status: note.assessmentStatus,
+      description: note.description,
+      related_boq_item_id: note.relatedBoqItemId,
+      remediation_plan: note.remediationPlan,
+      assigned_fixer: note.assignedFixer,
+      target_deadline: note.targetDeadline,
+      remediation_status: note.remediationStatus,
+      routed_entity_type: note.routedEntityType,
+      routed_entity_id: note.routedEntityId,
+      created_by_user_id: note.createdByUserId,
+      created_at: note.createdAt,
+      updated_at: note.updatedAt,
+    });
+    if (error) throw new Error(`[InteriorRepo] saveAcceptanceNote failed: ${error.message}`);
+  }
+
+  async getAcceptanceNote(tenantId: string, noteId: string): Promise<AcceptanceNoteItem | null> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { data, error } = await this.supabase
+      .from('interior_acceptance_notes')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('id', noteId)
+      .maybeSingle();
+    if (error) throw new Error(`[InteriorRepo] getAcceptanceNote failed: ${error.message}`);
+    if (!data) return null;
+    return this.mapRowToAcceptanceNote(data);
+  }
+
+  async listAcceptanceNotes(tenantId: string, sessionId: string): Promise<AcceptanceNoteItem[]> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { data, error } = await this.supabase
+      .from('interior_acceptance_notes')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('session_id', sessionId)
+      .order('created_at', { ascending: true });
+    if (error) throw new Error(`[InteriorRepo] listAcceptanceNotes failed: ${error.message}`);
+    return (data || []).map((row) => this.mapRowToAcceptanceNote(row));
+  }
+
+  async saveAcceptanceEvidence(tenantId: string, evidence: AcceptanceEvidenceObject): Promise<void> {
+    if (!tenantId || evidence.tenantId !== tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { error } = await this.supabase.from('interior_acceptance_evidence_objects').upsert({
+      id: evidence.id,
+      tenant_id: tenantId,
+      session_id: evidence.sessionId,
+      note_id: evidence.noteId,
+      evidence_category: evidence.evidenceCategory,
+      bucket_id: evidence.bucketId,
+      storage_path: evidence.storagePath,
+      file_name: evidence.fileName,
+      file_size_bytes: evidence.fileSizeBytes,
+      mime_type: evidence.mimeType,
+      sha256_hash: evidence.sha256Hash,
+      version: evidence.version,
+      uploaded_by_user_id: evidence.uploadedByUserId,
+      uploaded_at: evidence.uploadedAt,
+    });
+    if (error) throw new Error(`[InteriorRepo] saveAcceptanceEvidence failed: ${error.message}`);
+  }
+
+  async listAcceptanceEvidence(tenantId: string, sessionId: string): Promise<AcceptanceEvidenceObject[]> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { data, error } = await this.supabase
+      .from('interior_acceptance_evidence_objects')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('session_id', sessionId)
+      .order('version', { ascending: true });
+    if (error) throw new Error(`[InteriorRepo] listAcceptanceEvidence failed: ${error.message}`);
+    return (data || []).map((row) => this.mapRowToAcceptanceEvidence(row));
+  }
+
+  private mapRowToAcceptanceCampaign(row: Record<string, unknown>): AcceptanceCampaign {
+    return {
+      id: String(row.id),
+      tenantId: String(row.tenant_id),
+      projectId: String(row.project_id),
+      campaignCode: String(row.campaign_code),
+      campaignName: String(row.campaign_name),
+      description: row.description ? String(row.description) : null,
+      createdByUserId: row.created_by_user_id ? String(row.created_by_user_id) : null,
+      createdAt: String(row.created_at),
+      updatedAt: String(row.updated_at),
+    };
+  }
+
+  private mapRowToAcceptanceSession(row: Record<string, unknown>): AcceptanceSession {
+    return {
+      id: String(row.id),
+      tenantId: String(row.tenant_id),
+      campaignId: String(row.campaign_id),
+      projectId: String(row.project_id),
+      sessionCode: String(row.session_code),
+      sessionType: row.session_type as AcceptanceSession['sessionType'],
+      inspectionScope: String(row.inspection_scope),
+      inspectionDate: String(row.inspection_date),
+      recorderActorId: String(row.recorder_actor_id),
+      customerRepresentative: String(row.customer_representative),
+      customerContact: row.customer_contact ? String(row.customer_contact) : null,
+      relatedBoqItemIds: Array.isArray(row.related_boq_item_ids) ? row.related_boq_item_ids.map(String) : [],
+      inspectionResult: row.inspection_result as AcceptanceSession['inspectionResult'],
+      approvalStatus: row.approval_status as AcceptanceSession['approvalStatus'],
+      documentationStatus: row.documentation_status as AcceptanceSession['documentationStatus'],
+      approvedByActorId: row.approved_by_actor_id ? String(row.approved_by_actor_id) : null,
+      approvedAt: row.approved_at ? String(row.approved_at) : null,
+      rejectionReason: row.rejection_reason ? String(row.rejection_reason) : null,
+      approvalNotes: row.approval_notes ? String(row.approval_notes) : null,
+      createdAt: String(row.created_at),
+      updatedAt: String(row.updated_at),
+    };
+  }
+
+  private mapRowToAcceptanceNote(row: Record<string, unknown>): AcceptanceNoteItem {
+    return {
+      id: String(row.id),
+      tenantId: String(row.tenant_id),
+      sessionId: String(row.session_id),
+      category: row.category as AcceptanceNoteItem['category'],
+      severity: row.severity as AcceptanceNoteItem['severity'],
+      assessmentStatus: row.assessment_status as AcceptanceNoteItem['assessmentStatus'],
+      description: String(row.description),
+      relatedBoqItemId: row.related_boq_item_id ? String(row.related_boq_item_id) : null,
+      remediationPlan: row.remediation_plan ? String(row.remediation_plan) : null,
+      assignedFixer: row.assigned_fixer ? String(row.assigned_fixer) : null,
+      targetDeadline: row.target_deadline ? String(row.target_deadline) : null,
+      remediationStatus: row.remediation_status as AcceptanceNoteItem['remediationStatus'],
+      routedEntityType: (row.routed_entity_type as AcceptanceNoteItem['routedEntityType']) ?? null,
+      routedEntityId: row.routed_entity_id ? String(row.routed_entity_id) : null,
+      createdByUserId: String(row.created_by_user_id),
+      createdAt: String(row.created_at),
+      updatedAt: String(row.updated_at),
+    };
+  }
+
+  private mapRowToAcceptanceEvidence(row: Record<string, unknown>): AcceptanceEvidenceObject {
+    return {
+      id: String(row.id),
+      tenantId: String(row.tenant_id),
+      sessionId: String(row.session_id),
+      noteId: row.note_id ? String(row.note_id) : null,
+      evidenceCategory: row.evidence_category as AcceptanceEvidenceObject['evidenceCategory'],
+      bucketId: String(row.bucket_id),
+      storagePath: String(row.storage_path),
+      fileName: String(row.file_name),
+      fileSizeBytes: Number(row.file_size_bytes),
+      mimeType: String(row.mime_type),
+      sha256Hash: String(row.sha256_hash),
+      version: Number(row.version),
+      uploadedByUserId: String(row.uploaded_by_user_id),
+      uploadedAt: String(row.uploaded_at),
+    };
   }
 }

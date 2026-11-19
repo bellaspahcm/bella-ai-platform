@@ -30,6 +30,33 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const ctx = await resolveInteriorContext(request);
     if (!ctx.ok) return ctx.response;
 
+    const { searchParams } = new URL(request.url);
+    const isOverviewRequested = searchParams.get('overview') === 'true' || searchParams.get('mode') === 'crm';
+
+    if (isOverviewRequested) {
+      try {
+        const { SupabaseCustomerRepository } = await import('@/products/bella-interior/repositories/crm/supabase-customer.repository');
+        const { SupabaseInteriorRepository } = await import('@/products/bella-interior/repositories/supabase.repository');
+        const { Customer360AggregatorService } = await import('@/products/bella-interior/services/crm/customer-360-aggregator.service');
+
+        const customerRepo = new SupabaseCustomerRepository(ctx.supabase);
+        const interiorRepo = new SupabaseInteriorRepository(ctx.supabase);
+        const aggregator = new Customer360AggregatorService(customerRepo, interiorRepo);
+
+        const page = searchParams.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
+        const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : 20;
+        const search = searchParams.get('search') || undefined;
+
+        const overview = await aggregator.listCustomersOverview(ctx.tenantId, { page, limit, search });
+        return NextResponse.json({ success: true, data: overview }, {
+          status: 200,
+          headers: { 'Cache-Control': 'no-store, max-age=0' },
+        });
+      } catch {
+        // Fall back to RPC aggregation if repository tables are not yet migrated
+      }
+    }
+
     const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_list_projects');
     if (error || !Array.isArray(data)) {
       return NextResponse.json({ success: false, error: 'INTERIOR_CUSTOMER_LOOKUP_FAILED' }, { status: 503 });

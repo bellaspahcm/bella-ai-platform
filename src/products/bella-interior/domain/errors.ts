@@ -151,4 +151,42 @@ export class BOQUnresolvedItemsExistError extends Error {
   }
 }
 
+// ─── Acceptance & Handover Errors (Batch O4) ───────────────────────────────────
+
+export class AcceptanceCampaignNotFoundError extends Error {
+  constructor(campaignId: string) {
+    super(`Acceptance Campaign not found: ${campaignId}`);
+    this.name = 'AcceptanceCampaignNotFoundError';
+  }
+}
+
+export class AcceptanceSessionNotFoundError extends Error {
+  constructor(sessionId: string) {
+    super(`Acceptance Session not found: ${sessionId}`);
+    this.name = 'AcceptanceSessionNotFoundError';
+  }
+}
+
+export class AcceptanceEvidenceSizeExceededError extends Error {
+  constructor(actualBytes: number, maxBytes = 10485760) {
+    super(`Evidence file size ${actualBytes} bytes exceeds maximum allowed limit of ${maxBytes} bytes (10MB).`);
+    this.name = 'AcceptanceEvidenceSizeExceededError';
+  }
+}
+
+export class AcceptanceInvalidMimeTypeError extends Error {
+  constructor(mimeType: string) {
+    super(`Unsupported evidence MIME type: ${mimeType}. Allowed formats are images and PDF documents.`);
+    this.name = 'AcceptanceInvalidMimeTypeError';
+  }
+}
+
+export class AcceptanceManagerApprovalPermissionRequiredError extends Error {
+  constructor(actorId: string) {
+    super(`Actor ${actorId} lacks required permission 'interior:handover:approve' to make manager acceptance decisions.`);
+    this.name = 'AcceptanceManagerApprovalPermissionRequiredError';
+  }
+}
+
+
 

@@ -6,6 +6,10 @@ const createJestConfig = nextJest({ dir: './' })
 const config: Config = {
   coverageProvider: 'v8',
   testEnvironment: 'node',
+  modulePathIgnorePatterns: [
+    '<rootDir>/.audit-local-cache/',
+    '<rootDir>/.worktrees/',
+  ],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts', '<rootDir>/jest.real-db.setup.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
@@ -38,6 +42,7 @@ const config: Config = {
     '<rootDir>/src/products/bella-hospitality/__tests__/housekeeping-real-db.test.ts',
     '<rootDir>/src/products/bella-hospitality/__tests__/maintenance-real-db.test.ts',
     '<rootDir>/src/products/bella-interior/__tests__/commercial-customer-real-db.test.ts',
+    '<rootDir>/src/products/bella-interior/__tests__/real-production-runtime-verification.test.ts',
   ],
 }
 

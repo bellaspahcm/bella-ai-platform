@@ -142,6 +142,7 @@ export interface IInteriorRepository {
   listPunchListItems(tenantId: string, projectId: string): Promise<QCPunchListItem[]>;
   saveHandoverDossier(tenantId: string, dossier: HandoverDossier): Promise<void>;
   getHandoverDossier(tenantId: string, dossierId: string): Promise<HandoverDossier | null>;
+  listHandoverDossiers?(tenantId: string, projectId?: string): Promise<HandoverDossier[]>;
   saveWarrantyCertificate(tenantId: string, certificate: WarrantyCertificate): Promise<void>;
   getWarrantyCertificate(tenantId: string, certificateId: string): Promise<WarrantyCertificate | null>;
   saveWarrantyTicket(tenantId: string, ticket: WarrantyServiceTicket): Promise<void>;

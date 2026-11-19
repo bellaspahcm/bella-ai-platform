@@ -44,8 +44,15 @@ import type {
   WarrantyCertificate,
   WarrantyServiceTicket,
 } from '../domain/delivery-aftercare/types';
+import type { IInteriorAcceptanceRepository } from './acceptance-repository.interface';
+import type {
+  AcceptanceCampaign,
+  AcceptanceSession,
+  AcceptanceNoteItem,
+  AcceptanceEvidenceObject,
+} from '../domain/acceptance-handover.types';
 
-export class InMemoryInteriorRepository implements IInteriorRepository {
+export class InMemoryInteriorRepository implements IInteriorRepository, IInteriorAcceptanceRepository {
   private readonly projects = new Map<string, InteriorProject>();
   private readonly roomZones = new Map<string, ProjectRoomZone>();
   private readonly designRevisions = new Map<string, DesignRevision>();
@@ -62,6 +69,11 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
   private readonly handoverDossiers = new Map<string, HandoverDossier>();
   private readonly warrantyCertificates = new Map<string, WarrantyCertificate>();
   private readonly warrantyTickets = new Map<string, WarrantyServiceTicket>();
+  // Batch O4: Acceptance & Evidence
+  private readonly acceptanceCampaigns = new Map<string, AcceptanceCampaign>();
+  private readonly acceptanceSessions = new Map<string, AcceptanceSession>();
+  private readonly acceptanceNotes = new Map<string, AcceptanceNoteItem>();
+  private readonly acceptanceEvidence = new Map<string, AcceptanceEvidenceObject>();
   // Phase 4: Customer Approval
   private readonly customerApprovals = new Map<string, CustomerApproval>();
 
@@ -553,7 +565,7 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
       throw new Error(`[InteriorRepo] Payment milestone not found: ${transaction.milestoneId}`);
     }
     const newCollectedAmount = (paymentMilestone.collectedAmount ?? 0) + transaction.amount;
-    if (!Number.isFinite(transaction.amount) || transaction.amount <= 0 || newCollectedAmount > paymentMilestone.amount) {
+    if (!Number.isFinite(transaction.amount) || transaction.amount === 0 || (transaction.amount > 0 && newCollectedAmount > paymentMilestone.amount)) {
       throw new Error('INTERIOR_PAYMENT_EXCEEDS_MILESTONE_BALANCE');
     }
 
@@ -685,6 +697,12 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
 
   async getHandoverDossier(tenantId: string, dossierId: string): Promise<HandoverDossier | null> {
     return this.handoverDossiers.get(this.makeKey(tenantId, dossierId)) ?? null;
+  }
+
+  async listHandoverDossiers(tenantId: string, projectId?: string): Promise<HandoverDossier[]> {
+    const list = Array.from(this.handoverDossiers.values()).filter((d) => d.tenantId === tenantId);
+    if (projectId) return list.filter((d) => d.projectId === projectId);
+    return list;
   }
 
   async saveWarrantyCertificate(tenantId: string, certificate: WarrantyCertificate): Promise<void> {
@@ -992,6 +1010,78 @@ export class InMemoryInteriorRepository implements IInteriorRepository {
 
     this.customerApprovals.set(key, targetApproval);
     return true;
+  }
+
+  // ─── Batch O4: Acceptance & Evidence Operations ─────────────────────────────
+
+  async saveAcceptanceCampaign(tenantId: string, campaign: AcceptanceCampaign): Promise<void> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    this.acceptanceCampaigns.set(`${tenantId}:${campaign.id}`, campaign);
+  }
+
+  async getAcceptanceCampaign(tenantId: string, campaignId: string): Promise<AcceptanceCampaign | null> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    return this.acceptanceCampaigns.get(`${tenantId}:${campaignId}`) || null;
+  }
+
+  async listAcceptanceCampaigns(tenantId: string, projectId: string): Promise<AcceptanceCampaign[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    return Array.from(this.acceptanceCampaigns.values()).filter(
+      (c) => c.tenantId === tenantId && c.projectId === projectId
+    );
+  }
+
+  async saveAcceptanceSession(tenantId: string, session: AcceptanceSession): Promise<void> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    this.acceptanceSessions.set(`${tenantId}:${session.id}`, session);
+  }
+
+  async getAcceptanceSession(tenantId: string, sessionId: string): Promise<AcceptanceSession | null> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    return this.acceptanceSessions.get(`${tenantId}:${sessionId}`) || null;
+  }
+
+  async listAcceptanceSessions(tenantId: string, campaignId: string): Promise<AcceptanceSession[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    return Array.from(this.acceptanceSessions.values()).filter(
+      (s) => s.tenantId === tenantId && s.campaignId === campaignId
+    );
+  }
+
+  async listAcceptanceSessionsByProject(tenantId: string, projectId: string): Promise<AcceptanceSession[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    return Array.from(this.acceptanceSessions.values()).filter(
+      (s) => s.tenantId === tenantId && s.projectId === projectId
+    );
+  }
+
+  async saveAcceptanceNote(tenantId: string, note: AcceptanceNoteItem): Promise<void> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    this.acceptanceNotes.set(`${tenantId}:${note.id}`, note);
+  }
+
+  async getAcceptanceNote(tenantId: string, noteId: string): Promise<AcceptanceNoteItem | null> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    return this.acceptanceNotes.get(`${tenantId}:${noteId}`) || null;
+  }
+
+  async listAcceptanceNotes(tenantId: string, sessionId: string): Promise<AcceptanceNoteItem[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    return Array.from(this.acceptanceNotes.values()).filter(
+      (n) => n.tenantId === tenantId && n.sessionId === sessionId
+    );
+  }
+
+  async saveAcceptanceEvidence(tenantId: string, evidence: AcceptanceEvidenceObject): Promise<void> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    this.acceptanceEvidence.set(`${tenantId}:${evidence.id}`, evidence);
+  }
+
+  async listAcceptanceEvidence(tenantId: string, sessionId: string): Promise<AcceptanceEvidenceObject[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    return Array.from(this.acceptanceEvidence.values()).filter(
+      (e) => e.tenantId === tenantId && e.sessionId === sessionId
+    );
   }
 }
 
