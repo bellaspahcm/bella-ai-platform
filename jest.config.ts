@@ -35,7 +35,6 @@ const config: Config = {
     '/src/__tests__/bella-auto-phase5-experience\\.test\\.ts$',
     '/src/__tests__/e2e-(order-lifecycle-real|refund-full|accounting-gl-verification|payroll-month-close)\\.test\\.ts$',
     '/src/products/bella-interior/__tests__/commercial-customer-real-db\\.test\\.ts$',
-    '/src/products/bella-interior/__tests__/real-production-runtime-verification\\.test\\.ts$',
   ],
   // Transform ESM modules (uuid, etc.)
   transformIgnorePatterns: [

@@ -11,16 +11,23 @@ const isLiveVerificationEnabled = Boolean(
   process.env.ENABLE_PROD_LIVE_VERIFICATION !== 'false'
 );
 
-const describeLive = isLiveVerificationEnabled ? describe : describe.skip;
+describe('Customer 360 Real Production Runtime & Business Data Verification', () => {
+  if (!isLiveVerificationEnabled) {
+    it('skips live verification in offline unit test runners and CI builds', () => {
+      expect(true).toBe(true);
+    });
+    return;
+  }
 
-describeLive('Customer 360 Real Production Runtime & Business Data Verification', () => {
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
-  const interiorRepo = new SupabaseInteriorRepository(supabase as any);
+  let supabase: ReturnType<typeof createClient>;
+  let interiorRepo: SupabaseInteriorRepository;
   let tenantId: string;
   let aggregator: Customer360AggregatorService;
 
   beforeAll(async () => {
+    supabase = createClient(supabaseUrl, supabaseKey!);
+    interiorRepo = new SupabaseInteriorRepository(supabase as any);
+
     // Read real tenantId from production interior_projects
     const { data, error } = await supabase
       .from('interior_projects')

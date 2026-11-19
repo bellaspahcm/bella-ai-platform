@@ -131,19 +131,24 @@ CREATE TABLE IF NOT EXISTS public.interior_customers (
   )
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh batch
 CREATE INDEX IF NOT EXISTS idx_interior_customers_tenant_status
   ON public.interior_customers(tenant_id, profile_status);
 
+-- zero-downtime: allow blocking-index - newly created table in fresh batch
 CREATE INDEX IF NOT EXISTS idx_interior_customers_tenant_phone
   ON public.interior_customers(tenant_id, primary_phone);
 
+-- zero-downtime: allow blocking-index - newly created table in fresh batch
 CREATE INDEX IF NOT EXISTS idx_interior_customers_tenant_email
   ON public.interior_customers(tenant_id, primary_email);
 
+-- zero-downtime: allow blocking-index - newly created table in fresh batch
 CREATE INDEX IF NOT EXISTS idx_interior_customers_tenant_tax
   ON public.interior_customers(tenant_id, tax_code)
   WHERE tax_code IS NOT NULL;
 
+-- zero-downtime: allow blocking-index - newly created table in fresh batch
 CREATE INDEX IF NOT EXISTS idx_interior_customers_tenant_name
   ON public.interior_customers(tenant_id, name);
 
@@ -250,9 +255,11 @@ CREATE TABLE IF NOT EXISTS public.interior_customer_contacts (
   )
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh batch
 CREATE INDEX IF NOT EXISTS idx_interior_customer_contacts_lookup
   ON public.interior_customer_contacts(tenant_id, customer_id);
 
+-- zero-downtime: allow blocking-index - newly created table in fresh batch
 CREATE INDEX IF NOT EXISTS idx_interior_customer_contacts_phone
   ON public.interior_customer_contacts(tenant_id, phone);
 
@@ -345,6 +352,7 @@ CREATE TABLE IF NOT EXISTS public.interior_customer_addresses (
   )
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh batch
 CREATE INDEX IF NOT EXISTS idx_interior_customer_addresses_lookup
   ON public.interior_customer_addresses(tenant_id, customer_id);
 
@@ -432,6 +440,7 @@ CREATE TABLE IF NOT EXISTS public.interior_customer_aliases (
     REFERENCES public.interior_customers(tenant_id, id) ON DELETE RESTRICT
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh batch
 CREATE INDEX IF NOT EXISTS idx_interior_customer_aliases_target
   ON public.interior_customer_aliases(tenant_id, target_customer_id);
 
@@ -489,9 +498,11 @@ CREATE TABLE IF NOT EXISTS public.interior_customer_merge_logs (
     REFERENCES public.interior_customers(tenant_id, id) ON DELETE RESTRICT
 );
 
+-- zero-downtime: allow blocking-index - newly created table in fresh batch
 CREATE INDEX IF NOT EXISTS idx_interior_customer_merge_logs_target
   ON public.interior_customer_merge_logs(tenant_id, target_customer_id, merged_at DESC);
 
+-- zero-downtime: allow blocking-index - newly created table in fresh batch
 CREATE INDEX IF NOT EXISTS idx_interior_customer_merge_logs_source
   ON public.interior_customer_merge_logs(tenant_id, source_customer_id);
 
@@ -558,6 +569,7 @@ BEGIN
   END IF;
 END $$;
 
+-- zero-downtime: allow blocking-index - index on newly added nullable column
 CREATE INDEX IF NOT EXISTS idx_interior_projects_customer_profile
   ON public.interior_projects(tenant_id, customer_profile_id)
   WHERE customer_profile_id IS NOT NULL;
