@@ -40,7 +40,7 @@ jobs:
       group: bella-e2e-bmnbqbcdbuklhopfbopv
       cancel-in-progress: false
       queue: max
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
       AUTOMOVE_RC_SHA: ${{ github.event.pull_request.head.sha || github.sha }}

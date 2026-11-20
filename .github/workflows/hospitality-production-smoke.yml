@@ -13,7 +13,7 @@ concurrency:
 jobs:
   hospitality-production-smoke:
     name: Read-only authenticated Hospitality UI smoke
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: Production
     timeout-minutes: 12
     env:
