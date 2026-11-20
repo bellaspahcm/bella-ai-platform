@@ -674,9 +674,9 @@ export default function CustomersPage() {
                 const widths = ['w-full', 'w-[84%]', 'w-[68%]', 'w-[52%]', 'w-[38%]'];
                 const bgColors = [
                   'bg-blue-600 text-white',
-                  'bg-emerald-500 text-white',
-                  'bg-amber-500 text-white',
-                  'bg-purple-500 text-white',
+                  'bg-emerald-700 text-white',
+                  'bg-amber-700 text-white',
+                  'bg-purple-700 text-white',
                   'bg-indigo-600 text-white',
                 ];
                 const widthClass = widths[step.stepNumber - 1] || 'w-full';
@@ -763,16 +763,16 @@ export default function CustomersPage() {
               <line x1="40" y1="140" x2="490" y2="140" stroke="#e2e8f0" strokeWidth="1" />
 
               {/* Y Axis Left (Khách hàng) */}
-              <text x="30" y="24" fontSize="9" textAnchor="end" fill="#94a3b8">150</text>
-              <text x="30" y="64" fontSize="9" textAnchor="end" fill="#94a3b8">100</text>
-              <text x="30" y="104" fontSize="9" textAnchor="end" fill="#94a3b8">50</text>
-              <text x="30" y="144" fontSize="9" textAnchor="end" fill="#94a3b8">0</text>
+              <text x="30" y="24" fontSize="9" textAnchor="end" className="interior-chart-label">150</text>
+              <text x="30" y="64" fontSize="9" textAnchor="end" className="interior-chart-label">100</text>
+              <text x="30" y="104" fontSize="9" textAnchor="end" className="interior-chart-label">50</text>
+              <text x="30" y="144" fontSize="9" textAnchor="end" className="interior-chart-label">0</text>
 
               {/* Y Axis Right (Doanh thu) */}
-              <text x="500" y="24" fontSize="9" textAnchor="start" fill="#94a3b8">3</text>
-              <text x="500" y="64" fontSize="9" textAnchor="start" fill="#94a3b8">2</text>
-              <text x="500" y="104" fontSize="9" textAnchor="start" fill="#94a3b8">1</text>
-              <text x="500" y="144" fontSize="9" textAnchor="start" fill="#94a3b8">0</text>
+              <text x="500" y="24" fontSize="9" textAnchor="start" className="interior-chart-label">3</text>
+              <text x="500" y="64" fontSize="9" textAnchor="start" className="interior-chart-label">2</text>
+              <text x="500" y="104" fontSize="9" textAnchor="start" className="interior-chart-label">1</text>
+              <text x="500" y="144" fontSize="9" textAnchor="start" className="interior-chart-label">0</text>
 
               {/* Bars &amp; Line Points */}
               {data.growthChart.dataPoints.map((pt, idx) => {
@@ -796,7 +796,7 @@ export default function CustomersPage() {
                       className="hover:fill-blue-500 transition-colors cursor-pointer"
                     />
                     {/* X Axis Label */}
-                    <text x={x} y="158" fontSize="9" textAnchor="middle" fill="#64748b" fontWeight="600">
+                    <text x={x} y="158" fontSize="9" textAnchor="middle" className="interior-chart-label" fontWeight="600">
                       {pt.month}
                     </text>
                   </g>

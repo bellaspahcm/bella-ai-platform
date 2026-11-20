@@ -481,10 +481,10 @@ export default function ProductionDashboardPage() {
                   transform={`rotate(-90 ${DONUT_CX} ${DONUT_CY})`}
                 />
                 {/* Center label */}
-                <text x={DONUT_CX} y={DONUT_CY - 6} textAnchor="middle" className="font-bold" fontSize="22" fontWeight="700" fill="#1e293b">
+                <text x={DONUT_CX} y={DONUT_CY - 6} textAnchor="middle" className="interior-chart-title font-bold" fontSize="22" fontWeight="700">
                   {efficiencyMetrics.overallRateFormatted}
                 </text>
-                <text x={DONUT_CX} y={DONUT_CY + 14} textAnchor="middle" fontSize="10" fill="#64748b">
+                <text x={DONUT_CX} y={DONUT_CY + 14} textAnchor="middle" className="interior-chart-label" fontSize="10">
                   {efficiencyMetrics.overallRateLabel}
                 </text>
               </svg>
@@ -592,7 +592,7 @@ export default function ProductionDashboardPage() {
               {/* X-axis labels */}
               {timelineChart.points.map((pt) => (
                 <text key={`lbl-${pt.dayLabel}`} x={pt.xCoord} y={SVG_H - 1}
-                  textAnchor="middle" fontSize="7" fill="#94a3b8">
+                  textAnchor="middle" fontSize="7" className="interior-chart-label">
                   {pt.dayLabel}
                 </text>
               ))}
@@ -733,7 +733,7 @@ export default function ProductionDashboardPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-slate-700">{alert.message}</p>
                 </div>
-                <span className="text-[10px] text-slate-400 shrink-0">{alert.timeFormatted}</span>
+                <span className="text-[10px] text-slate-600 shrink-0">{alert.timeFormatted}</span>
               </div>
             ))}
           </div>

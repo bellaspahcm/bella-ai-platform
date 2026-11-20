@@ -2150,17 +2150,17 @@ html[data-tenant-brand-preset="slate_minimal"] .beauty-customer-add-cta:hover {
 
 /* Universal Active Nav Item — spa/beauty shells with bg-white active style */
 /* Real estate (jade_wellness/luxury_navy) and Education have their own canonical rules */
-html .beauty-erp-nav-item-active.bg-white *,
-html .beauty-erp-nav-item-active.bg-white svg,
-html .beauty-erp-nav-item-active.bg-white span,
-html .beauty-erp-nav-item-active.bg-white p {
+html:where(:not([data-tenant-module="bella_interior"])) .beauty-erp-nav-item-active.bg-white *,
+html:where(:not([data-tenant-module="bella_interior"])) .beauty-erp-nav-item-active.bg-white svg,
+html:where(:not([data-tenant-module="bella_interior"])) .beauty-erp-nav-item-active.bg-white span,
+html:where(:not([data-tenant-module="bella_interior"])) .beauty-erp-nav-item-active.bg-white p {
   color: #042f2e !important;
 }
 
 /* Dark pill active nav items (non-white bg) — high contrast white text for dark active backgrounds */
-html:not([data-tenant-brand-preset="slate_minimal"]) .beauty-erp-nav-item-active:not(.bg-white):not([class*="bg-white"]):not([class*="bg-slate"]):not([class*="bg-[#f"]):not([class*="bg-gray"]) *,
-html:not([data-tenant-brand-preset="slate_minimal"]) .beauty-erp-nav-item-active:not(.bg-white):not([class*="bg-white"]):not([class*="bg-slate"]):not([class*="bg-[#f"]):not([class*="bg-gray"]) svg,
-html:not([data-tenant-brand-preset="slate_minimal"]) .beauty-erp-nav-item-active:not(.bg-white):not([class*="bg-white"]):not([class*="bg-slate"]):not([class*="bg-[#f"]):not([class*="bg-gray"]) span {
+html:not([data-tenant-brand-preset="slate_minimal"]):where(:not([data-tenant-module="bella_interior"])) .beauty-erp-nav-item-active:not(.bg-white):not([class*="bg-white"]):not([class*="bg-slate"]):not([class*="bg-[#f"]):not([class*="bg-gray"]) *,
+html:not([data-tenant-brand-preset="slate_minimal"]):where(:not([data-tenant-module="bella_interior"])) .beauty-erp-nav-item-active:not(.bg-white):not([class*="bg-white"]):not([class*="bg-slate"]):not([class*="bg-[#f"]):not([class*="bg-gray"]) svg,
+html:not([data-tenant-brand-preset="slate_minimal"]):where(:not([data-tenant-module="bella_interior"])) .beauty-erp-nav-item-active:not(.bg-white):not([class*="bg-white"]):not([class*="bg-slate"]):not([class*="bg-[#f"]):not([class*="bg-gray"]) span {
   color: #ffffff !important;
 }
 
@@ -7429,3 +7429,69 @@ html[data-tenant-module="bella_interior"] .beauty-erp-mobile-header {
   background: rgba(28, 25, 23, 0.95) !important;
   border-bottom-color: rgba(245, 158, 11, 0.20) !important;
 }
+
+/* Bella Interior: use tenant presentation tokens for branding and actions. */
+html[data-tenant-module="bella_interior"] .beauty-erp-sidebar,
+html.dark[data-tenant-module="bella_interior"] .beauty-erp-sidebar {
+  background: var(--sidebar-bg, #1c1917) !important;
+  border-color: var(--sidebar-border, #78716c) !important;
+  color: var(--sidebar-fg, #fff7ed) !important;
+}
+html[data-tenant-module="bella_interior"] :is(.beauty-erp-brand-script, .beauty-erp-brand-subtitle, .beauty-erp-nav-header, .beauty-erp-profile-role, .beauty-erp-profile-name, .beauty-erp-nav-item, .beauty-erp-nav-item svg, .beauty-erp-nav-item span, .beauty-erp-icon-button) {
+  color: var(--sidebar-fg, #fff7ed) !important;
+}
+html[data-tenant-module="bella_interior"] .beauty-erp-brand-script + span { color: var(--sidebar-fg, #fff7ed) !important; }
+html:not(.dark)[data-tenant-module="bella_interior"] .beauty-theme-toggle-button:not(.beauty-theme-toggle-button-active) { color: #475569 !important; }
+html[data-tenant-module="bella_interior"] .beauty-erp-sidebar::before { border-color: var(--sidebar-border, #78716c) !important; }
+html[data-tenant-module="bella_interior"] :is(.beauty-erp-logo-mark, .beauty-erp-avatar) {
+  background: color-mix(in srgb, var(--primary) 45%, #000) !important; color: #fff !important;
+}
+html[data-tenant-module="bella_interior"] .beauty-erp-nav-item-active,
+html[data-tenant-module="bella_interior"] .beauty-erp-nav-item:not(.beauty-erp-nav-item-active):hover {
+  background: color-mix(in srgb, var(--sidebar-fg, #fff7ed) 16%, transparent) !important;
+  border-color: var(--sidebar-border, #78716c) !important;
+}
+html[data-tenant-module="bella_interior"] :is(.beauty-erp-nav-item-active, .beauty-erp-nav-item:hover) :is(svg, span) { color: var(--sidebar-fg, #fff7ed) !important; }
+html[data-tenant-module="bella_interior"] .beauty-erp-nav-item-active.beauty-erp-nav-item svg { color: var(--sidebar-fg, #fff7ed) !important; }
+html[data-tenant-module="bella_interior"] .beauty-erp-profile-card { background: var(--sidebar-inner-bg, #292524) !important; border-color: var(--sidebar-border, #78716c) !important; }
+html[data-tenant-module="bella_interior"] .beauty-erp-mobile-header { background: var(--sidebar-bg, #1c1917) !important; }
+.interior-chart-label { fill: #475569; }
+html.dark .interior-chart-label { fill: #cbd5e1; }
+.interior-content .interior-hero-title { color: #ffffff !important; }
+.interior-content .interior-hero-description { color: #e2e8f0 !important; }
+.interior-content .interior-promo-description { color: #ffffff !important; }
+.interior-content .interior-material-caption { background: #0f172a !important; color: #fff !important; }
+.interior-content .interior-hero { background: linear-gradient(110deg, color-mix(in srgb, var(--primary) 25%, #000), color-mix(in srgb, var(--primary) 40%, #000)) !important; }
+/* Keep muted copy readable when the light palette is active. */
+html:not(.dark) .interior-content :is([class~="text-slate-500"], [class~="text-slate-600"], [class~="text-slate-700"]):is([class*="dark:text-slate-300"], [class*="dark:text-slate-400"]) { color: #475569 !important; }
+.interior-chart-title { fill: #1e293b; }
+html.dark .interior-chart-title { fill: #f1f5f9; }
+/* Orange is the Interior action color; green remains a semantic success color. */
+.interior-content :is(a, button).bg-orange-600.text-white { background-color: color-mix(in srgb, var(--primary) 45%, #000) !important; color: #fff !important; }
+.interior-content :is(a, button).bg-orange-600.text-white:hover { background-color: color-mix(in srgb, var(--primary) 35%, #000) !important; }
+.interior-content :is(a, button, span, div).bg-amber-600.text-white { background-color: color-mix(in srgb, var(--primary) 45%, #000) !important; color: #fff !important; }
+.interior-content :is(a, button).bg-amber-600.text-white:hover { background-color: color-mix(in srgb, var(--primary) 35%, #000) !important; }
+.interior-content :is(a, button, div, span).bg-emerald-600.text-white { background-color: #047857 !important; }
+html:not(.dark) .interior-content [class~="text-emerald-600"] { color: #047857 !important; }
+html:not(.dark) .interior-content [class~="text-amber-600"] { color: #92400e !important; }
+html:not(.dark) .interior-content [class~="text-cyan-600"] { color: #0e7490 !important; }
+html:not(.dark) .interior-content [class~="text-rose-500"] { color: #be123c !important; }
+.interior-content .bg-rose-500.text-white { background-color: #be123c !important; }
+.interior-content :is(.bg-red-500.text-white) { background-color: #b91c1c !important; }
+.interior-content :is(.bg-amber-500.text-white) { background-color: #92400e !important; }
+.interior-content :is(.bg-emerald-500.text-white, [class~="bg-[#10b981]"].text-white) { background-color: #047857 !important; }
+.interior-content :is(button, a)[class~="bg-[#f59e0b]"].text-white,
+.interior-content button.bg-amber-500.text-white { background-color: color-mix(in srgb, var(--primary) 45%, #000) !important; }
+.interior-content :is(button, a)[class~="bg-[#f59e0b]"].text-white:hover,
+.interior-content button.bg-amber-500.text-white:hover { background-color: color-mix(in srgb, var(--primary) 35%, #000) !important; }
+html:not(.dark) .interior-content :is(.bg-amber-100.text-amber-700, .text-amber-500.leading-tight, .text-xs.text-amber-500) { color: #92400e !important; }
+html:not(.dark) .interior-content :is(.bg-red-50.text-red-500, .bg-red-50.text-red-600, .text-xs.text-red-500, p.text-red-500) { color: #b91c1c !important; }
+html:not(.dark) .interior-content .border-amber-300.text-amber-500 { color: #92400e !important; }
+html:not(.dark) .interior-content .text-xs.text-sky-600 { color: #075985 !important; }
+html.dark .interior-content :is([class~="bg-[#F8FAFC]"], [class~="bg-[#f8fafc]"], [class~="bg-[#F4F7F6]"]) { background-color: #071b28 !important; }
+html.dark .interior-content [class~="bg-[#EAF5F0]"] { background-color: #102c33 !important; }
+html.dark .interior-content thead tr { background: #172f40 !important; }
+html.dark .interior-content tr:hover { background-color: #254256 !important; }
+html.dark .interior-content :is(.bg-amber-50, .bg-amber-100) { background-color: #49330e !important; }
+html.dark .interior-content .bg-slate-200[class~="dark:bg-slate-700"] { background-color: #334155 !important; }
+html.dark .interior-content button.bg-amber-500.text-slate-950 { background-color: color-mix(in srgb, var(--primary) 45%, #000) !important; color: #fff !important; }
