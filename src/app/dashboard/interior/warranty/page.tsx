@@ -84,6 +84,22 @@ export default function WarrantyDashboardPage() {
     showToast('Chưa có form/API gắn phiếu với chứng thư thật; không có yêu cầu nào được ghi nhận.');
   };
 
+  if (!selectedProjectId) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] p-6 flex items-center justify-center">
+        <section className="max-w-lg rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <h1 className="text-lg font-bold text-slate-900 dark:text-white">Chọn dự án để xem bảo hành</h1>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+            Mở một dự án trong danh sách, sau đó chọn mục Nghiệm thu &amp; Bảo hành.
+          </p>
+          <Link href="/dashboard/interior/projects" className="mt-5 inline-flex items-center rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white">
+            Xem danh sách dự án
+          </Link>
+        </section>
+      </div>
+    );
+  }
+
   if (loading && !data) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center space-y-4">
@@ -132,6 +148,9 @@ export default function WarrantyDashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 font-sans p-6 space-y-6">
+      <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-medium text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
+        Các chỉ số và danh sách bảo hành bên dưới hiện là dữ liệu mẫu, chưa phản ánh dữ liệu thực của dự án.
+      </div>
       {/* ─── TOAST NOTIFICATION ────────────────────────────────────────── */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center space-x-3 text-sm animate-fade-in border border-slate-700">

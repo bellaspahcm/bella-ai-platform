@@ -482,7 +482,7 @@ export default function InteriorMaterialsPage() {
                   </span>
                 </div>
 
-                <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between text-white text-[11px]">
+                <div className="interior-material-caption absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between text-white text-[11px] rounded-md px-2 py-1">
                   <span className="font-semibold">{mat.categoryLabel}</span>
                   <span className="font-mono bg-white/20 px-1.5 py-0.5 rounded backdrop-blur-xs">
                     {mat.brand}

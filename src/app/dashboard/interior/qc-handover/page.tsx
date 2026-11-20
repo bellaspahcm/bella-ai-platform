@@ -324,7 +324,7 @@ export default function InteriorQCHandoverPage() {
           </Link>
 
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors">
-            <span className="text-slate-400">Dự án:</span>
+            <span className="text-slate-600">Dự án:</span>
             <div className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-700 flex items-center justify-center text-[10px] font-bold">
               🏛
             </div>

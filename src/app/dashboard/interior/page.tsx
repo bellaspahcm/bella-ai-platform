@@ -334,7 +334,7 @@ export default function InteriorDashboardPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
       {/* ─── 01. VIEWPORT HERO BANNER ─────────────────────────────────── */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-slate-900 via-[#0F2744] to-[#1B365D] text-white p-6 sm:p-8 shadow-sm overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="interior-hero relative rounded-3xl bg-gradient-to-r from-slate-900 via-[#0F2744] to-[#1B365D] text-white p-6 sm:p-8 shadow-sm overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         {/* Ambient background decoration */}
         <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
         <div className="absolute left-1/3 bottom-0 w-64 h-32 bg-blue-500/10 blur-2xl pointer-events-none" />
@@ -344,10 +344,10 @@ export default function InteriorDashboardPage() {
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
             Hệ điều hành Nội thất Doanh nghiệp
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
+          <h1 className="interior-hero-title text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
             Chào buổi sáng, Mai!
           </h1>
-          <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
+          <p className="interior-hero-description text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
             Theo dõi toàn bộ dự án thiết kế và thi công nội thất theo thời gian thực.
           </p>
         </div>
@@ -949,7 +949,7 @@ export default function InteriorDashboardPage() {
             <h3 className="text-2xl font-black text-white leading-tight">
               Bella Interior OS
             </h3>
-            <p className="text-xs text-slate-300 max-w-md leading-relaxed">
+            <p className="interior-promo-description text-xs text-slate-300 max-w-md leading-relaxed">
               Kiến tạo không gian sống đẳng cấp với chuỗi giá trị khép kín từ bản vẽ thiết kế đến hoàn thiện thực tế tại công trình.
             </p>
             <div className="pt-2">
