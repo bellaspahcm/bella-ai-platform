@@ -86,6 +86,9 @@ const nextConfig: NextConfig = {
   // already optimized by default in Next 16; framer-motion is not, so add it.
   experimental: {
     optimizePackageImports: ['framer-motion'],
+    // Allow a full 10 MiB file as multipart or base64 JSON; the route applies
+    // separate request limits before parsing either representation.
+    proxyClientMaxBodySize: 14112088,
   },
   async headers() {
     return [

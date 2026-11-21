@@ -1,8 +1,15 @@
 import { NextRequest } from 'next/server';
 import { GET as getSchedule } from '@/app/api/interior/schedule/route';
-import { POST as createSiteDiary } from '@/app/api/interior/delivery/site-diary/route';
+import { GET as getSiteDiary, POST as createSiteDiary } from '@/app/api/interior/delivery/site-diary/route';
 import { resolveInteriorContext } from '../lib/server-context';
 import { interiorRbacRpcClient } from '../lib/rbac-api';
+import { createServiceClient } from '@/lib/supabase-service-client';
+
+jest.mock('@/lib/supabase-service-client', () => ({
+  createServiceClient: jest.fn(() => ({ storage: { from: jest.fn(() => ({
+    download: jest.fn().mockResolvedValue({ data: new Blob(['image']), error: null }),
+  })) } })),
+}));
 
 jest.mock('../lib/server-context', () => ({
   resolveInteriorContext: jest.fn(),
@@ -79,5 +86,29 @@ describe('Interior site operations RBAC routes', () => {
       p_issues_noted: 'Material delay',
     });
     expect(body.data).toEqual(expect.objectContaining({ id: entryId, supervisorName: 'Site Manager' }));
+  });
+
+  it('returns protected photo links and rejects a photo outside the diary tenant and project', async () => {
+    const rpc = jest.fn().mockResolvedValue({ data: [{
+      id: entryId, tenantId: 'tenant-a', projectId, date: '2026-11-09', supervisorName: 'Site Manager',
+      workersPresent: 1, activitiesCompleted: ['Inspect'], photoUrls: [
+        `tenant-a/${projectId}/diary/photo.jpg`, 'other-tenant/private.jpg', 'https://legacy.example/private-photo.jpg?token=secret',
+      ],
+    }], error: null });
+    rpcClientFactoryMock.mockReturnValue({ rpc } as unknown as ReturnType<typeof interiorRbacRpcClient>);
+    const base = `https://bella.example/api/interior/delivery/site-diary?projectId=${projectId}`;
+    const list = await getSiteDiary(new Request(base));
+    const body = await list.json() as { data: Array<{ photoUrls: string[]; legacyPhotoCount: number }> };
+    expect(body.data[0].photoUrls).toHaveLength(1);
+    expect(body.data[0].legacyPhotoCount).toBe(2);
+    expect(JSON.stringify(body)).not.toContain('legacy.example');
+    expect(JSON.stringify(body)).not.toContain('secret');
+    expect(body.data[0].photoUrls[0]).toContain(`diaryId=${entryId}&photoIndex=0`);
+    const denied = await getSiteDiary(new Request(`${base}&diaryId=${entryId}&photoIndex=1`));
+    expect(denied.status).toBe(404);
+    expect(createServiceClient).not.toHaveBeenCalled();
+    const allowed = await getSiteDiary(new Request(`${base}&diaryId=${entryId}&photoIndex=0`));
+    expect(allowed.status).toBe(200);
+    expect(createServiceClient).toHaveBeenCalledTimes(1);
   });
 });

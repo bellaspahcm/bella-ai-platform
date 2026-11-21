@@ -50,6 +50,7 @@ import type {
   AcceptanceSession,
   AcceptanceNoteItem,
   AcceptanceEvidenceObject,
+  InspectionResult,
 } from '../domain/acceptance-handover.types';
 
 export class InMemoryInteriorRepository implements IInteriorRepository, IInteriorAcceptanceRepository {
@@ -1031,9 +1032,51 @@ export class InMemoryInteriorRepository implements IInteriorRepository, IInterio
     );
   }
 
-  async saveAcceptanceSession(tenantId: string, session: AcceptanceSession): Promise<void> {
-    if (!tenantId) throw new TenantIsolationViolationError();
+  async createAcceptanceSession(tenantId: string, session: AcceptanceSession): Promise<void> {
+    if (!tenantId || session.tenantId !== tenantId) throw new TenantIsolationViolationError();
     this.acceptanceSessions.set(`${tenantId}:${session.id}`, session);
+  }
+
+  async updateAcceptanceInspectionResult(
+    tenantId: string,
+    sessionId: string,
+    inspectionResult: InspectionResult,
+    approvalNotes: string | null,
+  ): Promise<void> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    const session = await this.getAcceptanceSession(tenantId, sessionId);
+    if (!session) throw new Error('ACCEPTANCE_SESSION_NOT_FOUND');
+    this.acceptanceSessions.set(`${tenantId}:${sessionId}`, {
+      ...session,
+      inspectionResult,
+      approvalNotes: session.approvalStatus === 'PENDING' ? approvalNotes : session.approvalNotes,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  async decideAcceptanceSession(input: {
+    tenantId: string;
+    sessionId: string;
+    actorId: string;
+    decision: 'APPROVED' | 'REJECTED';
+    approvalNotes: string | null;
+    rejectionReason: string | null;
+  }): Promise<AcceptanceSession> {
+    if (!input.tenantId) throw new TenantIsolationViolationError();
+    const session = await this.getAcceptanceSession(input.tenantId, input.sessionId);
+    if (!session) throw new Error('ACCEPTANCE_SESSION_NOT_FOUND');
+    if (session.approvalStatus !== 'PENDING') throw new Error('ACCEPTANCE_SESSION_ALREADY_DECIDED');
+    const updated: AcceptanceSession = {
+      ...session,
+      approvalStatus: input.decision,
+      approvedByActorId: input.actorId,
+      approvedAt: new Date().toISOString(),
+      approvalNotes: input.approvalNotes,
+      rejectionReason: input.decision === 'REJECTED' ? input.rejectionReason : null,
+      updatedAt: new Date().toISOString(),
+    };
+    this.acceptanceSessions.set(`${input.tenantId}:${input.sessionId}`, updated);
+    return updated;
   }
 
   async getAcceptanceSession(tenantId: string, sessionId: string): Promise<AcceptanceSession | null> {
@@ -1072,9 +1115,26 @@ export class InMemoryInteriorRepository implements IInteriorRepository, IInterio
     );
   }
 
-  async saveAcceptanceEvidence(tenantId: string, evidence: AcceptanceEvidenceObject): Promise<void> {
-    if (!tenantId) throw new TenantIsolationViolationError();
+  async saveAcceptanceEvidence(tenantId: string, evidence: AcceptanceEvidenceObject): Promise<AcceptanceEvidenceObject> {
+    if (!tenantId || evidence.tenantId !== tenantId) throw new TenantIsolationViolationError();
     this.acceptanceEvidence.set(`${tenantId}:${evidence.id}`, evidence);
+    const sessionKey = `${tenantId}:${evidence.sessionId}`;
+    const session = this.acceptanceSessions.get(sessionKey);
+    if (!session) return evidence;
+    const sessionEvidence = Array.from(this.acceptanceEvidence.values()).filter(
+      (item) => item.tenantId === tenantId && item.sessionId === evidence.sessionId,
+    );
+    const hasSignoff = sessionEvidence.some((item) => item.evidenceCategory === 'CUSTOMER_SIGNOFF');
+    const hasVisual = sessionEvidence.some((item) =>
+      ['OVERALL', 'DETAIL', 'COMPLETED_PRODUCT'].includes(item.evidenceCategory),
+    );
+    const documentationStatus = hasSignoff && hasVisual ? 'COMPLETE' : hasSignoff || hasVisual ? 'PARTIAL' : 'NONE';
+    this.acceptanceSessions.set(sessionKey, {
+      ...session,
+      documentationStatus,
+      updatedAt: new Date().toISOString(),
+    });
+    return evidence;
   }
 
   async listAcceptanceEvidence(tenantId: string, sessionId: string): Promise<AcceptanceEvidenceObject[]> {

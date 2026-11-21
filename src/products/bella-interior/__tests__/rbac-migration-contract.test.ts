@@ -25,6 +25,10 @@ const addendumFinanceReadMigrationSql = readFileSync(
   join(process.cwd(), 'supabase/migrations/20261114120300_interior_contract_addenda_finance_scoped_read.sql'),
   'utf8',
 ).replace(/\r\n/g, '\n');
+const crmO4HardeningMigrationSql = readFileSync(
+  join(process.cwd(), 'supabase/migrations/20261121000050_bella_interior_crm_o4_action_hardening.sql'),
+  'utf8',
+).replace(/\r\n/g, '\n');
 
 function explicitRolePermissions(): Map<string, Set<string>> {
   const seedStart = migrationSql.indexOf('INSERT INTO public.interior_role_permissions(role_key,permission_id) VALUES');
@@ -62,8 +66,13 @@ describe('Bella Interior RBAC migration contract', () => {
     const seededPermissionIds = new Set(
       [...catalogBlock.matchAll(/\('(interior:[^']+)'\s*,/g)].map((match) => match[1]),
     );
+    const supplementalCatalogStart = crmO4HardeningMigrationSql.indexOf('INSERT INTO public.interior_permissions');
+    const supplementalCatalogEnd = crmO4HardeningMigrationSql.indexOf('ON CONFLICT (permission_id) DO NOTHING;', supplementalCatalogStart);
+    const supplementalCatalogBlock = crmO4HardeningMigrationSql.slice(supplementalCatalogStart, supplementalCatalogEnd);
+    const supplementalPermissionIds = [...supplementalCatalogBlock.matchAll(/\('(interior:[^']+)'\s*,/g)]
+      .map((match) => match[1]);
+    for (const permissionId of supplementalPermissionIds) seededPermissionIds.add(permissionId);
 
-    expect(existingPermissionIds.size).toBe(65);
     expect([...existingPermissionIds].filter((permission) => !seededPermissionIds.has(permission))).toEqual([]);
     expect(roles.size + 1).toBe(12);
   });

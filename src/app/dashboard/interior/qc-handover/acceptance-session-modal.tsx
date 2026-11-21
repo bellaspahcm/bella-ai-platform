@@ -18,6 +18,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useEvidenceDeletions } from '@/products/bella-interior/lib/use-evidence-deletions';
 import type {
   AcceptanceCampaign,
   AcceptanceSession,
@@ -220,6 +221,9 @@ export default function AcceptanceSessionModal({
       // ignore detail error
     }
   }, []);
+  const deletions = useEvidenceDeletions(projectId, () => {
+    if (selectedSessionId) void loadSessionDetails(selectedSessionId);
+  });
 
   useEffect(() => {
     if (selectedSessionId) {
@@ -853,6 +857,7 @@ export default function AcceptanceSessionModal({
                   {/* Existing Evidence List */}
                   <div className="space-y-2">
                     <h3 className="font-bold text-slate-800">Các Tệp Bằng Chứng Đã Lưu ({sessionEvidence.length})</h3>
+                    {deletions.message && <p role="status" className="text-xs text-slate-600">{deletions.message}</p>}
                     {sessionEvidence.length === 0 ? (
                       <p className="text-slate-500 italic p-3 bg-slate-50 rounded-lg">
                         Chưa có hình ảnh hoặc biên bản nghiệm thu nào được tải lên.
@@ -878,6 +883,23 @@ export default function AcceptanceSessionModal({
                             <div className="text-right text-[11px] text-slate-500">
                               <div>{(ev.fileSizeBytes / 1024).toFixed(1)} KB</div>
                               <div className="text-[10px] text-slate-400">{ev.uploadedAt.split('T')[0]}</div>
+                              <a className="text-blue-700 underline" href={`/api/interior/delivery/acceptance/sessions/${selectedSessionId}/evidence?evidenceId=${encodeURIComponent(ev.id)}`}>
+                                Tải tệp
+                              </a>
+                              {deletions.allowed && (
+                                <div>
+                                  {deletions.pending.filter((item) => item.kind === 'O4' && item.recordId === ev.id).map((item) => (
+                                    <button key={item.requestId} type="button" disabled={deletions.busy}
+                                      onClick={() => void deletions.execute(item.requestId)} className="text-rose-700 underline">
+                                      {item.status === 'DELETE_FAILED' ? 'Thử lại xóa' : 'Thực hiện xóa'}
+                                    </button>
+                                  ))}
+                                  {!deletions.pending.some((item) => item.kind === 'O4' && item.recordId === ev.id) && (
+                                    <button type="button" disabled={deletions.busy} onClick={() => void deletions.requestDeletion('O4', ev.id)}
+                                      className="text-rose-700 underline">Yêu cầu xóa</button>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}

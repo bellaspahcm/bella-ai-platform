@@ -17,6 +17,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useEvidenceDeletions } from '@/products/bella-interior/lib/use-evidence-deletions';
 import type {
   InstallationOverviewResponse,
   RoomInstallationCard,
@@ -33,6 +34,8 @@ interface InstallationSiteDiary {
   activitiesCompleted: string[];
   issuesEncountered: string[];
   notes: string;
+  photoUrls?: string[];
+  legacyPhotoCount?: number;
 }
 
 // ─── Inline Clean Icons (Zero External Bundle Overhead) ──────────────────────
@@ -224,6 +227,9 @@ export default function InteriorInstallationPage() {
       setDiariesLoading(false);
     }
   }, []);
+  const deletions = useEvidenceDeletions(data?.projectHeader.id, () => {
+    if (data?.projectHeader.id) void fetchSiteDiaries(data.projectHeader.id);
+  });
 
   useEffect(() => {
     if (activeTab !== 'diaries' || !data?.projectHeader.id) return;
@@ -756,6 +762,7 @@ export default function InteriorInstallationPage() {
             </div>
           ) : (
             <ul className="space-y-4" aria-label="Nhật ký thi công đã lưu">
+              {deletions.message && <li role="status" className="text-xs text-slate-600">{deletions.message}</li>}
               {siteDiaries.map((diary) => (
                 <li key={diary.id} className="space-y-2.5 rounded-xl border border-slate-100 bg-slate-50/60 p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -786,6 +793,29 @@ export default function InteriorInstallationPage() {
                   {diary.notes && diary.issuesEncountered.length === 0 && (
                     <p className="text-xs text-slate-600">Ghi chú: {diary.notes}</p>
                   )}
+                  {diary.photoUrls && diary.photoUrls.length > 0 && (
+                    <div className="flex flex-wrap gap-3 text-xs">
+                      {diary.photoUrls.map((url, index) => {
+                        const photoIndex = Number(new URL(url, 'http://localhost').searchParams.get('photoIndex'));
+                        return <span key={url} className="space-x-2">
+                          <a href={url} className="text-blue-700 underline">Tải ảnh {index + 1}</a>
+                          {deletions.allowed && Number.isSafeInteger(photoIndex) && photoIndex >= 0 && (
+                            <button type="button" disabled={deletions.busy} className="text-rose-700 underline"
+                              onClick={() => void deletions.requestDeletion('O3', diary.id, photoIndex)}>Yêu cầu xóa</button>
+                          )}
+                        </span>;
+                      })}
+                    </div>
+                  )}
+                  {(diary.legacyPhotoCount ?? 0) > 0 && (
+                    <p className="text-xs text-amber-700">{diary.legacyPhotoCount} ảnh cũ chưa thể truy cập an toàn; cần đối soát nguồn lưu trữ.</p>
+                  )}
+                  {deletions.allowed && deletions.pending.filter((item) => item.kind === 'O3' && item.recordId === diary.id).map((item) => (
+                    <button key={item.requestId} type="button" disabled={deletions.busy}
+                      onClick={() => void deletions.execute(item.requestId)} className="block text-xs text-rose-700 underline">
+                      {item.status === 'DELETE_FAILED' ? 'Thử lại xóa ảnh' : 'Thực hiện xóa ảnh'}: {item.storagePath.split('/').pop()} ({item.requestId.slice(0, 8)})
+                    </button>
+                  ))}
                 </li>
               ))}
             </ul>

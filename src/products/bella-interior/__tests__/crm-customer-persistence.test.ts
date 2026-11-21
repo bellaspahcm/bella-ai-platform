@@ -26,6 +26,8 @@ import {
   CustomerMergeSelfError,
   CustomerMergeCycleDetectedError,
   DirectFinancialMutationError,
+  CustomerPrimaryContactConflictError,
+  CustomerDefaultAddressConflictError,
 } from '../domain/crm/customer-errors';
 
 // ─── High-Fidelity Mock Supabase Factory ─────────────────────────────────────
@@ -94,6 +96,80 @@ function createMockSupabaseClient(initialState?: Partial<MockDbState>): {
         state.sequences.set(tenantId, next);
         const code = `KH-${String(next).padStart(6, '0')}`;
         return { data: code, error: null };
+      }
+      if (fnName === 'interior_set_primary_contact' || fnName === 'interior_set_default_address') {
+        const contactSwitch = fnName === 'interior_set_primary_contact';
+        const table = contactSwitch ? state.contacts : state.addresses;
+        const customerId = args.p_customer_id as string;
+        const targetId = (contactSwitch ? args.p_contact_id : args.p_address_id) as string | null;
+        const flag = contactSwitch ? 'is_primary' : 'is_default';
+        const target = targetId ? table.find((row) => row.id === targetId && row.customer_id === customerId) : null;
+        if (targetId && !target) {
+          return { data: null, error: { code: 'P0001', message: contactSwitch ? 'CONTACT_NOT_FOUND' : 'ADDRESS_NOT_FOUND' } };
+        }
+        for (const row of table) {
+          if (row.customer_id === customerId && (row[flag] === true) && (!targetId || row.id !== targetId)) {
+            row[flag] = false;
+          }
+        }
+        if (target) target[flag] = true;
+        return { data: null, error: null };
+      }
+      if (fnName === 'interior_execute_customer_merge') {
+        const tenantId = args.p_tenant_id as string;
+        const sourceId = args.p_source_customer_id as string;
+        const targetId = args.p_target_customer_id as string;
+        const source = state.customers.find((row) => row.id === sourceId && row.tenant_id === tenantId);
+        const target = state.customers.find((row) => row.id === targetId && row.tenant_id === tenantId);
+        if (!source || !target) {
+          return { data: null, error: { code: '23503', message: 'SOURCE_OR_TARGET_CUSTOMER_NOT_FOUND' } };
+        }
+        if (source.profile_status === 'merged' || target.profile_status === 'merged') {
+          return { data: null, error: { code: 'P0001', message: 'CUSTOMER_ALREADY_MERGED' } };
+        }
+        const sourcePrimary = state.contacts.some((row) => row.customer_id === sourceId && row.tenant_id === tenantId && row.is_primary === true);
+        const targetPrimary = state.contacts.some((row) => row.customer_id === targetId && row.tenant_id === tenantId && row.is_primary === true);
+        const sourceDefault = state.addresses.some((row) => row.customer_id === sourceId && row.tenant_id === tenantId && row.is_default === true);
+        const targetDefault = state.addresses.some((row) => row.customer_id === targetId && row.tenant_id === tenantId && row.is_default === true);
+        if (sourcePrimary && targetPrimary) return { data: null, error: { code: 'P0001', message: 'CUSTOMER_MERGE_PRIMARY_CONTACT_CONFLICT' } };
+        if (sourceDefault && targetDefault) return { data: null, error: { code: 'P0001', message: 'CUSTOMER_MERGE_DEFAULT_ADDRESS_CONFLICT' } };
+
+        const contacts = state.contacts.filter((row) => row.customer_id === sourceId && row.tenant_id === tenantId);
+        const addresses = state.addresses.filter((row) => row.customer_id === sourceId && row.tenant_id === tenantId);
+        const now = new Date().toISOString();
+        contacts.forEach((row) => { row.customer_id = targetId; row.updated_at = now; });
+        addresses.forEach((row) => { row.customer_id = targetId; row.updated_at = now; });
+        state.aliases
+          .filter((row) => row.tenant_id === tenantId && row.target_customer_id === sourceId)
+          .forEach((row) => { row.target_customer_id = targetId; });
+        const alias = { id: `uuid-alias-${state.aliases.length + 1}`, tenant_id: tenantId, source_customer_id: sourceId, target_customer_id: targetId, created_at: now };
+        state.aliases.push(alias);
+        source.profile_status = 'merged';
+        source.merged_into_id = targetId;
+        source.updated_at = now;
+        const log = {
+          id: `uuid-merge-${state.mergeLogs.length + 1}`,
+          tenant_id: tenantId,
+          source_customer_id: sourceId,
+          target_customer_id: targetId,
+          actor_id: args.p_actor_id,
+          reason: args.p_reason,
+          contacts_transferred_count: contacts.length,
+          addresses_transferred_count: addresses.length,
+          merged_at: now,
+        };
+        state.mergeLogs.push(log);
+        return {
+          data: {
+            success: true,
+            sourceCustomerId: sourceId,
+            targetCustomerId: targetId,
+            contactsTransferred: contacts.length,
+            addressesTransferred: addresses.length,
+            mergeLog: log,
+          },
+          error: null,
+        };
       }
       return { data: null, error: { message: `RPC ${fnName} not mocked` } };
     }),
@@ -186,6 +262,16 @@ function createMockSupabaseClient(initialState?: Partial<MockDbState>): {
                   single: async () => ({ data: null, error: err }),
                 }),
               };
+            }
+            const flag = tableName === 'interior_customer_contacts' ? 'is_primary' : 'is_default';
+            const constraint = tableName === 'interior_customer_contacts'
+              ? 'uq_interior_customer_contacts_one_primary'
+              : 'uq_interior_customer_addresses_one_default';
+            if (payload[flag] === true && table.some((row) =>
+              row.tenant_id === payload.tenant_id && row.customer_id === payload.customer_id && row[flag] === true
+            )) {
+              const err = { code: '23505', message: `duplicate key value violates unique constraint ${constraint}` };
+              return { select: () => ({ single: async () => ({ data: null, error: err }) }) };
             }
           }
 
@@ -453,13 +539,21 @@ describe('Bella Interior CRM — Customer Persistence Design & Simulation (Phase
       isPrimary: true,
     });
 
-    // Thêm contact 2 đặt là isPrimary -> contact 1 tự động chuyển false
-    const c2 = await repo.addContact(TENANT_A, cust.id, {
+    // Tạo contact thứ hai với cờ primary phải fail, không được âm thầm đổi contact cũ.
+    await expect(repo.addContact(TENANT_A, cust.id, {
       name: 'Trần Kế Toán',
       role: 'accountant',
       phone: '0907654321',
       isPrimary: true,
+    })).rejects.toThrow('only one primary contact');
+
+    const c2 = await repo.addContact(TENANT_A, cust.id, {
+      name: 'Trần Kế Toán',
+      role: 'accountant',
+      phone: '0907654321',
+      isPrimary: false,
     });
+    await repo.updateContact(TENANT_A, c2.id, { isPrimary: true });
 
     const contacts = await repo.listContacts(TENANT_A, cust.id);
     expect(contacts.length).toBe(2);
@@ -478,6 +572,52 @@ describe('Bella Interior CRM — Customer Persistence Design & Simulation (Phase
     expect(addresses.length).toBe(1);
     expect(addresses[0].id).toBe(a1.id);
     expect(addresses[0].isDefault).toBe(true);
+
+    await expect(repo.addAddress(TENANT_A, cust.id, {
+      addressType: 'billing',
+      fullAddress: 'Địa chỉ mặc định trùng',
+      city: 'Hà Nội',
+      isDefault: true,
+    })).rejects.toThrow('only one default address');
+  });
+
+  it('6a. P5: Maps a database unique conflict from the primary/default switch RPC without clearing the existing flag', async () => {
+    const customer = await repo.create(TENANT_A, { name: 'Primary/default conflict fixture' });
+    const primaryContact = await repo.addContact(TENANT_A, customer.id, {
+      name: 'Primary contact', role: 'legal_representative', phone: '0901000001', isPrimary: true,
+    });
+    const nextContact = await repo.addContact(TENANT_A, customer.id, {
+      name: 'Next contact', role: 'accountant', phone: '0901000002', isPrimary: false,
+    });
+    const defaultAddress = await repo.addAddress(TENANT_A, customer.id, {
+      addressType: 'headquarters', fullAddress: 'Current default', city: 'Hà Nội', isDefault: true,
+    });
+    const nextAddress = await repo.addAddress(TENANT_A, customer.id, {
+      addressType: 'billing', fullAddress: 'Next default', city: 'Hà Nội', isDefault: false,
+    });
+
+    const rpc = mockDb.client.rpc as unknown as jest.Mock;
+    rpc.mockImplementationOnce(async (functionName: string) => ({
+      data: null,
+      error: {
+        code: '23505',
+        message: `duplicate key value violates unique constraint ${functionName === 'interior_set_primary_contact'
+          ? 'uq_interior_customer_contacts_one_primary' : 'uq_interior_customer_addresses_one_default'}`,
+      },
+    }));
+    await expect(repo.updateContact(TENANT_A, nextContact.id, { isPrimary: true }))
+      .rejects.toBeInstanceOf(CustomerPrimaryContactConflictError);
+    expect(mockDb.state.contacts.find((row) => row.id === primaryContact.id)?.is_primary).toBe(true);
+    expect(mockDb.state.contacts.find((row) => row.id === nextContact.id)?.is_primary).toBe(false);
+
+    rpc.mockImplementationOnce(async () => ({
+      data: null,
+      error: { code: '23505', message: 'duplicate key value violates unique constraint uq_interior_customer_addresses_one_default' },
+    }));
+    await expect(repo.updateAddress(TENANT_A, nextAddress.id, { isDefault: true }))
+      .rejects.toBeInstanceOf(CustomerDefaultAddressConflictError);
+    expect(mockDb.state.addresses.find((row) => row.id === defaultAddress.id)?.is_default).toBe(true);
+    expect(mockDb.state.addresses.find((row) => row.id === nextAddress.id)?.is_default).toBe(false);
   });
 
   // ─── 4. Merge Integrity, Alias Resolution & Cycle Detection ──────────────────
@@ -500,29 +640,19 @@ describe('Bella Interior CRM — Customer Persistence Design & Simulation (Phase
       isDefault: false,
     });
 
-    // Chuyển giao quan hệ
-    const transferRes = await repo.transferRelationships(TENANT_A, source.id, target.id);
-    expect(transferRes.contactsTransferred).toBe(1);
-    expect(transferRes.addressesTransferred).toBe(1);
-
-    // Ghi nhận merge log
-    const mergeLog = await repo.recordMerge(TENANT_A, {
-      tenantId: TENANT_A,
+    // Chuyển giao dữ liệu, alias, trạng thái và log bằng đúng một RPC.
+    const mergeResult = await repo.mergeAtomically(TENANT_A, {
       sourceCustomerId: source.id,
       targetCustomerId: target.id,
       actorId: ACTOR_ID,
       reason: 'Gộp hồ sơ trùng do nhân viên sale nhập lần 2',
-      contactsTransferredCount: transferRes.contactsTransferred,
-      addressesTransferredCount: transferRes.addressesTransferred,
     });
 
+    expect(mergeResult.contactsTransferred).toBe(1);
+    expect(mergeResult.addressesTransferred).toBe(1);
+    const mergeLog = mergeResult.mergeLog;
     expect(mergeLog.id).toBeDefined();
     expect(mergeLog.reason).toContain('Gộp hồ sơ trùng');
-
-    // Cập nhật trạng thái source thành merged
-    await repo.update(TENANT_A, source.id, {
-      profileStatus: 'merged',
-    });
 
     const updatedSource = await repo.findById(TENANT_A, source.id);
     expect(updatedSource?.profileStatus).toBe('merged');
@@ -647,12 +777,11 @@ describe('Bella Interior CRM — Customer Persistence Design & Simulation (Phase
 
     // 3. Thử tạo alias chéo tenant (Source Tenant A, Target Tenant B) -> Bị chặn
     await expect(
-      repo.recordMerge(TENANT_A, {
+      repo.mergeAtomically(TENANT_A, {
         sourceCustomerId: custA.id,
         targetCustomerId: custB.id,
+        actorId: ACTOR_ID,
         reason: 'Attempt cross tenant merge',
-        contactsTransferredCount: 0,
-        addressesTransferredCount: 0,
       })
     ).rejects.toMatchObject({
       code: '23503',

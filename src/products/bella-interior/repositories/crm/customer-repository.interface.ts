@@ -17,6 +17,11 @@ import type {
   CustomerProfileStatus,
 } from '../../domain/crm/customer.types';
 
+export type CustomerMergeCommand = Pick<
+  CustomerMergeLog,
+  'sourceCustomerId' | 'targetCustomerId' | 'actorId' | 'reason'
+>;
+
 export interface ICustomerRepository {
   // Profiles
   findById(tenantId: string, id: string): Promise<CustomerProfile | null>;
@@ -60,12 +65,14 @@ export interface ICustomerRepository {
 
   // Aliases & Merging
   resolveCanonicalId(tenantId: string, idOrAlias: string): Promise<string>;
-  transferRelationships(
+  mergeAtomically(
     tenantId: string,
-    sourceCustomerId: string,
-    targetCustomerId: string
-  ): Promise<{ contactsTransferred: number; addressesTransferred: number }>;
-  recordMerge(tenantId: string, mergeLog: Omit<CustomerMergeLog, 'id' | 'mergedAt'>): Promise<CustomerMergeLog>;
+    merge: CustomerMergeCommand
+  ): Promise<{
+    contactsTransferred: number;
+    addressesTransferred: number;
+    mergeLog: CustomerMergeLog;
+  }>;
   getMergeLogs(tenantId: string, customerId: string): Promise<readonly CustomerMergeLog[]>;
   getAliases(tenantId: string, canonicalId: string): Promise<readonly CustomerAlias[]>;
 

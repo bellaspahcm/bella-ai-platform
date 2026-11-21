@@ -9,7 +9,7 @@
  *    - documentationStatus (NONE | PARTIAL | COMPLETE)
  * 3. 7 Categories of Acceptance Notes & Specialized Work Routing.
  * 4. Immutable Evidence Object Versioning with Server-Side SHA-256 calculation.
- * 5. Manager Approval Gate (interior:handover:approve) without auto-closing open defects.
+ * 5. Manager Approval Gate (interior:acceptance:approve) without auto-closing open defects.
  * 6. Post-Approval Evidence Supplementation preserving historical approval timestamps.
  *
  * @module src/products/bella-interior/services
@@ -35,7 +35,6 @@ import type {
   AssessmentStatus,
   InspectionResult,
   AcceptanceApprovalStatus,
-  DocumentationStatus,
   EvidenceCategory,
   RoutedEntityType,
 } from '../domain/acceptance-handover.types';
@@ -51,6 +50,7 @@ const ALLOWED_MIME_TYPES = new Set([
 ]);
 
 const MAX_EVIDENCE_SIZE_BYTES = 10485760; // 10MB
+const ACCEPTANCE_EVIDENCE_BUCKET = 'interior-site-evidence';
 
 export class InteriorAcceptanceService {
   constructor(
@@ -148,7 +148,7 @@ export class InteriorAcceptanceService {
       updatedAt: now,
     };
 
-    await this.repository.saveAcceptanceSession(input.tenantId, session);
+    await this.repository.createAcceptanceSession(input.tenantId, session);
     return session;
   }
 
@@ -187,7 +187,12 @@ export class InteriorAcceptanceService {
       updatedAt: new Date().toISOString(),
     };
 
-    await this.repository.saveAcceptanceSession(input.tenantId, updatedSession);
+    await this.repository.updateAcceptanceInspectionResult(
+      input.tenantId,
+      input.sessionId,
+      updatedSession.inspectionResult,
+      updatedSession.approvalNotes ?? null,
+    );
     return updatedSession;
   }
 
@@ -275,7 +280,12 @@ export class InteriorAcceptanceService {
         inspectionResult: 'PENDING_REMEDIATION',
         updatedAt: now,
       };
-      await this.repository.saveAcceptanceSession(input.tenantId, updatedSession);
+      await this.repository.updateAcceptanceInspectionResult(
+        input.tenantId,
+        input.sessionId,
+        updatedSession.inspectionResult,
+        updatedSession.approvalNotes ?? null,
+      );
     }
 
     return noteItem;
@@ -301,7 +311,7 @@ export class InteriorAcceptanceService {
     readonly uploadedByUserId: string;
   }): Promise<AcceptanceEvidenceObject> {
     if (!input.tenantId) throw new TenantIsolationViolationError();
-    const session = await this.getSession(input.tenantId, input.sessionId);
+    await this.getSession(input.tenantId, input.sessionId);
 
     // 1. Size Validation
     const fileSizeBytes = input.fileBuffer.length;
@@ -330,7 +340,7 @@ export class InteriorAcceptanceService {
       sessionId: input.sessionId,
       noteId: input.noteId ?? null,
       evidenceCategory: input.evidenceCategory,
-      bucketId: input.bucketId || 'interior-acceptance-docs',
+      bucketId: ACCEPTANCE_EVIDENCE_BUCKET,
       storagePath: input.storagePath,
       fileName: input.fileName,
       fileSizeBytes,
@@ -341,48 +351,12 @@ export class InteriorAcceptanceService {
       uploadedAt: new Date().toISOString(),
     };
 
-    await this.repository.saveAcceptanceEvidence(input.tenantId, evidence);
-
-    // 5. Recalculate Documentation Status
-    await this.recalculateDocumentationStatus(input.tenantId, session);
-
-    return evidence;
+    return this.repository.saveAcceptanceEvidence(input.tenantId, evidence);
   }
 
   async listEvidence(tenantId: string, sessionId: string): Promise<AcceptanceEvidenceObject[]> {
     if (!tenantId) throw new TenantIsolationViolationError();
     return this.repository.listAcceptanceEvidence(tenantId, sessionId);
-  }
-
-  private async recalculateDocumentationStatus(
-    tenantId: string,
-    session: AcceptanceSession
-  ): Promise<DocumentationStatus> {
-    const allEvidence = await this.repository.listAcceptanceEvidence(tenantId, session.id);
-
-    const hasSignoff = allEvidence.some((e) => e.evidenceCategory === 'CUSTOMER_SIGNOFF');
-    const hasVisual = allEvidence.some(
-      (e) => e.evidenceCategory === 'OVERALL' || e.evidenceCategory === 'DETAIL' || e.evidenceCategory === 'COMPLETED_PRODUCT'
-    );
-
-    let docStatus: DocumentationStatus = 'NONE';
-    if (hasSignoff && hasVisual) {
-      docStatus = 'COMPLETE';
-    } else if (hasVisual || hasSignoff) {
-      docStatus = 'PARTIAL';
-    }
-
-    if (session.documentationStatus !== docStatus) {
-      const updatedSession: AcceptanceSession = {
-        ...session,
-        documentationStatus: docStatus,
-        updatedAt: new Date().toISOString(),
-      };
-      await this.repository.saveAcceptanceSession(tenantId, updatedSession);
-      return docStatus;
-    }
-
-    return session.documentationStatus;
   }
 
   // ─── 6. Manager Approval Gate (Server-Enforced Authorization) ───────────────
@@ -398,26 +372,21 @@ export class InteriorAcceptanceService {
   }): Promise<AcceptanceSession> {
     if (!input.tenantId) throw new TenantIsolationViolationError();
 
-    // Server-enforced authorization: Must have interior:handover:approve
-    if (!input.actorPermissions.includes('interior:handover:approve')) {
+    // The route checks this action from the canonical Interior RBAC context;
+    // the repository repeats it atomically in the database transition RPC.
+    if (!input.actorPermissions.includes('interior:acceptance:approve')) {
       throw new AcceptanceManagerApprovalPermissionRequiredError(input.actorId);
     }
 
-    const session = await this.getSession(input.tenantId, input.sessionId);
-
-    const now = new Date().toISOString();
-    const updatedSession: AcceptanceSession = {
-      ...session,
-      approvalStatus: input.decision,
-      approvedByActorId: input.actorId,
-      approvedAt: now,
+    await this.getSession(input.tenantId, input.sessionId);
+    const updatedSession = await this.repository.decideAcceptanceSession({
+      tenantId: input.tenantId,
+      sessionId: input.sessionId,
+      actorId: input.actorId,
+      decision: input.decision,
       approvalNotes: input.approvalNotes ?? null,
       rejectionReason: input.decision === 'REJECTED' ? input.rejectionReason ?? null : null,
-      updatedAt: now,
-      // INVARIANT: documentationStatus is preserved truthfully (APPROVED with NONE/PARTIAL is valid!)
-    };
-
-    await this.repository.saveAcceptanceSession(input.tenantId, updatedSession);
+    });
 
     // CRITICAL INVARIANT: Manager approval does NOT automatically close open punch list items or notes.
     // Notes remain in their current remediation status (OPEN / IN_PROGRESS).

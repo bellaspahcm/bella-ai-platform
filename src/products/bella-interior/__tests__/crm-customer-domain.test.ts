@@ -189,6 +189,13 @@ describe('Bella Interior CRM — Customer Domain Foundation (Phase B)', () => {
       isPrimary: false,
     });
 
+    await expect(repo.addContact(TENANT_A, cust.id, {
+      name: 'Liên hệ trùng primary',
+      role: 'accountant',
+      phone: '0903333333',
+      isPrimary: true,
+    })).rejects.toThrow('only one primary contact');
+
     const contacts = await repo.listContacts(TENANT_A, cust.id);
     expect(contacts.length).toBe(2);
     expect(contacts[0].id).toBe(contact1.id);
@@ -339,16 +346,8 @@ describe('Bella Interior CRM — Customer Domain Foundation (Phase B)', () => {
     const a = await repo.create(TENANT_A, { name: 'Customer A' });
     const b = await repo.create(TENANT_A, { name: 'Customer B' });
 
-    // Manually record an alias b -> a to simulate a prior alias mapping
-    await repo.recordMerge(TENANT_A, {
-      tenantId: TENANT_A,
-      sourceCustomerId: b.id,
-      targetCustomerId: a.id,
-      actorId: ACTOR_ADMIN,
-      reason: 'Prior alias setup',
-      contactsTransferredCount: 0,
-      addressesTransferredCount: 0,
-    });
+    // Simulate a corrupt legacy alias for the service-level cycle guard.
+    jest.spyOn(repo, 'resolveCanonicalId').mockResolvedValueOnce(a.id);
 
     // Now attempting to merge a into b would create a -> b -> a cycle!
     await expect(
@@ -366,8 +365,8 @@ describe('Bella Interior CRM — Customer Domain Foundation (Phase B)', () => {
     const target = await repo.create(TENANT_A, { name: 'Target Safe' });
     const source = await repo.create(TENANT_A, { name: 'Source Safe' });
 
-    // Spy on recordMerge to force an error at the final registration step
-    jest.spyOn(repo, 'recordMerge').mockRejectedValueOnce(new Error('Simulated DB Failure on log recording'));
+    // The atomic repository operation must fail before any persistent state changes.
+    jest.spyOn(repo, 'mergeAtomically').mockRejectedValueOnce(new Error('Simulated DB Failure on atomic merge'));
 
     await expect(
       mergeService.mergeCustomers({
@@ -377,7 +376,7 @@ describe('Bella Interior CRM — Customer Domain Foundation (Phase B)', () => {
         reason: 'Simulated fail merge',
         actorId: ACTOR_ADMIN,
       })
-    ).rejects.toThrow('Simulated DB Failure on log recording');
+    ).rejects.toThrow('Simulated DB Failure on atomic merge');
 
     // Both customers must remain active and not left in corrupted state
     const sourceAfter = await repo.findById(TENANT_A, source.id);

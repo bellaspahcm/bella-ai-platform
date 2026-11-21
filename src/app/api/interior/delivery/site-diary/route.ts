@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 import { interiorMutationRow, interiorRbacRpcClient, isInteriorRbacRecord, validInteriorUuid } from '@/products/bella-interior/lib/rbac-api';
+import { createServiceClient } from '@/lib/supabase-service-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,8 @@ interface SiteDiaryEntry {
   issuesEncountered: string[];
   notes: string;
   createdAt: string;
+  photoUrls?: string[];
+  legacyPhotoCount?: number;
 }
 
 interface CreateSiteDiaryBody {
@@ -52,6 +55,11 @@ function isValidIsoDate(value: string): boolean {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
 
+function scopedPhotoPath(value: unknown, tenantId: string, projectId: string): value is string {
+  if (typeof value !== 'string' || !value.startsWith(`${tenantId}/${projectId}/`)) return false;
+  return value.split('/').every((part) => /^[A-Za-z0-9._-]+$/.test(part) && part !== '.' && part !== '..');
+}
+
 // ─── GET /api/interior/delivery/site-diary ────────────────────────────────────
 
 export async function GET(request: Request): Promise<NextResponse> {
@@ -61,7 +69,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get('projectId');
 
-  if (!projectId) {
+  if (!projectId || !validInteriorUuid(projectId)) {
     return NextResponse.json(
       { success: false, error: 'projectId query parameter is required' },
       { status: 400 },
@@ -75,8 +83,29 @@ export async function GET(request: Request): Promise<NextResponse> {
     if (error || !Array.isArray(data)) {
       return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_READ_FAILED' }, { status: 503 });
     }
+    const diaryId = searchParams.get('diaryId');
+    const photoIndex = searchParams.get('photoIndex');
+    if (diaryId !== null || photoIndex !== null) {
+      if (!validInteriorUuid(diaryId) || photoIndex === null || !/^(0|[1-9]\d{0,5})$/.test(photoIndex)) {
+        return NextResponse.json({ success: false, error: 'Valid diaryId and photoIndex are required' }, { status: 400 });
+      }
+      const diary = data.filter(isInteriorRbacRecord).find((item) => item.id === diaryId
+        && item.tenantId === ctx.tenantId && item.projectId === projectId);
+      const photo = Array.isArray(diary?.photoUrls) ? diary.photoUrls[Number(photoIndex)] : undefined;
+      if (!scopedPhotoPath(photo, ctx.tenantId, projectId)) {
+        return NextResponse.json({ success: false, error: 'INTERIOR_SITE_PHOTO_NOT_FOUND' }, { status: 404 });
+      }
+      const downloaded = await createServiceClient().storage.from('interior-site-evidence').download(photo);
+      if (downloaded.error || !downloaded.data) {
+        return NextResponse.json({ success: false, error: 'INTERIOR_SITE_PHOTO_UNAVAILABLE' }, { status: 503 });
+      }
+      return new NextResponse(downloaded.data, { headers: {
+        'Content-Type': 'application/octet-stream', 'Content-Disposition': 'attachment',
+        'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff',
+      } });
+    }
     const mapped: SiteDiaryEntry[] = data.filter(isInteriorRbacRecord).flatMap((diary) => {
-      if (typeof diary.id !== 'string' || typeof diary.projectId !== 'string'
+      if (typeof diary.id !== 'string' || diary.tenantId !== ctx.tenantId || diary.projectId !== projectId
         || typeof diary.date !== 'string' || typeof diary.supervisorName !== 'string'
         || typeof diary.workersPresent !== 'number' || !Array.isArray(diary.activitiesCompleted)
         || !diary.activitiesCompleted.every((item) => typeof item === 'string')) return [];
@@ -94,6 +123,13 @@ export async function GET(request: Request): Promise<NextResponse> {
         issuesEncountered: issues,
         notes: typeof diary.issuesNoted === 'string' ? diary.issuesNoted : '',
         createdAt: typeof diary.createdAt === 'string' ? diary.createdAt : diary.date,
+        photoUrls: Array.isArray(diary.photoUrls) && diary.tenantId === ctx.tenantId && diary.projectId === projectId
+          ? diary.photoUrls.flatMap((photo, index) => scopedPhotoPath(photo, ctx.tenantId, projectId)
+            ? [`/api/interior/delivery/site-diary?projectId=${encodeURIComponent(projectId)}&diaryId=${encodeURIComponent(diary.id as string)}&photoIndex=${index}`] : [])
+          : [],
+        legacyPhotoCount: Array.isArray(diary.photoUrls)
+          ? diary.photoUrls.filter((photo) => typeof photo === 'string' && photo.trim() !== ''
+              && !scopedPhotoPath(photo, ctx.tenantId, projectId)).length : 0,
       }];
     });
     return NextResponse.json({ success: true, data: mapped }, {

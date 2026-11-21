@@ -9,7 +9,7 @@
  * 2. Assessment & Zero Defect Recording without fake items.
  * 3. Seven Categories of Acceptance Notes & Specialized Work Routing.
  * 4. Server-Side SHA-256 calculation & Storage Object Versioning.
- * 5. Manager Approval Gate (interior:handover:approve) and Invariant:
+ * 5. Manager Approval Gate (interior:acceptance:approve) and Invariant:
  *    - Approval allowed with NONE/PARTIAL documentation.
  *    - Approval does NOT auto-close open notes or defects.
  * 6. Post-Approval Evidence Supplementation preserving historical approval metadata.
@@ -453,7 +453,7 @@ describe('Bella Interior O4-C: Business Services & Domain Workflows', () => {
   // ─── 5. Manager Approval Gate & Defect Isolation ────────────────────────────
 
   describe('5. Manager Approval Gate & Invariant Defect Isolation', () => {
-    it('blocks approval without interior:handover:approve permission', async () => {
+    it('blocks approval without interior:acceptance:approve permission', async () => {
       const campaign = await acceptanceService.createCampaign({
         tenantId,
         projectId,
@@ -537,12 +537,12 @@ describe('Bella Interior O4-C: Business Services & Domain Workflows', () => {
       const sessionBeforeApproval = await acceptanceService.getSession(tenantId, session.id);
       expect(sessionBeforeApproval.documentationStatus).toBe('PARTIAL');
 
-      // MANAGER APPROVAL with interior:handover:approve
+      // MANAGER APPROVAL with interior:acceptance:approve
       const approvedSession = await acceptanceService.approveSession({
         tenantId,
         sessionId: session.id,
         actorId: managerId,
-        actorPermissions: ['interior:handover:approve'],
+        actorPermissions: ['interior:acceptance:approve'],
         decision: 'APPROVED',
         approvalNotes: 'Đồng ý nghiệm thu bàn giao sử dụng có điều kiện. Tồn đọng giặt hấp hoàn tất trước 24/11.',
       });
@@ -601,7 +601,7 @@ describe('Bella Interior O4-C: Business Services & Domain Workflows', () => {
         tenantId,
         sessionId: session.id,
         actorId: managerId,
-        actorPermissions: ['interior:handover:approve'],
+        actorPermissions: ['interior:acceptance:approve'],
         decision: 'APPROVED',
         approvalNotes: 'Duyệt bàn giao. Biên bản ký giấy của khách hàng sẽ tải lên sau.',
       });

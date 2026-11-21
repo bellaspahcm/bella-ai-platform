@@ -37,18 +37,8 @@ export async function POST(request: Request, context: RouteContext): Promise<Nex
       );
     }
 
-    // Server-enforced authorization check: requires interior:handover:approve
-    // We check actor permissions from context or role-authorization
-    const actorPermissions: string[] = [];
-    const role = (ctx.actor as { role?: string; roles?: string[] })?.role || '';
-    const rolesList = (ctx.actor as { role?: string; roles?: string[] })?.roles || [];
-    const isManagerRole =
-      ['admin', 'manager', 'director', 'general_director', 'project_manager'].includes(role) ||
-      rolesList.some((r: string) => ['admin', 'manager', 'director', 'general_director', 'project_manager'].includes(r));
-
-    if (isManagerRole) {
-      actorPermissions.push(INTERIOR_PERMISSIONS.handoverApprove);
-    }
+    // resolveInteriorContext has already required the dedicated approval action.
+    const actorPermissions = [INTERIOR_PERMISSIONS.acceptanceApprove];
 
     const repo = new SupabaseInteriorRepository(ctx.supabase);
     const service = new InteriorAcceptanceService(repo);
@@ -66,7 +56,7 @@ export async function POST(request: Request, context: RouteContext): Promise<Nex
     return NextResponse.json({ success: true, data: session });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'ACCEPTANCE_APPROVAL_FAILED';
-    const status = message.includes('interior:handover:approve') ? 403 : 500;
+    const status = message.includes('interior:acceptance:approve') ? 403 : 500;
     return NextResponse.json({ success: false, error: message }, { status });
   }
 }
