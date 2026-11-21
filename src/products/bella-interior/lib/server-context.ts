@@ -106,6 +106,7 @@ export const INTERIOR_PERMISSIONS = {
   warrantyCreate: 'interior:warranty:create',
   warrantyUpdate: 'interior:warranty:update',
   warrantyWrite: 'interior:warranty:write',
+  warrantyIssue: 'interior:warranty:issue',
   warrantyClose: 'interior:warranty:close',
   usersRead: 'interior:users:read',
   usersManage: 'interior:users:manage',
@@ -302,6 +303,7 @@ export function requiredInteriorPermission(request: Request, body: JsonRecord | 
     if (method === 'POST') return INTERIOR_PERMISSIONS.warrantyCreate;
   }
   if (pathname === '/api/interior/warranty/analytics' && method === 'GET') return INTERIOR_PERMISSIONS.warrantyRead;
+  if (pathname === '/api/interior/warranty/issue' && method === 'POST') return INTERIOR_PERMISSIONS.warrantyIssue;
   if (pathname === '/api/interior/upload' && method === 'POST') return INTERIOR_PERMISSIONS.designUpload;
 
   return null;

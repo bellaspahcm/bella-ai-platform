@@ -24,7 +24,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const effectiveProjectId = projectResult.ok ? projectResult.projectId : undefined;
 
   try {
-    const overview = await InteriorWarrantyAnalyticsService.getWarrantyOverview(ctx.tenantId, effectiveProjectId);
+    const overview = await InteriorWarrantyAnalyticsService.getWarrantyOverview(ctx.tenantId, effectiveProjectId, ctx.supabase);
     return NextResponse.json(
       {
         success: true,
