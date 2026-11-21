@@ -101,7 +101,6 @@ DROP POLICY IF EXISTS interior_customers_delete ON public.interior_customers;
 CREATE POLICY interior_customers_select ON public.interior_customers AS PERMISSIVE FOR SELECT TO authenticated USING (true);
 CREATE POLICY interior_customers_insert ON public.interior_customers AS PERMISSIVE FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY interior_customers_update ON public.interior_customers AS PERMISSIVE FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY interior_customers_delete ON public.interior_customers AS PERMISSIVE FOR DELETE TO authenticated USING (true);
 
 DROP POLICY IF EXISTS interior_customer_contacts_select ON public.interior_customer_contacts;
 DROP POLICY IF EXISTS interior_customer_contacts_insert ON public.interior_customer_contacts;

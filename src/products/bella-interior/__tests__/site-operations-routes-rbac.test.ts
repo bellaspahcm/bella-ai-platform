@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { GET as getSchedule } from '@/app/api/interior/schedule/route';
-import { GET as getSiteDiary, POST as createSiteDiary } from '@/app/api/interior/delivery/site-diary/route';
+import { GET as getSiteDiary, POST as createSiteDiary, PATCH as updateSiteDiary } from '@/app/api/interior/delivery/site-diary/route';
 import { resolveInteriorContext } from '../lib/server-context';
 import { interiorRbacRpcClient } from '../lib/rbac-api';
 import { createServiceClient } from '@/lib/supabase-service-client';
@@ -110,5 +110,93 @@ describe('Interior site operations RBAC routes', () => {
     const allowed = await getSiteDiary(new Request(`${base}&diaryId=${entryId}&photoIndex=0`));
     expect(allowed.status).toBe(200);
     expect(createServiceClient).toHaveBeenCalledTimes(1);
+  });
+
+  it('updates an existing site diary entry through PATCH when authorized', async () => {
+    const rpc = jest.fn().mockImplementation((fn: string) => {
+      if (fn === 'interior_has_permission') return Promise.resolve({ data: true, error: null });
+      if (fn === 'interior_list_site_diaries') return Promise.resolve({
+        data: [{
+          id: entryId,
+          tenantId: 'tenant-a',
+          projectId,
+          date: '2026-11-09',
+          supervisorName: 'Site Manager',
+          workersPresent: 4,
+          weatherCondition: 'cloudy',
+          activitiesCompleted: ['Initial framing'],
+          issuesNoted: 'None',
+        }],
+        error: null,
+      });
+      return Promise.resolve({ data: null, error: null });
+    });
+    rpcClientFactoryMock.mockReturnValue({ rpc } as unknown as ReturnType<typeof interiorRbacRpcClient>);
+
+    const updateMock = jest.fn().mockReturnValue({
+      eq: jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        }),
+      }),
+    });
+    resolveContextMock.mockResolvedValue({
+      ok: true,
+      tenantId: 'tenant-a',
+      actor: { id: 'user-a', full_name: 'Site Manager', email: 'site@example.invalid' },
+      supabase: {
+        from: jest.fn(() => ({
+          update: updateMock,
+        })),
+      },
+    } as unknown as Awaited<ReturnType<typeof resolveInteriorContext>>);
+
+    const response = await updateSiteDiary(new Request('https://bella.example/api/interior/delivery/site-diary', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        diaryId: entryId,
+        projectId,
+        workersPresent: 6,
+        weatherCondition: 'sunny',
+        activitiesCompleted: ['Complete cabinetry installation'],
+        issuesEncountered: ['Resolved electricity outage'],
+        notes: 'Handover tomorrow',
+      }),
+    }));
+
+    expect(response.status).toBe(200);
+    const body = await response.json() as { success: boolean; data: { workersPresent: number; weatherCondition: string } };
+    expect(body.success).toBe(true);
+    expect(body.data.workersPresent).toBe(6);
+    expect(body.data.weatherCondition).toBe('sunny');
+    expect(rpc).toHaveBeenCalledWith('interior_has_permission', {
+      p_permission: 'interior:installation:update',
+      p_tenant: 'tenant-a',
+      p_project_id: projectId,
+    });
+  });
+
+  it('rejects PATCH when permission is denied', async () => {
+    const rpc = jest.fn().mockImplementation((fn: string) => {
+      if (fn === 'interior_has_permission') return Promise.resolve({ data: false, error: null });
+      return Promise.resolve({ data: null, error: null });
+    });
+    rpcClientFactoryMock.mockReturnValue({ rpc } as unknown as ReturnType<typeof interiorRbacRpcClient>);
+
+    const response = await updateSiteDiary(new Request('https://bella.example/api/interior/delivery/site-diary', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        diaryId: entryId,
+        projectId,
+        workersPresent: 6,
+      }),
+    }));
+
+    expect(response.status).toBe(403);
+    const body = await response.json() as { success: boolean; error: string; reason: string };
+    expect(body.success).toBe(false);
+    expect(body.reason).toBe('SITE_DIARY_UPDATE_PERMISSION_REQUIRED');
   });
 });

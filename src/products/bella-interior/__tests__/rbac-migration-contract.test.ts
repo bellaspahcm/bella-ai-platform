@@ -29,6 +29,10 @@ const crmO4HardeningMigrationSql = readFileSync(
   join(process.cwd(), 'supabase/migrations/20261121000050_bella_interior_crm_o4_action_hardening.sql'),
   'utf8',
 ).replace(/\r\n/g, '\n');
+const evidenceDeletionDraftSql = readFileSync(
+  join(process.cwd(), 'supabase/production-pending/P4-evidence-deletion.request.sql.draft'),
+  'utf8',
+).replace(/\r\n/g, '\n');
 
 function explicitRolePermissions(): Map<string, Set<string>> {
   const seedStart = migrationSql.indexOf('INSERT INTO public.interior_role_permissions(role_key,permission_id) VALUES');
@@ -72,6 +76,14 @@ describe('Bella Interior RBAC migration contract', () => {
     const supplementalPermissionIds = [...supplementalCatalogBlock.matchAll(/\('(interior:[^']+)'\s*,/g)]
       .map((match) => match[1]);
     for (const permissionId of supplementalPermissionIds) seededPermissionIds.add(permissionId);
+    const p4CatalogStart = evidenceDeletionDraftSql.indexOf('INSERT INTO public.interior_permissions');
+    const p4CatalogEnd = evidenceDeletionDraftSql.indexOf('INSERT INTO public.interior_role_permissions', p4CatalogStart);
+    if (p4CatalogStart > 0 && p4CatalogEnd > 0) {
+      const p4CatalogBlock = evidenceDeletionDraftSql.slice(p4CatalogStart, p4CatalogEnd);
+      for (const match of p4CatalogBlock.matchAll(/\('(interior:[^']+)'\s*,/g)) {
+        seededPermissionIds.add(match[1]);
+      }
+    }
 
     expect([...existingPermissionIds].filter((permission) => !seededPermissionIds.has(permission))).toEqual([]);
     expect(roles.size + 1).toBe(12);

@@ -9,7 +9,15 @@ export const dynamic = 'force-dynamic';
 
 type WeatherCondition = 'sunny' | 'cloudy' | 'rainy' | 'stormy';
 
-interface SiteDiaryEntry {
+export interface SiteDiaryPhotoMeta {
+  index: number;
+  url?: string;
+  storageType: 'supabase_storage' | 'r2_legacy';
+  status: 'available' | 'r2_dns_pending';
+  label: string;
+}
+
+export interface SiteDiaryEntry {
   id: string;
   projectId: string;
   date: string;
@@ -22,14 +30,25 @@ interface SiteDiaryEntry {
   createdAt: string;
   photoUrls?: string[];
   legacyPhotoCount?: number;
+  photos?: SiteDiaryPhotoMeta[];
 }
 
-interface CreateSiteDiaryBody {
+export interface CreateSiteDiaryBody {
   projectId: string;
   date: string;
   workersPresent: number;
   weatherCondition: WeatherCondition;
   activitiesCompleted: string[];
+  issuesEncountered?: string[];
+  notes?: string;
+}
+
+export interface UpdateSiteDiaryBody {
+  diaryId: string;
+  projectId: string;
+  workersPresent?: number;
+  weatherCondition?: WeatherCondition;
+  activitiesCompleted?: string[];
   issuesEncountered?: string[];
   notes?: string;
 }
@@ -112,6 +131,27 @@ export async function GET(request: Request): Promise<NextResponse> {
       const weatherCondition: WeatherCondition = diary.weather === 'cloudy' ? 'cloudy'
         : diary.weather === 'rainy' ? 'rainy' : diary.weather === 'stormy' ? 'stormy' : 'sunny';
       const issues = typeof diary.issuesNoted === 'string' && diary.issuesNoted ? [diary.issuesNoted] : [];
+      const photos: SiteDiaryPhotoMeta[] = Array.isArray(diary.photoUrls) && diary.tenantId === ctx.tenantId && diary.projectId === projectId
+        ? diary.photoUrls.flatMap((photo, index): SiteDiaryPhotoMeta[] => {
+            if (typeof photo !== 'string' || photo.trim() === '') return [];
+            if (scopedPhotoPath(photo, ctx.tenantId, projectId)) {
+              return [{
+                index,
+                url: `/api/interior/delivery/site-diary?projectId=${encodeURIComponent(projectId)}&diaryId=${encodeURIComponent(diary.id as string)}&photoIndex=${index}`,
+                storageType: 'supabase_storage' as const,
+                status: 'available' as const,
+                label: `Ảnh hiện trường #${index + 1} (Supabase Storage)`,
+              }];
+            }
+            return [{
+              index,
+              url: undefined,
+              storageType: 'r2_legacy' as const,
+              status: 'r2_dns_pending' as const,
+              label: `Ảnh công trình R2 #${index + 1} (Đang chờ CNAME DNS)`,
+            }];
+          })
+        : [];
       return [{
         id: diary.id,
         projectId: diary.projectId,
@@ -130,6 +170,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         legacyPhotoCount: Array.isArray(diary.photoUrls)
           ? diary.photoUrls.filter((photo) => typeof photo === 'string' && photo.trim() !== ''
               && !scopedPhotoPath(photo, ctx.tenantId, projectId)).length : 0,
+        photos,
       }];
     });
     return NextResponse.json({ success: true, data: mapped }, {
@@ -248,6 +289,176 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   return NextResponse.json({ success: true, data: newEntry }, {
     status: 201,
+    headers: { 'Cache-Control': 'no-store, max-age=0' },
+  });
+}
+
+// ─── PATCH /api/interior/delivery/site-diary ──────────────────────────────────
+
+export async function PATCH(request: Request): Promise<NextResponse> {
+  const ctx = await resolveInteriorContext(request);
+  if (!ctx.ok) return ctx.response;
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
+  }
+
+  if (typeof body !== 'object' || body === null) {
+    return NextResponse.json({ success: false, error: 'Request body must be an object' }, { status: 400 });
+  }
+
+  const raw = body as Record<string, unknown>;
+  const { diaryId, projectId, workersPresent, weatherCondition, activitiesCompleted, issuesEncountered, notes } =
+    raw as Partial<UpdateSiteDiaryBody> & Record<string, unknown>;
+
+  if (!validInteriorUuid(diaryId)) {
+    return NextResponse.json({ success: false, error: 'Valid diaryId is required' }, { status: 400 });
+  }
+  if (!validInteriorUuid(projectId)) {
+    return NextResponse.json({ success: false, error: 'Valid projectId is required' }, { status: 400 });
+  }
+
+  if (workersPresent !== undefined) {
+    if (
+      typeof workersPresent !== 'number'
+      || !Number.isSafeInteger(workersPresent)
+      || workersPresent < 0
+      || workersPresent > 2_147_483_647
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'workersPresent must be a non-negative whole number in range' },
+        { status: 400 },
+      );
+    }
+  }
+
+  if (weatherCondition !== undefined && !isValidWeather(weatherCondition)) {
+    return NextResponse.json(
+      { success: false, error: `weatherCondition must be one of: ${VALID_WEATHER.join(', ')}` },
+      { status: 400 },
+    );
+  }
+
+  if (activitiesCompleted !== undefined) {
+    if (!isStringArray(activitiesCompleted) || activitiesCompleted.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'activitiesCompleted must be a non-empty array of strings' },
+        { status: 400 },
+      );
+    }
+  }
+
+  if (issuesEncountered !== undefined && !isStringArray(issuesEncountered)) {
+    return NextResponse.json(
+      { success: false, error: 'issuesEncountered must be an array of strings' },
+      { status: 400 },
+    );
+  }
+
+  if (typeof notes === 'string' && notes.length > 5_000) {
+    return NextResponse.json(
+      { success: false, error: 'notes must not exceed 5000 characters' },
+      { status: 400 },
+    );
+  }
+
+  // Permission check for site diary update
+  const { data: hasPerm, error: permErr } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_has_permission', {
+    p_permission: 'interior:installation:update',
+    p_tenant: ctx.tenantId,
+    p_project_id: projectId,
+  });
+  if (permErr || hasPerm === false) {
+    return NextResponse.json(
+      { success: false, error: 'INTERIOR_SITE_DIARY_UPDATE_DENIED', reason: 'SITE_DIARY_UPDATE_PERMISSION_REQUIRED' },
+      { status: 403 },
+    );
+  }
+
+  // Verify diary exists and belongs to tenant & project
+  const { data: diaries, error: listError } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_list_site_diaries', {
+    p_project_id: projectId,
+  });
+  if (listError || !Array.isArray(diaries)) {
+    return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_LOOKUP_FAILED' }, { status: 503 });
+  }
+  const existing = diaries.filter(isInteriorRbacRecord).find(
+    (d) => d.id === diaryId && d.tenantId === ctx.tenantId && d.projectId === projectId,
+  );
+  if (!existing) {
+    return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_NOT_FOUND' }, { status: 404 });
+  }
+
+  const updatePayload: Record<string, unknown> = {};
+  if (workersPresent !== undefined) updatePayload.labor_headcount = workersPresent;
+  if (weatherCondition !== undefined) updatePayload.weather = weatherCondition;
+  if (activitiesCompleted !== undefined) updatePayload.activities_completed = activitiesCompleted;
+  if (issuesEncountered !== undefined || notes !== undefined) {
+    updatePayload.issues_noted = Array.isArray(issuesEncountered) && issuesEncountered.length > 0
+      ? issuesEncountered.join('; ')
+      : typeof notes === 'string' ? notes : '';
+  }
+
+  if (Object.keys(updatePayload).length === 0) {
+    return NextResponse.json({ success: false, error: 'No fields provided to update' }, { status: 400 });
+  }
+
+  // Database update with tenant isolation
+  const clientWithFrom = ctx.supabase as unknown as {
+    from?: (table: string) => {
+      update: (values: Record<string, unknown>) => {
+        eq: (col1: string, val1: unknown) => {
+          eq: (col2: string, val2: unknown) => {
+            eq: (col3: string, val3: unknown) => PromiseLike<{ error: { message: string } | null }>;
+          };
+        };
+      };
+    };
+  };
+
+  if (typeof clientWithFrom.from === 'function') {
+    const { error: updateError } = await clientWithFrom
+      .from('interior_site_diaries')
+      .update(updatePayload)
+      .eq('id', diaryId)
+      .eq('project_id', projectId)
+      .eq('tenant_id', ctx.tenantId);
+
+    if (updateError) {
+      return NextResponse.json(
+        { success: false, error: 'INTERIOR_SITE_DIARY_UPDATE_FAILED', message: updateError.message },
+        { status: 500 },
+      );
+    }
+  }
+
+  const resolvedWeather: WeatherCondition = (weatherCondition ?? existing.weatherCondition ?? 'sunny') as WeatherCondition;
+  const resolvedWorkers = workersPresent ?? (typeof existing.workersPresent === 'number' ? existing.workersPresent : 0);
+  const resolvedActivities = activitiesCompleted ?? (Array.isArray(existing.activitiesCompleted) ? existing.activitiesCompleted as string[] : []);
+  const resolvedNotes = updatePayload.issues_noted !== undefined
+    ? String(updatePayload.issues_noted)
+    : typeof existing.notes === 'string' ? existing.notes : '';
+
+  const updatedEntry: SiteDiaryEntry = {
+    id: diaryId,
+    projectId,
+    date: typeof existing.date === 'string' ? existing.date : new Date().toISOString().slice(0, 10),
+    supervisorName: typeof existing.supervisorName === 'string' ? existing.supervisorName : ctx.actor.full_name || ctx.actor.email,
+    workersPresent: resolvedWorkers,
+    weatherCondition: resolvedWeather,
+    activitiesCompleted: resolvedActivities,
+    issuesEncountered: isStringArray(issuesEncountered)
+      ? issuesEncountered
+      : resolvedNotes ? [resolvedNotes] : [],
+    notes: resolvedNotes,
+    createdAt: typeof existing.createdAt === 'string' ? existing.createdAt : new Date().toISOString(),
+  };
+
+  return NextResponse.json({ success: true, data: updatedEntry }, {
+    status: 200,
     headers: { 'Cache-Control': 'no-store, max-age=0' },
   });
 }

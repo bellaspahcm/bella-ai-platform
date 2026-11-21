@@ -22,12 +22,19 @@ export interface PunchListItem {
   tenantId: string;
   projectId: string;
   roomZoneId: string | null;
+  roomZoneName?: string;
+  itemName?: string;
   description: string;
   category: PunchListCategory;
   severity: PunchListSeverity;
   status: PunchListStatus;
   reportedByUserId: string;
   assignedToUserId: string | null;
+  assignedFixer?: string;
+  deadline?: string;
+  rectificationNote?: string | null;
+  verifiedBy?: string | null;
+  verifiedAt?: string | null;
   photoUrl: string | null;
   createdAt: string;
   updatedAt: string;
@@ -94,8 +101,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     }
     let filtered = data.filter(isInteriorRbacRecord).flatMap((item) => {
       if (typeof item.id !== 'string' || typeof item.tenantId !== 'string' || typeof item.projectId !== 'string'
-        || typeof item.description !== 'string' || typeof item.assignedFixer !== 'string'
-        || typeof item.createdAt !== 'string') return [];
+        || typeof item.description !== 'string' || typeof item.createdAt !== 'string') return [];
       const category: PunchListCategory = VALID_CATEGORIES.includes(item.category as PunchListCategory)
         ? item.category as PunchListCategory : 'furniture_fit';
       const severity: PunchListSeverity = VALID_SEVERITIES.includes(item.severity as PunchListSeverity)
@@ -107,12 +113,19 @@ export async function GET(request: Request): Promise<NextResponse> {
         tenantId: item.tenantId,
         projectId: item.projectId,
         roomZoneId: typeof item.roomZoneId === 'string' ? item.roomZoneId : null,
+        roomZoneName: typeof item.roomZoneName === 'string' ? item.roomZoneName : undefined,
+        itemName: typeof item.itemName === 'string' ? item.itemName : undefined,
         description: item.description,
         category,
         severity,
         status: statusValue,
         reportedByUserId: typeof item.reportedByUserId === 'string' ? item.reportedByUserId : '',
         assignedToUserId: null,
+        assignedFixer: typeof item.assignedFixer === 'string' ? item.assignedFixer : undefined,
+        deadline: typeof item.deadline === 'string' ? item.deadline : undefined,
+        rectificationNote: typeof item.rectificationNote === 'string' ? item.rectificationNote : null,
+        verifiedBy: typeof item.verifiedBy === 'string' ? item.verifiedBy : null,
+        verifiedAt: typeof item.verifiedAt === 'string' ? item.verifiedAt : null,
         photoUrl: typeof item.photoUrl === 'string' ? item.photoUrl : null,
         createdAt: item.createdAt,
         updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : item.createdAt,

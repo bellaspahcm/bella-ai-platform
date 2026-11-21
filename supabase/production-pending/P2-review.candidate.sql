@@ -31,14 +31,13 @@ BEGIN
     RAISE EXCEPTION 'Expected restrictive tenant guards were not found';
   END IF;
   IF (SELECT count(*) FROM pg_policies WHERE schemaname='public' AND tablename IN (
-        'interior_customers','interior_customer_contacts','interior_customer_addresses'))<>15
+        'interior_customers','interior_customer_contacts','interior_customer_addresses'))<>14
      OR EXISTS (
        WITH expected(tablename,policyname,permissive,cmd,qual,with_check) AS (VALUES
          ('interior_customers','tenant_isolation_policy','RESTRICTIVE','ALL','(tenant_id = interior_actor_tenant())','(tenant_id = interior_actor_tenant())'),
          ('interior_customers','interior_customers_select','PERMISSIVE','SELECT','true',NULL),
          ('interior_customers','interior_customers_insert','PERMISSIVE','INSERT',NULL,'true'),
          ('interior_customers','interior_customers_update','PERMISSIVE','UPDATE','true','true'),
-         ('interior_customers','interior_customers_delete','PERMISSIVE','DELETE','true',NULL),
          ('interior_customer_contacts','tenant_isolation_policy','RESTRICTIVE','ALL','(tenant_id = interior_actor_tenant())','(tenant_id = interior_actor_tenant())'),
          ('interior_customer_contacts','interior_customer_contacts_select','PERMISSIVE','SELECT','true',NULL),
          ('interior_customer_contacts','interior_customer_contacts_insert','PERMISSIVE','INSERT',NULL,'true'),
