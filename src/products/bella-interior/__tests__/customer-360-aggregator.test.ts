@@ -457,11 +457,15 @@ describe('Customer 360 Aggregator Service', () => {
       expect(resEnterprise.total).toBe(2);
       expect(resEnterprise.customers.every((c) => c.type === 'enterprise')).toBe(true);
 
-      // 5. KPIs
+      // 5. KPIs & Analytical Projections (Canonical Single Source of Truth)
       expect(resPage1.kpis.totalCustomers.value).toBe(5);
       expect(resPage1.kpis.vipCustomers.value).toBe(1);
       expect(resPage1.salesFunnel.steps.length).toBe(5);
-      expect(resPage1.growthChart.dataPoints.length).toBe(11);
+      expect(resPage1.growthChart.dataPoints.length).toBe(12);
+      expect(resPage1.financialSummary).toBeDefined();
+      expect(resPage1.sourceDistribution).toBeDefined();
+      expect(resPage1.alerts).toBeDefined();
+      expect(resPage1.actionSuggestion).toBeDefined();
     });
   });
 });

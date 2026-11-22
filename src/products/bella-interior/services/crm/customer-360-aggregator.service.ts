@@ -54,7 +54,15 @@ import type {
   CustomerKPIOverview,
   CustomerSalesFunnel,
   CustomerGrowthChart,
+  CustomerGrowthDataPoint,
 } from '../../domain/crm/customer-360.types';
+import type {
+  CustomerFinancialSummary as PortfolioFinancialSummary,
+  CustomerSourceDistributionItem,
+  CustomerAlertItem,
+  ActionSuggestion,
+  CustomerSource,
+} from '../../domain/customer-overview.types';
 
 function toSafeIsoString(dateInput: string | null | undefined): string {
   if (!dateInput) return new Date().toISOString();
@@ -887,72 +895,226 @@ export class Customer360AggregatorService {
     const startIndex = (page - 1) * limit;
     const paginatedCustomers = filtered.slice(startIndex, startIndex + limit);
 
-    // 5. Compute Dynamic KPIs
+    // 5. Compute Dynamic KPIs (Canonical Single Source of Truth)
     const totalCustomers = allProfiles.length;
     const potentialCustomers = overviewItems.filter((c) => c.status === 'lead').length;
     const activeTransacting = overviewItems.filter((c) => c.status === 'transacting').length;
     const vipCustomers = overviewItems.filter((c) => c.tier === 'vip' || c.status === 'vip').length;
 
+    // Real dynamic trends based on profile creation timestamp
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const newProfilesLast30Days = allProfiles.filter((p) => {
+      if (!p.createdAt) return false;
+      return new Date(p.createdAt) >= thirtyDaysAgo;
+    }).length;
+    const growthTrendPct = totalCustomers > 0 ? Math.round((newProfilesLast30Days / totalCustomers) * 100) : 0;
+
     const kpis: CustomerKPIOverview = {
       totalCustomers: {
         value: totalCustomers,
         label: 'Tổng khách hàng',
-        trend: '↑ 12%',
+        trend: growthTrendPct > 0 ? `↑ ${growthTrendPct}% tháng này` : 'Ổn định',
         isPositiveTrend: true,
       },
       potentialCustomers: {
         value: potentialCustomers,
         label: 'Khách hàng tiềm năng',
-        trend: '↑ 18%',
-        isPositiveTrend: true,
+        trend: potentialCustomers > 0 ? `${potentialCustomers} lead mới` : 'Chưa có lead',
+        isPositiveTrend: potentialCustomers > 0,
       },
       activeTransacting: {
         value: activeTransacting,
         label: 'Đang giao dịch',
-        trend: '↑ 10%',
-        isPositiveTrend: true,
+        trend: activeTransacting > 0 ? `${activeTransacting} đang triển khai` : '0 dự án',
+        isPositiveTrend: activeTransacting > 0,
       },
       vipCustomers: {
         value: vipCustomers,
         label: 'Khách hàng VIP',
-        trend: '↑ 8%',
-        isPositiveTrend: true,
+        trend: vipCustomers > 0 ? `${vipCustomers} thành viên VIP` : '0 VIP',
+        isPositiveTrend: vipCustomers > 0,
       },
     };
 
-    // 6. Dynamic Sales Funnel
+    // 6. Real Dynamic Sales Funnel from Portfolio Lifecycle
+    const surveyCount = overviewItems.filter((c) => {
+      const projs = projectsByCustomerId.get(c.id) || [];
+      return projs.some((p) => ['lead', 'survey', 'design_concept', 'design_3d'].includes(p.status));
+    }).length;
+    const quotationCount = overviewItems.filter((c) => {
+      const projs = projectsByCustomerId.get(c.id) || [];
+      return projs.some((p) => ['quotation', 'estimating', 'contract_draft'].includes(p.status));
+    }).length;
+    const negotiatingCount = overviewItems.filter((c) => c.status === 'negotiating').length;
+    const signedCount = overviewItems.filter((c) => c.status === 'transacting' || c.totalValue > 0).length;
+
+    const conversionRate = totalCustomers > 0 ? Math.round((signedCount / totalCustomers) * 100) : 0;
     const salesFunnel: CustomerSalesFunnel = {
       steps: [
-        { stepNumber: 1, label: 'Khách hàng tiềm năng', count: Math.max(potentialCustomers, 1), color: '#3b82f6' },
-        { stepNumber: 2, label: 'Khảo sát & tư vấn', count: Math.max(Math.floor(potentialCustomers * 0.7), 1), color: '#10b981' },
-        { stepNumber: 3, label: 'Báo giá đề xuất', count: Math.max(activeTransacting, 1), color: '#f59e0b' },
-        { stepNumber: 4, label: 'Đàm phán', count: Math.max(Math.floor(activeTransacting * 0.8), 1), color: '#8b5cf6' },
-        { stepNumber: 5, label: 'Ký hợp đồng', count: Math.max(vipCustomers + activeTransacting, 1), color: '#6366f1' },
+        { stepNumber: 1, label: 'Khách hàng tiềm năng', count: potentialCustomers, color: '#3b82f6' },
+        { stepNumber: 2, label: 'Khảo sát & tư vấn', count: surveyCount, color: '#10b981' },
+        { stepNumber: 3, label: 'Báo giá đề xuất', count: quotationCount, color: '#f59e0b' },
+        { stepNumber: 4, label: 'Đàm phán', count: negotiatingCount, color: '#8b5cf6' },
+        { stepNumber: 5, label: 'Ký hợp đồng', count: signedCount, color: '#6366f1' },
       ],
-      conversionRatePercent: totalCustomers > 0 ? Math.round((activeTransacting / totalCustomers) * 100) : 0,
-      conversionRateTrend: '↑ 2% so với tháng trước',
-      isConversionPositive: true,
-      targetAchievementLabel: 'Đạt chỉ tiêu',
-      targetAchievementSub: 'Kế hoạch kinh doanh',
+      conversionRatePercent: conversionRate,
+      conversionRateTrend: signedCount > 0 ? `Tỷ lệ ký kết thực tế ${conversionRate}%` : 'Chưa có hợp đồng ký',
+      isConversionPositive: conversionRate >= 20,
+      targetAchievementLabel: conversionRate >= 20 ? 'Vượt chỉ tiêu' : 'Đang triển khai',
+      targetAchievementSub: `${signedCount}/${totalCustomers} KH đã ký hợp đồng`,
     };
 
-    // 7. Dynamic Growth Chart
+    // 7. Real Dynamic Monthly Growth Chart
+    const monthlyCustomerMap: Record<number, number> = {};
+    const monthlyRevenueMap: Record<number, number> = {};
+    for (let m = 1; m <= 12; m++) {
+      monthlyCustomerMap[m] = 0;
+      monthlyRevenueMap[m] = 0;
+    }
+
+    for (const p of allProfiles) {
+      if (p.createdAt) {
+        const m = new Date(p.createdAt).getMonth() + 1;
+        if (monthlyCustomerMap[m] !== undefined) {
+          monthlyCustomerMap[m] += 1;
+        }
+      }
+    }
+
+    for (const proj of allProjects) {
+      if (proj.createdAt && proj.estimatedBudget) {
+        const m = new Date(proj.createdAt).getMonth() + 1;
+        if (monthlyRevenueMap[m] !== undefined) {
+          monthlyRevenueMap[m] += proj.estimatedBudget;
+        }
+      }
+    }
+
+    let cumulativeCustomers = 0;
+    const currentMonthNum = now.getMonth() + 1;
+    const dataPoints: CustomerGrowthDataPoint[] = [];
+
+    for (let m = 1; m <= 12; m++) {
+      cumulativeCustomers += monthlyCustomerMap[m];
+      const countForMonth = m <= currentMonthNum ? Math.max(cumulativeCustomers, monthlyCustomerMap[m]) : totalCustomers;
+      const revBillion = Number(((monthlyRevenueMap[m] || 0) / 1_000_000_000).toFixed(2));
+      dataPoints.push({
+        month: `T${m}`,
+        customerCount: countForMonth,
+        revenueBillion: revBillion,
+      });
+    }
+
     const growthChart: CustomerGrowthChart = {
       timeRangeLabel: '12 tháng',
-      dataPoints: [
-        { month: 'T1', customerCount: Math.max(1, Math.floor(totalCustomers * 0.4)), revenueBillion: 1.1 },
-        { month: 'T2', customerCount: Math.max(1, Math.floor(totalCustomers * 0.45)), revenueBillion: 1.3 },
-        { month: 'T3', customerCount: Math.max(1, Math.floor(totalCustomers * 0.5)), revenueBillion: 1.4 },
-        { month: 'T4', customerCount: Math.max(1, Math.floor(totalCustomers * 0.55)), revenueBillion: 1.5 },
-        { month: 'T5', customerCount: Math.max(1, Math.floor(totalCustomers * 0.6)), revenueBillion: 1.7 },
-        { month: 'T6', customerCount: Math.max(1, Math.floor(totalCustomers * 0.65)), revenueBillion: 1.9 },
-        { month: 'T8', customerCount: Math.max(1, Math.floor(totalCustomers * 0.7)), revenueBillion: 1.8 },
-        { month: 'T9', customerCount: Math.max(1, Math.floor(totalCustomers * 0.75)), revenueBillion: 2.1 },
-        { month: 'T10', customerCount: Math.max(1, Math.floor(totalCustomers * 0.85)), revenueBillion: 2.4 },
-        { month: 'T11', customerCount: Math.max(1, Math.floor(totalCustomers * 0.9)), revenueBillion: 2.6 },
-        { month: 'T12', customerCount: totalCustomers, revenueBillion: 2.8 },
-      ],
+      dataPoints,
     };
+
+    // 8. Real Portfolio Financial Summary
+    const totalContractValue = overviewItems.reduce((acc, c) => acc + c.totalValue, 0);
+    const receivableDebt = overviewItems.reduce((acc, c) => acc + c.debt, 0);
+    const collected = Math.max(0, totalContractValue - receivableDebt);
+    const collectionRatePercent = totalContractValue > 0 ? Math.round((collected / totalContractValue) * 100) : 0;
+
+    const formatCurrencyStr = (amt: number): string => {
+      if (amt >= 1_000_000_000) return `${(amt / 1_000_000_000).toFixed(2).replace(/\.00$/, '')} tỷ`;
+      if (amt >= 1_000_000) return `${Math.round(amt / 1_000_000)} triệu`;
+      return amt > 0 ? `${amt.toLocaleString('vi-VN')} ₫` : '0 ₫';
+    };
+
+    const financialSummary: PortfolioFinancialSummary = {
+      totalContractValue,
+      totalContractValueFormatted: formatCurrencyStr(totalContractValue),
+      collected,
+      collectedFormatted: formatCurrencyStr(collected),
+      receivableDebt,
+      receivableDebtFormatted: formatCurrencyStr(receivableDebt),
+      collectionRatePercent,
+    };
+
+    // 9. Real Source Distribution
+    const sourceMapCount: Record<string, number> = {
+      referral: 0,
+      marketing: 0,
+      partner: 0,
+      returning: 0,
+      website: 0,
+    };
+    for (const item of overviewItems) {
+      const src = item.source || 'referral';
+      sourceMapCount[src] = (sourceMapCount[src] || 0) + 1;
+    }
+
+    const sourceMeta: Record<string, { label: string; color: string }> = {
+      referral: { label: 'Giới thiệu', color: '#10b981' },
+      marketing: { label: 'Marketing', color: '#8b5cf6' },
+      partner: { label: 'Đối tác', color: '#06b6d4' },
+      returning: { label: 'Khách hàng cũ', color: '#64748b' },
+      website: { label: 'Website', color: '#f59e0b' },
+    };
+
+    const sourceDistribution: CustomerSourceDistributionItem[] = Object.entries(sourceMapCount)
+      .filter(([_, count]) => count > 0)
+      .map(([sourceKey, count]) => {
+        const meta = sourceMeta[sourceKey] || { label: sourceKey, color: '#3b82f6' };
+        const pct = totalCustomers > 0 ? Math.round((count / totalCustomers) * 100) : 0;
+        return {
+          source: sourceKey as CustomerSource,
+          label: meta.label,
+          percentage: pct,
+          color: meta.color,
+        };
+      });
+
+    // 10. Real Contextual Alerts
+    const alerts: CustomerAlertItem[] = [];
+    const debtors = overviewItems.filter((c) => c.debt > 0).slice(0, 2);
+    for (const d of debtors) {
+      alerts.push({
+        id: `crm-debt-${d.id}`,
+        title: `KH ${d.name}`,
+        subtitle: `Công nợ cần thu: ${d.debtFormatted}`,
+        date: 'Cần thu hồi',
+        severity: 'warning',
+      });
+    }
+    const recentLeads = overviewItems.filter((c) => c.status === 'lead').slice(0, 2);
+    for (const l of recentLeads) {
+      alerts.push({
+        id: `crm-lead-${l.id}`,
+        title: `KH ${l.name}`,
+        subtitle: 'Khách hàng tiềm năng mới cần liên hệ',
+        date: 'Lead mới',
+        severity: 'info',
+      });
+    }
+    const transactingList = overviewItems.filter((c) => c.status === 'transacting').slice(0, 2);
+    for (const t of transactingList) {
+      if (alerts.length >= 4) break;
+      alerts.push({
+        id: `crm-trans-${t.id}`,
+        title: `Dự án của ${t.name}`,
+        subtitle: `Đang triển khai ${t.projectCount} công trình`,
+        date: 'Đang thi công',
+        severity: 'success',
+      });
+    }
+
+    // 11. Real Action Suggestion
+    const actionSuggestion: ActionSuggestion = receivableDebt > 0
+      ? {
+          title: 'Thu hồi công nợ',
+          description: `Hiện có ${debtors.length} khách hàng có công nợ tồn đọng với tổng giá trị ${financialSummary.receivableDebtFormatted}. Cần ưu tiên thu hồi.`,
+          ctaLabel: 'Xem công nợ →',
+          ctaLink: '/dashboard/interior/customers?hasDebt=true',
+        }
+      : {
+          title: 'Chăm sóc khách hàng tiềm năng',
+          description: `Hệ thống ghi nhận ${potentialCustomers} khách hàng tiềm năng sẵn sàng khảo sát thực tế và báo giá phương án.`,
+          ctaLabel: 'Xem khách hàng tiềm năng →',
+          ctaLink: '/dashboard/interior/customers?status=lead',
+        };
 
     return {
       customers: paginatedCustomers,
@@ -963,6 +1125,10 @@ export class Customer360AggregatorService {
       kpis,
       salesFunnel,
       growthChart,
+      financialSummary,
+      sourceDistribution,
+      alerts,
+      actionSuggestion,
     };
   }
 }
