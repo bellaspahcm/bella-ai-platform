@@ -840,8 +840,9 @@ export class Customer360AggregatorService {
       });
     }
 
-    // Sort overview items deterministically: newest codes first so newly created customers appear at top
-    overviewItems.sort((a, b) => b.code.localeCompare(a.code));
+    // Sort overview items deterministically by code (default: asc, or desc when requested)
+    const sortOrder = query.sortOrder ?? 'asc';
+    overviewItems.sort((a, b) => (sortOrder === 'desc' ? b.code.localeCompare(a.code) : a.code.localeCompare(b.code)));
 
     // 4. Search Filter
     let filtered = overviewItems;

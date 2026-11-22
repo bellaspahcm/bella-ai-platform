@@ -320,7 +320,7 @@ export default function CustomersPage() {
   const refreshCustomers = useCallback(async () => {
     try {
       // Use the canonical CRM overview route which includes all customers (including lead-only, no project)
-      const res = await fetch('/api/interior/crm/customers?page=1&limit=200');
+      const res = await fetch('/api/interior/crm/customers?page=1&limit=200&sortOrder=desc');
       if (!res.ok) return;
       const json = await res.json();
       // CRM route returns: { success, data: { customers, total, kpis, salesFunnel, growthChart } }

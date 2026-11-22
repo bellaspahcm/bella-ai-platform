@@ -29,6 +29,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const tier = (searchParams.get('tier') as CustomerTier) || undefined;
     const profileStatus = (searchParams.get('profileStatus') as CustomerProfileStatus) || undefined;
     const hasDebt = searchParams.has('hasDebt') ? searchParams.get('hasDebt') === 'true' : undefined;
+    const sortOrder = (searchParams.get('sortOrder') as 'asc' | 'desc') || undefined;
 
     const customerRepo = new SupabaseCustomerRepository(ctx.supabase);
     const interiorRepo = new SupabaseInteriorRepository(ctx.supabase);
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       tier,
       profileStatus,
       hasDebt,
+      sortOrder,
     });
 
     return NextResponse.json(
