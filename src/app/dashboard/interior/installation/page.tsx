@@ -245,7 +245,7 @@ export default function InteriorInstallationPage() {
   const [diaryActivities, setDiaryActivities] = useState('');
   const [diaryIssues, setDiaryIssues] = useState('');
   const [diaryNotes, setDiaryNotes] = useState('');
-  const [localPreviews, setLocalPreviews] = useState<string[]>([]);
+  const [selectedFileNames, setSelectedFileNames] = useState<string[]>([]);
 
   // Diary Edit Form State
   const [editWorkers, setEditWorkers] = useState('');
@@ -372,16 +372,15 @@ export default function InteriorInstallationPage() {
     }
   }, [selectedProjectId, fetchSiteDiaries, fetchSchedule]);
 
-  // ─── Local Photo Preview Handling (No Fake Upload) ──────────────────────────
+  // ─── Local Photo Selection Handling (No Fake Upload) ──────────────────────────
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
-    const files = Array.from(e.target.files);
-    const urls = files.map((file) => URL.createObjectURL(file));
-    setLocalPreviews((prev) => [...prev, ...urls]);
+    const names = Array.from(e.target.files).map((f) => f.name);
+    setSelectedFileNames((prev) => [...prev, ...names]);
   };
 
-  const removeLocalPreview = (index: number) => {
-    setLocalPreviews((prev) => prev.filter((_, i) => i !== index));
+  const removeSelectedFile = (index: number) => {
+    setSelectedFileNames((prev) => prev.filter((_, i) => i !== index));
   };
 
   // ─── Create Diary Submission ────────────────────────────────────────────────
@@ -408,7 +407,7 @@ export default function InteriorInstallationPage() {
       const json = (await res.json()) as { success?: boolean; error?: string };
       if (res.ok && json.success) {
         setShowNewDiaryModal(false);
-        setLocalPreviews([]);
+        setSelectedFileNames([]);
         setDiaryWorkers('');
         setDiaryWeather('');
         setDiaryActivities('');
@@ -1264,16 +1263,19 @@ export default function InteriorInstallationPage() {
                   Lưu ý: Ảnh bạn chọn chỉ hiển thị xem trước cục bộ (Local Preview) trong phiên làm việc, không giả lập tải lên thành công khi Storage chưa sẵn sàng.
                 </p>
 
-                {localPreviews.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {localPreviews.map((previewUrl, idx) => (
-                      <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 group">
-                        <img src={previewUrl} alt={`Xem trước ${idx + 1}`} className="w-full h-full object-cover" />
+                {selectedFileNames.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {selectedFileNames.map((name, idx) => (
+                      <div
+                        key={idx}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-xs text-slate-700"
+                      >
+                        <span className="truncate max-w-[150px]">{name}</span>
                         <button
                           type="button"
-                          onClick={() => removeLocalPreview(idx)}
-                          className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-rose-600 text-white flex items-center justify-center text-[10px] font-bold"
-                          title="Xóa ảnh xem trước"
+                          onClick={() => removeSelectedFile(idx)}
+                          className="text-slate-400 hover:text-rose-600 font-bold ml-1 text-xs"
+                          title="Xóa tệp"
                         >
                           ×
                         </button>

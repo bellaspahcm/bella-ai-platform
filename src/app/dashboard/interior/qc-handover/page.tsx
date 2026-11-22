@@ -46,6 +46,8 @@ export interface HandoverAcceptanceData {
   dossier: Record<string, unknown>;
 }
 
+const HANDOVER_HERO_IMAGE_URL = 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80';
+
 // ─── Inline Clean Icons ───────────────────────────────────────────────────────
 
 function IconArrowLeft({ className }: { className?: string }) {
@@ -657,7 +659,7 @@ export default function InteriorQCHandoverPage() {
 
         <div className="w-full md:w-80 lg:w-96 h-40 md:h-44 shrink-0 overflow-hidden relative">
           <img
-            src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80"
+            src={HANDOVER_HERO_IMAGE_URL}
             alt="Handover Ready Living Room"
             className="w-full h-full object-cover object-center"
           />
