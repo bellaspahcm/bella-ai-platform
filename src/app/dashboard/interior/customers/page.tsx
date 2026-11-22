@@ -317,62 +317,73 @@ export default function CustomersPage() {
 
   const refreshCustomers = useCallback(async () => {
     try {
-      const res = await fetch('/api/interior/customers?overview=true&limit=100');
-      if (res.ok) {
-        const json = await res.json();
-        const incomingCustomers = json.data?.customers || json.customers;
-        if (Array.isArray(incomingCustomers) && incomingCustomers.length > 0) {
-          setData((prev) => {
-            const mappedCustomers: CustomerItem[] = incomingCustomers.map(
-              (c: any, idx: number) => {
-                const fallback = prev.customers.find((df) => df.id === c.id || df.name === c.name);
-                const avatarFallback =
-                  c.avatar ||
-                  fallback?.avatar ||
-                  'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg';
-                const managerAvatarFallback =
-                  c.managerAvatar ||
-                  fallback?.managerAvatar ||
-                  'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg';
-                return {
-                  id: c.id,
-                  code: c.code || fallback?.code || `KH-${String(idx + 1).padStart(3, '0')}`,
-                  name: c.name || fallback?.name || `Khách hàng ${c.id}`,
-                  avatar: avatarFallback,
-                  type: c.type || fallback?.type || 'individual',
-                  typeLabel: c.typeLabel || (c.type === 'enterprise' ? 'Doanh nghiệp' : 'Cá nhân'),
-                  typeBadgeClass: c.typeBadgeClass || (c.type === 'enterprise' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200'),
-                  source: c.source || fallback?.source || 'website',
-                  sourceLabel: c.sourceLabel || fallback?.sourceLabel || 'Website / KTS',
-                  sourceClass: c.sourceClass || fallback?.sourceClass || 'bg-blue-50 text-blue-700 border-blue-200',
-                  managerName: c.managerName || fallback?.managerName || 'Trần Văn Quản Lý',
-                  managerAvatar: managerAvatarFallback,
-                  opportunityCount: c.opportunityCount || fallback?.opportunityCount || 1,
-                  projectCount: c.projectCount ?? fallback?.projectCount ?? 0,
-                  totalValue: c.totalValue ?? fallback?.totalValue ?? 0,
-                  totalValueFormatted: c.totalValueFormatted || (c.totalValue ? `${Number(c.totalValue).toLocaleString('vi-VN')} ₫` : '0 ₫'),
-                  debt: c.debt ?? fallback?.debt ?? 0,
-                  debtFormatted: c.debtFormatted || (c.debt ? `${Number(c.debt).toLocaleString('vi-VN')} ₫` : '0 ₫'),
-                  hasDebt: c.hasDebt ?? fallback?.hasDebt ?? false,
-                  lastInteractionDate: c.lastInteractionDate || fallback?.lastInteractionDate || 'Vừa xong',
-                  status: c.status || fallback?.status || 'transacting',
-                  statusLabel: c.statusLabel || fallback?.statusLabel || 'Đang theo dự án',
-                  statusBadgeClass: c.statusBadgeClass || fallback?.statusBadgeClass || 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                };
-              }
-            );
-            return {
-              ...prev,
-              kpis: json.data?.kpis || prev.kpis,
-              salesFunnel: json.data?.salesFunnel || prev.salesFunnel,
-              growthChart: json.data?.growthChart || prev.growthChart,
-              customers: mappedCustomers,
+      // Use the canonical CRM overview route which includes all customers (including lead-only, no project)
+      const res = await fetch('/api/interior/crm/customers?page=1&limit=200');
+      if (!res.ok) return;
+      const json = await res.json();
+      // CRM route returns: { success, data: { customers, total, kpis, salesFunnel, growthChart } }
+      const incomingCustomers: unknown[] = json.data?.customers ?? [];
+      if (!Array.isArray(incomingCustomers)) return;
+
+      setData((prev) => {
+        const mappedCustomers: CustomerItem[] = incomingCustomers.map(
+          (c: any, idx: number) => {
+            const fallback = prev.customers.find((df) => df.id === c.id || df.name === c.name);
+            const avatarFallback =
+              c.avatar ||
+              fallback?.avatar ||
+              'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg';
+            const managerAvatarFallback =
+              c.managerAvatar ||
+              fallback?.managerAvatar ||
+              'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg';
+            const sourceMap: Record<string, { label: string; cls: string }> = {
+              referral:  { label: 'Khách hàng cũ giới thiệu', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+              returning: { label: 'Khách hàng quay lại',      cls: 'bg-green-50 text-green-700 border-green-200' },
+              marketing: { label: 'Marketing / Digital',       cls: 'bg-purple-50 text-purple-700 border-purple-200' },
+              partner:   { label: 'Showroom / Đối tác',        cls: 'bg-orange-50 text-orange-700 border-orange-200' },
+              website:   { label: 'Website / KTS',             cls: 'bg-blue-50 text-blue-700 border-blue-200' },
             };
-          });
-        }
-      }
+            const srcKey = c.source || fallback?.source || 'website';
+            const srcInfo = sourceMap[srcKey] ?? sourceMap['website'];
+            return {
+              id: c.id,
+              code: c.code || fallback?.code || `KH-${String(idx + 1).padStart(3, '0')}`,
+              name: c.name || fallback?.name || `Khách hàng ${c.id}`,
+              avatar: avatarFallback,
+              type: c.type || fallback?.type || 'individual',
+              typeLabel: c.typeLabel || (c.type === 'enterprise' ? 'Doanh nghiệp' : 'Cá nhân'),
+              typeBadgeClass: c.typeBadgeClass || (c.type === 'enterprise' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200'),
+              source: srcKey,
+              sourceLabel: c.sourceLabel || srcInfo.label,
+              sourceClass: c.sourceClass || srcInfo.cls,
+              managerName: c.managerName || fallback?.managerName || 'Trần Văn Quản Lý',
+              managerAvatar: managerAvatarFallback,
+              opportunityCount: c.opportunityCount ?? fallback?.opportunityCount ?? 1,
+              projectCount: c.projectCount ?? fallback?.projectCount ?? 0,
+              totalValue: c.totalValue ?? fallback?.totalValue ?? 0,
+              totalValueFormatted: c.totalValueFormatted || (c.totalValue ? `${Number(c.totalValue).toLocaleString('vi-VN')} ₫` : '0 ₫'),
+              debt: c.debt ?? fallback?.debt ?? 0,
+              debtFormatted: c.debtFormatted || (c.debt ? `${Number(c.debt).toLocaleString('vi-VN')} ₫` : '0 ₫'),
+              hasDebt: c.hasDebt ?? fallback?.hasDebt ?? false,
+              lastInteractionDate: c.lastInteractionDate || fallback?.lastInteractionDate || 'Vừa xong',
+              status: c.status || fallback?.status || 'lead',
+              statusLabel: c.statusLabel || fallback?.statusLabel || 'Khách hàng tiềm năng',
+              statusBadgeClass: c.statusBadgeClass || fallback?.statusBadgeClass || 'bg-blue-50 text-blue-700 border-blue-200',
+            };
+          }
+        );
+        return {
+          ...prev,
+          kpis: json.data?.kpis || prev.kpis,
+          salesFunnel: json.data?.salesFunnel || prev.salesFunnel,
+          growthChart: json.data?.growthChart || prev.growthChart,
+          // If DB returned data, replace; if empty (truly no customers yet), keep optimistic entries
+          customers: mappedCustomers.length > 0 ? mappedCustomers : prev.customers,
+        };
+      });
     } catch {
-      // Retain initial canonical state
+      // Retain current state on network error
     }
   }, []);
 
