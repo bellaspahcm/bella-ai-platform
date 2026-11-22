@@ -35,12 +35,15 @@ CREATE TABLE IF NOT EXISTS public.interior_scheduled_events (
 );
 
 -- ── Indexes ──────────────────────────────────────────────────
+-- zero-downtime: allow blocking-index - new product table created in same migration; no existing rows to scan
 CREATE INDEX IF NOT EXISTS idx_interior_scheduled_events_tenant
   ON public.interior_scheduled_events (tenant_id);
 
+-- zero-downtime: allow blocking-index - new product table created in same migration; no existing rows to scan
 CREATE INDEX IF NOT EXISTS idx_interior_scheduled_events_week
   ON public.interior_scheduled_events (tenant_id, scheduled_week_start);
 
+-- zero-downtime: allow blocking-index - new product table created in same migration; no existing rows to scan
 CREATE INDEX IF NOT EXISTS idx_interior_scheduled_events_status
   ON public.interior_scheduled_events (tenant_id, status);
 
