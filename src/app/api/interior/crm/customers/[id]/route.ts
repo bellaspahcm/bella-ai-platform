@@ -96,17 +96,37 @@ export async function PATCH(
       }
     }
 
+    const customerRepo = new SupabaseCustomerRepository(ctx.supabase);
     let finalNotes = body.notes;
+
     if (body.status && typeof body.status === 'string') {
       const stageTag = `[Lead stage: ${body.status.trim()}]`;
       if (typeof finalNotes === 'string') {
         finalNotes = `${finalNotes.replace(/\[Lead stage[^\]]*\]/gi, '').trim()} | ${stageTag}`.replace(/^ \| /, '').trim();
       } else {
-        finalNotes = stageTag;
+        const existing = await customerRepo.findById(ctx.tenantId, customerId.trim());
+        const existingNotes = existing?.notes || '';
+        finalNotes = `${existingNotes.replace(/\[Lead stage[^\]]*\]/gi, '').trim()} | ${stageTag}`.replace(/^ \| /, '').trim();
       }
     }
 
-    const customerRepo = new SupabaseCustomerRepository(ctx.supabase);
+    let assignedStaffId = body.assignedStaffId;
+    if (typeof assignedStaffId === 'string') {
+      const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const staffVal = assignedStaffId.trim();
+      if (!UUID_PATTERN.test(staffVal)) {
+        const staffTag = `Phụ trách: ${staffVal}`;
+        if (typeof finalNotes === 'string') {
+          finalNotes = `${finalNotes.replace(/(?:Phụ trách|KTS)[:\s]+[^|\]]+/gi, '').trim()} | ${staffTag}`.replace(/^ \| /, '').trim();
+        } else {
+          const existing = await customerRepo.findById(ctx.tenantId, customerId.trim());
+          const existingNotes = existing?.notes || '';
+          finalNotes = `${existingNotes.replace(/(?:Phụ trách|KTS)[:\s]+[^|\]]+/gi, '').trim()} | ${staffTag}`.replace(/^ \| /, '').trim();
+        }
+        assignedStaffId = undefined;
+      }
+    }
+
     const updated = await customerRepo.update(ctx.tenantId, customerId.trim(), {
       name: body.name,
       legalName: body.legalName,
@@ -117,7 +137,7 @@ export async function PATCH(
       primaryPhone: body.primaryPhone,
       primaryEmail: body.primaryEmail,
       notes: finalNotes,
-      assignedStaffId: body.assignedStaffId,
+      assignedStaffId,
     });
 
     return NextResponse.json(

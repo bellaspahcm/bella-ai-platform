@@ -280,7 +280,8 @@ export default function CustomersPage() {
   const [newCustomerCity, setNewCustomerCity] = useState('TP. Hồ Chí Minh');
   const [newCustomerDistrict, setNewCustomerDistrict] = useState('');
   const [newCustomerSource, setNewCustomerSource] = useState<CustomerSource>('website');
-  const [newCustomerManager, setNewCustomerManager] = useState('');
+  const [newCustomerSale, setNewCustomerSale] = useState('');
+  const [newCustomerArchitect, setNewCustomerArchitect] = useState('');
   const [newCustomerStatus, setNewCustomerStatus] = useState<CustomerStatus>('lead');
   const [newCustomerNotes, setNewCustomerNotes] = useState('');
   const [isSubmittingCustomer, setIsSubmittingCustomer] = useState(false);
@@ -309,7 +310,8 @@ export default function CustomersPage() {
     setNewCustomerCity('TP. Hồ Chí Minh');
     setNewCustomerDistrict('');
     setNewCustomerSource('website');
-    setNewCustomerManager('');
+    setNewCustomerSale('');
+    setNewCustomerArchitect('');
     setNewCustomerStatus('lead');
     setNewCustomerNotes('');
     setCustomerError(null);
@@ -357,9 +359,24 @@ export default function CustomersPage() {
               source: srcKey,
               sourceLabel: c.sourceLabel || srcInfo.label,
               sourceClass: c.sourceClass || srcInfo.cls,
-              managerName: (typeof c.notes === 'string' && c.notes.includes('KTS:'))
-                ? (c.notes.split('KTS:')[1]?.trim()?.split('|')[0]?.trim() || c.managerName || 'Trần Văn Quản Lý')
-                : (c.managerName || fallback?.managerName || 'Trần Văn Quản Lý'),
+              managerName: (() => {
+                if (typeof c.notes === 'string') {
+                  const saleMatch = c.notes.match(/Sale[:\s]+([^|\]]+)/i);
+                  const ktsMatch = c.notes.match(/KTS[:\s]+([^|\]]+)/i);
+                  const genericMatch = c.notes.match(/(?:Phụ trách|Quản lý)[:\s]+([^|\]]+)/i);
+
+                  if (saleMatch && ktsMatch) {
+                    return `${saleMatch[1].trim()} (Sale) • ${ktsMatch[1].trim()}`;
+                  } else if (saleMatch) {
+                    return `${saleMatch[1].trim()} (Sale)`;
+                  } else if (ktsMatch) {
+                    return ktsMatch[1].trim();
+                  } else if (genericMatch) {
+                    return genericMatch[1].trim();
+                  }
+                }
+                return c.managerName || fallback?.managerName || (c.code?.startsWith('KH-0000') ? '— Chưa phân công —' : 'Trần Văn Quản Lý');
+              })(),
               managerAvatar: managerAvatarFallback,
               opportunityCount: c.opportunityCount ?? fallback?.opportunityCount ?? 1,
               projectCount: c.projectCount ?? fallback?.projectCount ?? 0,
@@ -372,6 +389,7 @@ export default function CustomersPage() {
               status: c.status || fallback?.status || 'lead',
               statusLabel: c.statusLabel || fallback?.statusLabel || 'Khách hàng tiềm năng',
               statusBadgeClass: c.statusBadgeClass || fallback?.statusBadgeClass || 'bg-blue-50 text-blue-700 border-blue-200',
+              notes: c.notes || fallback?.notes || undefined,
             };
           }
         );
@@ -437,6 +455,21 @@ export default function CustomersPage() {
     setCustomerError(null);
 
     try {
+      const assignedStaffParts: string[] = [];
+      if (newCustomerSale.trim()) assignedStaffParts.push(`Sale: ${newCustomerSale.trim()}`);
+      if (newCustomerArchitect.trim()) assignedStaffParts.push(`KTS: ${newCustomerArchitect.trim()}`);
+      const displayManager = assignedStaffParts.length > 0
+        ? (newCustomerSale.trim() && newCustomerArchitect.trim()
+          ? `${newCustomerSale.trim()} (Sale) • ${newCustomerArchitect.trim()}`
+          : (newCustomerSale.trim() ? `${newCustomerSale.trim()} (Sale)` : newCustomerArchitect.trim()))
+        : '— Chưa phân công —';
+
+      const noteParts: string[] = [];
+      if (newCustomerNotes.trim()) noteParts.push(newCustomerNotes.trim());
+      if (assignedStaffParts.length > 0) noteParts.push(assignedStaffParts.join(' | '));
+      if (newCustomerStatus) noteParts.push(`[Lead stage: ${newCustomerStatus}]`);
+      const finalNotes = noteParts.length > 0 ? noteParts.join(' | ') : undefined;
+
       const payload = {
         name: newCustomerName.trim(),
         legalName: newCustomerType === 'enterprise' && newCustomerLegalName.trim() ? newCustomerLegalName.trim() : undefined,
@@ -445,10 +478,7 @@ export default function CustomersPage() {
         tier: newCustomerTier,
         primaryPhone: newCustomerPhone.trim(),
         primaryEmail: newCustomerEmail.trim() || undefined,
-        notes: [
-          newCustomerNotes.trim() || undefined,
-          newCustomerManager.trim() ? `KTS: ${newCustomerManager.trim()}` : undefined,
-        ].filter(Boolean).join(' | ') || undefined,
+        notes: finalNotes,
         fullAddress: newCustomerAddress.trim() || undefined,
         city: newCustomerCity.trim() || 'TP. Hồ Chí Minh',
         district: newCustomerDistrict.trim() || undefined,
@@ -492,7 +522,7 @@ export default function CustomersPage() {
             ? 'Showroom / Đối tác'
             : 'Website / KTS',
         sourceClass: 'bg-blue-50 text-blue-700 border-blue-200',
-        managerName: newCustomerManager,
+        managerName: displayManager,
         managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg',
         opportunityCount: 1,
         projectCount: 0,
@@ -505,6 +535,7 @@ export default function CustomersPage() {
         status: createdCustomer.tier === 'vip' ? 'vip' : (newCustomerStatus || 'lead'),
         statusLabel: createdCustomer.tier === 'vip' ? 'Khách hàng VIP' : (newCustomerStatus === 'negotiating' ? 'Đang đàm phán' : newCustomerStatus === 'transacting' ? 'Đang theo dự án' : newCustomerStatus === 'inactive' ? 'Tạm dừng' : 'Khách hàng tiềm năng'),
         statusBadgeClass: createdCustomer.tier === 'vip' ? 'bg-purple-50 text-purple-700 border-purple-200' : (newCustomerStatus === 'transacting' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : newCustomerStatus === 'negotiating' ? 'bg-violet-50 text-violet-700 border-violet-200' : newCustomerStatus === 'inactive' ? 'bg-stone-100 text-stone-600 border-stone-300' : 'bg-blue-50 text-blue-700 border-blue-200'),
+        notes: finalNotes,
       };
 
       setData((prev) => ({
@@ -575,11 +606,13 @@ export default function CustomersPage() {
     try {
       if (typeof window !== 'undefined') {
         const rawLocal = localStorage.getItem('bella_interior_crm_local_customers');
-        if (rawLocal) {
-          const list: CustomerItem[] = JSON.parse(rawLocal);
-          const updated = list.map((c) => c.id === customerId ? { ...c, status: newStatus } : c);
-          localStorage.setItem('bella_interior_crm_local_customers', JSON.stringify(updated));
-        }
+        const list: CustomerItem[] = rawLocal ? JSON.parse(rawLocal) : [];
+        const target = data.customers.find((c) => c.id === customerId);
+        const exists = list.some((c) => c.id === customerId);
+        const updated = exists
+          ? list.map((c) => c.id === customerId ? { ...c, status: newStatus } : c)
+          : [...list, { ...(target || { id: customerId }), status: newStatus } as CustomerItem];
+        localStorage.setItem('bella_interior_crm_local_customers', JSON.stringify(updated.slice(0, 50)));
       }
     } catch {
       // Ignore localStorage errors
@@ -588,7 +621,7 @@ export default function CustomersPage() {
     // 3. Persist to PostgreSQL database via PATCH
     try {
       const targetCustomer = data.customers.find((c) => c.id === customerId);
-      const prevNotes = (targetCustomer as any)?.notes || '';
+      const prevNotes = targetCustomer?.notes || '';
       const cleanedNotes = prevNotes.replace(/\[Lead stage[^\]]*\]/gi, '').trim();
       const updatedNotes = cleanedNotes
         ? `${cleanedNotes} | [Lead stage: ${newStatus}]`
@@ -1380,7 +1413,7 @@ export default function CustomersPage() {
                     <span>Tổng giá trị:</span> <strong className="text-amber-600 dark:text-amber-400 font-mono">{cust.totalValueFormatted}</strong>
                   </div>
                   <div className="flex justify-between">
-                    <span>KTS phụ trách:</span> <span className="font-medium text-slate-800 dark:text-slate-200">{cust.managerName}</span>
+                    <span>Phụ trách:</span> <span className="font-medium text-slate-800 dark:text-slate-200">{cust.managerName}</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -1818,22 +1851,38 @@ export default function CustomersPage() {
 
                   <div>
                     <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
-                      Kiến trúc sư phụ trách
+                      Chuyên viên Sale / CSKH <span className="text-slate-400 font-normal text-xs">(Tùy chọn)</span>
                     </label>
                     <select
-                      value={newCustomerManager}
-                      onChange={(e) => setNewCustomerManager(e.target.value)}
+                      value={newCustomerSale}
+                      onChange={(e) => setNewCustomerSale(e.target.value)}
                       className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
                     >
-                      <option value="">— Chưa phân công KTS —</option>
-                      <option value="KTS. Lê Hoàng Quân">KTS. Lê Hoàng Quân (Chủ trì thiết kế)</option>
-                      <option value="Trần Văn Quản Lý">Trần Văn Quản Lý (Giám sát &amp; Quản trị)</option>
-                      <option value="KTS. Nguyễn Minh Khoa">KTS. Nguyễn Minh Khoa (Nội thất hiện đại)</option>
-                      <option value="KTS. Phạm Thu Hà">KTS. Phạm Thu Hà (Cổ điển &amp; Indochine)</option>
+                      <option value="">— Chưa phân công Sale —</option>
+                      <option value="Nguyễn Văn Nam (Sale)">Nguyễn Văn Nam (Sales tư vấn)</option>
+                      <option value="Trần Thị Mai (CSKH)">Trần Thị Mai (Chăm sóc khách hàng)</option>
+                      <option value="Đỗ Quốc Huy (Sales Lead)">Đỗ Quốc Huy (Trưởng nhóm Kinh doanh)</option>
                     </select>
                   </div>
 
                   <div>
+                    <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                      Kiến trúc sư phụ trách (KTS) <span className="text-slate-400 font-normal text-xs">(Tùy chọn)</span>
+                    </label>
+                    <select
+                      value={newCustomerArchitect}
+                      onChange={(e) => setNewCustomerArchitect(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                    >
+                      <option value="">— Chưa phân công KTS —</option>
+                      <option value="KTS. Lê Hoàng Quân">KTS. Lê Hoàng Quân (Chủ trì thiết kế)</option>
+                      <option value="KTS. Nguyễn Minh Khoa">KTS. Nguyễn Minh Khoa (Nội thất hiện đại)</option>
+                      <option value="KTS. Phạm Thu Hà">KTS. Phạm Thu Hà (Cổ điển &amp; Indochine)</option>
+                      <option value="Trần Văn Quản Lý">Trần Văn Quản Lý (Giám sát &amp; Quản trị)</option>
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2">
                     <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
                       Trạng thái lead
                     </label>

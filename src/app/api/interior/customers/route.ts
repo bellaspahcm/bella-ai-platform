@@ -103,7 +103,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const assignedStaffId = rawStaff && UUID_PATTERN.test(rawStaff) ? rawStaff : undefined;
     let notes = body.notes?.trim() || undefined;
     if (rawStaff && !assignedStaffId) {
-      notes = notes ? `${notes} | KTS phụ trách: ${rawStaff}` : `KTS phụ trách: ${rawStaff}`;
+      notes = notes ? `${notes} | Phụ trách: ${rawStaff}` : `Phụ trách: ${rawStaff}`;
+    }
+    if (body.status && typeof body.status === 'string') {
+      const stageTag = `[Lead stage: ${body.status.trim()}]`;
+      if (!notes || !notes.includes(stageTag)) {
+        notes = notes ? `${notes} | ${stageTag}` : stageTag;
+      }
     }
 
     const { SupabaseCustomerRepository } = await import('@/products/bella-interior/repositories/crm/supabase-customer.repository');

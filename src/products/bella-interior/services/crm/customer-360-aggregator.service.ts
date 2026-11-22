@@ -788,6 +788,26 @@ export class Customer360AggregatorService {
           ? 'bg-amber-50 text-amber-700 border-amber-200'
           : 'bg-blue-50 text-blue-700 border-blue-200';
 
+      // Resolve manager name / assigned team (Sale & KTS) from notes if stored
+      let managerName = 'Trần Văn Quản Lý';
+      if (profile.notes) {
+        const saleMatch = profile.notes.match(/Sale[:\s]+([^|\]]+)/i);
+        const ktsMatch = profile.notes.match(/KTS[:\s]+([^|\]]+)/i);
+        const genericMatch = profile.notes.match(/(?:Phụ trách|Quản lý)[:\s]+([^|\]]+)/i);
+
+        if (saleMatch && ktsMatch) {
+          managerName = `${saleMatch[1].trim()} (Sale) • ${ktsMatch[1].trim()}`;
+        } else if (saleMatch) {
+          managerName = `${saleMatch[1].trim()} (Sale)`;
+        } else if (ktsMatch) {
+          managerName = ktsMatch[1].trim();
+        } else if (genericMatch) {
+          managerName = genericMatch[1].trim();
+        }
+      } else if (profile.code?.startsWith('KH-0000')) {
+        managerName = '— Chưa phân công —';
+      }
+
       overviewItems.push({
         id: profile.id,
         code: profile.code,
@@ -800,7 +820,7 @@ export class Customer360AggregatorService {
         source: 'referral',
         sourceLabel: 'Giới thiệu',
         sourceClass: 'bg-amber-50 text-amber-700 border-amber-200',
-        managerName: 'Trần Văn Quản Lý',
+        managerName,
         managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg',
         opportunityCount: Math.max(1, customerProjects.length),
         projectCount: customerProjects.length,
