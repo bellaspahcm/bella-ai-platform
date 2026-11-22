@@ -47,6 +47,28 @@ import type {
 import { supabase } from '@/lib/supabase-client';
 import { Customer360Modal } from './customer-360-modal';
 
+/**
+ * Resolves a valid access token for API requests.
+ * In development mode, if no active Supabase session is present (e.g. user arrived
+ * via mock_user_email cookie), automatically signs in with the demo admin credentials.
+ */
+async function getAuthToken(): Promise<string | undefined> {
+  const { data: authData } = await supabase.auth.getSession();
+  let token = authData?.session?.access_token;
+  if (!token && process.env.NODE_ENV === 'development') {
+    try {
+      const { data: signInData } = await supabase.auth.signInWithPassword({
+        email: 'demo.interior@bellaspa.vn',
+        password: 'password123',
+      });
+      token = signInData?.session?.access_token;
+    } catch {
+      // Non-critical fallback
+    }
+  }
+  return token;
+}
+
 // Canonical initial overview matching domain layer definition exactly
 const INITIAL_CUSTOMER_OVERVIEW: CustomerOverviewResponse = {
   success: true,
@@ -107,108 +129,7 @@ const INITIAL_CUSTOMER_OVERVIEW: CustomerOverviewResponse = {
       { month: 'T12', customerCount: 118, revenueBillion: 2.8 },
     ],
   },
-  customers: [
-    {
-      id: 'cust-001',
-      code: 'KH-000128',
-      name: 'Công ty CP An Phú',
-      avatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/commercial-award-project.jpg',
-      type: 'enterprise',
-      typeLabel: 'Doanh nghiệp',
-      typeBadgeClass: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800',
-      source: 'referral',
-      sourceLabel: 'Giới thiệu',
-      sourceClass: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200/60',
-      managerName: 'Nguyễn Văn Minh',
-      managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg',
-      opportunityCount: 2,
-      projectCount: 3,
-      totalValue: 5_200_000_000,
-      totalValueFormatted: '5.20 tỷ',
-      debt: 1_200_000_000,
-      debtFormatted: '1.20 tỷ',
-      hasDebt: true,
-      lastInteractionDate: '29/10/2026',
-      status: 'transacting',
-      statusLabel: 'Đang giao dịch',
-      statusBadgeClass: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800',
-    },
-    {
-      id: 'cust-002',
-      code: 'KH-000129',
-      name: 'Trần Thị Mai',
-      avatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-site.jpg',
-      type: 'individual',
-      typeLabel: 'Cá nhân',
-      typeBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800',
-      source: 'marketing',
-      sourceLabel: 'Marketing',
-      sourceClass: 'text-purple-600 bg-purple-50 dark:bg-purple-950/30 border-purple-200/60',
-      managerName: 'Lê Thị Hương',
-      managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/customers/client-female-1.jpg',
-      opportunityCount: 1,
-      projectCount: 1,
-      totalValue: 1_500_000_000,
-      totalValueFormatted: '1.50 tỷ',
-      debt: 0,
-      debtFormatted: '0',
-      hasDebt: false,
-      lastInteractionDate: '28/10/2026',
-      status: 'lead',
-      statusLabel: 'Tiềm năng',
-      statusBadgeClass: 'text-blue-700 bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800',
-    },
-    {
-      id: 'cust-003',
-      code: 'KH-000130',
-      name: 'Tập đoàn Hòa Bình',
-      avatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/customers/client-male-1.jpg',
-      type: 'organization',
-      typeLabel: 'Tổ chức',
-      typeBadgeClass: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800',
-      source: 'partner',
-      sourceLabel: 'Đối tác',
-      sourceClass: 'text-cyan-600 bg-cyan-50 dark:bg-cyan-950/30 border-cyan-200/60',
-      managerName: 'Phạm Văn Tuấn',
-      managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg',
-      opportunityCount: 3,
-      projectCount: 5,
-      totalValue: 12_800_000_000,
-      totalValueFormatted: '12.80 tỷ',
-      debt: 2_500_000_000,
-      debtFormatted: '2.50 tỷ',
-      hasDebt: true,
-      lastInteractionDate: '25/10/2026',
-      status: 'negotiating',
-      statusLabel: 'Đang đàm phán',
-      statusBadgeClass: 'text-purple-700 bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800',
-    },
-    {
-      id: 'cust-004',
-      code: 'KH-000131',
-      name: 'Nguyễn Văn Sơn',
-      avatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-2.jpg',
-      type: 'individual',
-      typeLabel: 'Cá nhân',
-      typeBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800',
-      source: 'returning',
-      sourceLabel: 'Khách hàng cũ',
-      sourceClass: 'text-slate-600 bg-slate-100 dark:bg-slate-800 border-slate-200',
-      managerName: 'Nguyễn Thị Mai',
-      managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/customers/client-female-2.jpg',
-      opportunityCount: 1,
-      projectCount: 1,
-      totalValue: 850_000_000,
-      totalValueFormatted: '850 triệu',
-      debt: 0,
-      debtFormatted: '0',
-      hasDebt: false,
-      lastInteractionDate: '24/10/2026',
-      status: 're_engagement',
-      statusLabel: 'Chăm sóc lại',
-      statusBadgeClass: 'text-slate-700 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700',
-    },
-  ],
+  customers: [],
   alerts: [
     {
       id: 'crm-alt-1',
@@ -263,6 +184,7 @@ const INITIAL_CUSTOMER_OVERVIEW: CustomerOverviewResponse = {
 
 export default function CustomersPage() {
   const [data, setData] = useState<CustomerOverviewResponse>(INITIAL_CUSTOMER_OVERVIEW);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -319,10 +241,10 @@ export default function CustomersPage() {
   };
 
   const refreshCustomers = useCallback(async () => {
+    setIsLoading(true);
     try {
       // Use the canonical CRM overview route which includes all customers (including lead-only, no project)
-      const { data: authData } = await supabase.auth.getSession();
-      const token = authData?.session?.access_token;
+      const token = await getAuthToken();
       const authHeaders: Record<string, string> = {};
       if (token) authHeaders['Authorization'] = `Bearer ${token}`;
       const res = await fetch('/api/interior/crm/customers?page=1&limit=200&sortOrder=desc', { headers: authHeaders });
@@ -407,7 +329,11 @@ export default function CustomersPage() {
         try {
           if (typeof window !== 'undefined') {
             const rawLocal = localStorage.getItem('bella_interior_crm_local_customers');
-            if (rawLocal) localExtras = JSON.parse(rawLocal);
+            if (rawLocal) {
+              const parsed: CustomerItem[] = JSON.parse(rawLocal);
+              // Purge legacy mock customer entries (e.g. cust-001..cust-004) from localStorage
+              localExtras = parsed.filter((loc) => loc && loc.id && !loc.id.startsWith('cust-'));
+            }
           }
         } catch {
           // Ignore localStorage errors
@@ -443,6 +369,8 @@ export default function CustomersPage() {
       });
     } catch {
       // Retain current state on network error
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -498,8 +426,7 @@ export default function CustomersPage() {
         assignedStaffId: undefined, // Non-UUID manager string safely preserved in notes
       };
 
-      const { data: authData } = await supabase.auth.getSession();
-      const token = authData?.session?.access_token;
+      const token = await getAuthToken();
       const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) authHeaders['Authorization'] = `Bearer ${token}`;
 
@@ -642,8 +569,7 @@ export default function CustomersPage() {
         ? `${cleanedNotes} | [Lead stage: ${newStatus}]`
         : `[Lead stage: ${newStatus}]`;
 
-      const { data: authData } = await supabase.auth.getSession();
-      const token = authData?.session?.access_token;
+      const token = await getAuthToken();
       const patchHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) patchHeaders['Authorization'] = `Bearer ${token}`;
 
@@ -1241,7 +1167,76 @@ export default function CustomersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                {filteredCustomers.map((cust) => (
+                {isLoading ? (
+                  Array.from({ length: 6 }).map((_, idx) => (
+                    <tr key={`skeleton-row-${idx}`} className="animate-pulse">
+                      {/* KHÁCH HÀNG */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-lg bg-slate-200 dark:bg-slate-700 shrink-0" />
+                          <div className="space-y-1.5">
+                            <div className="w-36 h-3.5 bg-slate-200 dark:bg-slate-700 rounded" />
+                            <div className="w-20 h-2.5 bg-slate-100 dark:bg-slate-800 rounded" />
+                          </div>
+                        </div>
+                      </td>
+                      {/* PHÂN LOẠI */}
+                      <td className="py-3.5 px-3 whitespace-nowrap">
+                        <div className="w-20 h-5 bg-slate-200 dark:bg-slate-700 rounded-full" />
+                      </td>
+                      {/* NGUỒN KHÁCH HÀNG */}
+                      <td className="py-3.5 px-3 whitespace-nowrap">
+                        <div className="w-20 h-5 bg-slate-200 dark:bg-slate-700 rounded-md" />
+                      </td>
+                      {/* NGƯỜI PHỤ TRÁCH */}
+                      <td className="py-3.5 px-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0" />
+                          <div className="w-24 h-3 bg-slate-200 dark:bg-slate-700 rounded" />
+                        </div>
+                      </td>
+                      {/* CƠ HỘI */}
+                      <td className="py-3.5 px-2 text-center">
+                        <div className="w-6 h-4 bg-slate-200 dark:bg-slate-700 rounded mx-auto" />
+                      </td>
+                      {/* SỐ DỰ ÁN */}
+                      <td className="py-3.5 px-2 text-center">
+                        <div className="w-6 h-4 bg-slate-200 dark:bg-slate-700 rounded mx-auto" />
+                      </td>
+                      {/* TỔNG GIÁ TRỊ */}
+                      <td className="py-3.5 px-3">
+                        <div className="w-16 h-4 bg-slate-200 dark:bg-slate-700 rounded" />
+                      </td>
+                      {/* CÔNG NỢ */}
+                      <td className="py-3.5 px-3">
+                        <div className="w-14 h-4 bg-slate-200 dark:bg-slate-700 rounded" />
+                      </td>
+                      {/* LẦN TƯƠNG TÁC */}
+                      <td className="py-3.5 px-3">
+                        <div className="w-20 h-3 bg-slate-200 dark:bg-slate-700 rounded" />
+                      </td>
+                      {/* TRẠNG THÁI */}
+                      <td className="py-3.5 px-3">
+                        <div className="w-24 h-5 bg-slate-200 dark:bg-slate-700 rounded-full" />
+                      </td>
+                      {/* THAO TÁC */}
+                      <td className="py-3.5 px-2 text-center">
+                        <div className="w-6 h-6 bg-slate-200 dark:bg-slate-700 rounded-lg mx-auto" />
+                      </td>
+                    </tr>
+                  ))
+                ) : filteredCustomers.length === 0 ? (
+                  <tr>
+                    <td colSpan={11} className="py-12 text-center text-slate-500 dark:text-slate-400">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Users className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+                        <span className="text-sm font-semibold">Không tìm thấy khách hàng nào</span>
+                        <span className="text-xs text-slate-400">Thử thay đổi bộ lọc hoặc thêm khách hàng mới</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredCustomers.map((cust) => (
                   <tr
                     key={cust.id}
                     onClick={() => handleOpenCustomer360(cust)}
@@ -1394,13 +1389,49 @@ export default function CustomersPage() {
                       </button>
                     </td>
                   </tr>
-                ))}
+                ))
+              )}
               </tbody>
             </table>
           </div>
         ) : (
           <div className="p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredCustomers.map((cust) => (
+            {isLoading ? (
+              Array.from({ length: 6 }).map((_, idx) => (
+                <div
+                  key={`skeleton-grid-${idx}`}
+                  className="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-3 animate-pulse"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-lg bg-slate-200 dark:bg-slate-700 shrink-0" />
+                      <div className="space-y-1.5">
+                        <div className="w-28 h-4 bg-slate-200 dark:bg-slate-700 rounded" />
+                        <div className="w-16 h-3 bg-slate-100 dark:bg-slate-800 rounded" />
+                      </div>
+                    </div>
+                    <div className="w-16 h-5 bg-slate-200 dark:bg-slate-700 rounded-full" />
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                    <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded" />
+                    <div className="w-3/4 h-3 bg-slate-100 dark:bg-slate-800 rounded" />
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div className="w-16 h-3 bg-slate-100 dark:bg-slate-800 rounded" />
+                    <div className="w-20 h-6 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+                  </div>
+                </div>
+              ))
+            ) : filteredCustomers.length === 0 ? (
+              <div className="col-span-full py-12 text-center text-slate-500 dark:text-slate-400">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <Users className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+                  <span className="text-sm font-semibold">Không tìm thấy khách hàng nào</span>
+                  <span className="text-xs text-slate-400">Thử thay đổi bộ lọc hoặc thêm khách hàng mới</span>
+                </div>
+              </div>
+            ) : (
+              filteredCustomers.map((cust) => (
               <div
                 key={cust.id}
                 className="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-3"
@@ -1455,7 +1486,8 @@ export default function CustomersPage() {
                   </div>
                 </div>
               </div>
-            ))}
+            ))
+            )}
           </div>
         )}
       </div>

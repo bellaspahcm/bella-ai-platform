@@ -26,6 +26,23 @@ import {
 import type { Customer360Profile } from '@/products/bella-interior/domain/crm/customer-360.types';
 import { supabase } from '@/lib/supabase-client';
 
+async function getAuthToken(): Promise<string | undefined> {
+  const { data: authData } = await supabase.auth.getSession();
+  let token = authData?.session?.access_token;
+  if (!token && process.env.NODE_ENV === 'development') {
+    try {
+      const { data: signInData } = await supabase.auth.signInWithPassword({
+        email: 'demo.interior@bellaspa.vn',
+        password: 'password123',
+      });
+      token = signInData?.session?.access_token;
+    } catch {
+      // Non-critical fallback
+    }
+  }
+  return token;
+}
+
 interface Customer360ModalProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
@@ -108,14 +125,20 @@ export function Customer360Modal({
       setLoading(true);
       setError(null);
       try {
-        const { data: authData } = await supabase.auth.getSession();
-        const token = authData?.session?.access_token;
+        if (customerId?.startsWith('cust-')) {
+          throw new Error('Dữ liệu khách hàng mẫu không tồn tại trong hệ thống thực tế. Vui lòng chọn khách hàng thực.');
+        }
+
+        const token = await getAuthToken();
         const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
         if (token) authHeaders['Authorization'] = `Bearer ${token}`;
         const res = await fetch(`/api/interior/crm/customers/${encodeURIComponent(customerId!)}`, {
           headers: authHeaders,
         });
         if (!res.ok) {
+          if (res.status === 401) {
+            throw new Error('Phiên đăng nhập đã hết hạn hoặc không có quyền truy cập (Mã lỗi: 401). Vui lòng tải lại trang.');
+          }
           throw new Error(`Không tìm thấy hồ sơ khách hàng (Mã lỗi: ${res.status})`);
         }
         const json = await res.json();
