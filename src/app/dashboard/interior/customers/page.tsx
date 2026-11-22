@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -28,6 +28,13 @@ import {
   PhoneCall,
   UserCheck,
   HeartHandshake,
+  Building2,
+  MapPin,
+  Phone,
+  Mail,
+  Loader2,
+  FileText,
+  User,
 } from 'lucide-react';
 
 import type {
@@ -35,6 +42,7 @@ import type {
   CustomerItem,
   CustomerType,
   CustomerStatus,
+  CustomerSource,
 } from '@/products/bella-interior/domain/customer-overview.types';
 import { Customer360Modal } from './customer-360-modal';
 
@@ -259,10 +267,24 @@ export default function CustomersPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
+
+  // Form Fields for Customer Creation
   const [newCustomerName, setNewCustomerName] = useState('');
   const [newCustomerPhone, setNewCustomerPhone] = useState('');
   const [newCustomerEmail, setNewCustomerEmail] = useState('');
-  const [newCustomerType, setNewCustomerType] = useState('Khách hàng VIP');
+  const [newCustomerType, setNewCustomerType] = useState<'individual' | 'enterprise'>('individual');
+  const [newCustomerTier, setNewCustomerTier] = useState<'standard' | 'silver' | 'gold' | 'vip'>('standard');
+  const [newCustomerLegalName, setNewCustomerLegalName] = useState('');
+  const [newCustomerTaxCode, setNewCustomerTaxCode] = useState('');
+  const [newCustomerAddress, setNewCustomerAddress] = useState('');
+  const [newCustomerCity, setNewCustomerCity] = useState('TP. Hồ Chí Minh');
+  const [newCustomerDistrict, setNewCustomerDistrict] = useState('');
+  const [newCustomerSource, setNewCustomerSource] = useState<CustomerSource>('website');
+  const [newCustomerManager, setNewCustomerManager] = useState('');
+  const [newCustomerStatus, setNewCustomerStatus] = useState<CustomerStatus>('lead');
+  const [newCustomerNotes, setNewCustomerNotes] = useState('');
+  const [isSubmittingCustomer, setIsSubmittingCustomer] = useState(false);
+  const [customerError, setCustomerError] = useState<string | null>(null);
   const [customerSuccessNotice, setCustomerSuccessNotice] = useState<string | null>(null);
 
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
@@ -275,120 +297,248 @@ export default function CustomersPage() {
     setIs360ModalOpen(true);
   };
 
-  const handleAddCustomer = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newCust: CustomerItem = {
-      id: `cust-${Date.now()}`,
-      code: `KH-${Date.now().toString().slice(-4)}`,
-      name: newCustomerName || 'Khách hàng mới',
-      avatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg',
-      type: 'individual',
-      typeLabel: newCustomerType,
-      typeBadgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
-      source: 'website',
-      sourceLabel: 'Website / KTS',
-      sourceClass: 'bg-blue-50 text-blue-700 border-blue-200',
-      managerName: 'KTS. Lê Hoàng Quân',
-      managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg',
-      opportunityCount: 1,
-      projectCount: 1,
-      totalValue: 1_200_000_000,
-      totalValueFormatted: '1.200.000.000 ₫',
-      debt: 0,
-      debtFormatted: '0 ₫',
-      hasDebt: false,
-      lastInteractionDate: 'Vừa xong',
-      status: 'transacting',
-      statusLabel: 'Đang theo dự án',
-      statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    };
-    setData((prev) => ({
-      ...prev,
-      customers: [newCust, ...prev.customers],
-    }));
-    setCustomerSuccessNotice('Thêm khách hàng thành công!');
-    setTimeout(() => {
-      setIsAddCustomerOpen(false);
-      setCustomerSuccessNotice(null);
-      setNewCustomerName('');
-      setNewCustomerPhone('');
-      setNewCustomerEmail('');
-    }, 1000);
+  const resetCustomerForm = () => {
+    setNewCustomerName('');
+    setNewCustomerPhone('');
+    setNewCustomerEmail('');
+    setNewCustomerType('individual');
+    setNewCustomerTier('standard');
+    setNewCustomerLegalName('');
+    setNewCustomerTaxCode('');
+    setNewCustomerAddress('');
+    setNewCustomerCity('TP. Hồ Chí Minh');
+    setNewCustomerDistrict('');
+    setNewCustomerSource('website');
+    setNewCustomerManager('');
+    setNewCustomerStatus('lead');
+    setNewCustomerNotes('');
+    setCustomerError(null);
   };
 
-  // Fetch canonical analytics from server API without bundling server dependencies
-  useEffect(() => {
-    let isMounted = true;
+  const refreshCustomers = useCallback(async () => {
+    try {
+      // Use the canonical CRM overview route which includes all customers (including lead-only, no project)
+      const res = await fetch('/api/interior/crm/customers?page=1&limit=200');
+      if (!res.ok) return;
+      const json = await res.json();
+      // CRM route returns: { success, data: { customers, total, kpis, salesFunnel, growthChart } }
+      const incomingCustomers: unknown[] = json.data?.customers ?? [];
+      if (!Array.isArray(incomingCustomers)) return;
 
-    async function fetchCustomerOverview() {
-      try {
-        const res = await fetch('/api/interior/customers?overview=true');
-        if (res.ok) {
-          const json = await res.json();
-          if (isMounted && json) {
-            const incomingCustomers = json.data?.customers || json.customers;
-            if (Array.isArray(incomingCustomers) && incomingCustomers.length > 0) {
-              setData((prev) => {
-                const mappedCustomers: CustomerItem[] = incomingCustomers.map(
-                  (c: any, idx: number) => {
-                    const fallback = prev.customers.find((df) => df.id === c.id || df.name === c.name);
-                    const avatarFallback =
-                      c.avatar ||
-                      fallback?.avatar ||
-                      'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg';
-                    const managerAvatarFallback =
-                      c.managerAvatar ||
-                      fallback?.managerAvatar ||
-                      'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg';
-                    return {
-                      id: c.id,
-                      code: c.code || fallback?.code || `KH-${String(idx + 1).padStart(3, '0')}`,
-                      name: c.name || fallback?.name || `Khách hàng ${c.id}`,
-                      avatar: avatarFallback,
-                      type: c.type || fallback?.type || 'individual',
-                      typeLabel: c.typeLabel || fallback?.typeLabel || 'Cá nhân',
-                      typeBadgeClass: c.typeBadgeClass || fallback?.typeBadgeClass || 'bg-blue-50 text-blue-700 border-blue-200',
-                      source: c.source || fallback?.source || 'referral',
-                      sourceLabel: c.sourceLabel || fallback?.sourceLabel || 'Giới thiệu',
-                      sourceClass: c.sourceClass || fallback?.sourceClass || 'bg-amber-50 text-amber-700 border-amber-200',
-                      managerName: c.managerName || fallback?.managerName || 'Trần Văn Quản Lý',
-                      managerAvatar: managerAvatarFallback,
-                      opportunityCount: c.opportunityCount || fallback?.opportunityCount || 1,
-                      projectCount: c.projectCount ?? fallback?.projectCount ?? 1,
-                      totalValue: c.totalValue ?? fallback?.totalValue ?? 1_200_000_000,
-                      totalValueFormatted: c.totalValueFormatted || fallback?.totalValueFormatted || '1.200.000.000 ₫',
-                      debt: c.debt ?? fallback?.debt ?? 0,
-                      debtFormatted: c.debtFormatted || fallback?.debtFormatted || '0 ₫',
-                      hasDebt: c.hasDebt ?? fallback?.hasDebt ?? false,
-                      lastInteractionDate: c.lastInteractionDate || fallback?.lastInteractionDate || 'Vừa xong',
-                      status: c.status || fallback?.status || 'transacting',
-                      statusLabel: c.statusLabel || fallback?.statusLabel || 'Đang theo dự án',
-                      statusBadgeClass: c.statusBadgeClass || fallback?.statusBadgeClass || 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                    };
-                  }
-                );
-                return {
-                  ...prev,
-                  kpis: json.data?.kpis || prev.kpis,
-                  salesFunnel: json.data?.salesFunnel || prev.salesFunnel,
-                  growthChart: json.data?.growthChart || prev.growthChart,
-                  customers: mappedCustomers,
-                };
-              });
-            }
+      setData((prev) => {
+        const mappedCustomers: CustomerItem[] = incomingCustomers.map(
+          (c: any, idx: number) => {
+            const fallback = prev.customers.find((df) => df.id === c.id || df.name === c.name);
+            const avatarFallback =
+              c.avatar ||
+              fallback?.avatar ||
+              'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg';
+            const managerAvatarFallback =
+              c.managerAvatar ||
+              fallback?.managerAvatar ||
+              'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg';
+            const sourceMap: Record<string, { label: string; cls: string }> = {
+              referral:  { label: 'Khách hàng cũ giới thiệu', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+              returning: { label: 'Khách hàng quay lại',      cls: 'bg-green-50 text-green-700 border-green-200' },
+              marketing: { label: 'Marketing / Digital',       cls: 'bg-purple-50 text-purple-700 border-purple-200' },
+              partner:   { label: 'Showroom / Đối tác',        cls: 'bg-orange-50 text-orange-700 border-orange-200' },
+              website:   { label: 'Website / KTS',             cls: 'bg-blue-50 text-blue-700 border-blue-200' },
+            };
+            const srcKey = c.source || fallback?.source || 'website';
+            const srcInfo = sourceMap[srcKey] ?? sourceMap['website'];
+            return {
+              id: c.id,
+              code: c.code || fallback?.code || `KH-${String(idx + 1).padStart(3, '0')}`,
+              name: c.name || fallback?.name || `Khách hàng ${c.id}`,
+              avatar: avatarFallback,
+              type: c.type || fallback?.type || 'individual',
+              typeLabel: c.typeLabel || (c.type === 'enterprise' ? 'Doanh nghiệp' : 'Cá nhân'),
+              typeBadgeClass: c.typeBadgeClass || (c.type === 'enterprise' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200'),
+              source: srcKey,
+              sourceLabel: c.sourceLabel || srcInfo.label,
+              sourceClass: c.sourceClass || srcInfo.cls,
+              managerName: c.managerName || fallback?.managerName || 'Trần Văn Quản Lý',
+              managerAvatar: managerAvatarFallback,
+              opportunityCount: c.opportunityCount ?? fallback?.opportunityCount ?? 1,
+              projectCount: c.projectCount ?? fallback?.projectCount ?? 0,
+              totalValue: c.totalValue ?? fallback?.totalValue ?? 0,
+              totalValueFormatted: c.totalValueFormatted || (c.totalValue ? `${Number(c.totalValue).toLocaleString('vi-VN')} ₫` : '0 ₫'),
+              debt: c.debt ?? fallback?.debt ?? 0,
+              debtFormatted: c.debtFormatted || (c.debt ? `${Number(c.debt).toLocaleString('vi-VN')} ₫` : '0 ₫'),
+              hasDebt: c.hasDebt ?? fallback?.hasDebt ?? false,
+              lastInteractionDate: c.lastInteractionDate || fallback?.lastInteractionDate || 'Vừa xong',
+              status: c.status || fallback?.status || 'lead',
+              statusLabel: c.statusLabel || fallback?.statusLabel || 'Khách hàng tiềm năng',
+              statusBadgeClass: c.statusBadgeClass || fallback?.statusBadgeClass || 'bg-blue-50 text-blue-700 border-blue-200',
+            };
           }
-        }
-      } catch {
-        // Retain initial canonical state
-      }
+        );
+        return {
+          ...prev,
+          kpis: json.data?.kpis || prev.kpis,
+          salesFunnel: json.data?.salesFunnel || prev.salesFunnel,
+          growthChart: json.data?.growthChart || prev.growthChart,
+          // If DB returned data, replace; if empty (truly no customers yet), keep optimistic entries
+          customers: mappedCustomers.length > 0 ? mappedCustomers : prev.customers,
+        };
+      });
+    } catch {
+      // Retain current state on network error
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshCustomers();
+  }, [refreshCustomers]);
+
+  const handleAddCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCustomerName.trim()) {
+      setCustomerError('Vui lòng nhập họ và tên khách hàng.');
+      return;
+    }
+    if (!newCustomerPhone.trim()) {
+      setCustomerError('Vui lòng nhập số điện thoại liên hệ.');
+      return;
     }
 
-    fetchCustomerOverview();
+    setIsSubmittingCustomer(true);
+    setCustomerError(null);
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    try {
+      const payload = {
+        name: newCustomerName.trim(),
+        legalName: newCustomerType === 'enterprise' && newCustomerLegalName.trim() ? newCustomerLegalName.trim() : undefined,
+        taxCode: newCustomerType === 'enterprise' && newCustomerTaxCode.trim() ? newCustomerTaxCode.trim() : undefined,
+        type: newCustomerType,
+        tier: newCustomerTier,
+        primaryPhone: newCustomerPhone.trim(),
+        primaryEmail: newCustomerEmail.trim() || undefined,
+        notes: newCustomerNotes.trim() || undefined,
+        fullAddress: newCustomerAddress.trim() || undefined,
+        city: newCustomerCity.trim() || 'TP. Hồ Chí Minh',
+        district: newCustomerDistrict.trim() || undefined,
+        contactName: newCustomerName.trim(),
+        source: newCustomerSource,
+        status: newCustomerStatus,
+        assignedStaffId: newCustomerManager.trim() || undefined,
+      };
+
+      const res = await fetch('/api/interior/crm/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Không thể lưu hồ sơ khách hàng. Vui lòng kiểm tra lại kết nối.');
+      }
+
+      const createdCustomer = json.data;
+
+      // Optimistic update so customer immediately appears in table without waiting
+      const optimisticCustomer: CustomerItem = {
+        id: createdCustomer.id,
+        code: createdCustomer.code || `KH-${Date.now().toString().slice(-4)}`,
+        name: createdCustomer.name,
+        avatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg',
+        type: createdCustomer.type || 'individual',
+        typeLabel: createdCustomer.type === 'enterprise' ? 'Doanh nghiệp' : 'Cá nhân',
+        typeBadgeClass: createdCustomer.type === 'enterprise' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200',
+        source: newCustomerSource,
+        sourceLabel:
+          newCustomerSource === 'referral'
+            ? 'Khách hàng cũ giới thiệu'
+            : newCustomerSource === 'returning'
+            ? 'Khách hàng quay lại'
+            : newCustomerSource === 'marketing'
+            ? 'Marketing / Digital'
+            : newCustomerSource === 'partner'
+            ? 'Showroom / Đối tác'
+            : 'Website / KTS',
+        sourceClass: 'bg-blue-50 text-blue-700 border-blue-200',
+        managerName: newCustomerManager,
+        managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg',
+        opportunityCount: 1,
+        projectCount: 0,
+        totalValue: 0,
+        totalValueFormatted: '0 ₫',
+        debt: 0,
+        debtFormatted: '0 ₫',
+        hasDebt: false,
+        lastInteractionDate: 'Vừa xong',
+        status: createdCustomer.tier === 'vip' ? 'vip' : (newCustomerStatus || 'lead'),
+        statusLabel: createdCustomer.tier === 'vip' ? 'Khách hàng VIP' : (newCustomerStatus === 'negotiating' ? 'Đang đàm phán' : newCustomerStatus === 'transacting' ? 'Đang theo dự án' : newCustomerStatus === 'inactive' ? 'Tạm dừng' : 'Khách hàng tiềm năng'),
+        statusBadgeClass: createdCustomer.tier === 'vip' ? 'bg-purple-50 text-purple-700 border-purple-200' : (newCustomerStatus === 'transacting' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : newCustomerStatus === 'negotiating' ? 'bg-violet-50 text-violet-700 border-violet-200' : newCustomerStatus === 'inactive' ? 'bg-stone-100 text-stone-600 border-stone-300' : 'bg-blue-50 text-blue-700 border-blue-200'),
+      };
+
+      setData((prev) => ({
+        ...prev,
+        customers: [optimisticCustomer, ...prev.customers.filter((c) => c.id !== createdCustomer.id)],
+      }));
+
+      setCustomerSuccessNotice(`Đã lưu khách hàng "${createdCustomer.name}" (${createdCustomer.code}) thành công!`);
+
+      // Refresh from server to ensure perfect synchronization
+      void refreshCustomers();
+
+      setTimeout(() => {
+        setIsAddCustomerOpen(false);
+        setCustomerSuccessNotice(null);
+        resetCustomerForm();
+      }, 900);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Có lỗi xảy ra khi lưu khách hàng.';
+      setCustomerError(msg);
+    } finally {
+      setIsSubmittingCustomer(false);
+    }
+  };
+
+  const handleUpdateCustomerStatus = async (customerId: string, newStatus: CustomerStatus) => {
+    // Optimistic update
+    setData((prev) => ({
+      ...prev,
+      customers: prev.customers.map((c) =>
+        c.id === customerId
+          ? {
+              ...c,
+              status: newStatus,
+              statusLabel:
+                newStatus === 'lead' ? 'Khách hàng tiềm năng'
+                : newStatus === 'negotiating' ? 'Đang đàm phán'
+                : newStatus === 'transacting' ? 'Đang theo dự án'
+                : newStatus === 'vip' ? 'Khách hàng VIP'
+                : newStatus === 'inactive' ? 'Tạm dừng'
+                : newStatus === 're_engagement' ? 'Chăm sóc lại'
+                : 'Đã gộp',
+              statusBadgeClass:
+                newStatus === 'transacting' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : newStatus === 'vip' ? 'bg-purple-50 text-purple-700 border-purple-200'
+                : newStatus === 'negotiating' ? 'bg-violet-50 text-violet-700 border-violet-200'
+                : newStatus === 'inactive' ? 'bg-stone-100 text-stone-600 border-stone-300'
+                : 'bg-blue-50 text-blue-700 border-blue-200',
+            }
+          : c
+      ),
+    }));
+
+    try {
+      await fetch(`/api/interior/crm/customers/${customerId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        // Map CustomerStatus → profileStatus or notes; tier 'vip' maps naturally
+        body: JSON.stringify({
+          tier: newStatus === 'vip' ? 'vip' : undefined,
+          profileStatus: newStatus === 'inactive' ? 'inactive' : 'active',
+          notes: `[Lead stage updated] ${newStatus}`,
+        }),
+      });
+    } catch {
+      // Non-critical: optimistic update already applied; server sync on next refresh
+    }
+  };
 
   const customersList = data.customers;
 
@@ -1082,14 +1232,31 @@ export default function CustomersPage() {
                       {cust.lastInteractionDate}
                     </td>
 
-                    {/* TRẠNG THÁI */}
-                    <td className="py-3.5 px-3 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${cust.statusBadgeClass}`}
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-current inline-block" />
-                        {cust.statusLabel}
-                      </span>
+                    {/* TRẠNG THÁI — interactive lead stage selector */}
+                    <td className="py-3.5 px-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <div className="relative group">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border cursor-pointer select-none ${cust.statusBadgeClass}`}
+                          title="Nhấn để đổi trạng thái lead"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-current inline-block" />
+                          {cust.statusLabel}
+                          <ChevronDown className="w-2.5 h-2.5 ml-0.5 opacity-60" />
+                        </span>
+                        <select
+                          value={cust.status}
+                          onChange={(e) => void handleUpdateCustomerStatus(cust.id, e.target.value as CustomerStatus)}
+                          className="absolute inset-0 w-full opacity-0 cursor-pointer"
+                          aria-label={`Đổi trạng thái của ${cust.name}`}
+                        >
+                          <option value="lead">Khách hàng tiềm năng</option>
+                          <option value="negotiating">Đang đàm phán</option>
+                          <option value="transacting">Đang theo dự án</option>
+                          <option value="re_engagement">Chăm sóc lại</option>
+                          <option value="vip">Khách hàng VIP</option>
+                          <option value="inactive">Tạm dừng</option>
+                        </select>
+                      </div>
                     </td>
 
                     {/* THAO TÁC */}
@@ -1410,93 +1577,355 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      {/* ─── Modal Thêm Khách Hàng ─── */}
+      {/* ─── Modal Thêm Khách Hàng (Interior CRM Full Dossier) ─── */}
       {isAddCustomerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Thêm Khách Hàng Mới (CRM)
-              </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0">
+                  <UserCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Thêm Khách Hàng Mới (Interior CRM)
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Nhập đầy đủ thông tin định danh, liên hệ, công trình và nhu cầu thiết kế để lưu trực tiếp vào cơ sở dữ liệu.
+                  </p>
+                </div>
+              </div>
               <button
                 type="button"
-                onClick={() => setIsAddCustomerOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-semibold p-1"
+                onClick={() => {
+                  if (!isSubmittingCustomer) {
+                    setIsAddCustomerOpen(false);
+                    resetCustomerForm();
+                  }
+                }}
+                disabled={isSubmittingCustomer}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-semibold p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
               >
                 ✕
               </button>
             </div>
 
-            {customerSuccessNotice && (
-              <div className="p-3 rounded-xl text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
-                {customerSuccessNotice}
-              </div>
-            )}
+            {/* Scrollable Form Body */}
+            <form onSubmit={handleAddCustomer} className="flex-1 overflow-y-auto p-6 space-y-5 text-xs">
+              {/* Alert Error */}
+              {customerError && (
+                <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-bold">Không thể lưu khách hàng</div>
+                    <div className="text-[11px] mt-0.5">{customerError}</div>
+                  </div>
+                </div>
+              )}
 
-            <form onSubmit={handleAddCustomer} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Họ và tên khách hàng</label>
-                <input
-                  type="text"
-                  value={newCustomerName}
-                  onChange={(e) => setNewCustomerName(e.target.value)}
-                  placeholder="Ví dụ: Nguyễn Văn Hoàng"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                  required
-                />
+              {/* Alert Success */}
+              {customerSuccessNotice && (
+                <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 flex items-center gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                  <span className="font-semibold">{customerSuccessNotice}</span>
+                </div>
+              )}
+
+              {/* 1. Phân loại & Phân hạng */}
+              <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-3">
+                <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-xs">
+                  <Building2 className="w-3.5 h-3.5 text-orange-600" />
+                  <span>1. Phân loại chủ thể &amp; Phân hạng</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                  <div>
+                    <label className="block text-slate-600 dark:text-slate-400 font-semibold mb-1">
+                      Loại khách hàng <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={newCustomerType}
+                      onChange={(e) => setNewCustomerType(e.target.value as 'individual' | 'enterprise')}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                    >
+                      <option value="individual">Cá nhân (Chủ nhà / Biệt thự / Căn hộ)</option>
+                      <option value="enterprise">Doanh nghiệp / Tổ chức / Chủ đầu tư</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-600 dark:text-slate-400 font-semibold mb-1">
+                      Phân hạng khách hàng
+                    </label>
+                    <select
+                      value={newCustomerTier}
+                      onChange={(e) => setNewCustomerTier(e.target.value as 'standard' | 'silver' | 'gold' | 'vip')}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                    >
+                      <option value="standard">Tiêu chuẩn (Standard)</option>
+                      <option value="silver">Bạc (Silver)</option>
+                      <option value="gold">Vàng (Gold)</option>
+                      <option value="vip">VIP / Thượng lưu</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-600 dark:text-slate-400 font-semibold mb-1">
+                      Nguồn tiếp cận
+                    </label>
+                    <select
+                      value={newCustomerSource}
+                      onChange={(e) => setNewCustomerSource(e.target.value as CustomerSource)}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                    >
+                      <option value="website">Website / KTS giới thiệu</option>
+                      <option value="referral">Khách hàng cũ giới thiệu</option>
+                      <option value="partner">Showroom / Đối tác</option>
+                      <option value="marketing">Marketing / Mạng xã hội</option>
+                      <option value="returning">Khách hàng quay lại</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Số điện thoại liên hệ</label>
-                <input
-                  type="tel"
-                  value={newCustomerPhone}
-                  onChange={(e) => setNewCustomerPhone(e.target.value)}
-                  placeholder="Ví dụ: 0912 345 678"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                  required
-                />
+              {/* 2. Thông tin định danh & Liên hệ */}
+              <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-3">
+                <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-xs">
+                  <User className="w-3.5 h-3.5 text-blue-600" />
+                  <span>2. Thông tin liên hệ &amp; Định danh</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+                  <div>
+                    <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                      Họ và tên khách hàng / Đại diện <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={newCustomerName}
+                        onChange={(e) => setNewCustomerName(e.target.value)}
+                        placeholder="Ví dụ: Bà Lê Hoàng Phương"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                        required
+                      />
+                      <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                      Số điện thoại chính <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="tel"
+                        value={newCustomerPhone}
+                        onChange={(e) => setNewCustomerPhone(e.target.value)}
+                        placeholder="Ví dụ: 0908 123 456"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
+                        required
+                      />
+                      <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                      Email liên hệ
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        value={newCustomerEmail}
+                        onChange={(e) => setNewCustomerEmail(e.target.value)}
+                        placeholder="hoang.phuong@example.com"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
+                      />
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                      Kiến trúc sư phụ trách
+                    </label>
+                    <select
+                      value={newCustomerManager}
+                      onChange={(e) => setNewCustomerManager(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                    >
+                      <option value="">— Chưa phân công KTS —</option>
+                      <option value="KTS. Lê Hoàng Quân">KTS. Lê Hoàng Quân (Chủ trì thiết kế)</option>
+                      <option value="Trần Văn Quản Lý">Trần Văn Quản Lý (Giám sát &amp; Quản trị)</option>
+                      <option value="KTS. Nguyễn Minh Khoa">KTS. Nguyễn Minh Khoa (Nội thất hiện đại)</option>
+                      <option value="KTS. Phạm Thu Hà">KTS. Phạm Thu Hà (Cổ điển &amp; Indochine)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                      Trạng thái lead
+                    </label>
+                    <select
+                      value={newCustomerStatus}
+                      onChange={(e) => setNewCustomerStatus(e.target.value as CustomerStatus)}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                    >
+                      <option value="lead">🔵 Khách hàng tiềm năng (Mới tiếp nhận)</option>
+                      <option value="negotiating">🟣 Khảo sát &amp; Đàm phán phương án</option>
+                      <option value="transacting">🟢 Đã ký hợp đồng &amp; Đang thi công</option>
+                      <option value="re_engagement">🟡 Chăm sóc lại</option>
+                      <option value="vip">⭐ Khách hàng VIP</option>
+                      <option value="inactive">⚪ Tạm dừng / Chưa có nhu cầu</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Doanh nghiệp extra fields */}
+                {newCustomerType === 'enterprise' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2 border-t border-slate-200/60 dark:border-slate-750">
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                        Tên công ty / Doanh nghiệp pháp nhân
+                      </label>
+                      <input
+                        type="text"
+                        value={newCustomerLegalName}
+                        onChange={(e) => setNewCustomerLegalName(e.target.value)}
+                        placeholder="Công ty TNHH Phát triển Đô thị..."
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                        Mã số thuế (MST)
+                      </label>
+                      <input
+                        type="text"
+                        value={newCustomerTaxCode}
+                        onChange={(e) => setNewCustomerTaxCode(e.target.value)}
+                        placeholder="0312345678"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Email</label>
-                <input
-                  type="email"
-                  value={newCustomerEmail}
-                  onChange={(e) => setNewCustomerEmail(e.target.value)}
-                  placeholder="hoang.nguyen@example.com"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                />
+              {/* 3. Địa chỉ công trình / Dự án nội thất */}
+              <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-3">
+                <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-xs">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>3. Địa chỉ công trình &amp; Dự án nội thất</span>
+                </div>
+
+                <div className="space-y-3 pt-1">
+                  <div>
+                    <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                      Địa chỉ chi tiết (Căn hộ / Tòa nhà / Số nhà &amp; Đường)
+                    </label>
+                    <input
+                      type="text"
+                      value={newCustomerAddress}
+                      onChange={(e) => setNewCustomerAddress(e.target.value)}
+                      placeholder="Ví dụ: Căn 18.04, Tháp Aqua 1, Vinhomes Golden River, Số 2 Tôn Đức Thắng"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                        Tỉnh / Thành phố
+                      </label>
+                      <select
+                        value={newCustomerCity}
+                        onChange={(e) => setNewCustomerCity(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                      >
+                        <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                        <option value="Hà Nội">Hà Nội</option>
+                        <option value="Đà Nẵng">Đà Nẵng</option>
+                        <option value="Bình Dương">Bình Dương</option>
+                        <option value="Đồng Nai">Đồng Nai</option>
+                        <option value="Bà Rịa - Vũng Tàu">Bà Rịa - Vũng Tàu</option>
+                        <option value="Khác">Tỉnh thành khác</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                        Quận / Huyện
+                      </label>
+                      <input
+                        type="text"
+                        value={newCustomerDistrict}
+                        onChange={(e) => setNewCustomerDistrict(e.target.value)}
+                        placeholder="Ví dụ: Quận 1, TP. Thủ Đức, Bình Thạnh..."
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Phân loại khách hàng</label>
-                <select
-                  value={newCustomerType}
-                  onChange={(e) => setNewCustomerType(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
-                >
-                  <option value="Khách hàng VIP">Khách hàng VIP</option>
-                  <option value="Tiềm năng cao">Tiềm năng cao</option>
-                  <option value="Đang tư vấn thiết kế">Đang tư vấn thiết kế</option>
-                  <option value="Khách hàng cũ (Giới thiệu)">Khách hàng cũ (Giới thiệu)</option>
-                </select>
+              {/* 4. Nhu cầu & Ghi chú thiết kế */}
+              <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-3">
+                <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-xs">
+                  <FileText className="w-3.5 h-3.5 text-purple-600" />
+                  <span>4. Nhu cầu thiết kế &amp; Ghi chú ban đầu</span>
+                </div>
+
+                <div>
+                  <textarea
+                    rows={3}
+                    value={newCustomerNotes}
+                    onChange={(e) => setNewCustomerNotes(e.target.value)}
+                    placeholder="Ghi chú phong cách thiết kế mong muốn (Hiện đại, Tân cổ điển, Indochine...), diện tích dự kiến, ngân sách dự kiến, thời hạn cần hoàn thiện..."
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  />
+                </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddCustomerOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold shadow-xs transition-colors"
-                >
-                  Lưu Khách Hàng
-                </button>
+              {/* Modal Actions */}
+              <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                <div className="text-[11px] text-slate-400">
+                  <span className="text-red-500">*</span> Các trường bắt buộc nhập
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isSubmittingCustomer) {
+                        setIsAddCustomerOpen(false);
+                        resetCustomerForm();
+                      }
+                    }}
+                    disabled={isSubmittingCustomer}
+                    className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold transition"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingCustomer}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white font-semibold shadow-sm hover:shadow transition-all"
+                  >
+                    {isSubmittingCustomer ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Đang lưu vào hệ thống...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Lưu Khách Hàng</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

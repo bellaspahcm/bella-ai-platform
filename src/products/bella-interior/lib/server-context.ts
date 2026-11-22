@@ -157,7 +157,10 @@ export function requiredInteriorPermission(request: Request, body: JsonRecord | 
   if (/^\/api\/interior\/projects\/[^/]+\/branch$/.test(pathname) && method === 'PATCH') {
     return INTERIOR_PERMISSIONS.branchManage;
   }
-  if (pathname === '/api/interior/customers' && method === 'GET') return INTERIOR_PERMISSIONS.customerRead;
+  if (pathname === '/api/interior/customers') {
+    if (method === 'GET') return INTERIOR_PERMISSIONS.customerRead;
+    if (method === 'POST') return INTERIOR_PERMISSIONS.customerCreate;
+  }
   if (pathname === '/api/interior/crm/customers') {
     if (method === 'GET') return INTERIOR_PERMISSIONS.customerRead;
     if (method === 'POST') return INTERIOR_PERMISSIONS.customerCreate;
