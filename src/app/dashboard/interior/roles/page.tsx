@@ -28,6 +28,7 @@ import {
   UserCheck,
   UserPlus,
   Users,
+  UserX,
   Wrench,
   X,
 } from 'lucide-react';
@@ -120,11 +121,14 @@ type AuditEvent = {
 
 type RevokeTarget = {
   path: string;
+  method?: string;
   body?: Record<string, unknown>;
   title: string;
   userName: string;
   roleOrPermission: string;
   scopeText: string;
+  actionButtonText?: string;
+  actionButtonVariant?: 'danger' | 'primary';
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -573,16 +577,16 @@ export default function InteriorRoleManagementPage() {
     setError(null);
     try {
       await requestApi(revokeConfirmation.path, {
-        method: 'DELETE',
+        method: revokeConfirmation.method ?? 'DELETE',
         ...(revokeConfirmation.body
           ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(revokeConfirmation.body) }
           : {}),
       });
-      setSuccessToast(`Đã thu hồi thành công.`);
+      setSuccessToast(revokeConfirmation.actionButtonText ? `${revokeConfirmation.title} thành công.` : `Đã thu hồi thành công.`);
       setRevokeConfirmation(null);
       await refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Không thể thu hồi quyền.');
+      setError(cause instanceof Error ? cause.message : 'Không thể hoàn thành thao tác.');
     } finally {
       setSaving(false);
     }
@@ -939,10 +943,17 @@ export default function InteriorRoleManagementPage() {
 
                       {/* Cột 4: Trạng thái */}
                       <td className="py-4 px-5 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-medium text-[11px] whitespace-nowrap">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          Đang hoạt động
-                        </span>
+                        {user.status === 'active' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-medium text-[11px] whitespace-nowrap">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            Đang hoạt động
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 font-medium text-[11px] whitespace-nowrap">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                            Đã vô hiệu hóa
+                          </span>
+                        )}
                       </td>
 
                       {/* Cột 5: Thao tác */}
@@ -960,7 +971,7 @@ export default function InteriorRoleManagementPage() {
                           </button>
 
                           {activeActionMenuUserId === user.user_id && (
-                            <div className="absolute right-0 mt-1 w-52 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-30 py-1.5 animate-in fade-in zoom-in-95 duration-100">
+                            <div className="absolute right-0 mt-1 w-56 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-30 py-1.5 animate-in fade-in zoom-in-95 duration-100">
                               <button
                                 onClick={() => {
                                   setSelectedUserId(user.user_id);
@@ -981,6 +992,54 @@ export default function InteriorRoleManagementPage() {
                                 <Eye className="w-3.5 h-3.5 text-blue-600" />
                                 <span>Xem quyền hiệu lực ({user.effective_permissions.length})</span>
                               </button>
+
+                              {(catalog?.can_manage_users || catalog?.is_owner) && (
+                                <div className="border-t border-slate-100 dark:border-slate-800 my-1 pt-1">
+                                  {user.status === 'active' ? (
+                                    <button
+                                      onClick={() => {
+                                        setActiveActionMenuUserId(null);
+                                        setRevokeConfirmation({
+                                          path: `/api/interior/users/${user.user_id}`,
+                                          method: 'PATCH',
+                                          body: { status: 'inactive', reason: 'Vô hiệu hóa bởi Quản trị viên' },
+                                          title: 'Vô hiệu hóa tài khoản',
+                                          userName: user.full_name || user.email,
+                                          roleOrPermission: 'Chuyển sang trạng thái Vô hiệu hóa',
+                                          scopeText: 'Khóa quyền truy cập hệ thống ERP',
+                                          actionButtonText: 'Vô hiệu hóa tài khoản',
+                                          actionButtonVariant: 'danger',
+                                        });
+                                      }}
+                                      className="w-full text-left px-3.5 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-2"
+                                    >
+                                      <UserX className="w-3.5 h-3.5 text-rose-600" />
+                                      <span>Vô hiệu hóa tài khoản</span>
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => {
+                                        setActiveActionMenuUserId(null);
+                                        setRevokeConfirmation({
+                                          path: `/api/interior/users/${user.user_id}`,
+                                          method: 'PATCH',
+                                          body: { status: 'active', reason: 'Kích hoạt lại bởi Quản trị viên' },
+                                          title: 'Kích hoạt lại tài khoản',
+                                          userName: user.full_name || user.email,
+                                          roleOrPermission: 'Chuyển sang trạng thái Đang hoạt động',
+                                          scopeText: 'Khôi phục quyền truy cập hệ thống',
+                                          actionButtonText: 'Kích hoạt lại',
+                                          actionButtonVariant: 'primary',
+                                        });
+                                      }}
+                                      className="w-full text-left px-3.5 py-2 text-xs font-medium text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 flex items-center gap-2"
+                                    >
+                                      <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                      <span>Kích hoạt lại tài khoản</span>
+                                    </button>
+                                  )}
+                                </div>
+                              )}
 
                               {activeAssignments.length > 0 && (
                                 <div className="border-t border-slate-100 dark:border-slate-800 my-1 pt-1">
@@ -1633,10 +1692,14 @@ export default function InteriorRoleManagementPage() {
                 type="button"
                 disabled={saving}
                 onClick={() => void handleExecuteRevoke()}
-                className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs disabled:opacity-50 inline-flex items-center gap-1.5"
+                className={`px-5 py-2 rounded-xl text-white text-xs font-semibold shadow-xs disabled:opacity-50 inline-flex items-center gap-1.5 ${
+                  revokeConfirmation.actionButtonVariant === 'primary'
+                    ? 'bg-emerald-600 hover:bg-emerald-700'
+                    : 'bg-rose-600 hover:bg-rose-700'
+                }`}
               >
                 {saving && <LoaderCircle className="w-3.5 h-3.5 animate-spin" />}
-                <span>Xác nhận thu hồi</span>
+                <span>{revokeConfirmation.actionButtonText ?? 'Xác nhận thu hồi'}</span>
               </button>
             </div>
           </div>
