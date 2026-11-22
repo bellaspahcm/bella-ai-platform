@@ -44,6 +44,7 @@ import type {
   CustomerStatus,
   CustomerSource,
 } from '@/products/bella-interior/domain/customer-overview.types';
+import { supabase } from '@/lib/supabase-client';
 import { Customer360Modal } from './customer-360-modal';
 
 // Canonical initial overview matching domain layer definition exactly
@@ -320,8 +321,17 @@ export default function CustomersPage() {
   const refreshCustomers = useCallback(async () => {
     try {
       // Use the canonical CRM overview route which includes all customers (including lead-only, no project)
-      const res = await fetch('/api/interior/crm/customers?page=1&limit=200&sortOrder=desc');
-      if (!res.ok) return;
+      const { data: authData } = await supabase.auth.getSession();
+      const token = authData?.session?.access_token;
+      const authHeaders: Record<string, string> = {};
+      if (token) authHeaders['Authorization'] = `Bearer ${token}`;
+      const res = await fetch('/api/interior/crm/customers?page=1&limit=200&sortOrder=desc', { headers: authHeaders });
+      if (!res.ok) {
+        if (res.status === 401) {
+          console.warn('[CRM] Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+        }
+        return;
+      }
       const json = await res.json();
       // CRM route returns: { success, data: { customers, total, kpis, salesFunnel, growthChart } }
       const incomingCustomers: unknown[] = json.data?.customers ?? [];
@@ -488,9 +498,14 @@ export default function CustomersPage() {
         assignedStaffId: undefined, // Non-UUID manager string safely preserved in notes
       };
 
+      const { data: authData } = await supabase.auth.getSession();
+      const token = authData?.session?.access_token;
+      const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) authHeaders['Authorization'] = `Bearer ${token}`;
+
       const res = await fetch('/api/interior/crm/customers', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify(payload),
       });
 
@@ -627,9 +642,14 @@ export default function CustomersPage() {
         ? `${cleanedNotes} | [Lead stage: ${newStatus}]`
         : `[Lead stage: ${newStatus}]`;
 
+      const { data: authData } = await supabase.auth.getSession();
+      const token = authData?.session?.access_token;
+      const patchHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) patchHeaders['Authorization'] = `Bearer ${token}`;
+
       await fetch(`/api/interior/crm/customers/${customerId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: patchHeaders,
         body: JSON.stringify({
           status: newStatus,
           tier: newStatus === 'vip' ? 'vip' : undefined,

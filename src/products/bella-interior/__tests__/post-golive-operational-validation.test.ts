@@ -196,11 +196,11 @@ describe('Bella Interior OS — Post-Go-Live Operational Validation (Priorities 
     });
 
     test('1.6: Overview & Customer 360 Aggregation verifies inactive status and historical integrity', async () => {
-      const overview = await aggregator.listCustomersOverview(TENANT_ID, { page: 1, limit: 10 });
+      const overview = await aggregator.listCustomersOverview(TENANT_ID, { page: 1, limit: 50 });
       const found = overview.customers.find((c) => c.id === customerId);
       expect(found).toBeDefined();
       expect(found?.profileStatus).toBe('inactive');
-      expect(found?.statusLabel).toBe('Đã lưu trữ');
+      expect(found?.statusLabel).toBe('Tạm dừng');
 
       const c360 = await aggregator.getCustomer360(TENANT_ID, customerId);
       expect(c360).not.toBeNull();

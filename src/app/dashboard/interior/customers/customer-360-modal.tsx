@@ -24,6 +24,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import type { Customer360Profile } from '@/products/bella-interior/domain/crm/customer-360.types';
+import { supabase } from '@/lib/supabase-client';
 
 interface Customer360ModalProps {
   readonly isOpen: boolean;
@@ -107,7 +108,13 @@ export function Customer360Modal({
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/interior/crm/customers/${encodeURIComponent(customerId!)}`);
+        const { data: authData } = await supabase.auth.getSession();
+        const token = authData?.session?.access_token;
+        const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) authHeaders['Authorization'] = `Bearer ${token}`;
+        const res = await fetch(`/api/interior/crm/customers/${encodeURIComponent(customerId!)}`, {
+          headers: authHeaders,
+        });
         if (!res.ok) {
           throw new Error(`Không tìm thấy hồ sơ khách hàng (Mã lỗi: ${res.status})`);
         }
