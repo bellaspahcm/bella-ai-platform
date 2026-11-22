@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   X,
   User,
@@ -120,64 +120,61 @@ export function Customer360Modal({
   const authTokenRef = useRef<string | undefined>(authToken);
   authTokenRef.current = authToken;
 
+  // Stable fetch function — deps: only setters (stable) + authTokenRef (stable ref)
+  const fetchCustomer360 = useCallback(async (cid: string, signal: AbortSignal) => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (cid.startsWith('cust-')) {
+        throw new Error('Dữ liệu khách hàng mẫu không tồn tại trong hệ thống thực tế. Vui lòng chọn khách hàng thực.');
+      }
+      const token = authTokenRef.current ?? await getAuthToken();
+      const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        authHeaders['Authorization'] = `Bearer ${token}`;
+      } else {
+        console.warn('[Customer360Modal] No auth token available — request may return 401');
+      }
+      const res = await fetch(`/api/interior/crm/customers/${encodeURIComponent(cid)}`, {
+        headers: authHeaders,
+        signal,
+      });
+      if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error('Phiên đăng nhập đã hết hạn hoặc không có quyền truy cập (Mã lỗi: 401). Vui lòng tải lại trang.');
+        }
+        throw new Error(`Không tìm thấy hồ sơ khách hàng (Mã lỗi: ${res.status})`);
+      }
+      const json = await res.json();
+      if (!signal.aborted) {
+        if (json.success && json.data) {
+          setData(json.data);
+        } else {
+          throw new Error(json.error || 'Dữ liệu không hợp lệ');
+        }
+      }
+    } catch (err: unknown) {
+      if (!signal.aborted) {
+        setError(err instanceof Error ? err.message : 'Lỗi tải hồ sơ khách hàng');
+      }
+    } finally {
+      if (!signal.aborted) {
+        setLoading(false);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (!isOpen || !customerId) {
       setData(null);
       setError(null);
       return;
     }
-
-    let isMounted = true;
-    async function fetchCustomer360() {
-      setLoading(true);
-      setError(null);
-      try {
-        if (customerId?.startsWith('cust-')) {
-          throw new Error('Dữ liệu khách hàng mẫu không tồn tại trong hệ thống thực tế. Vui lòng chọn khách hàng thực.');
-        }
-
-        // Use pre-resolved token from parent page (avoids re-auth race), fallback to own resolve
-        const token = authTokenRef.current ?? await getAuthToken();
-        const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (token) {
-          authHeaders['Authorization'] = `Bearer ${token}`;
-        } else {
-          console.warn('[Customer360Modal] No auth token available — request may return 401');
-        }
-        const res = await fetch(`/api/interior/crm/customers/${encodeURIComponent(customerId!)}`, {
-          headers: authHeaders,
-        });
-        if (!res.ok) {
-          if (res.status === 401) {
-            throw new Error('Phiên đăng nhập đã hết hạn hoặc không có quyền truy cập (Mã lỗi: 401). Vui lòng tải lại trang.');
-          }
-          throw new Error(`Không tìm thấy hồ sơ khách hàng (Mã lỗi: ${res.status})`);
-        }
-        const json = await res.json();
-        if (isMounted) {
-          if (json.success && json.data) {
-            setData(json.data);
-          } else {
-            throw new Error(json.error || 'Dữ liệu không hợp lệ');
-          }
-        }
-      } catch (err: unknown) {
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : 'Lỗi tải hồ sơ khách hàng');
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    fetchCustomer360();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [isOpen, customerId]);
+    const controller = new AbortController();
+    fetchCustomer360(customerId, controller.signal);
+    return () => { controller.abort(); };
+  }, [isOpen, customerId, fetchCustomer360]);
 
   if (!isOpen) return null;
 

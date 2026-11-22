@@ -30,6 +30,7 @@ export interface PortfolioProjectItem {
   readonly id: string;
   readonly code: string;
   readonly name: string;
+  readonly customerId?: string;
   readonly customerName: string;
   readonly customerSegment: string;
   readonly leadArchitect: string;
