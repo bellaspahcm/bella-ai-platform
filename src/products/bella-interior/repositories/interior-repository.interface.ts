@@ -145,6 +145,7 @@ export interface IInteriorRepository {
   listHandoverDossiers?(tenantId: string, projectId?: string): Promise<HandoverDossier[]>;
   saveWarrantyCertificate(tenantId: string, certificate: WarrantyCertificate): Promise<void>;
   getWarrantyCertificate(tenantId: string, certificateId: string): Promise<WarrantyCertificate | null>;
+  listWarrantyCertificates?(tenantId: string, projectId?: string): Promise<WarrantyCertificate[]>;
   saveWarrantyTicket(tenantId: string, ticket: WarrantyServiceTicket): Promise<void>;
   listWarrantyTickets(tenantId: string, projectId?: string): Promise<WarrantyServiceTicket[]>;
 }

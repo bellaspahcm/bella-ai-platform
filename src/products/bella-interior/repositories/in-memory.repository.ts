@@ -715,6 +715,19 @@ export class InMemoryInteriorRepository implements IInteriorRepository, IInterio
     return this.warrantyCertificates.get(this.makeKey(tenantId, certificateId)) ?? null;
   }
 
+  async listWarrantyCertificates(tenantId: string, projectId?: string): Promise<WarrantyCertificate[]> {
+    if (!tenantId) throw new TenantIsolationViolationError();
+    const result: WarrantyCertificate[] = [];
+    for (const [key, val] of this.warrantyCertificates.entries()) {
+      if (key.startsWith(`${tenantId}::`)) {
+        if (!projectId || val.projectId === projectId) {
+          result.push(val);
+        }
+      }
+    }
+    return result;
+  }
+
   async saveWarrantyTicket(tenantId: string, ticket: WarrantyServiceTicket): Promise<void> {
     if (ticket.tenantId !== tenantId) throw new TenantIsolationViolationError();
     this.warrantyTickets.set(this.makeKey(tenantId, ticket.id), ticket);

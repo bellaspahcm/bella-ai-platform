@@ -33,7 +33,7 @@ import type {
   CustomerTier,
   CustomerProfileStatus,
 } from '../../domain/crm/customer.types';
-import type { HandoverDossier } from '../../domain/delivery-aftercare/types';
+import type { HandoverDossier, WarrantyCertificate } from '../../domain/delivery-aftercare/types';
 import type {
   Customer360Profile,
   CustomerProjectSummary,
@@ -45,6 +45,7 @@ import type {
   CustomerPunchListSummary,
   CustomerHandoverSummary,
   CustomerWarrantySummary,
+  CustomerWarrantyCertificateSummary,
   CustomerFinancialSummary,
   CustomerTimelineEvent,
   CustomerOverviewQuery,
@@ -214,6 +215,8 @@ export class Customer360AggregatorService {
     const punchListSummaries: CustomerPunchListSummary[] = [];
     const handoverSummaries: CustomerHandoverSummary[] = [];
     const warrantySummaries: CustomerWarrantySummary[] = [];
+    const warrantyCertificateSummaries: CustomerWarrantyCertificateSummary[] = [];
+    const certificateMap = new Map<string, WarrantyCertificate>();
     const timelineEvents: CustomerTimelineEvent[] = [];
 
     // Add Profile creation/update to timeline
@@ -274,6 +277,10 @@ export class Customer360AggregatorService {
       for (const c of contracts) {
         const addenda = await this.interiorRepo.listContractAddenda(tenantId, c.id);
         const contractValue = c.currentContractValue || c.baselineContractValue || 0;
+        const payments = await this.interiorRepo.listPaymentTransactions(tenantId, c.id);
+        const contractPaidAmount = payments.reduce((sum, p) => sum + p.amount, 0);
+        const contractRemainingDebt = Math.max(0, contractValue - contractPaidAmount);
+
         contractSummaries.push({
           id: c.id,
           projectId: project.id,
@@ -282,6 +289,8 @@ export class Customer360AggregatorService {
           title: c.title,
           status: c.status,
           contractValue,
+          paidAmount: contractPaidAmount,
+          remainingDebt: contractRemainingDebt,
           signedDate: c.signedDate,
           addendaCount: addenda.length,
         });
@@ -300,7 +309,6 @@ export class Customer360AggregatorService {
           });
         }
 
-        const payments = await this.interiorRepo.listPaymentTransactions(tenantId, c.id);
         for (const p of payments) {
           paymentSummaries.push({
             id: p.id,
@@ -439,9 +447,44 @@ export class Customer360AggregatorService {
         // Handover dossier query is optional if not yet initialized
       }
 
-      // Aftercare: Warranty Tickets
+      // Aftercare: Warranty Certificates & Service Tickets
+      if (typeof this.interiorRepo.listWarrantyCertificates === 'function') {
+        try {
+          const certs = await this.interiorRepo.listWarrantyCertificates(tenantId, project.id);
+          for (const cert of certs) {
+            certificateMap.set(cert.id, cert);
+            warrantyCertificateSummaries.push({
+              id: cert.id,
+              projectId: project.id,
+              projectName: project.name,
+              certificateNumber: cert.certificateNumber,
+              effectiveDate: cert.effectiveDate,
+              expirationDate: cert.expirationDate,
+              status: 'active',
+              termsSummary: cert.termsSummary,
+              issuedAt: cert.effectiveDate,
+            });
+
+            timelineEvents.push({
+              id: `evt-wcert-${cert.id}`,
+              eventType: 'warranty_certificate_issued',
+              timestamp: toSafeIsoString(cert.effectiveDate),
+              title: `Phát hành Chứng thư Bảo hành: ${cert.certificateNumber}`,
+              description: `Dự án: ${project.name} | Hiệu lực: ${cert.effectiveDate} đến ${cert.expirationDate} | ${cert.termsSummary || ''}`.trim(),
+              status: 'active',
+              projectId: project.id,
+              projectName: project.name,
+              referenceId: cert.certificateNumber,
+            });
+          }
+        } catch {
+          // Optional query
+        }
+      }
+
       const warrantyTickets = await this.interiorRepo.listWarrantyTickets(tenantId, project.id);
       for (const wt of warrantyTickets) {
+        const matchedCert = wt.certificateId ? certificateMap.get(wt.certificateId) : undefined;
         warrantySummaries.push({
           id: wt.id,
           projectId: project.id,
@@ -451,6 +494,10 @@ export class Customer360AggregatorService {
           status: wt.status,
           reportedDate: wt.reportedDate,
           resolvedDate: wt.resolvedDate,
+          certificateId: wt.certificateId,
+          certificateNumber: matchedCert?.certificateNumber,
+          priority: 'standard',
+          description: wt.customerReport,
         });
 
         timelineEvents.push({
@@ -523,6 +570,7 @@ export class Customer360AggregatorService {
       },
       aftercare: {
         warrantyTickets: warrantySummaries,
+        warrantyCertificates: warrantyCertificateSummaries,
       },
       financialSummary,
       timeline: timelineEvents,
