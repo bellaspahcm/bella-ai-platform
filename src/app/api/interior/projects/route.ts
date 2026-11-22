@@ -20,6 +20,13 @@ interface CreateProjectBody {
   name: string;
   code: string;
   clientPartyId: string;
+  customerId?: string;
+  customerName?: string;
+  customerPhone?: string;
+  siteAddress?: string;
+  projectType?: string;
+  targetCompletionDate?: string;
+  leadArchitect?: string;
   description?: string;
   estimatedBudget: number;
   branchId?: string | null;
@@ -103,16 +110,26 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (branchId !== null && !validInteriorUuid(branchId)) {
     return NextResponse.json({ success: false, error: 'INVALID_BRANCH_SCOPE' }, { status: 422 });
   }
+
+  const targetCustomerId = parsed.customerId || parsed.clientPartyId;
+  const targetCustomerName = parsed.customerName || parsed.clientPartyId;
+  const targetCustomerPhone = parsed.customerPhone ?? '';
+  const targetSiteAddress = parsed.siteAddress ?? parsed.description ?? '';
+  const targetProjectType = parsed.projectType ?? 'residential_villa';
+  const targetCompletionDate = parsed.targetCompletionDate
+    ? new Date(parsed.targetCompletionDate).toISOString().slice(0, 10)
+    : new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10);
+
   const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_create_project', {
     p_code: parsed.code,
     p_name: parsed.name,
-    p_customer_id: parsed.clientPartyId,
-    p_customer_name: parsed.clientPartyId,
-    p_customer_phone: '',
-    p_site_address: parsed.description ?? '',
-    p_project_type: 'residential_villa',
+    p_customer_id: targetCustomerId,
+    p_customer_name: targetCustomerName,
+    p_customer_phone: targetCustomerPhone,
+    p_site_address: targetSiteAddress,
+    p_project_type: targetProjectType,
     p_estimated_budget: parsed.estimatedBudget,
-    p_target_completion_date: new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10),
+    p_target_completion_date: targetCompletionDate,
     p_branch_id: branchId,
   });
   if (error) {
@@ -135,7 +152,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     name: parsed.name,
     code: parsed.code,
     status: 'design',
-    clientName: parsed.clientPartyId,
+    customerId: targetCustomerId,
+    customerName: targetCustomerName,
+    clientName: targetCustomerName,
+    customerPhone: targetCustomerPhone,
+    siteAddress: targetSiteAddress,
     contractValue: parsed.estimatedBudget,
     createdAt: now,
   };

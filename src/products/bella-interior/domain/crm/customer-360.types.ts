@@ -23,6 +23,12 @@ import type {
   CustomerTier,
   CustomerProfileStatus,
 } from './customer.types';
+import type {
+  CustomerFinancialSummary as PortfolioFinancialSummary,
+  CustomerSourceDistributionItem,
+  CustomerAlertItem,
+  ActionSuggestion,
+} from '../customer-overview.types';
 
 export interface CustomerProjectSummary {
   readonly id: string;
@@ -251,6 +257,7 @@ export interface CustomerOverviewItem {
   readonly primaryPhone?: string;
   readonly primaryEmail?: string;
   readonly notes?: string;
+  readonly createdAt?: string;
 }
 
 export interface CustomerKPIOverview {
@@ -316,4 +323,8 @@ export interface CustomerOverviewResult {
   readonly kpis: CustomerKPIOverview;
   readonly salesFunnel: CustomerSalesFunnel;
   readonly growthChart: CustomerGrowthChart;
+  readonly financialSummary?: PortfolioFinancialSummary;
+  readonly sourceDistribution?: readonly CustomerSourceDistributionItem[];
+  readonly alerts?: readonly CustomerAlertItem[];
+  readonly actionSuggestion?: ActionSuggestion;
 }

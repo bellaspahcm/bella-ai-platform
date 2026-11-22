@@ -95,25 +95,29 @@ export async function GET(request: Request): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
   const requestedProjectId = searchParams.get('projectId');
 
+  let effectiveProjectId: string | undefined;
   const projectResult = await resolveTenantProject(ctx.supabase, ctx.tenantId, requestedProjectId);
   if (!projectResult.ok) {
     if (projectResult.error === 'AMBIGUOUS_PROJECT_SELECTION') {
-      return NextResponse.json({
-        success: false,
-        error: projectResult.error,
-        message: projectResult.message,
-        availableProjects: projectResult.availableProjects,
-      }, { status: 400 });
+      // If no projectId was explicitly requested (e.g. sidebar navigation / overview),
+      // gracefully resolve to canonical project (INT-2024-001 Villa Sunrise) or first available project
+      const canonicalMatch = projectResult.availableProjects?.find(
+        (p) => p.code === 'INT-2024-001' || p.name.includes('Villa Sunrise')
+      );
+      effectiveProjectId = canonicalMatch?.id || projectResult.availableProjects?.[0]?.id;
     }
-    // If no project found in tenant, return canonical demo overview
-    const overview = await InteriorBOQAnalyticsService.getBOQOverview(ctx.tenantId);
-    return NextResponse.json({ success: true, data: { overview } }, {
-      status: 200,
-      headers: { 'Cache-Control': 'no-store, max-age=0' },
-    });
-  }
 
-  const effectiveProjectId = projectResult.projectId;
+    if (!effectiveProjectId) {
+      // If no project found in tenant, return canonical demo overview
+      const overview = await InteriorBOQAnalyticsService.getBOQOverview(ctx.tenantId);
+      return NextResponse.json({ success: true, data: { overview } }, {
+        status: 200,
+        headers: { 'Cache-Control': 'no-store, max-age=0' },
+      });
+    }
+  } else {
+    effectiveProjectId = projectResult.projectId;
+  }
 
   try {
     const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_read_boqs', {

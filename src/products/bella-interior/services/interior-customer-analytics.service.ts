@@ -194,6 +194,16 @@ export class InteriorCustomerAnalyticsService {
           label: 'Đang giao dịch',
           badgeClass: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800',
         };
+      case 'survey':
+        return {
+          label: 'Khảo sát & tư vấn',
+          badgeClass: 'text-teal-700 bg-teal-50 dark:bg-teal-950/40 border-teal-200 dark:border-teal-800',
+        };
+      case 'quotation':
+        return {
+          label: 'Báo giá đề xuất',
+          badgeClass: 'text-amber-700 bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800',
+        };
       case 'lead':
         return {
           label: 'Tiềm năng',
@@ -203,6 +213,11 @@ export class InteriorCustomerAnalyticsService {
         return {
           label: 'Đang đàm phán',
           badgeClass: 'text-purple-700 bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800',
+        };
+      case 'completed':
+        return {
+          label: 'Đã hoàn thành',
+          badgeClass: 'text-slate-700 bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800',
         };
       case 're_engagement':
         return {

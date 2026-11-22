@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   FolderKanban,
@@ -33,6 +33,9 @@ import {
   MapPin,
   UserCheck,
   Check,
+  Users,
+  Loader2,
+  ExternalLink as ExternalLinkIcon,
 } from 'lucide-react';
 import type {
   PortfolioOverviewResponse,
@@ -246,6 +249,15 @@ const PROJECT_TYPES: Record<string, string> = {
   hospitality: 'Khách sạn / Showroom',
 };
 
+interface CrmCustomerOption {
+  id: string;
+  name: string;
+  code: string;
+  primaryPhone?: string;
+  primaryEmail?: string;
+  status?: string;
+}
+
 export default function ProjectsPage() {
   const [data, setData] = useState<PortfolioOverviewResponse>(INITIAL_PORTFOLIO);
   const [filterStage, setFilterStage] = useState<string>('all');
@@ -262,11 +274,18 @@ export default function ProjectsPage() {
     code: string;
   } | null>(null);
 
+  // CRM Customer Picker state
+  const [selectedCustomer, setSelectedCustomer] = useState<CrmCustomerOption | null>(null);
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [customerSearchResults, setCustomerSearchResults] = useState<CrmCustomerOption[]>([]);
+  const [customerSearchLoading, setCustomerSearchLoading] = useState(false);
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const customerSearchRef = useRef<HTMLDivElement>(null);
+
   const [formData, setFormData] = useState({
     code: 'INT-2026-005',
     name: '',
     projectType: 'residential_villa',
-    customerName: '',
     customerPhone: '',
     siteAddress: '',
     floorArea: 350,
@@ -275,13 +294,64 @@ export default function ProjectsPage() {
     leadArchitect: 'KTS. Hoàng Long',
   });
 
+  // Debounced CRM customer search (cookie-based auth — same-origin request)
+  const searchCustomers = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setCustomerSearchResults([]);
+      setShowCustomerDropdown(false);
+      return;
+    }
+    setCustomerSearchLoading(true);
+    try {
+      const res = await fetch(
+        `/api/interior/crm/customers?search=${encodeURIComponent(query)}&limit=10`,
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      if (!res.ok) return;
+      const json = await res.json();
+      const customers: CrmCustomerOption[] = (json?.data?.customers ?? []).map(
+        (c: Record<string, unknown>) => ({
+          id: typeof c.id === 'string' ? c.id : '',
+          name: typeof c.name === 'string' ? c.name : '',
+          code: typeof c.code === 'string' ? c.code : '',
+          primaryPhone: typeof c.primaryPhone === 'string' ? c.primaryPhone : undefined,
+          primaryEmail: typeof c.primaryEmail === 'string' ? c.primaryEmail : undefined,
+          status: typeof c.status === 'string' ? c.status : undefined,
+        })
+      );
+      setCustomerSearchResults(customers);
+      setShowCustomerDropdown(customers.length > 0);
+    } catch {
+      setCustomerSearchResults([]);
+    } finally {
+      setCustomerSearchLoading(false);
+    }
+  }, []);
+
+  // Trigger debounced search when query changes (skip if customer already selected)
+  useEffect(() => {
+    if (!customerSearchQuery.trim() || selectedCustomer) return;
+    const timer = setTimeout(() => { searchCustomers(customerSearchQuery); }, 300);
+    return () => clearTimeout(timer);
+  }, [customerSearchQuery, searchCustomers, selectedCustomer]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (customerSearchRef.current && !customerSearchRef.current.contains(e.target as Node)) {
+        setShowCustomerDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const openCreateModal = () => {
     const nextNum = (data.projects?.length || 4) + 1;
     setFormData({
       code: `INT-2026-${String(nextNum).padStart(3, '0')}`,
       name: '',
       projectType: 'residential_villa',
-      customerName: '',
       customerPhone: '',
       siteAddress: '',
       floorArea: 350,
@@ -289,6 +359,10 @@ export default function ProjectsPage() {
       targetCompletionDate: '2026-12-31',
       leadArchitect: 'KTS. Hoàng Long',
     });
+    setSelectedCustomer(null);
+    setCustomerSearchQuery('');
+    setCustomerSearchResults([]);
+    setShowCustomerDropdown(false);
     setCreateError(null);
     setCreatedSuccessProject(null);
     setIsCreateModalOpen(true);
@@ -300,8 +374,8 @@ export default function ProjectsPage() {
       setCreateError('Vui lòng nhập tên dự án');
       return;
     }
-    if (!formData.customerName.trim()) {
-      setCreateError('Vui lòng nhập tên khách hàng');
+    if (!selectedCustomer) {
+      setCreateError('Vui lòng chọn khách hàng từ danh sách CRM. Nếu chưa có, hãy tạo khách hàng trước tại trang Quản lý Khách hàng.');
       return;
     }
 
@@ -317,8 +391,14 @@ export default function ProjectsPage() {
         body: JSON.stringify({
           name: formData.name.trim(),
           code: formData.code.trim(),
-          clientPartyId: formData.customerName.trim(),
-          description: formData.siteAddress.trim() || 'Hà Nội / TP.HCM',
+          customerId: selectedCustomer.id,
+          customerName: selectedCustomer.name,
+          clientPartyId: selectedCustomer.id,
+          customerPhone: formData.customerPhone.trim() || selectedCustomer.primaryPhone || '',
+          siteAddress: formData.siteAddress.trim(),
+          projectType: formData.projectType,
+          targetCompletionDate: formData.targetCompletionDate,
+          leadArchitect: formData.leadArchitect,
           estimatedBudget: Number(formData.estimatedBudget) || 850000000,
         }),
       });
@@ -331,7 +411,7 @@ export default function ProjectsPage() {
         id: finalId,
         name: formData.name.trim(),
         code: formData.code.trim(),
-        customerName: formData.customerName.trim(),
+        customerName: selectedCustomer.name,
         customerSegment: PROJECT_TYPES[formData.projectType] || 'Biệt thự cao cấp',
         leadArchitect: formData.leadArchitect,
         leadArchitectAvatar:
@@ -394,7 +474,7 @@ export default function ProjectsPage() {
         id: generatedId,
         name: formData.name.trim(),
         code: formData.code.trim(),
-        customerName: formData.customerName.trim(),
+        customerName: selectedCustomer?.name ?? '',
         customerSegment: PROJECT_TYPES[formData.projectType] || 'Biệt thự cao cấp',
         leadArchitect: formData.leadArchitect,
         leadArchitectAvatar:
@@ -1408,19 +1488,113 @@ export default function ProjectsPage() {
                     />
                   </div>
 
-                  {/* Tên khách hàng */}
-                  <div>
+                  {/* CRM Customer Picker */}
+                  <div className="sm:col-span-2" ref={customerSearchRef}>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Tên khách hàng / Đại diện <span className="text-rose-500">*</span>
+                      Khách hàng CRM <span className="text-rose-500">*</span>
+                      <span className="ml-1.5 font-normal text-slate-400">(Bắt buộc tạo khách hàng trước)</span>
                     </label>
-                    <input
-                      type="text"
-                      placeholder="VD: Ông Nguyễn Văn An"
-                      value={formData.customerName}
-                      onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                      required
-                      className="w-full px-3.5 py-2 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
-                    />
+
+                    {selectedCustomer ? (
+                      /* Selected customer chip */
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
+                        <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+                          {selectedCustomer.name.charAt(0)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-200 truncate">{selectedCustomer.name}</p>
+                          <p className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                            {selectedCustomer.code}
+                            {selectedCustomer.primaryPhone && ` · ${selectedCustomer.primaryPhone}`}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCustomer(null);
+                            setCustomerSearchQuery('');
+                            setFormData({ ...formData, customerPhone: '' });
+                          }}
+                          className="p-1 rounded-lg text-emerald-600 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors flex-shrink-0"
+                          aria-label="Xóa khách hàng đã chọn"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      /* Search input + dropdown */
+                      <div className="relative">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                          {customerSearchLoading && (
+                            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 animate-spin" />
+                          )}
+                          <input
+                            type="text"
+                            placeholder="Tìm kiếm theo tên, mã KH, số điện thoại..."
+                            value={customerSearchQuery}
+                            onChange={(e) => {
+                              setCustomerSearchQuery(e.target.value);
+                              setShowCustomerDropdown(false);
+                            }}
+                            onFocus={() => {
+                              if (customerSearchResults.length > 0) setShowCustomerDropdown(true);
+                            }}
+                            className="w-full pl-9 pr-8 py-2 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400"
+                          />
+                        </div>
+
+                        {showCustomerDropdown && customerSearchResults.length > 0 && (
+                          <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl max-h-56 overflow-y-auto">
+                            {customerSearchResults.map((c) => (
+                              <button
+                                key={c.id}
+                                type="button"
+                                className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors text-left first:rounded-t-xl last:rounded-b-xl"
+                                onClick={() => {
+                                  setSelectedCustomer(c);
+                                  setCustomerSearchQuery('');
+                                  setShowCustomerDropdown(false);
+                                  if (c.primaryPhone) {
+                                    setFormData((prev) => ({ ...prev, customerPhone: c.primaryPhone! }));
+                                  }
+                                }}
+                              >
+                                <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+                                  {c.name.charAt(0)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">{c.name}</p>
+                                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                                    {c.code}
+                                    {c.primaryPhone && ` · ${c.primaryPhone}`}
+                                  </p>
+                                </div>
+                                {c.status === 'active' && (
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 font-semibold flex-shrink-0">Đang hoạt động</span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* No results hint */}
+                        {customerSearchQuery.trim().length >= 2 && !customerSearchLoading && customerSearchResults.length === 0 && (
+                          <div className="mt-1.5 flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                            <Users className="w-3.5 h-3.5" />
+                            <span>Không tìm thấy khách hàng.</span>
+                            <Link
+                              href="/dashboard/interior/customers"
+                              target="_blank"
+                              className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-0.5"
+                            >
+                              Tạo mới tại đây
+                              <ExternalLinkIcon className="w-2.5 h-2.5" />
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Số điện thoại */}

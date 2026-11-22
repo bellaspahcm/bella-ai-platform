@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   X,
   User,
@@ -48,6 +48,8 @@ interface Customer360ModalProps {
   readonly onClose: () => void;
   readonly customerId: string | null;
   readonly initialCustomerName?: string;
+  /** Pre-resolved auth token from the parent page. Avoids re-authenticating on every modal open. */
+  readonly authToken?: string;
 }
 
 function getEventBadge(type: string): { label: string; className: string } | null {
@@ -107,11 +109,55 @@ export function Customer360Modal({
   onClose,
   customerId,
   initialCustomerName,
+  authToken,
 }: Customer360ModalProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'contacts' | 'commercial' | 'execution' | 'timeline'>('overview');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<Customer360Profile | null>(null);
+  // Stable fetch function
+  const fetchCustomer360 = useCallback(async (cid: string, tokenProp: string | undefined, signal: AbortSignal) => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (cid.startsWith('cust-')) {
+        throw new Error('Dữ liệu khách hàng mẫu không tồn tại trong hệ thống thực tế. Vui lòng chọn khách hàng thực.');
+      }
+      const token = tokenProp ?? await getAuthToken();
+      const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        authHeaders['Authorization'] = `Bearer ${token}`;
+      } else {
+        console.warn('[Customer360Modal] No auth token available — request may return 401');
+      }
+      const res = await fetch(`/api/interior/crm/customers/${encodeURIComponent(cid)}`, {
+        headers: authHeaders,
+        signal,
+      });
+      if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error('Phiên đăng nhập đã hết hạn hoặc không có quyền truy cập (Mã lỗi: 401). Vui lòng tải lại trang.');
+        }
+        throw new Error(`Không tìm thấy hồ sơ khách hàng (Mã lỗi: ${res.status})`);
+      }
+      const json = await res.json();
+      if (!signal.aborted) {
+        if (json.success && json.data) {
+          setData(json.data);
+        } else {
+          throw new Error(json.error || 'Dữ liệu không hợp lệ');
+        }
+      }
+    } catch (err: unknown) {
+      if (!signal.aborted) {
+        setError(err instanceof Error ? err.message : 'Lỗi tải hồ sơ khách hàng');
+      }
+    } finally {
+      if (!signal.aborted) {
+        setLoading(false);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!isOpen || !customerId) {
@@ -119,53 +165,12 @@ export function Customer360Modal({
       setError(null);
       return;
     }
-
-    let isMounted = true;
-    async function fetchCustomer360() {
-      setLoading(true);
-      setError(null);
-      try {
-        if (customerId?.startsWith('cust-')) {
-          throw new Error('Dữ liệu khách hàng mẫu không tồn tại trong hệ thống thực tế. Vui lòng chọn khách hàng thực.');
-        }
-
-        const token = await getAuthToken();
-        const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (token) authHeaders['Authorization'] = `Bearer ${token}`;
-        const res = await fetch(`/api/interior/crm/customers/${encodeURIComponent(customerId!)}`, {
-          headers: authHeaders,
-        });
-        if (!res.ok) {
-          if (res.status === 401) {
-            throw new Error('Phiên đăng nhập đã hết hạn hoặc không có quyền truy cập (Mã lỗi: 401). Vui lòng tải lại trang.');
-          }
-          throw new Error(`Không tìm thấy hồ sơ khách hàng (Mã lỗi: ${res.status})`);
-        }
-        const json = await res.json();
-        if (isMounted) {
-          if (json.success && json.data) {
-            setData(json.data);
-          } else {
-            throw new Error(json.error || 'Dữ liệu không hợp lệ');
-          }
-        }
-      } catch (err: unknown) {
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : 'Lỗi tải hồ sơ khách hàng');
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    fetchCustomer360();
-
+    const controller = new AbortController();
+    fetchCustomer360(customerId, authToken, controller.signal);
     return () => {
-      isMounted = false;
+      controller.abort();
     };
-  }, [isOpen, customerId]);
+  }, [isOpen, customerId, authToken, fetchCustomer360]);
 
   if (!isOpen) return null;
 
