@@ -65,6 +65,26 @@ import type {
   UpdateBOQItemInput,
 } from '@/products/bella-interior/domain/boq-overview.types';
 import type { BOQStatus } from '@/products/bella-interior/domain/commercial-costing/types';
+import { supabase } from '@/lib/supabase-client';
+
+const BOQ_STORAGE_KEY = 'bella_interior_boq_data_v2';
+
+async function getAuthToken(): Promise<string | undefined> {
+  const { data: authData } = await supabase.auth.getSession();
+  let token = authData?.session?.access_token;
+  if (!token && process.env.NODE_ENV === 'development') {
+    try {
+      const { data: signInData } = await supabase.auth.signInWithPassword({
+        email: 'demo.interior@bellaspa.vn',
+        password: 'password123',
+      });
+      token = signInData?.session?.access_token;
+    } catch {
+      // Non-critical fallback
+    }
+  }
+  return token;
+}
 
 // Baseline initial state for instant zero-flicker render
 const INITIAL_BOQ_OVERVIEW: BOQOverviewResponse = {
@@ -428,16 +448,37 @@ export default function InteriorBOQPage() {
   const executeBOQAction = async (payload: unknown, successMsg?: string) => {
     setIsSubmitting(true);
     try {
+      const token = await getAuthToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const res = await fetch('/api/interior/boq', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
         throw new Error(json.error || 'Thao tác không thành công');
       }
-      setData(json.data);
+
+      const newOverview = json.data;
+      if (newOverview && typeof newOverview === 'object') {
+        const zoneGroups = newOverview.zoneGroups || newOverview.zones;
+        const normalized = {
+          ...newOverview,
+          zoneGroups: Array.isArray(zoneGroups) ? zoneGroups : [],
+        };
+        setData(normalized);
+        try {
+          localStorage.setItem(BOQ_STORAGE_KEY, JSON.stringify(normalized));
+        } catch {
+          // ignore quota error
+        }
+      }
+
       if (successMsg) {
         showNotification(successMsg, 'success');
       }
@@ -618,6 +659,11 @@ export default function InteriorBOQPage() {
     if (!window.confirm('Khôi phục lại dữ liệu BOQ mẫu ban đầu?')) {
       return;
     }
+    try {
+      localStorage.removeItem(BOQ_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
     await executeBOQAction(
       { action: 'reset' },
       'Đã khôi phục dữ liệu mẫu ban đầu'
@@ -627,20 +673,58 @@ export default function InteriorBOQPage() {
   useEffect(() => {
     let isMounted = true;
 
+    // 1. Restore from localStorage on mount so user immediately sees saved changes on refresh
+    try {
+      const cached = localStorage.getItem(BOQ_STORAGE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === 'object') {
+          const zoneGroups = parsed.zoneGroups || parsed.zones;
+          if (Array.isArray(zoneGroups) && zoneGroups.length > 0) {
+            setData({
+              ...parsed,
+              zoneGroups,
+            });
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    // 2. Fetch server canonical state
     async function fetchBOQData() {
       try {
-        const res = await fetch('/api/interior/boq');
+        const token = await getAuthToken();
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const res = await fetch('/api/interior/boq', { headers });
         if (res.ok) {
           const json = await res.json();
           if (isMounted && json) {
             const incoming = json.data?.overview || json.data?.boq || json.data || json;
-            if (incoming && typeof incoming === 'object' && Array.isArray(incoming.zones)) {
-              setData(incoming);
+            if (incoming && typeof incoming === 'object') {
+              const zoneGroups = incoming.zoneGroups || incoming.zones;
+              if (Array.isArray(zoneGroups) && zoneGroups.length > 0) {
+                const normalized = {
+                  ...incoming,
+                  zoneGroups,
+                };
+                setData(normalized);
+                try {
+                  localStorage.setItem(BOQ_STORAGE_KEY, JSON.stringify(normalized));
+                } catch {
+                  // ignore
+                }
+              }
             }
           }
         }
       } catch {
-        // Retain initial state
+        // Retain initial / cached state
       }
     }
 
