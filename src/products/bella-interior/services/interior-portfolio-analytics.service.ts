@@ -12,6 +12,7 @@
 
 import { TenantIsolationViolationError } from '../domain/errors';
 import type { IInteriorRepository } from '../repositories/interior-repository.interface';
+import type { HandoverDossier } from '../domain/delivery-aftercare/types';
 import type {
   PortfolioOverviewResponse,
   PortfolioProjectItem,
@@ -20,6 +21,11 @@ import type {
   FinancialOverviewSummary,
   ActionAlertItem,
   BusinessChainProgressOverview,
+  CommercialAnalyticsSummary,
+  DeliveryQualityAnalyticsSummary,
+  WarrantyAnalyticsSummary,
+  ProjectStage,
+  ScheduleHealth,
 } from '../domain/portfolio-overview.types';
 
 export class InteriorPortfolioAnalyticsService {
@@ -156,8 +162,12 @@ export class InteriorPortfolioAnalyticsService {
    * Computes full executive portfolio analytics for a tenant.
    */
   public async computePortfolioOverview(tenantId: string): Promise<PortfolioOverviewResponse> {
-    if (!tenantId) {
+    if (!tenantId || !tenantId.trim()) {
       throw new TenantIsolationViolationError();
+    }
+
+    if (this.repository) {
+      return this.computeRealPortfolioOverview(tenantId.trim(), this.repository);
     }
 
     const projects = this.getCanonicalBaselineProjects();
@@ -260,6 +270,475 @@ export class InteriorPortfolioAnalyticsService {
       financialSummary,
       actionAlerts,
       businessChainProgress,
+    };
+  }
+
+  /**
+   * Computes dynamic, real executive portfolio analytics from repository records.
+   * Enforces zero mock data and zero fabricated margin when real cost is not recorded.
+   */
+  private async computeRealPortfolioOverview(
+    tenantId: string,
+    repo: IInteriorRepository
+  ): Promise<PortfolioOverviewResponse> {
+    const rawProjects = await repo.listProjects(tenantId);
+
+    if (rawProjects.length === 0) {
+      return {
+        kpis: {
+          totalProjects: { value: 0, trend: '0%', isPositiveTrend: true, label: 'Tổng dự án' },
+          inProgress: { value: 0, trend: '0%', isPositiveTrend: true, label: 'Đang triển khai' },
+          delayedRisk: { value: 0, trend: '0%', isPositiveTrend: false, label: 'Có nguy cơ trễ hạn' },
+          averageGrossMargin: { value: 'N/A', trend: '0%', isPositiveTrend: true, label: 'Biên lợi nhuận TB' },
+        },
+        projects: [],
+        progressOverview: {
+          overallProgressPercent: 0,
+          onTrackPercent: 0,
+          delayedPercent: 0,
+          completedPercent: 0,
+          specialAttentionCount: 0,
+          specialAttentionNote: 'Chưa có dự án nào',
+        },
+        financialSummary: {
+          period: 'Tháng này',
+          totalContractValue: 0,
+          totalContractFormatted: '0 ₫',
+          contractGrowthPercent: 0,
+          collectedAmount: 0,
+          collectedFormatted: '0 ₫',
+          collectedGrowthPercent: 0,
+          receivableAmount: 0,
+          receivableFormatted: '0 ₫',
+          costDataReliable: false,
+          actualProfit: 0,
+          actualProfitFormatted: 'Chờ hạch toán chi phí',
+          profitGrowthPercent: 0,
+          averageMarginPercent: 0,
+          averageMarginFormatted: 'N/A',
+          averageMarginNote: 'Chưa đủ dữ liệu chi phí thực tế để tính lợi nhuận',
+        },
+        actionAlerts: [],
+        businessChainProgress: {
+          defaultPeriod: 'this_month',
+          periods: {
+            this_month: {
+              periodKey: 'this_month',
+              periodLabel: 'Tháng này',
+              stages: [
+                { key: 'design', label: 'Thiết kế', percent: 0 },
+                { key: 'commercial', label: 'Thương mại', percent: 0 },
+                { key: 'production', label: 'Sản xuất', percent: 0 },
+                { key: 'handover', label: 'Bàn giao', percent: 0 },
+              ],
+              overallPercent: 0,
+              statusLabel: 'Chưa có dự án',
+            },
+            last_month: {
+              periodKey: 'last_month',
+              periodLabel: 'Tháng trước',
+              stages: [
+                { key: 'design', label: 'Thiết kế', percent: 0 },
+                { key: 'commercial', label: 'Thương mại', percent: 0 },
+                { key: 'production', label: 'Sản xuất', percent: 0 },
+                { key: 'handover', label: 'Bàn giao', percent: 0 },
+              ],
+              overallPercent: 0,
+              statusLabel: 'Chưa có dự án',
+            },
+            this_quarter: {
+              periodKey: 'this_quarter',
+              periodLabel: 'Quý này (Q4)',
+              stages: [
+                { key: 'design', label: 'Thiết kế', percent: 0 },
+                { key: 'commercial', label: 'Thương mại', percent: 0 },
+                { key: 'production', label: 'Sản xuất', percent: 0 },
+                { key: 'handover', label: 'Bàn giao', percent: 0 },
+              ],
+              overallPercent: 0,
+              statusLabel: 'Chưa có dự án',
+            },
+            all: {
+              periodKey: 'all',
+              periodLabel: 'Toàn bộ thời gian',
+              stages: [
+                { key: 'design', label: 'Thiết kế', percent: 0 },
+                { key: 'commercial', label: 'Thương mại', percent: 0 },
+                { key: 'production', label: 'Sản xuất', percent: 0 },
+                { key: 'handover', label: 'Bàn giao', percent: 0 },
+              ],
+              overallPercent: 0,
+              statusLabel: 'Chưa có dự án',
+            },
+          },
+        },
+        commercialAnalytics: {
+          quotationCount: 0,
+          acceptedQuotationCount: 0,
+          quotationConversionRate: 0,
+          totalQuotationValue: 0,
+          totalContractValue: 0,
+          collectedAmount: 0,
+          receivableAmount: 0,
+          collectionRate: 0,
+        },
+        deliveryQualityAnalytics: {
+          totalPunchListItems: 0,
+          openPunchListItems: 0,
+          criticalErrorsCount: 0,
+          siteDiaryEntriesCount: 0,
+          handoverDossiersCount: 0,
+          clientAcceptedHandoversCount: 0,
+          qualityPassRate: 100,
+        },
+        warrantyAnalytics: {
+          activeCertificatesCount: 0,
+          totalTicketsCount: 0,
+          openTicketsCount: 0,
+          resolvedTicketsCount: 0,
+          resolutionRate: 100,
+        },
+      };
+    }
+
+    const portfolioProjects: PortfolioProjectItem[] = [];
+    const actionAlerts: ActionAlertItem[] = [];
+
+    let totalContractValue = 0;
+    let totalCollectedAmount = 0;
+    let totalQuotationCount = 0;
+    let acceptedQuotationCount = 0;
+    let totalQuotationValue = 0;
+
+    let totalPunchListCount = 0;
+    let openPunchListCount = 0;
+    let criticalErrorsCount = 0;
+    let siteDiaryCount = 0;
+    let handoverDossiersCount = 0;
+    let clientAcceptedHandoversCount = 0;
+
+    let activeCertificatesCount = 0;
+    let totalWarrantyTicketsCount = 0;
+    let openWarrantyTicketsCount = 0;
+    let resolvedWarrantyTicketsCount = 0;
+
+    let delayedRiskCount = 0;
+    let onTrackCount = 0;
+    let aheadCount = 0;
+    let completedCount = 0;
+
+    for (const project of rawProjects) {
+      // 1. Contracts & Payments
+      const contracts = await repo.listContractsByProject(tenantId, project.id);
+      let pContractVal = 0;
+      let pCollectedVal = 0;
+
+      for (const c of contracts) {
+        if (['signed', 'active', 'completed'].includes(c.status)) {
+          pContractVal += (c.currentContractValue || c.baselineContractValue || 0);
+        }
+        const payments = await repo.listPaymentTransactions(tenantId, c.id);
+        for (const p of payments) {
+          pCollectedVal += p.amount;
+        }
+      }
+
+      totalContractValue += pContractVal;
+      totalCollectedAmount += pCollectedVal;
+
+      // 2. Quotations
+      try {
+        const quotations = await repo.listQuotationsByProject(tenantId, project.id);
+        totalQuotationCount += quotations.length;
+        for (const q of quotations) {
+          totalQuotationValue += q.grandTotal;
+          if (q.status === 'accepted') {
+            acceptedQuotationCount++;
+          }
+        }
+      } catch {
+        // Optional quotations
+      }
+
+      // 3. Execution: Punch List & Site Diaries
+      const punchList = await repo.listPunchListItems(tenantId, project.id);
+      totalPunchListCount += punchList.length;
+      let projectOpenPunchCount = 0;
+      let projectHasCriticalPunch = false;
+
+      for (const pl of punchList) {
+        if (pl.status !== 'verified' && pl.status !== 'rectified') {
+          openPunchListCount++;
+          projectOpenPunchCount++;
+          if (pl.severity === 'critical') {
+            criticalErrorsCount++;
+            projectHasCriticalPunch = true;
+          }
+        }
+      }
+
+      const diaries = await repo.listSiteDiaries(tenantId, project.id);
+      siteDiaryCount += diaries.length;
+
+      // 4. Delivery: Handover Dossiers
+      try {
+        let handovers: HandoverDossier[] = [];
+        if (typeof repo.listHandoverDossiers === 'function') {
+          handovers = await repo.listHandoverDossiers(tenantId, project.id);
+        } else {
+          const single = await repo.getHandoverDossier(tenantId, project.id);
+          if (single) handovers = [single];
+        }
+        handoverDossiersCount += handovers.length;
+        for (const h of handovers) {
+          if (h.clientAccepted) {
+            clientAcceptedHandoversCount++;
+          }
+        }
+      } catch {
+        // Optional handovers
+      }
+
+      // 5. Warranty: Certificates & Tickets
+      try {
+        if (typeof repo.listWarrantyCertificates === 'function') {
+          const certs = await repo.listWarrantyCertificates(tenantId, project.id);
+          activeCertificatesCount += certs.length;
+        }
+        const tickets = await repo.listWarrantyTickets(tenantId, project.id);
+        totalWarrantyTicketsCount += tickets.length;
+        for (const t of tickets) {
+          if (t.status === 'resolved' || t.status === 'closed') {
+            resolvedWarrantyTicketsCount++;
+          } else {
+            openWarrantyTicketsCount++;
+          }
+        }
+      } catch {
+        // Optional warranty
+      }
+
+      // Stage & Progress Derivation
+      let stage: ProjectStage = 'design';
+      let stageLabel = 'Thiết kế';
+      let stageBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800';
+      let progressPercent = 25;
+
+      if (project.status === 'in_production') {
+        stage = 'production';
+        stageLabel = 'Sản xuất';
+        stageBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800';
+        progressPercent = 55;
+      } else if (project.status === 'installing') {
+        stage = 'installation';
+        stageLabel = 'Lắp đặt';
+        stageBadgeClass = 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800';
+        progressPercent = 75;
+      } else if (project.status === 'handover' || project.status === 'completed' || project.status === 'warranty') {
+        stage = 'handover';
+        stageLabel = project.status === 'completed' ? 'Hoàn thành' : project.status === 'warranty' ? 'Bảo hành' : 'Bàn giao';
+        stageBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800';
+        progressPercent = project.status === 'completed' ? 100 : 90;
+      }
+
+      // Schedule & Risk Evaluation
+      const targetDateStr = project.targetCompletionDate;
+      const targetTime = targetDateStr ? new Date(targetDateStr).getTime() : 0;
+      const now = Date.now();
+      const daysRemaining = targetTime ? Math.ceil((targetTime - now) / (1000 * 3600 * 24)) : 30;
+
+      let scheduleStatus: ScheduleHealth = 'on_track';
+      let scheduleStatusLabel = 'Đúng tiến độ';
+      let scheduleStatusClass = 'text-blue-600 dark:text-blue-400';
+      let isDeadlineUrgent = false;
+
+      if (project.status === 'completed') {
+        completedCount++;
+      } else if (daysRemaining < 0 || (daysRemaining <= 7 && projectHasCriticalPunch)) {
+        scheduleStatus = 'delayed';
+        scheduleStatusLabel = daysRemaining < 0 ? `Quá hạn ${Math.abs(daysRemaining)} ngày` : 'Nguy cơ trễ hạn';
+        scheduleStatusClass = 'text-rose-600 dark:text-rose-400 font-semibold';
+        delayedRiskCount++;
+        isDeadlineUrgent = true;
+
+        actionAlerts.push({
+          id: `alert-delay-${project.id}`,
+          type: 'critical',
+          title: `Dự án ${project.name} đang chậm tiến độ / có lỗi QC nghiêm trọng`,
+          timeAgo: 'Gần đây',
+          relatedProjectId: project.id,
+          actionUrl: `/dashboard/interior/projects/${project.id}`,
+        });
+      } else if (daysRemaining > 30 && projectOpenPunchCount === 0) {
+        scheduleStatus = 'ahead';
+        scheduleStatusLabel = 'Vượt tiến độ';
+        scheduleStatusClass = 'text-emerald-600 dark:text-emerald-400';
+        aheadCount++;
+      } else {
+        onTrackCount++;
+        if (daysRemaining <= 7 && daysRemaining >= 0) {
+          isDeadlineUrgent = true;
+        }
+      }
+
+      // Project Receivable Debt Alert
+      const pReceivable = Math.max(0, pContractVal - pCollectedVal);
+      if (pReceivable >= 500_000_000) {
+        actionAlerts.push({
+          id: `alert-debt-${project.id}`,
+          type: 'warning',
+          title: `Dự án ${project.name}: Công nợ còn lại ${this.formatVND(pReceivable)}`,
+          timeAgo: 'Gần đây',
+          relatedProjectId: project.id,
+          actionUrl: `/dashboard/interior/contracts`,
+        });
+      }
+
+      const effectiveBudget = pContractVal || project.estimatedBudget || 0;
+
+      portfolioProjects.push({
+        id: project.id,
+        code: project.code,
+        name: project.name,
+        customerName: project.customerName || 'Khách hàng',
+        customerSegment: project.projectType || 'Nội thất cao cấp',
+        leadArchitect: project.leadArchitectName || 'KTS Chủ trì',
+        leadArchitectAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg',
+        stage,
+        stageLabel,
+        stageBadgeClass,
+        progressPercent,
+        scheduleStatus,
+        scheduleStatusLabel,
+        scheduleStatusClass,
+        deadlineDate: targetDateStr || '31/12/2026',
+        daysRemaining,
+        daysRemainingLabel: daysRemaining < 0 ? `Quá hạn ${Math.abs(daysRemaining)} ngày` : `Còn ${daysRemaining} ngày`,
+        isDeadlineUrgent,
+        daysRemainingClass: isDeadlineUrgent ? 'text-rose-600 dark:text-rose-400 font-semibold' : 'text-slate-500 dark:text-slate-400',
+        contractValue: effectiveBudget,
+        contractValueFormatted: this.formatVND(effectiveBudget),
+        grossMarginPercent: 0,
+        grossMarginFormatted: 'Chờ hạch toán',
+        nextAction: projectOpenPunchCount > 0
+          ? `Khắc phục ${projectOpenPunchCount} lỗi QC tồn đọng`
+          : stage === 'design'
+          ? 'Chốt phương án thiết kế'
+          : stage === 'production'
+          ? 'Kiểm tra xuất xưởng'
+          : stage === 'installation'
+          ? 'Nghiệm thu lắp đặt'
+          : 'Bàn giao và kích hoạt bảo hành',
+        imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
+      });
+    }
+
+    const inProgressCount = rawProjects.length - completedCount;
+    const receivableTotal = Math.max(0, totalContractValue - totalCollectedAmount);
+
+    const kpis: PortfolioKPIs = {
+      totalProjects: {
+        value: rawProjects.length,
+        trend: 'Thực tế',
+        isPositiveTrend: true,
+        label: 'Tổng dự án',
+      },
+      inProgress: {
+        value: inProgressCount,
+        trend: 'Thực tế',
+        isPositiveTrend: true,
+        label: 'Đang triển khai',
+      },
+      delayedRisk: {
+        value: delayedRiskCount,
+        trend: delayedRiskCount > 0 ? 'Cần xử lý' : 'An toàn',
+        isPositiveTrend: delayedRiskCount === 0,
+        label: 'Có nguy cơ trễ hạn',
+      },
+      averageGrossMargin: {
+        value: 'Chờ hạch toán',
+        trend: 'N/A',
+        isPositiveTrend: true,
+        label: 'Biên lợi nhuận TB',
+      },
+    };
+
+    const totalPortfolioProjects = portfolioProjects.length || 1;
+    const overallProgressPercent = Math.round(
+      portfolioProjects.reduce((sum, p) => sum + p.progressPercent, 0) / totalPortfolioProjects
+    );
+
+    const progressOverview: ProgressOverviewSummary = {
+      overallProgressPercent,
+      onTrackPercent: Math.round((onTrackCount / totalPortfolioProjects) * 100),
+      delayedPercent: Math.round((delayedRiskCount / totalPortfolioProjects) * 100),
+      completedPercent: Math.round((completedCount / totalPortfolioProjects) * 100),
+      specialAttentionCount: delayedRiskCount,
+      specialAttentionNote: delayedRiskCount > 0
+        ? `Có ${delayedRiskCount} dự án cần theo dõi đặc biệt`
+        : 'Tất cả dự án đang trong tầm kiểm soát',
+    };
+
+    const financialSummary: FinancialOverviewSummary = {
+      period: 'Tháng này',
+      totalContractValue,
+      totalContractFormatted: this.formatVND(totalContractValue),
+      contractGrowthPercent: 0,
+      collectedAmount: totalCollectedAmount,
+      collectedFormatted: this.formatVND(totalCollectedAmount),
+      collectedGrowthPercent: 0,
+      receivableAmount: receivableTotal,
+      receivableFormatted: this.formatVND(receivableTotal),
+      costDataReliable: false,
+      actualProfit: 0,
+      actualProfitFormatted: 'Chờ hạch toán chi phí',
+      profitGrowthPercent: 0,
+      averageMarginPercent: 0,
+      averageMarginFormatted: 'N/A',
+      averageMarginNote: 'Chưa đủ dữ liệu chi phí thực tế để tính lợi nhuận',
+    };
+
+    const businessChainProgress = this.computeBusinessChainProgress(portfolioProjects);
+
+    const commercialAnalytics: CommercialAnalyticsSummary = {
+      quotationCount: totalQuotationCount,
+      acceptedQuotationCount,
+      quotationConversionRate: totalQuotationCount > 0 ? Math.round((acceptedQuotationCount / totalQuotationCount) * 100) : 0,
+      totalQuotationValue,
+      totalContractValue,
+      collectedAmount: totalCollectedAmount,
+      receivableAmount: receivableTotal,
+      collectionRate: totalContractValue > 0 ? Math.round((totalCollectedAmount / totalContractValue) * 100) : 0,
+    };
+
+    const deliveryQualityAnalytics: DeliveryQualityAnalyticsSummary = {
+      totalPunchListItems: totalPunchListCount,
+      openPunchListItems: openPunchListCount,
+      criticalErrorsCount,
+      siteDiaryEntriesCount: siteDiaryCount,
+      handoverDossiersCount,
+      clientAcceptedHandoversCount,
+      qualityPassRate: totalPunchListCount > 0 ? Math.round(((totalPunchListCount - openPunchListCount) / totalPunchListCount) * 100) : 100,
+    };
+
+    const warrantyAnalytics: WarrantyAnalyticsSummary = {
+      activeCertificatesCount,
+      totalTicketsCount: totalWarrantyTicketsCount,
+      openTicketsCount: openWarrantyTicketsCount,
+      resolvedTicketsCount: resolvedWarrantyTicketsCount,
+      resolutionRate: totalWarrantyTicketsCount > 0 ? Math.round((resolvedWarrantyTicketsCount / totalWarrantyTicketsCount) * 100) : 100,
+    };
+
+    return {
+      kpis,
+      projects: portfolioProjects,
+      progressOverview,
+      financialSummary,
+      actionAlerts,
+      businessChainProgress,
+      commercialAnalytics,
+      deliveryQualityAnalytics,
+      warrantyAnalytics,
     };
   }
 

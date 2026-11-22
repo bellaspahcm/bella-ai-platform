@@ -79,6 +79,36 @@ export interface FinancialOverviewSummary {
   readonly averageMarginPercent: number;
   readonly averageMarginFormatted: string;
   readonly averageMarginNote: string;
+  readonly costDataReliable?: boolean;
+}
+
+export interface CommercialAnalyticsSummary {
+  readonly quotationCount: number;
+  readonly acceptedQuotationCount: number;
+  readonly quotationConversionRate: number;
+  readonly totalQuotationValue: number;
+  readonly totalContractValue: number;
+  readonly collectedAmount: number;
+  readonly receivableAmount: number;
+  readonly collectionRate: number;
+}
+
+export interface DeliveryQualityAnalyticsSummary {
+  readonly totalPunchListItems: number;
+  readonly openPunchListItems: number;
+  readonly criticalErrorsCount: number;
+  readonly siteDiaryEntriesCount: number;
+  readonly handoverDossiersCount: number;
+  readonly clientAcceptedHandoversCount: number;
+  readonly qualityPassRate: number;
+}
+
+export interface WarrantyAnalyticsSummary {
+  readonly activeCertificatesCount: number;
+  readonly totalTicketsCount: number;
+  readonly openTicketsCount: number;
+  readonly resolvedTicketsCount: number;
+  readonly resolutionRate: number;
 }
 
 export interface ActionAlertItem {
@@ -118,4 +148,7 @@ export interface PortfolioOverviewResponse {
   readonly financialSummary: FinancialOverviewSummary;
   readonly actionAlerts: ActionAlertItem[];
   readonly businessChainProgress?: BusinessChainProgressOverview;
+  readonly commercialAnalytics?: CommercialAnalyticsSummary;
+  readonly deliveryQualityAnalytics?: DeliveryQualityAnalyticsSummary;
+  readonly warrantyAnalytics?: WarrantyAnalyticsSummary;
 }
