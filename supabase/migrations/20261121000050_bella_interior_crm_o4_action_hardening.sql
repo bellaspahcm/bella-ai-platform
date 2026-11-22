@@ -386,9 +386,13 @@ REVOKE ALL ON FUNCTION public.interior_execute_customer_merge(UUID,UUID,UUID,TEX
 GRANT EXECUTE ON FUNCTION public.interior_execute_customer_merge(UUID,UUID,UUID,TEXT,UUID) TO authenticated,service_role;
 
 -- Tenant-qualified keys and references prevent cross-tenant parent links in O4.
+-- zero-downtime: allow blocking-index - tenant-qualified unique index on interior_projects product table
 CREATE UNIQUE INDEX IF NOT EXISTS uq_interior_projects_tenant_id_id ON public.interior_projects(tenant_id,id);
+-- zero-downtime: allow blocking-index - tenant-qualified unique index on interior_acceptance_campaigns product table
 CREATE UNIQUE INDEX IF NOT EXISTS uq_interior_acceptance_campaigns_tenant_id_id ON public.interior_acceptance_campaigns(tenant_id,id);
+-- zero-downtime: allow blocking-index - tenant-qualified unique index on interior_acceptance_sessions product table
 CREATE UNIQUE INDEX IF NOT EXISTS uq_interior_acceptance_sessions_tenant_id_id ON public.interior_acceptance_sessions(tenant_id,id);
+-- zero-downtime: allow blocking-index - tenant-qualified unique index on interior_acceptance_notes product table
 CREATE UNIQUE INDEX IF NOT EXISTS uq_interior_acceptance_notes_tenant_id_id ON public.interior_acceptance_notes(tenant_id,id);
 DO $constraints$
 BEGIN
@@ -529,6 +533,7 @@ CREATE TABLE IF NOT EXISTS public.interior_acceptance_approval_audit (
   CONSTRAINT fk_interior_acceptance_approval_audit_session FOREIGN KEY (tenant_id,session_id)
     REFERENCES public.interior_acceptance_sessions(tenant_id,id) ON DELETE RESTRICT
 );
+-- zero-downtime: allow blocking-index - newly created audit table in same migration
 CREATE INDEX IF NOT EXISTS idx_interior_acceptance_approval_audit_session
   ON public.interior_acceptance_approval_audit(tenant_id,session_id,recorded_at DESC);
 ALTER TABLE public.interior_acceptance_approval_audit ENABLE ROW LEVEL SECURITY;
