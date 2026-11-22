@@ -338,19 +338,11 @@ describe('Customer 360 Aggregator Service', () => {
       await interiorRepo.saveProject(TENANT_A, oldProject);
 
       // Perform Merge in repository
-      await customerRepo.recordMerge(TENANT_A, {
-        tenantId: TENANT_A,
+      await customerRepo.mergeAtomically(TENANT_A, {
         sourceCustomerId: sourceCust.id,
         targetCustomerId: targetCust.id,
         actorId: 'admin-user',
         reason: 'Duplicate phone and profile detected',
-        contactsTransferredCount: 0,
-        addressesTransferredCount: 0,
-      });
-
-      // Update source status to merged
-      await customerRepo.update(TENANT_A, sourceCust.id, {
-        profileStatus: 'inactive',
       });
 
       // Now query Customer 360 using OLD Source ID!

@@ -246,12 +246,12 @@ describe('Bella Interior O4-E: End-to-End Acceptance & Handover Lifecycle (E01 -
       })
     ).rejects.toThrow(AcceptanceManagerApprovalPermissionRequiredError);
 
-    // Project Manager with interior:handover:approve approves conditional handover
+    // Project Manager with interior:acceptance:approve approves conditional handover
     const approvedS1 = await acceptanceService.approveSession({
       tenantId: tenantIdA,
       sessionId: session1.id,
       actorId: managerId,
-      actorPermissions: ['interior:handover:approve'],
+      actorPermissions: ['interior:acceptance:approve'],
       decision: 'APPROVED',
       approvalNotes: 'Duyệt bàn giao tạm thời có điều kiện. Tồn đọng xử lý trước ngày 23/11.',
     });
@@ -358,7 +358,7 @@ describe('Bella Interior O4-E: End-to-End Acceptance & Handover Lifecycle (E01 -
         tenantId: tenantIdB,
         sessionId: session1.id,
         actorId: managerId,
-        actorPermissions: ['interior:handover:approve'],
+        actorPermissions: ['interior:acceptance:approve'],
         decision: 'APPROVED',
       })
     ).rejects.toThrow(AcceptanceSessionNotFoundError);

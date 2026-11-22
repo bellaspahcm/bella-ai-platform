@@ -35,6 +35,7 @@ import type {
   BusinessChainPeriodKey,
   BusinessChainProgressOverview,
   BusinessChainPeriodData,
+  PortfolioOverviewResponse,
 } from '@/products/bella-interior/domain/portfolio-overview.types';
 
 interface MockProject {
@@ -263,6 +264,7 @@ const DEFAULT_BUSINESS_CHAIN_PROGRESS: BusinessChainProgressOverview = {
 
 export default function InteriorDashboardPage() {
   const [projects, setProjects] = useState<MockProject[]>(INITIAL_PROJECTS);
+  const [portfolioData, setPortfolioData] = useState<PortfolioOverviewResponse | null>(null);
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedWorkspaceProject, setSelectedWorkspaceProject] = useState<MockProject | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<BusinessChainPeriodKey>('this_month');
@@ -270,45 +272,80 @@ export default function InteriorDashboardPage() {
   const [businessChainOverview, setBusinessChainOverview] = useState<BusinessChainProgressOverview>(DEFAULT_BUSINESS_CHAIN_PROGRESS);
 
   useEffect(() => {
-    // Canonical read through API endpoint without direct DB access
-    fetch('/api/interior/projects')
+    // Canonical real-time read through Portfolio Analytics endpoint
+    fetch('/api/interior/portfolio/analytics')
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.data?.projects && Array.isArray(data.data.projects) && data.data.projects.length > 0) {
-          const merged: MockProject[] = data.data.projects.map((p: Record<string, unknown>, idx: number) => {
-            const pId = typeof p.id === 'string' ? p.id : '';
-            const pCode = typeof p.code === 'string' ? p.code : '';
-            const pName = typeof p.name === 'string' ? p.name : '';
-            const pCustomer = typeof p.customerName === 'string' ? p.customerName : typeof p.clientName === 'string' ? p.clientName : '';
-            const pBudget = typeof p.estimatedBudget === 'number' ? p.estimatedBudget : Number(p.estimatedBudget) || (typeof p.contractValue === 'number' ? p.contractValue : 0);
-            const pArch = typeof p.leadArchitectName === 'string' ? p.leadArchitectName : typeof p.leadArchitect === 'string' ? p.leadArchitect : '';
-            const pStatus = typeof p.status === 'string' ? p.status : 'design';
+      .then((json) => {
+        if (json?.success && json.data) {
+          const overview: PortfolioOverviewResponse = json.data;
+          setPortfolioData(overview);
 
-            const fallback = INITIAL_PROJECTS.find((df) => df.id === pId || df.code === pCode);
-            return {
-              id: pId || fallback?.id || `proj-${idx + 1}`,
-              code: pCode || fallback?.code || `INT-2024-${String(idx + 1).padStart(3, '0')}`,
-              name: pName || fallback?.name || `Dự án nội thất ${pCode || ''}`,
-              customerName: pCustomer || fallback?.customerName || 'Khách hàng',
-              projectType: fallback?.projectType || 'Biệt thự cao cấp',
-              status: (pStatus as MockProject['status']) || fallback?.status || 'design',
-              statusLabel: fallback?.statusLabel || (pStatus === 'production' ? 'Sản xuất' : pStatus === 'installation' ? 'Lắp đặt' : pStatus === 'handover' ? 'Bàn giao' : 'Thiết kế'),
-              statusColor: fallback?.statusColor || 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800/40',
-              contractValue: pBudget || fallback?.contractValue || 0,
-              grossMarginPercent: fallback?.grossMarginPercent ?? 40.0,
-              approvedRevisionNumber: fallback?.approvedRevisionNumber ?? 1,
-              leadArchitect: pArch || fallback?.leadArchitect || 'KTS. Lê Hoàng Sơn',
-              progressPercent: fallback?.progressPercent ?? 50,
-              nextAction: fallback?.nextAction ?? 'Kiểm tra tiến độ',
-              imageUrl: fallback?.imageUrl || 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
-              architectAvatar: fallback?.architectAvatar || 'S',
-              roomsCount: fallback?.roomsCount || 4,
-            };
-          });
-          setProjects(merged);
-        }
-        if (data?.data?.businessChainProgress) {
-          setBusinessChainOverview(data.data.businessChainProgress);
+          if (overview.projects && Array.isArray(overview.projects) && overview.projects.length > 0) {
+            const mapped: MockProject[] = overview.projects.map((p, idx) => ({
+              id: p.id || `proj-${idx + 1}`,
+              code: p.code || `INT-${idx + 1}`,
+              name: p.name,
+              customerName: p.customerName,
+              projectType: p.customerSegment || 'Nội thất cao cấp',
+              status: (p.stage as MockProject['status']) || 'design',
+              statusLabel: p.stageLabel,
+              statusColor: p.stageBadgeClass || 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800/40',
+              contractValue: p.contractValue,
+              grossMarginPercent: p.grossMarginPercent || 0,
+              approvedRevisionNumber: 1,
+              leadArchitect: p.leadArchitect,
+              progressPercent: p.progressPercent,
+              nextAction: p.nextAction,
+              imageUrl: p.imageUrl || 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
+              architectAvatar: p.leadArchitect.slice(0, 1) || 'A',
+              roomsCount: 4,
+            }));
+            setProjects(mapped);
+          }
+
+          if (overview.businessChainProgress) {
+            setBusinessChainOverview(overview.businessChainProgress);
+          }
+        } else {
+          // Fallback to /api/interior/projects
+          fetch('/api/interior/projects')
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+              if (data?.data?.projects && Array.isArray(data.data.projects) && data.data.projects.length > 0) {
+                const merged: MockProject[] = data.data.projects.map((p: Record<string, unknown>, idx: number) => {
+                  const pId = typeof p.id === 'string' ? p.id : '';
+                  const pCode = typeof p.code === 'string' ? p.code : '';
+                  const pName = typeof p.name === 'string' ? p.name : '';
+                  const pCustomer = typeof p.customerName === 'string' ? p.customerName : typeof p.clientName === 'string' ? p.clientName : '';
+                  const pBudget = typeof p.estimatedBudget === 'number' ? p.estimatedBudget : Number(p.estimatedBudget) || (typeof p.contractValue === 'number' ? p.contractValue : 0);
+                  const pArch = typeof p.leadArchitectName === 'string' ? p.leadArchitectName : typeof p.leadArchitect === 'string' ? p.leadArchitect : '';
+                  const pStatus = typeof p.status === 'string' ? p.status : 'design';
+
+                  const fallback = INITIAL_PROJECTS.find((df) => df.id === pId || df.code === pCode);
+                  return {
+                    id: pId || fallback?.id || `proj-${idx + 1}`,
+                    code: pCode || fallback?.code || `INT-2024-${String(idx + 1).padStart(3, '0')}`,
+                    name: pName || fallback?.name || `Dự án nội thất ${pCode || ''}`,
+                    customerName: pCustomer || fallback?.customerName || 'Khách hàng',
+                    projectType: fallback?.projectType || 'Biệt thự cao cấp',
+                    status: (pStatus as MockProject['status']) || fallback?.status || 'design',
+                    statusLabel: fallback?.statusLabel || (pStatus === 'production' ? 'Sản xuất' : pStatus === 'installation' ? 'Lắp đặt' : pStatus === 'handover' ? 'Bàn giao' : 'Thiết kế'),
+                    statusColor: fallback?.statusColor || 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800/40',
+                    contractValue: pBudget || fallback?.contractValue || 0,
+                    grossMarginPercent: fallback?.grossMarginPercent ?? 40.0,
+                    approvedRevisionNumber: fallback?.approvedRevisionNumber ?? 1,
+                    leadArchitect: pArch || fallback?.leadArchitect || 'KTS. Lê Hoàng Sơn',
+                    progressPercent: fallback?.progressPercent ?? 50,
+                    nextAction: fallback?.nextAction ?? 'Kiểm tra tiến độ',
+                    imageUrl: fallback?.imageUrl || 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
+                    architectAvatar: fallback?.architectAvatar || 'S',
+                    roomsCount: fallback?.roomsCount || 4,
+                  };
+                });
+                setProjects(merged);
+              }
+            })
+            .catch(() => {});
         }
       })
       .catch(() => {
@@ -386,7 +423,7 @@ export default function InteriorDashboardPage() {
             </p>
             <div className="flex items-baseline justify-between gap-2 mt-1">
               <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                12
+                {portfolioData ? portfolioData.kpis.inProgress.value : projects.length}
               </span>
               {/* Sparkline Blue SVG */}
               <svg className="w-24 h-8 text-blue-500" viewBox="0 0 100 30" fill="none">
@@ -400,32 +437,32 @@ export default function InteriorDashboardPage() {
             </div>
             <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1 flex items-center gap-1">
               <TrendingUp className="w-3.5 h-3.5" />
-              +1 so với tháng trước
+              {portfolioData?.kpis.inProgress.trend || 'Theo thời gian thực'}
             </p>
           </div>
         </div>
 
-        {/* Card 2: Giá trị hợp đồng */}
+        {/* Card 2: Giá trị hợp đồng, Thực thu & Công nợ */}
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs hover:shadow-xs transition-all relative overflow-hidden flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
               <Coins className="w-5 h-5" />
             </div>
             <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/80 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800/40">
-              Theo hợp đồng
+              Thương mại &amp; Thu tiền
             </span>
           </div>
 
           <div className="mt-4">
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Giá trị hợp đồng
+              Tổng giá trị hợp đồng
             </p>
             <div className="flex items-baseline justify-between gap-2 mt-1">
-              <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                9,28 tỷ
+              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                {portfolioData ? portfolioData.financialSummary.totalContractFormatted : '9,28 tỷ đ'}
               </span>
               {/* Sparkline Amber SVG */}
-              <svg className="w-24 h-8 text-amber-500" viewBox="0 0 100 30" fill="none">
+              <svg className="w-20 h-7 text-amber-500 shrink-0" viewBox="0 0 100 30" fill="none">
                 <path
                   d="M0 28 Q 20 25, 40 18 T 75 14 T 100 5"
                   stroke="currentColor"
@@ -434,10 +471,20 @@ export default function InteriorDashboardPage() {
                 />
               </svg>
             </div>
-            <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold mt-1 flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" />
-              +12% so với tháng trước
-            </p>
+            <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] space-y-0.5">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Đã thu:</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                  {portfolioData ? portfolioData.financialSummary.collectedFormatted : 'Chưa có'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Công nợ:</span>
+                <span className="font-bold text-amber-600 dark:text-amber-400">
+                  {portfolioData ? portfolioData.financialSummary.receivableFormatted : 'Chưa có'}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -448,7 +495,7 @@ export default function InteriorDashboardPage() {
               <AlertTriangle className="w-5 h-5" />
             </div>
             <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/80 dark:bg-rose-950/50 dark:text-rose-400 dark:border-rose-800/40">
-              Cần xử lý
+              Kiểm soát rủi ro
             </span>
           </div>
 
@@ -458,7 +505,7 @@ export default function InteriorDashboardPage() {
             </p>
             <div className="flex items-baseline justify-between gap-2 mt-1">
               <span className="text-3xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
-                2
+                {portfolioData ? portfolioData.kpis.delayedRisk.value : 0}
               </span>
               {/* Sparkline Rose SVG */}
               <svg className="w-24 h-8 text-rose-500" viewBox="0 0 100 30" fill="none">
@@ -472,29 +519,32 @@ export default function InteriorDashboardPage() {
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-1 flex items-center gap-1">
               <TrendingDown className="w-3.5 h-3.5 text-emerald-500" />
-              -1 so với tuần trước
+              {portfolioData?.kpis.delayedRisk.trend || 'Đánh giá tự động theo hạn'}
             </p>
           </div>
         </div>
 
-        {/* Card 4: Công việc chờ duyệt */}
+        {/* Card 4: Chất lượng & Hoàn thiện */}
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs hover:shadow-xs transition-all relative overflow-hidden flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/80 dark:bg-purple-950/50 dark:text-purple-400 dark:border-purple-800/40">
-              Chờ phê duyệt
+              QC &amp; Bàn giao
             </span>
           </div>
 
           <div className="mt-4">
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Công việc chờ duyệt
+              Tồn đọng QC &amp; Cần chú ý
             </p>
             <div className="flex items-baseline justify-between gap-2 mt-1">
               <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                5
+                {portfolioData
+                  ? (portfolioData.deliveryQualityAnalytics?.openPunchListItems ??
+                    portfolioData.progressOverview.specialAttentionCount)
+                  : 0}
               </span>
               {/* Sparkline Purple SVG */}
               <svg className="w-24 h-8 text-purple-500" viewBox="0 0 100 30" fill="none">
@@ -508,7 +558,7 @@ export default function InteriorDashboardPage() {
             </div>
             <p className="text-[11px] text-purple-600 dark:text-purple-400 font-semibold mt-1 flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" />
-              Đang chờ PM ký duyệt
+              {portfolioData?.progressOverview.specialAttentionNote || 'Hạng mục cần xử lý'}
             </p>
           </div>
         </div>
@@ -536,55 +586,112 @@ export default function InteriorDashboardPage() {
           </div>
 
           <div className="space-y-3 pt-1">
-            {URGENT_ITEMS.map((item) => {
-              const matchedProject = projects.find((p) => p.id === item.projectId || p.code === item.projectId);
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    if (matchedProject) {
-                      setSelectedWorkspaceProject(matchedProject);
-                    }
-                  }}
-                  className="p-3.5 rounded-2xl bg-slate-50/70 hover:bg-slate-100/80 dark:bg-slate-800/40 dark:hover:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-3 transition-all group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <img
-                      src={matchedProject?.imageUrl || item.imageUrl}
-                      alt={item.projectName}
-                      className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-1 ring-slate-200 dark:ring-slate-700"
-                    />
-                    <div className="min-w-0 space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${item.tagClass}`}>
-                          {item.tag}
-                        </span>
-                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                          {matchedProject?.name || item.projectName}
+            {portfolioData?.actionAlerts && portfolioData.actionAlerts.length > 0 ? (
+              portfolioData.actionAlerts.map((alert) => {
+                const matchedProject = projects.find((p) => p.id === alert.relatedProjectId || p.code === alert.relatedProjectId);
+                const tag = alert.type === 'critical' ? 'Khẩn cấp' : alert.type === 'warning' ? 'Cảnh báo' : 'Thông tin';
+                const tagClass = alert.type === 'critical'
+                  ? 'bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-900'
+                  : 'bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-900';
+
+                return (
+                  <div
+                    key={alert.id}
+                    onClick={() => {
+                      if (matchedProject) {
+                        setSelectedWorkspaceProject(matchedProject);
+                      }
+                    }}
+                    className="p-3.5 rounded-2xl bg-slate-50/70 hover:bg-slate-100/80 dark:bg-slate-800/40 dark:hover:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-3 transition-all group cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
+                        <AlertTriangle className={`w-5 h-5 ${alert.type === 'critical' ? 'text-rose-500' : 'text-amber-500'}`} />
+                      </div>
+                      <div className="min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${tagClass}`}>
+                            {tag}
+                          </span>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                            {matchedProject?.name || 'Hạng mục nội thất'}
+                          </p>
+                        </div>
+                        <p className="text-[11px] text-slate-600 dark:text-slate-300 truncate">
+                          {alert.title}
                         </p>
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                        {item.taskTitle}
-                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0 text-right">
+                      <span className="text-xs text-slate-400">
+                        {alert.timeAgo}
+                      </span>
+                      {alert.actionUrl && (
+                        <Link
+                          href={alert.actionUrl}
+                          onClick={(e) => e.stopPropagation()}
+                          className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                          title="Mở chi tiết"
+                        >
+                          <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
+                      )}
                     </div>
                   </div>
+                );
+              })
+            ) : (
+              URGENT_ITEMS.map((item) => {
+                const matchedProject = projects.find((p) => p.id === item.projectId || p.code === item.projectId);
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      if (matchedProject) {
+                        setSelectedWorkspaceProject(matchedProject);
+                      }
+                    }}
+                    className="p-3.5 rounded-2xl bg-slate-50/70 hover:bg-slate-100/80 dark:bg-slate-800/40 dark:hover:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-3 transition-all group cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img
+                        src={matchedProject?.imageUrl || item.imageUrl}
+                        alt={item.projectName}
+                        className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-1 ring-slate-200 dark:ring-slate-700"
+                      />
+                      <div className="min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${item.tagClass}`}>
+                            {item.tag}
+                          </span>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                            {matchedProject?.name || item.projectName}
+                          </p>
+                        </div>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                          {item.taskTitle}
+                        </p>
+                      </div>
+                    </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0 text-right">
-                    <span className={`text-xs ${item.timeClass}`}>
-                      {item.dueTime}
-                    </span>
-                    <Link
-                      href={item.actionHref}
-                      onClick={(e) => e.stopPropagation()}
-                      className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-                      title="Mở chi tiết dự án"
-                    >
-                      <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                    </Link>
+                    <div className="flex items-center gap-2 flex-shrink-0 text-right">
+                      <span className={`text-xs ${item.timeClass}`}>
+                        {item.dueTime}
+                      </span>
+                      <Link
+                        href={item.actionHref}
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                        title="Mở chi tiết dự án"
+                      >
+                        <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
 

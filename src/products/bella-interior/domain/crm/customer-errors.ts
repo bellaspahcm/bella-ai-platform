@@ -65,6 +65,27 @@ export class InvalidCustomerDataError extends Error {
   }
 }
 
+export class CustomerPrimaryContactConflictError extends Error {
+  constructor() {
+    super('A customer can have only one primary contact. Switch the existing contact instead of creating another primary contact.');
+    this.name = 'CustomerPrimaryContactConflictError';
+  }
+}
+
+export class CustomerDefaultAddressConflictError extends Error {
+  constructor() {
+    super('A customer can have only one default address. Switch the existing address instead of creating another default address.');
+    this.name = 'CustomerDefaultAddressConflictError';
+  }
+}
+
+export class CustomerMergeRelationshipConflictError extends Error {
+  constructor(relationship: 'primary contact' | 'default address') {
+    super(`Cannot merge customers while both have a ${relationship}; resolve the conflict first.`);
+    this.name = 'CustomerMergeRelationshipConflictError';
+  }
+}
+
 export class CustomerDeleteForbiddenError extends Error {
   constructor(id: string, reason?: string) {
     super(`CUSTOMER_DELETE_FORBIDDEN: Customer ${id} cannot be hard deleted. ${reason ?? 'Set profile_status to inactive or merged instead.'}`);

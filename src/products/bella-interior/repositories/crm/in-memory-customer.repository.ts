@@ -9,7 +9,7 @@
  */
 
 import { randomUUID } from 'crypto';
-import type { ICustomerRepository } from './customer-repository.interface';
+import type { CustomerMergeCommand, ICustomerRepository } from './customer-repository.interface';
 import type {
   CustomerProfile,
   CustomerContact,
@@ -26,8 +26,12 @@ import {
   CustomerNotFoundError,
   DuplicateCustomerCodeError,
   CustomerAlreadyMergedError,
+  CustomerMergeSelfError,
   CustomerMergeCycleDetectedError,
+  CustomerMergeRelationshipConflictError,
   CustomerDeleteForbiddenError,
+  CustomerPrimaryContactConflictError,
+  CustomerDefaultAddressConflictError,
 } from '../../domain/crm/customer-errors';
 
 interface TenantCustomerStore {
@@ -234,12 +238,12 @@ export class InMemoryCustomerRepository implements ICustomerRepository {
       updatedAt: now,
     };
 
-    // If marked primary, unmark other primary contacts for this customer
     if (contact.isPrimary) {
-      for (const existing of store.contacts.values()) {
-        if (existing.customerId === customerId && existing.isPrimary) {
-          store.contacts.set(existing.id, { ...existing, isPrimary: false, updatedAt: now });
-        }
+      const hasPrimary = Array.from(store.contacts.values()).some(
+        (existing) => existing.customerId === customerId && existing.isPrimary
+      );
+      if (hasPrimary) {
+        throw new CustomerPrimaryContactConflictError();
       }
     }
 
@@ -323,10 +327,11 @@ export class InMemoryCustomerRepository implements ICustomerRepository {
     };
 
     if (address.isDefault) {
-      for (const existing of store.addresses.values()) {
-        if (existing.customerId === customerId && existing.isDefault) {
-          store.addresses.set(existing.id, { ...existing, isDefault: false, updatedAt: now });
-        }
+      const hasDefault = Array.from(store.addresses.values()).some(
+        (existing) => existing.customerId === customerId && existing.isDefault
+      );
+      if (hasDefault) {
+        throw new CustomerDefaultAddressConflictError();
       }
     }
 
@@ -393,12 +398,58 @@ export class InMemoryCustomerRepository implements ICustomerRepository {
     return currentId;
   }
 
-  async transferRelationships(
+  async mergeAtomically(
     tenantId: string,
-    sourceCustomerId: string,
-    targetCustomerId: string
-  ): Promise<{ contactsTransferred: number; addressesTransferred: number }> {
+    mergeInput: CustomerMergeCommand
+  ): Promise<{ contactsTransferred: number; addressesTransferred: number; mergeLog: CustomerMergeLog }> {
     const store = this.getStore(tenantId);
+    const sourceCustomerId = mergeInput.sourceCustomerId;
+    const targetCustomerId = mergeInput.targetCustomerId;
+    if (sourceCustomerId === targetCustomerId) throw new CustomerMergeSelfError(sourceCustomerId);
+    const source = store.profiles.get(sourceCustomerId);
+    const target = store.profiles.get(targetCustomerId);
+    if (!source) throw new CustomerNotFoundError(sourceCustomerId);
+    if (!target) throw new CustomerNotFoundError(targetCustomerId);
+    if (source.profileStatus === 'merged') {
+      throw new CustomerAlreadyMergedError(sourceCustomerId, source.mergedIntoId ?? 'unknown');
+    }
+    if (target.profileStatus === 'merged') {
+      throw new CustomerAlreadyMergedError(targetCustomerId, target.mergedIntoId ?? 'unknown');
+    }
+
+    let canonicalTargetId = targetCustomerId;
+    const visited = new Set<string>();
+    while (store.aliases.has(canonicalTargetId)) {
+      if (visited.has(canonicalTargetId)) {
+        throw new CustomerMergeCycleDetectedError(targetCustomerId, canonicalTargetId);
+      }
+      visited.add(canonicalTargetId);
+      canonicalTargetId = store.aliases.get(canonicalTargetId)!.canonicalCustomerId;
+    }
+    if (canonicalTargetId === sourceCustomerId) {
+      throw new CustomerMergeCycleDetectedError(sourceCustomerId, targetCustomerId);
+    }
+
+    const sourceHasPrimary = Array.from(store.contacts.values()).some(
+      (contact) => contact.customerId === sourceCustomerId && contact.isPrimary
+    );
+    const targetHasPrimary = Array.from(store.contacts.values()).some(
+      (contact) => contact.customerId === targetCustomerId && contact.isPrimary
+    );
+    if (sourceHasPrimary && targetHasPrimary) {
+      throw new CustomerMergeRelationshipConflictError('primary contact');
+    }
+
+    const sourceHasDefault = Array.from(store.addresses.values()).some(
+      (address) => address.customerId === sourceCustomerId && address.isDefault
+    );
+    const targetHasDefault = Array.from(store.addresses.values()).some(
+      (address) => address.customerId === targetCustomerId && address.isDefault
+    );
+    if (sourceHasDefault && targetHasDefault) {
+      throw new CustomerMergeRelationshipConflictError('default address');
+    }
+
     const now = new Date().toISOString();
 
     let contactsTransferred = 0;
@@ -407,7 +458,6 @@ export class InMemoryCustomerRepository implements ICustomerRepository {
         store.contacts.set(id, {
           ...contact,
           customerId: targetCustomerId,
-          isPrimary: false,
           updatedAt: now,
         });
         contactsTransferred++;
@@ -420,22 +470,11 @@ export class InMemoryCustomerRepository implements ICustomerRepository {
         store.addresses.set(id, {
           ...address,
           customerId: targetCustomerId,
-          isDefault: false,
           updatedAt: now,
         });
         addressesTransferred++;
       }
     }
-
-    return { contactsTransferred, addressesTransferred };
-  }
-
-  async recordMerge(
-    tenantId: string,
-    mergeInput: Omit<CustomerMergeLog, 'id' | 'mergedAt'>
-  ): Promise<CustomerMergeLog> {
-    const store = this.getStore(tenantId);
-    const now = new Date().toISOString();
 
     const mergeLog: CustomerMergeLog = {
       id: randomUUID(),
@@ -444,8 +483,8 @@ export class InMemoryCustomerRepository implements ICustomerRepository {
       targetCustomerId: mergeInput.targetCustomerId,
       actorId: mergeInput.actorId,
       reason: mergeInput.reason,
-      contactsTransferredCount: mergeInput.contactsTransferredCount,
-      addressesTransferredCount: mergeInput.addressesTransferredCount,
+      contactsTransferredCount: contactsTransferred,
+      addressesTransferredCount: addressesTransferred,
       mergedAt: now,
     };
 
@@ -469,8 +508,14 @@ export class InMemoryCustomerRepository implements ICustomerRepository {
       }
     }
 
+    store.profiles.set(sourceCustomerId, {
+      ...source,
+      profileStatus: 'merged',
+      mergedIntoId: targetCustomerId,
+      updatedAt: now,
+    });
     store.mergeLogs.push(mergeLog);
-    return mergeLog;
+    return { contactsTransferred, addressesTransferred, mergeLog };
   }
 
   async getMergeLogs(tenantId: string, customerId: string): Promise<readonly CustomerMergeLog[]> {

@@ -25,13 +25,16 @@ import type {
   ContactRole,
   AddressType,
 } from '../../domain/crm/customer.types';
-import type { ICustomerRepository } from './customer-repository.interface';
+import type { CustomerMergeCommand, ICustomerRepository } from './customer-repository.interface';
 import {
   TenantIsolationViolationError,
   CustomerNotFoundError,
   CustomerMergeCycleDetectedError,
   DirectFinancialMutationError,
   CustomerDeleteForbiddenError,
+  CustomerPrimaryContactConflictError,
+  CustomerDefaultAddressConflictError,
+  CustomerMergeRelationshipConflictError,
 } from '../../domain/crm/customer-errors';
 
 // Raw Database Row Interfaces
@@ -100,6 +103,16 @@ interface MergeLogRow {
   contacts_transferred_count: number;
   addresses_transferred_count: number;
   merged_at: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isUniqueConstraint(error: unknown, constraint: string): boolean {
+  if (!isRecord(error)) return false;
+  return error.code === '23505' &&
+    [error.message, error.details].some((value) => typeof value === 'string' && value.includes(constraint));
 }
 
 export class SupabaseCustomerRepository implements ICustomerRepository {
@@ -281,7 +294,6 @@ export class SupabaseCustomerRepository implements ICustomerRepository {
       tax_code: input.taxCode ?? null,
       type: input.type ?? 'individual',
       tier: input.tier ?? 'standard',
-      profile_status: 'active',
       primary_phone: input.primaryPhone ?? null,
       primary_email: input.primaryEmail ?? null,
       notes: input.notes ?? null,
@@ -316,9 +328,7 @@ export class SupabaseCustomerRepository implements ICustomerRepository {
       }
     }
 
-    const updatePayload: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
-    };
+    const updatePayload: Record<string, unknown> = {};
 
     if (input.name !== undefined) updatePayload.name = input.name;
     if (input.legalName !== undefined) updatePayload.legal_name = input.legalName;
@@ -330,6 +340,8 @@ export class SupabaseCustomerRepository implements ICustomerRepository {
     if (input.primaryEmail !== undefined) updatePayload.primary_email = input.primaryEmail;
     if (input.notes !== undefined) updatePayload.notes = input.notes;
     if (input.assignedStaffId !== undefined) updatePayload.assigned_staff_id = input.assignedStaffId;
+
+    if (Object.keys(updatePayload).length === 0) return existing;
 
     const { data, error } = await this.client
       .from('interior_customers')
@@ -396,15 +408,6 @@ export class SupabaseCustomerRepository implements ICustomerRepository {
   ): Promise<CustomerContact> {
     this.assertTenant(tenantId);
 
-    // If new contact is primary, un-primary existing contacts for this customer
-    if (input.isPrimary) {
-      await this.client
-        .from('interior_customer_contacts')
-        .update({ is_primary: false, updated_at: new Date().toISOString() })
-        .eq('tenant_id', tenantId)
-        .eq('customer_id', customerId);
-    }
-
     const payload = {
       tenant_id: tenantId,
       customer_id: customerId,
@@ -422,7 +425,12 @@ export class SupabaseCustomerRepository implements ICustomerRepository {
       .select('*')
       .single();
 
-    if (error) throw error;
+    if (error) {
+      if (isUniqueConstraint(error, 'uq_interior_customer_contacts_one_primary')) {
+        throw new CustomerPrimaryContactConflictError();
+      }
+      throw error;
+    }
 
     return this.mapContact(data as ContactRow);
   }
@@ -446,34 +454,41 @@ export class SupabaseCustomerRepository implements ICustomerRepository {
       throw new Error(`Contact ${contactId} not found in tenant ${tenantId}`);
     }
 
-    if (input.isPrimary) {
-      await this.client
-        .from('interior_customer_contacts')
-        .update({ is_primary: false, updated_at: new Date().toISOString() })
-        .eq('tenant_id', tenantId)
-        .eq('customer_id', existing.customer_id);
-    }
-
-    const payload: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
-    };
+    const payload: Record<string, unknown> = {};
     if (input.name !== undefined) payload.name = input.name;
     if (input.role !== undefined) payload.role = input.role;
     if (input.phone !== undefined) payload.phone = input.phone;
     if (input.email !== undefined) payload.email = input.email;
     if (input.position !== undefined) payload.position = input.position;
-    if (input.isPrimary !== undefined) payload.is_primary = input.isPrimary;
+    if (Object.keys(payload).length > 0) {
+      const { error } = await this.client
+        .from('interior_customer_contacts')
+        .update(payload)
+        .eq('tenant_id', tenantId)
+        .eq('id', contactId);
+      if (error) throw error;
+    }
+
+    if (input.isPrimary === true || (input.isPrimary === false && (existing as ContactRow).is_primary)) {
+      const { error } = await this.client.rpc('interior_set_primary_contact', {
+        p_customer_id: existing.customer_id,
+        p_contact_id: input.isPrimary ? contactId : null,
+      });
+      if (error) {
+        if (isUniqueConstraint(error, 'uq_interior_customer_contacts_one_primary')) {
+          throw new CustomerPrimaryContactConflictError();
+        }
+        throw error;
+      }
+    }
 
     const { data, error } = await this.client
       .from('interior_customer_contacts')
-      .update(payload)
+      .select('*')
       .eq('tenant_id', tenantId)
       .eq('id', contactId)
-      .select('*')
       .single();
-
     if (error) throw error;
-
     return this.mapContact(data as ContactRow);
   }
 
@@ -514,14 +529,6 @@ export class SupabaseCustomerRepository implements ICustomerRepository {
   ): Promise<CustomerAddress> {
     this.assertTenant(tenantId);
 
-    if (input.isDefault) {
-      await this.client
-        .from('interior_customer_addresses')
-        .update({ is_default: false, updated_at: new Date().toISOString() })
-        .eq('tenant_id', tenantId)
-        .eq('customer_id', customerId);
-    }
-
     const payload = {
       tenant_id: tenantId,
       customer_id: customerId,
@@ -539,7 +546,12 @@ export class SupabaseCustomerRepository implements ICustomerRepository {
       .select('*')
       .single();
 
-    if (error) throw error;
+    if (error) {
+      if (isUniqueConstraint(error, 'uq_interior_customer_addresses_one_default')) {
+        throw new CustomerDefaultAddressConflictError();
+      }
+      throw error;
+    }
 
     return this.mapAddress(data as AddressRow);
   }
@@ -563,34 +575,41 @@ export class SupabaseCustomerRepository implements ICustomerRepository {
       throw new Error(`Address ${addressId} not found in tenant ${tenantId}`);
     }
 
-    if (input.isDefault) {
-      await this.client
-        .from('interior_customer_addresses')
-        .update({ is_default: false, updated_at: new Date().toISOString() })
-        .eq('tenant_id', tenantId)
-        .eq('customer_id', existing.customer_id);
-    }
-
-    const payload: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
-    };
+    const payload: Record<string, unknown> = {};
     if (input.addressType !== undefined) payload.address_type = input.addressType;
     if (input.fullAddress !== undefined) payload.full_address = input.fullAddress;
     if (input.ward !== undefined) payload.ward = input.ward;
     if (input.district !== undefined) payload.district = input.district;
     if (input.city !== undefined) payload.city = input.city;
-    if (input.isDefault !== undefined) payload.is_default = input.isDefault;
+    if (Object.keys(payload).length > 0) {
+      const { error } = await this.client
+        .from('interior_customer_addresses')
+        .update(payload)
+        .eq('tenant_id', tenantId)
+        .eq('id', addressId);
+      if (error) throw error;
+    }
+
+    if (input.isDefault === true || (input.isDefault === false && (existing as AddressRow).is_default)) {
+      const { error } = await this.client.rpc('interior_set_default_address', {
+        p_customer_id: existing.customer_id,
+        p_address_id: input.isDefault ? addressId : null,
+      });
+      if (error) {
+        if (isUniqueConstraint(error, 'uq_interior_customer_addresses_one_default')) {
+          throw new CustomerDefaultAddressConflictError();
+        }
+        throw error;
+      }
+    }
 
     const { data, error } = await this.client
       .from('interior_customer_addresses')
-      .update(payload)
+      .select('*')
       .eq('tenant_id', tenantId)
       .eq('id', addressId)
-      .select('*')
       .single();
-
     if (error) throw error;
-
     return this.mapAddress(data as AddressRow);
   }
 
@@ -637,62 +656,37 @@ export class SupabaseCustomerRepository implements ICustomerRepository {
     return current;
   }
 
-  async transferRelationships(
+  async mergeAtomically(
     tenantId: string,
-    sourceCustomerId: string,
-    targetCustomerId: string
-  ): Promise<{ contactsTransferred: number; addressesTransferred: number }> {
+    merge: CustomerMergeCommand
+  ): Promise<{ contactsTransferred: number; addressesTransferred: number; mergeLog: CustomerMergeLog }> {
     this.assertTenant(tenantId);
-
-    // Reassign contacts
-    const { count: contactsCount, error: cErr } = await this.client
-      .from('interior_customer_contacts')
-      .update({ customer_id: targetCustomerId, updated_at: new Date().toISOString() }, { count: 'exact' })
-      .eq('tenant_id', tenantId)
-      .eq('customer_id', sourceCustomerId);
-
-    if (cErr) throw cErr;
-
-    // Reassign addresses
-    const { count: addressesCount, error: aErr } = await this.client
-      .from('interior_customer_addresses')
-      .update({ customer_id: targetCustomerId, updated_at: new Date().toISOString() }, { count: 'exact' })
-      .eq('tenant_id', tenantId)
-      .eq('customer_id', sourceCustomerId);
-
-    if (aErr) throw aErr;
+    const { data, error } = await this.client.rpc('interior_execute_customer_merge', {
+      p_tenant_id: tenantId,
+      p_source_customer_id: merge.sourceCustomerId,
+      p_target_customer_id: merge.targetCustomerId,
+      p_reason: merge.reason,
+      p_actor_id: merge.actorId,
+    });
+    if (error) {
+      if (error.message?.includes('CUSTOMER_MERGE_PRIMARY_CONTACT_CONFLICT')) {
+        throw new CustomerMergeRelationshipConflictError('primary contact');
+      }
+      if (error.message?.includes('CUSTOMER_MERGE_DEFAULT_ADDRESS_CONFLICT')) {
+        throw new CustomerMergeRelationshipConflictError('default address');
+      }
+      throw error;
+    }
+    if (!isRecord(data) || data.success !== true || !isRecord(data.mergeLog) ||
+        typeof data.contactsTransferred !== 'number' || typeof data.addressesTransferred !== 'number') {
+      throw new Error('CUSTOMER_MERGE_RPC_RETURNED_INVALID_RESULT');
+    }
 
     return {
-      contactsTransferred: contactsCount ?? 0,
-      addressesTransferred: addressesCount ?? 0,
+      contactsTransferred: data.contactsTransferred,
+      addressesTransferred: data.addressesTransferred,
+      mergeLog: this.mapMergeLog(data.mergeLog as unknown as MergeLogRow),
     };
-  }
-
-  async recordMerge(
-    tenantId: string,
-    mergeLog: Omit<CustomerMergeLog, 'id' | 'mergedAt'>
-  ): Promise<CustomerMergeLog> {
-    this.assertTenant(tenantId);
-
-    const payload = {
-      tenant_id: tenantId,
-      source_customer_id: mergeLog.sourceCustomerId,
-      target_customer_id: mergeLog.targetCustomerId,
-      actor_id: mergeLog.actorId,
-      reason: mergeLog.reason,
-      contacts_transferred_count: mergeLog.contactsTransferredCount,
-      addresses_transferred_count: mergeLog.addressesTransferredCount,
-    };
-
-    const { data, error } = await this.client
-      .from('interior_customer_merge_logs')
-      .insert(payload)
-      .select('*')
-      .single();
-
-    if (error) throw error;
-
-    return this.mapMergeLog(data as MergeLogRow);
   }
 
   async getMergeLogs(tenantId: string, customerId: string): Promise<readonly CustomerMergeLog[]> {

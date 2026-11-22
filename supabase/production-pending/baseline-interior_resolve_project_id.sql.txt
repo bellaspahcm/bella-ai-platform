@@ -1,0 +1,42 @@
+CREATE OR REPLACE FUNCTION public.interior_resolve_project_id(p_tenant_id uuid, p_resource_key text, p_resource_id uuid DEFAULT NULL::uuid, p_parent_id uuid DEFAULT NULL::uuid, p_project_id uuid DEFAULT NULL::uuid)
+ RETURNS uuid
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE v_project_id uuid;
+BEGIN
+  IF p_tenant_id IS NULL THEN RETURN NULL; END IF;
+  IF public.interior_actor_tenant() IS DISTINCT FROM p_tenant_id THEN RETURN NULL; END IF;
+  IF p_project_id IS NOT NULL THEN
+    SELECT id INTO v_project_id FROM public.interior_projects
+    WHERE id=p_project_id AND tenant_id=p_tenant_id;
+    RETURN v_project_id;
+  END IF;
+  CASE p_resource_key
+    WHEN 'project' THEN
+      SELECT id INTO v_project_id FROM public.interior_projects WHERE id=p_resource_id AND tenant_id=p_tenant_id;
+    WHEN 'boq' THEN
+      SELECT project_id INTO v_project_id FROM public.interior_boqs WHERE id=p_resource_id AND tenant_id=p_tenant_id;
+    WHEN 'design_revision' THEN
+      SELECT project_id INTO v_project_id FROM public.interior_design_revisions WHERE id=p_resource_id AND tenant_id=p_tenant_id;
+    WHEN 'boq_item' THEN
+      SELECT project_id INTO v_project_id FROM public.interior_boqs WHERE id=p_parent_id AND tenant_id=p_tenant_id;
+    WHEN 'design_asset' THEN
+      SELECT project_id INTO v_project_id FROM public.interior_design_revisions WHERE id=p_parent_id AND tenant_id=p_tenant_id;
+    WHEN 'design_material' THEN
+      SELECT project_id INTO v_project_id FROM public.interior_design_revisions WHERE id=p_parent_id AND tenant_id=p_tenant_id;
+    WHEN 'qc_item' THEN
+      SELECT project_id INTO v_project_id FROM public.interior_qc_punch_list_items WHERE id=p_resource_id AND tenant_id=p_tenant_id;
+    WHEN 'payment_milestone' THEN
+      SELECT project_id INTO v_project_id FROM public.interior_contracts WHERE id=p_parent_id AND tenant_id=p_tenant_id;
+    WHEN 'production_item' THEN
+      SELECT project_id INTO v_project_id FROM public.interior_production_orders WHERE id=p_parent_id AND tenant_id=p_tenant_id;
+    WHEN 'installation_item' THEN
+      SELECT project_id INTO v_project_id FROM public.interior_site_installation_plans WHERE id=p_parent_id AND tenant_id=p_tenant_id;
+    ELSE
+      RETURN NULL;
+  END CASE;
+  RETURN v_project_id;
+END;
+$function$

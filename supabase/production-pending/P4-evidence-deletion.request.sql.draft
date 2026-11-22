@@ -1,0 +1,370 @@
+-- REVIEW DRAFT ONLY. PRODUCTION WRITE HOLD. Not a migration ledger entry.
+-- P4 deletion after P3 and bucket provisioning; DB behavior is unverified.
+BEGIN;
+
+DO $$
+BEGIN
+  IF current_user<>'postgres' AND NOT pg_has_role(current_user,'postgres','MEMBER') THEN
+    RAISE EXCEPTION 'P4 requires a role able to assign postgres ownership';
+  END IF;
+  IF NOT COALESCE((SELECT rolbypassrls FROM pg_roles WHERE rolname='postgres'),false)
+     OR NOT has_table_privilege('postgres','storage.objects','SELECT')
+     OR NOT has_table_privilege('postgres','storage.buckets','SELECT')
+     OR NOT has_table_privilege('postgres','public.interior_site_diaries','SELECT')
+     OR NOT has_table_privilege('postgres','public.interior_site_diaries','UPDATE')
+     OR NOT has_table_privilege('postgres','public.interior_acceptance_evidence_objects','SELECT')
+     OR NOT has_table_privilege('postgres','public.interior_acceptance_evidence_objects','DELETE')
+     OR NOT has_table_privilege('postgres','public.interior_acceptance_sessions','UPDATE')
+     OR NOT has_table_privilege(current_user,'public.interior_site_diaries','TRIGGER')
+     OR NOT has_table_privilege(current_user,'public.interior_acceptance_evidence_objects','TRIGGER') THEN
+    RAISE EXCEPTION 'P4 owner cannot read Storage or maintain the reviewed evidence metadata';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM storage.buckets WHERE id='interior-site-evidence' AND public=false
+      AND file_size_limit=10485760
+      AND allowed_mime_types @> ARRAY['image/jpeg','image/png','image/webp','image/heic','application/pdf']::text[]
+      AND allowed_mime_types <@ ARRAY['image/jpeg','image/png','image/webp','image/heic','application/pdf']::text[])
+     OR to_regprocedure('public.interior_decide_acceptance_session(uuid,text,text,text)') IS NULL
+     OR to_regprocedure('public.interior_has_permission(text,uuid,uuid,uuid)') IS NULL
+     OR to_regprocedure('public.interior_actor_tenant()') IS NULL
+     OR NOT EXISTS (SELECT 1 FROM pg_policies p WHERE p.schemaname='storage' AND p.tablename='objects'
+       AND p.policyname='interior_site_evidence_no_direct_client_access' AND p.permissive='RESTRICTIVE'
+       AND p.cmd='ALL' AND p.roles @> ARRAY['anon','authenticated']::name[]
+       AND p.roles <@ ARRAY['anon','authenticated']::name[]
+       AND p.qual='(bucket_id <> ''interior-site-evidence''::text)'
+       AND p.with_check='(bucket_id <> ''interior-site-evidence''::text)') THEN
+    RAISE EXCEPTION 'P4 requires reviewed P3, private bucket and restrictive client-access Storage policy';
+  END IF;
+  IF to_regclass('public.interior_evidence_deletion_requests') IS NOT NULL
+     OR to_regclass('public.interior_evidence_deletion_events') IS NOT NULL
+     OR to_regprocedure('public.interior_request_evidence_deletion(text,uuid,uuid,text,text,text,boolean)') IS NOT NULL
+     OR to_regprocedure('public.interior_evidence_deletion_allowed(uuid,uuid)') IS NOT NULL
+     OR to_regprocedure('public.interior_list_evidence_deletion_requests(uuid)') IS NOT NULL
+     OR to_regprocedure('public.interior_evidence_reference_count(uuid,text)') IS NOT NULL
+     OR to_regprocedure('public.interior_guard_evidence_deletion_references()') IS NOT NULL
+     OR to_regprocedure('public.interior_prepare_evidence_deletion(uuid,uuid,boolean)') IS NOT NULL
+     OR to_regprocedure('public.interior_fail_evidence_deletion(uuid,uuid,text)') IS NOT NULL
+     OR to_regprocedure('public.interior_finish_evidence_deletion(uuid,uuid)') IS NOT NULL
+     OR EXISTS (SELECT 1 FROM pg_trigger WHERE NOT tgisinternal AND tgname IN
+       ('trg_interior_evidence_deletion_guard_o3','trg_interior_evidence_deletion_guard_o4'))
+     OR EXISTS (SELECT 1 FROM public.interior_permissions WHERE permission_id='interior:evidence:delete') THEN
+    RAISE EXCEPTION 'P4 deletion objects already exist; reconcile their definitions';
+  END IF;
+END;
+$$;
+
+INSERT INTO public.interior_permissions(permission_id,module_key,action_key,description,sensitive)
+VALUES ('interior:evidence:delete','evidence','DELETE','Yêu cầu và thực hiện xóa bằng chứng',true);
+INSERT INTO public.interior_role_permissions(role_key,permission_id)
+VALUES ('OWNER','interior:evidence:delete'),('ADMIN','interior:evidence:delete');
+
+CREATE TABLE public.interior_evidence_deletion_requests (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES public.tenants(id) ON DELETE RESTRICT,
+  project_id uuid NOT NULL REFERENCES public.interior_projects(id) ON DELETE RESTRICT,
+  evidence_kind text NOT NULL CHECK (evidence_kind IN ('O3','O4')),
+  record_id uuid NOT NULL,
+  bucket_id text NOT NULL CHECK (bucket_id='interior-site-evidence'),
+  storage_path text NOT NULL,
+  reason text NOT NULL CHECK (length(btrim(reason)) BETWEEN 1 AND 2000),
+  contract_review_reference text NOT NULL CHECK (length(btrim(contract_review_reference)) BETWEEN 1 AND 2000),
+  requested_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  requested_at timestamptz NOT NULL DEFAULT statement_timestamp(),
+  executed_by uuid REFERENCES auth.users(id) ON DELETE RESTRICT,
+  executed_at timestamptz,
+  status text NOT NULL DEFAULT 'DELETE_PENDING' CHECK (status IN ('DELETE_PENDING','DELETE_FAILED','DELETED')),
+  last_error_stage text CHECK (last_error_stage IN ('STORAGE','FINALIZE')),
+  execution_mode text CHECK (execution_mode IN ('KEEP_OBJECT','DELETE_OBJECT')),
+  updated_at timestamptz NOT NULL DEFAULT statement_timestamp()
+);
+CREATE UNIQUE INDEX uq_interior_evidence_deletion_active_object
+  ON public.interior_evidence_deletion_requests(bucket_id,storage_path)
+  WHERE status IN ('DELETE_PENDING','DELETE_FAILED');
+
+CREATE TABLE public.interior_evidence_deletion_events (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  request_id uuid NOT NULL REFERENCES public.interior_evidence_deletion_requests(id) ON DELETE RESTRICT,
+  tenant_id uuid NOT NULL REFERENCES public.tenants(id) ON DELETE RESTRICT,
+  actor_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  event text NOT NULL CHECK (event IN ('REQUESTED','ATTEMPTED','STORAGE_FAILED','FINALIZE_FAILED','DELETED')),
+  created_at timestamptz NOT NULL DEFAULT statement_timestamp()
+);
+ALTER TABLE public.interior_evidence_deletion_requests OWNER TO postgres;
+ALTER TABLE public.interior_evidence_deletion_events OWNER TO postgres;
+ALTER TABLE public.interior_evidence_deletion_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.interior_evidence_deletion_events ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.interior_evidence_deletion_requests, public.interior_evidence_deletion_events
+  FROM PUBLIC, anon, authenticated;
+
+-- An OWNER/ADMIN role must itself cover the project. A direct permission grant
+-- alone cannot satisfy the explicitly selected OWNER/ADMIN rule.
+CREATE FUNCTION public.interior_evidence_deletion_allowed(p_tenant uuid,p_project uuid)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+  SELECT auth.uid() IS NOT NULL
+    AND public.interior_actor_tenant()=p_tenant
+    AND COALESCE(public.interior_has_permission('interior:evidence:delete',p_tenant,p_project,NULL),false)
+    AND EXISTS (
+      SELECT 1 FROM public.interior_user_roles ur
+      JOIN public.interior_projects p ON p.id=p_project AND p.tenant_id=p_tenant
+      WHERE ur.tenant_id=p_tenant AND ur.user_id=auth.uid() AND ur.status='ACTIVE'
+        AND ur.role_key IN ('OWNER','ADMIN')
+        AND CASE ur.scope_type
+          WHEN 'TENANT' THEN true
+          WHEN 'PROJECT' THEN ur.scope_id=p.id
+          WHEN 'BRANCH' THEN ur.scope_id=p.branch_id
+          WHEN 'SELF' THEN EXISTS (SELECT 1 FROM public.interior_user_project_assignments a
+            WHERE a.tenant_id=p_tenant AND a.project_id=p.id AND a.user_id=auth.uid() AND a.status='ACTIVE')
+          ELSE false END
+    );
+$$;
+ALTER FUNCTION public.interior_evidence_deletion_allowed(uuid,uuid) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.interior_evidence_deletion_allowed(uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
+
+CREATE FUNCTION public.interior_request_evidence_deletion(
+  p_kind text,p_project uuid,p_record uuid,p_storage_path text,p_reason text,p_contract_review text,p_contract_confirm boolean
+)
+RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_actor uuid:=auth.uid(); v_tenant uuid:=public.interior_actor_tenant();
+  v_path text; v_id uuid;
+BEGIN
+  IF v_actor IS NULL OR v_tenant IS NULL OR COALESCE(auth.jwt()->>'role','')<>'authenticated'
+     OR NOT COALESCE(public.interior_evidence_deletion_allowed(v_tenant,p_project),false) THEN
+    RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_DENIED';
+  END IF;
+  IF p_contract_confirm IS DISTINCT FROM true OR p_kind IS NULL OR p_kind NOT IN ('O3','O4') OR NULLIF(btrim(p_reason),'') IS NULL OR length(p_reason)>2000
+     OR NULLIF(btrim(p_contract_review),'') IS NULL OR length(p_contract_review)>2000 THEN
+    RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_INPUT_INVALID';
+  END IF;
+  IF p_kind='O4' THEN
+    SELECT e.storage_path INTO v_path FROM public.interior_acceptance_evidence_objects e
+    JOIN public.interior_acceptance_sessions s ON s.id=e.session_id AND s.tenant_id=e.tenant_id
+    WHERE e.id=p_record AND e.tenant_id=v_tenant AND s.project_id=p_project
+      AND e.bucket_id='interior-site-evidence';
+  ELSE
+    SELECT p_storage_path INTO v_path FROM public.interior_site_diaries d
+    WHERE d.id=p_record AND d.tenant_id=v_tenant AND d.project_id=p_project
+      AND p_storage_path=ANY(d.photo_urls) AND cardinality(array_positions(d.photo_urls,p_storage_path))=1;
+  END IF;
+  IF v_path IS NULL OR left(v_path,length(v_tenant::text||'/'||p_project::text||'/'))
+       <>v_tenant::text||'/'||p_project::text||'/'
+     OR position('..' IN v_path)>0 OR position(chr(92) IN v_path)>0 THEN
+    RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_TARGET_INVALID';
+  END IF;
+  -- Writers that attach references take the same lock before checking requests.
+  PERFORM pg_advisory_xact_lock(hashtextextended('interior-evidence:'||v_path,0));
+  INSERT INTO public.interior_evidence_deletion_requests(
+    tenant_id,project_id,evidence_kind,record_id,bucket_id,storage_path,reason,contract_review_reference,requested_by
+  ) VALUES(v_tenant,p_project,p_kind,p_record,'interior-site-evidence',v_path,btrim(p_reason),btrim(p_contract_review),v_actor)
+  RETURNING id INTO v_id;
+  INSERT INTO public.interior_evidence_deletion_events(request_id,tenant_id,actor_id,event)
+  VALUES(v_id,v_tenant,v_actor,'REQUESTED');
+  RETURN v_id;
+END;
+$$;
+ALTER FUNCTION public.interior_request_evidence_deletion(text,uuid,uuid,text,text,text,boolean) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.interior_request_evidence_deletion(text,uuid,uuid,text,text,text,boolean) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION public.interior_request_evidence_deletion(text,uuid,uuid,text,text,text,boolean) TO authenticated;
+
+CREATE FUNCTION public.interior_list_evidence_deletion_requests(p_project uuid)
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_actor uuid:=auth.uid(); v_tenant uuid:=public.interior_actor_tenant(); v_result jsonb;
+BEGIN
+  IF v_actor IS NULL OR v_tenant IS NULL OR COALESCE(auth.jwt()->>'role','')<>'authenticated'
+     OR NOT COALESCE(public.interior_evidence_deletion_allowed(v_tenant,p_project),false) THEN
+    RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_DENIED';
+  END IF;
+  SELECT COALESCE(jsonb_agg(jsonb_build_object('requestId',r.id,'projectId',r.project_id,
+    'kind',r.evidence_kind,'recordId',r.record_id,'storagePath',r.storage_path,'reason',r.reason,
+    'contractReviewReference',r.contract_review_reference,'status',r.status,'lastErrorStage',r.last_error_stage,
+    'requestedAt',r.requested_at,'requestedBy',r.requested_by,'executedAt',r.executed_at,'executedBy',r.executed_by)
+    ORDER BY r.requested_at DESC),'[]'::jsonb) INTO v_result
+  FROM public.interior_evidence_deletion_requests r
+  WHERE r.tenant_id=v_tenant AND r.project_id=p_project AND r.status IN ('DELETE_PENDING','DELETE_FAILED');
+  RETURN v_result;
+END;
+$$;
+ALTER FUNCTION public.interior_list_evidence_deletion_requests(uuid) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.interior_list_evidence_deletion_requests(uuid) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION public.interior_list_evidence_deletion_requests(uuid) TO authenticated;
+
+-- Count metadata references, not file versions; a shared object is retained.
+CREATE FUNCTION public.interior_evidence_reference_count(p_tenant uuid,p_path text)
+RETURNS bigint LANGUAGE sql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+  SELECT (SELECT count(*) FROM public.interior_acceptance_evidence_objects e
+          WHERE e.bucket_id='interior-site-evidence' AND e.storage_path=p_path)
+       + (SELECT count(*) FROM public.interior_site_diaries d
+          WHERE p_path=ANY(d.photo_urls));
+$$;
+ALTER FUNCTION public.interior_evidence_reference_count(uuid,text) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.interior_evidence_reference_count(uuid,text) FROM PUBLIC,anon,authenticated,service_role;
+
+-- Block new references while a request is pending, including across concurrent
+-- request/insert transactions. Existing references can still be read.
+CREATE FUNCTION public.interior_guard_evidence_deletion_references()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_path text;
+BEGIN
+  IF TG_TABLE_NAME='interior_acceptance_evidence_objects' THEN
+    IF TG_OP='UPDATE' AND NEW.tenant_id=OLD.tenant_id AND NEW.storage_path IS NOT DISTINCT FROM OLD.storage_path
+       AND NEW.bucket_id IS NOT DISTINCT FROM OLD.bucket_id THEN RETURN NEW; END IF;
+    IF NEW.bucket_id<>'interior-site-evidence' THEN RETURN NEW; END IF;
+    v_path:=NEW.storage_path;
+    PERFORM pg_advisory_xact_lock(hashtextextended('interior-evidence:'||v_path,0));
+    IF EXISTS (SELECT 1 FROM public.interior_evidence_deletion_requests r
+      WHERE r.storage_path=v_path AND (r.status IN ('DELETE_PENDING','DELETE_FAILED')
+        OR (r.status='DELETED' AND r.execution_mode='DELETE_OBJECT'))) THEN
+      RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_IN_PROGRESS';
+    END IF;
+  ELSE
+    FOR v_path IN SELECT DISTINCT x FROM unnest(NEW.photo_urls) x
+      WHERE x IS NOT NULL ORDER BY x LOOP
+      IF TG_OP='UPDATE' AND NEW.tenant_id=OLD.tenant_id
+        AND cardinality(array_positions(NEW.photo_urls,v_path))<=cardinality(array_positions(OLD.photo_urls,v_path)) THEN CONTINUE; END IF;
+      PERFORM pg_advisory_xact_lock(hashtextextended('interior-evidence:'||v_path,0));
+      IF EXISTS (SELECT 1 FROM public.interior_evidence_deletion_requests r
+        WHERE r.storage_path=v_path AND (r.status IN ('DELETE_PENDING','DELETE_FAILED')
+          OR (r.status='DELETED' AND r.execution_mode='DELETE_OBJECT'))) THEN
+        RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_IN_PROGRESS';
+      END IF;
+    END LOOP;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+ALTER FUNCTION public.interior_guard_evidence_deletion_references() OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.interior_guard_evidence_deletion_references() FROM PUBLIC,anon,authenticated,service_role;
+CREATE TRIGGER trg_interior_evidence_deletion_guard_o4 BEFORE INSERT OR UPDATE OF tenant_id,bucket_id,storage_path
+  ON public.interior_acceptance_evidence_objects FOR EACH ROW EXECUTE FUNCTION public.interior_guard_evidence_deletion_references();
+CREATE TRIGGER trg_interior_evidence_deletion_guard_o3 BEFORE INSERT OR UPDATE OF tenant_id,photo_urls
+  ON public.interior_site_diaries FOR EACH ROW EXECUTE FUNCTION public.interior_guard_evidence_deletion_references();
+
+CREATE FUNCTION public.interior_prepare_evidence_deletion(p_request uuid,p_project uuid,p_contract_confirm boolean)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_actor uuid:=auth.uid(); v_tenant uuid:=public.interior_actor_tenant();
+  v_request public.interior_evidence_deletion_requests%ROWTYPE; v_count bigint; v_mode text;
+BEGIN
+  IF v_actor IS NULL OR v_tenant IS NULL OR COALESCE(auth.jwt()->>'role','')<>'authenticated'
+     OR NOT COALESCE(public.interior_evidence_deletion_allowed(v_tenant,p_project),false) THEN
+    RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_DENIED';
+  END IF;
+  IF p_contract_confirm IS DISTINCT FROM true THEN RAISE EXCEPTION 'INTERIOR_CONTRACT_REVIEW_CONFIRMATION_REQUIRED'; END IF;
+  SELECT * INTO v_request FROM public.interior_evidence_deletion_requests
+    WHERE id=p_request AND tenant_id=v_tenant AND project_id=p_project FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_REQUEST_NOT_FOUND'; END IF;
+  IF v_request.status='DELETED' THEN
+    RETURN jsonb_build_object('requestId',v_request.id,'status','DELETED','mode',v_request.execution_mode,
+      'tenantId',v_tenant,'projectId',p_project,'bucketId',v_request.bucket_id,'storagePath',v_request.storage_path,
+      'objectPresent',EXISTS (SELECT 1 FROM storage.objects o WHERE o.bucket_id=v_request.bucket_id AND o.name=v_request.storage_path));
+  END IF;
+  PERFORM pg_advisory_xact_lock(hashtextextended('interior-evidence:'||v_request.storage_path,0));
+  IF v_request.evidence_kind='O4' AND NOT EXISTS (
+      SELECT 1 FROM public.interior_acceptance_evidence_objects e
+      JOIN public.interior_acceptance_sessions s ON s.id=e.session_id AND s.tenant_id=e.tenant_id
+      WHERE e.id=v_request.record_id AND e.tenant_id=v_tenant AND s.project_id=p_project
+        AND e.bucket_id=v_request.bucket_id AND e.storage_path=v_request.storage_path)
+     OR v_request.evidence_kind='O3' AND NOT EXISTS (
+      SELECT 1 FROM public.interior_site_diaries d WHERE d.id=v_request.record_id AND d.tenant_id=v_tenant
+        AND d.project_id=p_project AND v_request.storage_path=ANY(d.photo_urls)
+        AND cardinality(array_positions(d.photo_urls,v_request.storage_path))=1) THEN
+    RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_TARGET_CHANGED';
+  END IF;
+  v_count:=public.interior_evidence_reference_count(v_tenant,v_request.storage_path);
+  IF v_count<1 THEN RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_TARGET_CHANGED'; END IF;
+  v_mode:=CASE WHEN v_count>1 THEN 'KEEP_OBJECT' ELSE 'DELETE_OBJECT' END;
+  UPDATE public.interior_evidence_deletion_requests SET status='DELETE_PENDING',execution_mode=v_mode,
+    executed_by=v_actor,updated_at=statement_timestamp(),last_error_stage=NULL WHERE id=v_request.id;
+  INSERT INTO public.interior_evidence_deletion_events(request_id,tenant_id,actor_id,event)
+    VALUES(v_request.id,v_tenant,v_actor,'ATTEMPTED');
+  RETURN jsonb_build_object('requestId',v_request.id,'status','DELETE_PENDING','mode',v_mode,
+    'tenantId',v_tenant,'projectId',p_project,'bucketId',v_request.bucket_id,'storagePath',v_request.storage_path,
+    'objectPresent',EXISTS (SELECT 1 FROM storage.objects o WHERE o.bucket_id=v_request.bucket_id AND o.name=v_request.storage_path));
+END;
+$$;
+ALTER FUNCTION public.interior_prepare_evidence_deletion(uuid,uuid,boolean) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.interior_prepare_evidence_deletion(uuid,uuid,boolean) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION public.interior_prepare_evidence_deletion(uuid,uuid,boolean) TO authenticated;
+
+CREATE FUNCTION public.interior_fail_evidence_deletion(p_request uuid,p_project uuid,p_stage text)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_actor uuid:=auth.uid(); v_tenant uuid:=public.interior_actor_tenant(); v_id uuid;
+BEGIN
+  IF v_actor IS NULL OR v_tenant IS NULL OR COALESCE(auth.jwt()->>'role','')<>'authenticated'
+     OR NOT COALESCE(public.interior_evidence_deletion_allowed(v_tenant,p_project),false) THEN
+    RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_DENIED';
+  END IF;
+  IF p_stage IS NULL OR p_stage NOT IN ('STORAGE','FINALIZE') THEN RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_STAGE_INVALID'; END IF;
+  UPDATE public.interior_evidence_deletion_requests SET status='DELETE_FAILED',last_error_stage=p_stage,
+    updated_at=statement_timestamp() WHERE id=p_request AND tenant_id=v_tenant AND project_id=p_project
+    AND status='DELETE_PENDING' AND executed_by=v_actor RETURNING id INTO v_id;
+  IF v_id IS NOT NULL THEN
+    INSERT INTO public.interior_evidence_deletion_events(request_id,tenant_id,actor_id,event)
+      VALUES(v_id,v_tenant,v_actor,CASE p_stage WHEN 'STORAGE' THEN 'STORAGE_FAILED' ELSE 'FINALIZE_FAILED' END);
+  END IF;
+END;
+$$;
+ALTER FUNCTION public.interior_fail_evidence_deletion(uuid,uuid,text) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.interior_fail_evidence_deletion(uuid,uuid,text) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION public.interior_fail_evidence_deletion(uuid,uuid,text) TO authenticated;
+
+CREATE FUNCTION public.interior_finish_evidence_deletion(p_request uuid,p_project uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_actor uuid:=auth.uid(); v_tenant uuid:=public.interior_actor_tenant();
+  v_request public.interior_evidence_deletion_requests%ROWTYPE; v_count bigint; v_session uuid; v_status text;
+BEGIN
+  IF v_actor IS NULL OR v_tenant IS NULL OR COALESCE(auth.jwt()->>'role','')<>'authenticated'
+     OR NOT COALESCE(public.interior_evidence_deletion_allowed(v_tenant,p_project),false) THEN
+    RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_DENIED';
+  END IF;
+  SELECT * INTO v_request FROM public.interior_evidence_deletion_requests
+    WHERE id=p_request AND tenant_id=v_tenant AND project_id=p_project FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_REQUEST_NOT_FOUND'; END IF;
+  IF v_request.status='DELETED' THEN RETURN; END IF;
+  IF v_request.status<>'DELETE_PENDING' OR v_request.executed_by IS DISTINCT FROM v_actor
+     OR v_request.execution_mode IS NULL THEN RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_NOT_PREPARED'; END IF;
+  PERFORM pg_advisory_xact_lock(hashtextextended('interior-evidence:'||v_request.storage_path,0));
+  v_count:=public.interior_evidence_reference_count(v_tenant,v_request.storage_path);
+  IF v_request.execution_mode='KEEP_OBJECT' THEN
+    IF v_count<2 OR NOT EXISTS (SELECT 1 FROM storage.objects o WHERE o.bucket_id=v_request.bucket_id AND o.name=v_request.storage_path) THEN
+      RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_SHARED_STATE_CHANGED';
+    END IF;
+  ELSIF v_count<>1 OR EXISTS (SELECT 1 FROM storage.objects o WHERE o.bucket_id=v_request.bucket_id AND o.name=v_request.storage_path) THEN
+    RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_STORAGE_NOT_CONFIRMED';
+  END IF;
+  IF v_request.evidence_kind='O4' THEN
+    DELETE FROM public.interior_acceptance_evidence_objects e USING public.interior_acceptance_sessions s
+      WHERE e.id=v_request.record_id AND e.tenant_id=v_tenant AND e.bucket_id=v_request.bucket_id
+        AND e.storage_path=v_request.storage_path AND s.id=e.session_id AND s.tenant_id=v_tenant AND s.project_id=p_project
+      RETURNING e.session_id INTO v_session;
+    IF v_session IS NULL THEN RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_TARGET_CHANGED'; END IF;
+    SELECT CASE WHEN bool_or(evidence_category='CUSTOMER_SIGNOFF')
+        AND bool_or(evidence_category IN ('OVERALL','DETAIL','COMPLETED_PRODUCT')) THEN 'COMPLETE'
+      WHEN bool_or(evidence_category='CUSTOMER_SIGNOFF')
+        OR bool_or(evidence_category IN ('OVERALL','DETAIL','COMPLETED_PRODUCT')) THEN 'PARTIAL'
+      ELSE 'NONE' END INTO v_status FROM public.interior_acceptance_evidence_objects
+      WHERE tenant_id=v_tenant AND session_id=v_session;
+    UPDATE public.interior_acceptance_sessions SET documentation_status=COALESCE(v_status,'NONE'),updated_at=statement_timestamp()
+      WHERE id=v_session AND tenant_id=v_tenant AND project_id=p_project;
+  ELSE
+    UPDATE public.interior_site_diaries SET photo_urls=array_remove(photo_urls,v_request.storage_path)
+      WHERE id=v_request.record_id AND tenant_id=v_tenant AND project_id=p_project
+        AND v_request.storage_path=ANY(photo_urls) AND cardinality(array_positions(photo_urls,v_request.storage_path))=1;
+    IF NOT FOUND THEN RAISE EXCEPTION 'INTERIOR_EVIDENCE_DELETE_TARGET_CHANGED'; END IF;
+  END IF;
+  UPDATE public.interior_evidence_deletion_requests SET status='DELETED',executed_at=statement_timestamp(),
+    last_error_stage=NULL,updated_at=statement_timestamp() WHERE id=v_request.id;
+  INSERT INTO public.interior_evidence_deletion_events(request_id,tenant_id,actor_id,event)
+    VALUES(v_request.id,v_tenant,v_actor,'DELETED');
+END;
+$$;
+ALTER FUNCTION public.interior_finish_evidence_deletion(uuid,uuid) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.interior_finish_evidence_deletion(uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION public.interior_finish_evidence_deletion(uuid,uuid) TO authenticated;
+
+COMMIT;

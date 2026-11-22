@@ -1,0 +1,41 @@
+CREATE OR REPLACE FUNCTION public.interior_generate_customer_code(p_tenant_id uuid DEFAULT NULL::uuid)
+ RETURNS text
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE
+  v_auth_tenant UUID;
+  v_effective_tenant UUID;
+  v_val BIGINT;
+BEGIN
+  v_auth_tenant := public.interior_actor_tenant();
+
+  IF auth.role() = 'authenticated' THEN
+    IF v_auth_tenant IS NULL THEN
+      RAISE EXCEPTION 'AUTHENTICATED_INTERIOR_TENANT_REQUIRED';
+    END IF;
+    IF p_tenant_id IS NOT NULL AND p_tenant_id IS DISTINCT FROM v_auth_tenant THEN
+      RAISE EXCEPTION 'TENANT_FORBIDDEN: Cannot generate customer code for foreign tenant';
+    END IF;
+    v_effective_tenant := v_auth_tenant;
+  ELSIF auth.role() = 'service_role' THEN
+    IF p_tenant_id IS NULL THEN
+      RAISE EXCEPTION 'TENANT_ID_REQUIRED_FOR_SERVICE_ROLE';
+    END IF;
+    v_effective_tenant := p_tenant_id;
+  ELSE
+    RAISE EXCEPTION 'UNAUTHORIZED_CALLER_ROLE';
+  END IF;
+
+  INSERT INTO public.interior_customer_sequences(tenant_id, last_val, updated_at)
+  VALUES (v_effective_tenant, 1, statement_timestamp())
+  ON CONFLICT (tenant_id)
+  DO UPDATE SET
+    last_val = public.interior_customer_sequences.last_val + 1,
+    updated_at = statement_timestamp()
+  RETURNING last_val INTO v_val;
+
+  RETURN 'KH-' || lpad(v_val::text, 6, '0');
+END;
+$function$

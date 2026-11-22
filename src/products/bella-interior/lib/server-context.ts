@@ -32,6 +32,18 @@ export const INTERIOR_PERMISSIONS = {
   projectWrite: 'interior:project:write',
   branchManage: 'interior:branch:manage',
   customerRead: 'interior:customer:read',
+  customerCreate: 'interior:customer:create',
+  customerUpdate: 'interior:customer:update',
+  customerDelete: 'interior:customer:delete',
+  customerMerge: 'interior:customer:merge',
+  customerContactRead: 'interior:customer_contact:read',
+  customerContactCreate: 'interior:customer_contact:create',
+  customerContactUpdate: 'interior:customer_contact:update',
+  customerContactDelete: 'interior:customer_contact:delete',
+  customerAddressRead: 'interior:customer_address:read',
+  customerAddressCreate: 'interior:customer_address:create',
+  customerAddressUpdate: 'interior:customer_address:update',
+  customerAddressDelete: 'interior:customer_address:delete',
   designRead: 'interior:design:read',
   designCreate: 'interior:design:create',
   designUpdate: 'interior:design:update',
@@ -78,11 +90,23 @@ export const INTERIOR_PERMISSIONS = {
   deliveryUpdate: 'interior:delivery:update',
   deliveryWrite: 'interior:delivery:write',
   handoverApprove: 'interior:handover:approve',
+  acceptanceCampaignRead: 'interior:acceptance_campaign:read',
+  acceptanceCampaignCreate: 'interior:acceptance_campaign:create',
+  acceptanceSessionRead: 'interior:acceptance_session:read',
+  acceptanceSessionCreate: 'interior:acceptance_session:create',
+  acceptanceSessionUpdate: 'interior:acceptance_session:update',
+  acceptanceNoteRead: 'interior:acceptance_note:read',
+  acceptanceNoteCreate: 'interior:acceptance_note:create',
+  acceptanceEvidenceRead: 'interior:acceptance_evidence:read',
+  acceptanceEvidenceUpload: 'interior:acceptance_evidence:upload',
+  evidenceDelete: 'interior:evidence:delete',
+  acceptanceApprove: 'interior:acceptance:approve',
   reportsRead: 'interior:reports:read',
   warrantyRead: 'interior:warranty:read',
   warrantyCreate: 'interior:warranty:create',
   warrantyUpdate: 'interior:warranty:update',
   warrantyWrite: 'interior:warranty:write',
+  warrantyIssue: 'interior:warranty:issue',
   warrantyClose: 'interior:warranty:close',
   usersRead: 'interior:users:read',
   usersManage: 'interior:users:manage',
@@ -107,7 +131,8 @@ function nestedRecord(value: unknown, key: string): JsonRecord | null {
 }
 
 export function requiredInteriorPermission(request: Request, body: JsonRecord | null): InteriorPermissionId | null {
-  const pathname = new URL(request.url).pathname.replace(/\/+$/, '');
+  const url = new URL(request.url);
+  const pathname = url.pathname.replace(/\/+$/, '');
   const method = request.method.toUpperCase();
   const isMethod = (...methods: readonly string[]) => methods.includes(method);
 
@@ -135,10 +160,60 @@ export function requiredInteriorPermission(request: Request, body: JsonRecord | 
   if (pathname === '/api/interior/customers' && method === 'GET') return INTERIOR_PERMISSIONS.customerRead;
   if (pathname === '/api/interior/crm/customers') {
     if (method === 'GET') return INTERIOR_PERMISSIONS.customerRead;
-    if (method === 'POST') return INTERIOR_PERMISSIONS.projectCreate;
+    if (method === 'POST') return INTERIOR_PERMISSIONS.customerCreate;
   }
-  if (/^\/api\/interior\/crm\/customers\/[^/]+$/.test(pathname) && method === 'GET') {
-    return INTERIOR_PERMISSIONS.customerRead;
+  if (pathname === '/api/interior/crm/customers/merge' && method === 'POST') {
+    return INTERIOR_PERMISSIONS.customerMerge;
+  }
+  if (/^\/api\/interior\/crm\/customers\/[^/]+$/.test(pathname)) {
+    if (method === 'GET') return INTERIOR_PERMISSIONS.customerRead;
+    if (method === 'PATCH') return INTERIOR_PERMISSIONS.customerUpdate;
+    if (method === 'DELETE') {
+      return url.searchParams.get('hard') === 'true'
+        ? INTERIOR_PERMISSIONS.customerDelete
+        : INTERIOR_PERMISSIONS.customerUpdate;
+    }
+  }
+  if (/^\/api\/interior\/crm\/customers\/[^/]+\/contacts$/.test(pathname)) {
+    if (method === 'GET') return INTERIOR_PERMISSIONS.customerContactRead;
+    if (method === 'POST') return INTERIOR_PERMISSIONS.customerContactCreate;
+  }
+  if (/^\/api\/interior\/crm\/customers\/[^/]+\/contacts\/[^/]+$/.test(pathname)) {
+    if (method === 'GET') return INTERIOR_PERMISSIONS.customerContactRead;
+    if (method === 'PATCH') return INTERIOR_PERMISSIONS.customerContactUpdate;
+    if (method === 'DELETE') return INTERIOR_PERMISSIONS.customerContactDelete;
+  }
+  if (/^\/api\/interior\/crm\/customers\/[^/]+\/addresses$/.test(pathname)) {
+    if (method === 'GET') return INTERIOR_PERMISSIONS.customerAddressRead;
+    if (method === 'POST') return INTERIOR_PERMISSIONS.customerAddressCreate;
+  }
+  if (/^\/api\/interior\/crm\/customers\/[^/]+\/addresses\/[^/]+$/.test(pathname)) {
+    if (method === 'GET') return INTERIOR_PERMISSIONS.customerAddressRead;
+    if (method === 'PATCH') return INTERIOR_PERMISSIONS.customerAddressUpdate;
+    if (method === 'DELETE') return INTERIOR_PERMISSIONS.customerAddressDelete;
+  }
+  if (pathname === '/api/interior/delivery/acceptance/campaigns') {
+    if (method === 'GET') return INTERIOR_PERMISSIONS.acceptanceCampaignRead;
+    if (method === 'POST') return INTERIOR_PERMISSIONS.acceptanceCampaignCreate;
+  }
+  if (pathname === '/api/interior/delivery/acceptance/sessions') {
+    if (method === 'GET') return INTERIOR_PERMISSIONS.acceptanceSessionRead;
+    if (method === 'POST') return INTERIOR_PERMISSIONS.acceptanceSessionCreate;
+  }
+  if (/^\/api\/interior\/delivery\/acceptance\/sessions\/[^/]+\/notes$/.test(pathname)) {
+    if (method === 'GET') return INTERIOR_PERMISSIONS.acceptanceNoteRead;
+    if (method === 'POST') return INTERIOR_PERMISSIONS.acceptanceNoteCreate;
+  }
+  if (/^\/api\/interior\/delivery\/acceptance\/sessions\/[^/]+\/evidence$/.test(pathname)) {
+    if (method === 'GET') return INTERIOR_PERMISSIONS.acceptanceEvidenceRead;
+    if (method === 'POST') return INTERIOR_PERMISSIONS.acceptanceEvidenceUpload;
+  }
+  if (pathname === '/api/interior/delivery/evidence-deletions' && (method === 'GET' || method === 'POST')) {
+    return INTERIOR_PERMISSIONS.evidenceDelete;
+  }
+  if (/^\/api\/interior\/delivery\/acceptance\/sessions\/[^/]+\/approval$/.test(pathname)
+      && method === 'POST') {
+    return INTERIOR_PERMISSIONS.acceptanceApprove;
   }
   if (pathname === '/api/interior/design') {
     if (method === 'GET') return INTERIOR_PERMISSIONS.designRead;
@@ -228,6 +303,7 @@ export function requiredInteriorPermission(request: Request, body: JsonRecord | 
     if (method === 'POST') return INTERIOR_PERMISSIONS.warrantyCreate;
   }
   if (pathname === '/api/interior/warranty/analytics' && method === 'GET') return INTERIOR_PERMISSIONS.warrantyRead;
+  if (pathname === '/api/interior/warranty/issue' && method === 'POST') return INTERIOR_PERMISSIONS.warrantyIssue;
   if (pathname === '/api/interior/upload' && method === 'POST') return INTERIOR_PERMISSIONS.designUpload;
 
   return null;
@@ -291,7 +367,9 @@ function projectIdCandidates(request: Request, body: JsonRecord | null): string[
 
 export async function requestedProjectScope(request: Request): Promise<ProjectRequestScope> {
   let body: JsonRecord | null = null;
-  if (request.method.toUpperCase() !== 'GET' && request.method.toUpperCase() !== 'HEAD') {
+  const contentType = request.headers.get('content-type')?.toLowerCase() ?? '';
+  if (request.method.toUpperCase() !== 'GET' && request.method.toUpperCase() !== 'HEAD'
+      && contentType.includes('application/json') && scopedProjectResource(request) === null) {
     try {
       const parsed: unknown = await request.clone().json();
       body = isJsonRecord(parsed) ? parsed : null;
@@ -322,7 +400,10 @@ export async function requestedProjectScope(request: Request): Promise<ProjectRe
   };
 }
 
-function scopedProjectResource(request: Request): { resourceKey: 'boq' | 'design_revision' | 'qc_item'; resourceId: string } | null {
+function scopedProjectResource(request: Request): {
+  resourceKey: 'boq' | 'design_revision' | 'qc_item' | 'acceptance_session';
+  resourceId: string;
+} | null {
   const pathname = new URL(request.url).pathname.replace(/\/+$/, '');
   const boq = pathname.match(/^\/api\/interior\/boq\/([^/]+)\/approve$/);
   if (boq) return { resourceKey: 'boq', resourceId: boq[1] };
@@ -330,6 +411,8 @@ function scopedProjectResource(request: Request): { resourceKey: 'boq' | 'design
   if (revision) return { resourceKey: 'design_revision', resourceId: revision[1] };
   const qcItem = pathname.match(/^\/api\/interior\/delivery\/punch-list\/([^/]+)$/);
   if (qcItem) return { resourceKey: 'qc_item', resourceId: qcItem[1] };
+  const acceptanceSession = pathname.match(/^\/api\/interior\/delivery\/acceptance\/sessions\/([^/]+)\/(?:notes|evidence|approval)$/);
+  if (acceptanceSession) return { resourceKey: 'acceptance_session', resourceId: acceptanceSession[1] };
   return null;
 }
 

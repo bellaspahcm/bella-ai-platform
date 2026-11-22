@@ -83,6 +83,10 @@ export default function InteriorContractsPage() {
   const [releaseSuccessOrder, setReleaseSuccessOrder] = useState<string | null>(null);
   const [releasing, setReleasing] = useState<boolean>(false);
 
+  // Warranty issuance
+  const [issuingWarranty, setIssuingWarranty] = useState<boolean>(false);
+  const [warrantyIssuedCertNumber, setWarrantyIssuedCertNumber] = useState<string | null>(null);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -220,6 +224,64 @@ export default function InteriorContractsPage() {
       toast.error(err instanceof Error ? err.message : 'Không thể lưu lệnh chuyển xưởng.');
     } finally {
       setReleasing(false);
+    }
+  };
+
+  /**
+   * Issue warranty certificate (D13 formal issuance).
+   * Prerequisite: completed + client-accepted handover exists (enforced at DB level).
+   * Fetches the existing certificate from /api/interior/delivery/warranty,
+   * then calls POST /api/interior/warranty/issue with the warranty snapshot.
+   */
+  const handleIssueWarrantyCertificate = async () => {
+    if (!selectedProjectId || !data) return;
+    setIssuingWarranty(true);
+    try {
+      // Step 1: Get existing certificate for this project
+      const certRes = await fetch(
+        `/api/interior/delivery/warranty?type=certificates&projectId=${encodeURIComponent(selectedProjectId)}`,
+        { cache: 'no-store' },
+      );
+      const certJson = await certRes.json() as { success?: boolean; data?: { certificates?: Array<{ id?: string; certificateNumber?: string }> } };
+      const cert = certJson.success && Array.isArray(certJson.data?.certificates) && certJson.data.certificates.length > 0
+        ? certJson.data.certificates[0]
+        : null;
+
+      if (!cert?.id) {
+        toast.error('Chưa có chứng thư bảo hành cho dự án này. Hãy hoàn tất bàn giao trước.');
+        return;
+      }
+
+      // Step 2: Call rpc_issue_interior_warranty with snapshot from contract terms
+      const warrantySnapshot = {
+        contractId: data.header.contractId ?? null,
+        projectId: selectedProjectId,
+        issuedVia: 'contracts-page',
+        contractStatus: data.commercialWorkflow?.contractStatus ?? null,
+        contractValue: data.kpis?.totalContractValue?.rawValue ?? null,
+        issuedAt: new Date().toISOString(),
+      };
+
+      const issueRes = await fetch('/api/interior/warranty/issue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ certificateId: cert.id, warrantySnapshot }),
+      });
+      const issueJson = await issueRes.json() as { success?: boolean; data?: { certificateNumber?: string }; error?: string; message?: string };
+
+      if (issueJson.success) {
+        const certNum = issueJson.data?.certificateNumber ?? cert.certificateNumber ?? '—';
+        setWarrantyIssuedCertNumber(String(certNum));
+        toast.success(`Chứng thư bảo hành ${String(certNum)} đã được phát hành chính thức.`);
+        loadData(selectedProjectId);
+      } else {
+        const errMsg = issueJson.message ?? issueJson.error ?? 'Phát hành chứng thư thất bại';
+        toast.error(String(errMsg));
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Không thể phát hành chứng thư bảo hành.');
+    } finally {
+      setIssuingWarranty(false);
     }
   };
 
@@ -556,6 +618,18 @@ export default function InteriorContractsPage() {
           >
             <Send className="w-4 h-4" />
             <span>Chuyển lệnh sang xưởng</span>
+          </button>
+
+          {/* Warranty Certificate Issuance — enabled after handover is client-accepted */}
+          <button
+            type="button"
+            onClick={() => void handleIssueWarrantyCertificate()}
+            disabled={issuingWarranty}
+            title={warrantyIssuedCertNumber ? `Đã phát hành: ${warrantyIssuedCertNumber}` : 'Phát hành chứng thư bảo hành chính thức (D13 — yêu cầu bàn giao đã được khách hàng chấp nhận)'}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-lg text-xs font-semibold shadow-sm transition-all"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>{warrantyIssuedCertNumber ? `CT: ${warrantyIssuedCertNumber}` : issuingWarranty ? 'Đang phát hành…' : 'Phát hành Chứng Thư BH'}</span>
           </button>
 
           <div className="relative">

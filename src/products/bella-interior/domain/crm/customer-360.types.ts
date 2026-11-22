@@ -56,6 +56,8 @@ export interface CustomerContractSummary {
   readonly title: string;
   readonly status: string;
   readonly contractValue: number;
+  readonly paidAmount?: number;
+  readonly remainingDebt?: number;
   readonly signedDate?: string | null;
   readonly addendaCount: number;
 }
@@ -112,6 +114,18 @@ export interface CustomerHandoverSummary {
   readonly dossierDocumentUrl?: string;
 }
 
+export interface CustomerWarrantyCertificateSummary {
+  readonly id: string;
+  readonly projectId: string;
+  readonly projectName: string;
+  readonly certificateNumber: string;
+  readonly effectiveDate: string;
+  readonly expirationDate: string;
+  readonly status: string;
+  readonly termsSummary?: string;
+  readonly issuedAt?: string;
+}
+
 export interface CustomerWarrantySummary {
   readonly id: string;
   readonly projectId: string;
@@ -121,6 +135,10 @@ export interface CustomerWarrantySummary {
   readonly status: string;
   readonly reportedDate: string;
   readonly resolvedDate?: string;
+  readonly certificateId?: string;
+  readonly certificateNumber?: string;
+  readonly priority?: string;
+  readonly description?: string;
 }
 
 export interface CustomerFinancialSummary {
@@ -144,6 +162,7 @@ export type TimelineEventType =
   | 'site_diary_logged'
   | 'qc_punch_list'
   | 'handover_accepted'
+  | 'warranty_certificate_issued'
   | 'warranty_ticket_opened'
   | 'warranty_ticket_resolved'
   | 'contact_added'
@@ -186,6 +205,7 @@ export interface Customer360Profile {
   };
   readonly aftercare: {
     readonly warrantyTickets: readonly CustomerWarrantySummary[];
+    readonly warrantyCertificates?: readonly CustomerWarrantyCertificateSummary[];
   };
   readonly financialSummary: CustomerFinancialSummary;
   readonly timeline: readonly CustomerTimelineEvent[];

@@ -1,0 +1,63 @@
+-- Explicit switch operations serialize on the parent customer and commit atomically.
+-- A NULL target clears the current flag; creation never calls these functions.
+CREATE OR REPLACE FUNCTION public.interior_set_primary_contact(p_customer_id uuid,p_contact_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_tenant uuid:=public.interior_actor_tenant();
+BEGIN
+  IF auth.uid() IS NULL OR v_tenant IS NULL OR COALESCE(auth.jwt()->>'role','')<>'authenticated'
+     OR NOT COALESCE(public.interior_has_permission('interior:customer_contact:update',v_tenant,NULL,NULL),false) THEN
+    RAISE EXCEPTION 'INTERIOR_PERMISSION_DENIED: interior:customer_contact:update';
+  END IF;
+  PERFORM 1 FROM public.interior_customers WHERE id=p_customer_id AND tenant_id=v_tenant FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'CUSTOMER_NOT_FOUND'; END IF;
+  IF p_contact_id IS NOT NULL THEN
+    PERFORM 1 FROM public.interior_customer_contacts
+      WHERE id=p_contact_id AND tenant_id=v_tenant AND customer_id=p_customer_id FOR UPDATE;
+    IF NOT FOUND THEN RAISE EXCEPTION 'CONTACT_NOT_FOUND'; END IF;
+  END IF;
+  UPDATE public.interior_customer_contacts
+    SET is_primary=false
+    WHERE tenant_id=v_tenant AND customer_id=p_customer_id
+      AND is_primary AND (p_contact_id IS NULL OR id<>p_contact_id);
+  IF p_contact_id IS NOT NULL THEN
+    UPDATE public.interior_customer_contacts
+      SET is_primary=true
+      WHERE id=p_contact_id AND tenant_id=v_tenant AND customer_id=p_customer_id;
+  END IF;
+END;
+$$;
+ALTER FUNCTION public.interior_set_primary_contact(uuid,uuid) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.interior_set_primary_contact(uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION public.interior_set_primary_contact(uuid,uuid) TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.interior_set_default_address(p_customer_id uuid,p_address_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_tenant uuid:=public.interior_actor_tenant();
+BEGIN
+  IF auth.uid() IS NULL OR v_tenant IS NULL OR COALESCE(auth.jwt()->>'role','')<>'authenticated'
+     OR NOT COALESCE(public.interior_has_permission('interior:customer_address:update',v_tenant,NULL,NULL),false) THEN
+    RAISE EXCEPTION 'INTERIOR_PERMISSION_DENIED: interior:customer_address:update';
+  END IF;
+  PERFORM 1 FROM public.interior_customers WHERE id=p_customer_id AND tenant_id=v_tenant FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'CUSTOMER_NOT_FOUND'; END IF;
+  IF p_address_id IS NOT NULL THEN
+    PERFORM 1 FROM public.interior_customer_addresses
+      WHERE id=p_address_id AND tenant_id=v_tenant AND customer_id=p_customer_id FOR UPDATE;
+    IF NOT FOUND THEN RAISE EXCEPTION 'ADDRESS_NOT_FOUND'; END IF;
+  END IF;
+  UPDATE public.interior_customer_addresses
+    SET is_default=false
+    WHERE tenant_id=v_tenant AND customer_id=p_customer_id
+      AND is_default AND (p_address_id IS NULL OR id<>p_address_id);
+  IF p_address_id IS NOT NULL THEN
+    UPDATE public.interior_customer_addresses
+      SET is_default=true
+      WHERE id=p_address_id AND tenant_id=v_tenant AND customer_id=p_customer_id;
+  END IF;
+END;
+$$;
+ALTER FUNCTION public.interior_set_default_address(uuid,uuid) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.interior_set_default_address(uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION public.interior_set_default_address(uuid,uuid) TO authenticated;

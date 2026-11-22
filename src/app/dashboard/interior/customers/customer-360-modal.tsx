@@ -15,6 +15,8 @@ import {
   AlertCircle,
   CheckCircle2,
   ShieldCheck,
+  Shield,
+  FileCheck,
   Clock,
   Layers,
   Building,
@@ -28,6 +30,58 @@ interface Customer360ModalProps {
   readonly onClose: () => void;
   readonly customerId: string | null;
   readonly initialCustomerName?: string;
+}
+
+function getEventBadge(type: string): { label: string; className: string } | null {
+  switch (type) {
+    case 'warranty_certificate_issued':
+      return {
+        label: 'Chứng thư BH',
+        className: 'bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 border-blue-200 dark:border-blue-900',
+      };
+    case 'handover_accepted':
+      return {
+        label: 'Ký nghiệm thu',
+        className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900',
+      };
+    case 'payment_received':
+      return {
+        label: 'Thu tiền',
+        className: 'bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-900',
+      };
+    case 'payment_refunded':
+      return {
+        label: 'Hoàn tiền',
+        className: 'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-900',
+      };
+    case 'contract_signed':
+      return {
+        label: 'Hợp đồng',
+        className: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300 border-indigo-200 dark:border-indigo-900',
+      };
+    case 'warranty_ticket_opened':
+      return {
+        label: 'Báo sự cố',
+        className: 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-900',
+      };
+    case 'warranty_ticket_resolved':
+      return {
+        label: 'Đã xử lý BH',
+        className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900',
+      };
+    case 'site_diary_logged':
+      return {
+        label: 'Nhật ký',
+        className: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+      };
+    case 'qc_punch_list':
+      return {
+        label: 'Kiểm soát QC',
+        className: 'bg-orange-100 text-orange-800 dark:bg-orange-950/50 dark:text-orange-300 border-orange-200 dark:border-orange-900',
+      };
+    default:
+      return null;
+  }
 }
 
 export function Customer360Modal({
@@ -239,9 +293,13 @@ export function Customer360Modal({
           >
             <Layers className="w-4 h-4" />
             <span>Thi công &amp; Nghiệm thu</span>
-            {data?.execution && (
+            {data && (
               <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                {data.execution.siteDiaries.length + data.execution.punchListItems.length}
+                {(data.execution?.siteDiaries?.length || 0) +
+                  (data.execution?.punchListItems?.length || 0) +
+                  (data.delivery?.handovers?.length || 0) +
+                  (data.aftercare?.warrantyCertificates?.length || 0) +
+                  (data.aftercare?.warrantyTickets?.length || 0)}
               </span>
             )}
           </button>
@@ -516,39 +574,74 @@ export function Customer360Modal({
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        {data.commercial.contracts.map((c) => (
-                          <div
-                            key={c.id}
-                            className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850 flex items-center justify-between gap-4"
-                          >
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
-                                  {c.contractNumber}
-                                </span>
-                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                                  {c.title}
-                                </h4>
-                                <span className="px-2 py-0.2 rounded text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300">
-                                  {c.status}
-                                </span>
-                              </div>
-                              <div className="text-xs text-slate-500 mt-1">
-                                Thuộc dự án: {c.projectName} | Số phụ lục: {c.addendaCount}
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm font-extrabold text-slate-900 dark:text-white">
-                                {c.contractValue.toLocaleString('vi-VN')} ₫
-                              </div>
-                              {c.signedDate && (
-                                <div className="text-[10px] text-slate-400">
-                                  Ký: {new Date(c.signedDate).toLocaleDateString('vi-VN')}
+                        {data.commercial.contracts.map((c) => {
+                          const paid = c.paidAmount ?? 0;
+                          const total = c.contractValue || 0;
+                          const percent = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
+                          const debt = c.remainingDebt ?? Math.max(0, total - paid);
+
+                          return (
+                            <div
+                              key={c.id}
+                              className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850 space-y-2.5"
+                            >
+                              <div className="flex items-start justify-between gap-4">
+                                <div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
+                                      {c.contractNumber}
+                                    </span>
+                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                                      {c.title}
+                                    </h4>
+                                    <span className="px-2 py-0.2 rounded text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300">
+                                      {c.status}
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-slate-500 mt-1">
+                                    Thuộc dự án: {c.projectName} | Số phụ lục: {c.addendaCount}
+                                  </div>
                                 </div>
-                              )}
+                                <div className="text-right shrink-0">
+                                  <div className="text-sm font-extrabold text-slate-900 dark:text-white">
+                                    {total.toLocaleString('vi-VN')} ₫
+                                  </div>
+                                  {c.signedDate && (
+                                    <div className="text-[10px] text-slate-400">
+                                      Ký: {new Date(c.signedDate).toLocaleDateString('vi-VN')}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Per-contract Debt & Payment Progress */}
+                              <div className="pt-2.5 border-t border-slate-200/60 dark:border-slate-800">
+                                <div className="flex items-center justify-between text-xs mb-1">
+                                  <span className="text-slate-500 dark:text-slate-400">
+                                    Đã thu: <strong className="text-emerald-600 dark:text-emerald-400">{paid.toLocaleString('vi-VN')} ₫</strong>
+                                  </span>
+                                  <span className="font-bold text-slate-700 dark:text-slate-300">
+                                    {percent}%
+                                  </span>
+                                </div>
+                                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                                  <div
+                                    className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
+                                    style={{ width: `${percent}%` }}
+                                  />
+                                </div>
+                                <div className="flex items-center justify-between text-[11px] mt-1.5 text-slate-500">
+                                  <span>
+                                    Công nợ còn lại:{' '}
+                                    <strong className={debt > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-600 dark:text-slate-400'}>
+                                      {debt.toLocaleString('vi-VN')} ₫
+                                    </strong>
+                                  </span>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -706,6 +799,97 @@ export function Customer360Modal({
                     )}
                   </div>
 
+                  {/* Handover Dossiers */}
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                      <FileCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <span>Hồ sơ Bàn giao &amp; Nghiệm thu ({data.delivery?.handovers?.length || 0})</span>
+                    </h3>
+
+                    {!data.delivery?.handovers || data.delivery.handovers.length === 0 ? (
+                      <div className="p-6 text-center rounded-xl border border-dashed border-slate-200 dark:border-slate-800 text-slate-400 text-xs">
+                        Chưa có hồ sơ bàn giao nghiệm thu nào được ghi nhận.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {data.delivery.handovers.map((h) => (
+                          <div
+                            key={h.id}
+                            className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850 space-y-1.5"
+                          >
+                            <div className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-slate-900 dark:text-white">
+                                  {h.projectName}
+                                </span>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  h.clientAccepted
+                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                    : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
+                                }`}>
+                                  {h.clientAccepted ? 'Đã ký nghiệm thu' : 'Chờ nghiệm thu'}
+                                </span>
+                              </div>
+                              <span className="text-slate-400 font-mono text-[11px]">
+                                {h.handoverDate ? new Date(h.handoverDate).toLocaleDateString('vi-VN') : 'Chưa có ngày'}
+                              </span>
+                            </div>
+                            {h.clientSignoffName && (
+                              <div className="text-[11px] text-slate-500">
+                                Người ký đại diện: <strong className="text-slate-700 dark:text-slate-300">{h.clientSignoffName}</strong>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Warranty Certificates */}
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <span>Chứng thư Bảo hành ({data.aftercare?.warrantyCertificates?.length || 0})</span>
+                    </h3>
+
+                    {!data.aftercare?.warrantyCertificates || data.aftercare.warrantyCertificates.length === 0 ? (
+                      <div className="p-6 text-center rounded-xl border border-dashed border-slate-200 dark:border-slate-800 text-slate-400 text-xs">
+                        Chưa phát hành chứng thư bảo hành nào.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {data.aftercare.warrantyCertificates.map((cert) => (
+                          <div
+                            key={cert.id}
+                            className="p-3.5 rounded-xl border border-blue-200/80 dark:border-blue-900/40 bg-blue-50/30 dark:bg-blue-950/20 space-y-1.5"
+                          >
+                            <div className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono font-bold text-blue-700 dark:text-blue-300">
+                                  {cert.certificateNumber}
+                                </span>
+                                <span className="text-slate-900 dark:text-white font-semibold">
+                                  {cert.projectName}
+                                </span>
+                              </div>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200">
+                                {cert.status}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-slate-500 flex items-center justify-between">
+                              <span>Hiệu lực: {cert.effectiveDate} → {cert.expirationDate}</span>
+                              {cert.termsSummary && (
+                                <span className="truncate max-w-[260px] text-slate-400">
+                                  {cert.termsSummary}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   {/* Warranty Tickets */}
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
@@ -718,23 +902,39 @@ export function Customer360Modal({
                         Chưa phát sinh yêu cầu bảo hành nào.
                       </div>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-2.5">
                         {data.aftercare.warrantyTickets.map((ticket) => (
                           <div
                             key={ticket.id}
-                            className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 flex items-center justify-between text-xs"
+                            className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 space-y-1.5 text-xs"
                           >
-                            <div>
-                              <span className="font-bold text-slate-800 dark:text-slate-200 mr-2">
-                                {ticket.ticketNumber}
-                              </span>
-                              <span className="text-slate-500">
-                                {ticket.defectCategory}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-bold font-mono text-slate-900 dark:text-white">
+                                  {ticket.ticketNumber}
+                                </span>
+                                <span className="px-2 py-0.2 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                  {ticket.defectCategory}
+                                </span>
+                                {ticket.certificateNumber && (
+                                  <span className="px-2 py-0.2 rounded text-[10px] font-mono bg-blue-50 text-blue-700 border border-blue-200">
+                                    Chứng thư: {ticket.certificateNumber}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                {ticket.status}
                               </span>
                             </div>
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              {ticket.status}
-                            </span>
+                            {ticket.description && (
+                              <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                                {ticket.description}
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
+                              <span>Dự án: {ticket.projectName}</span>
+                              <span>Ngày báo: {new Date(ticket.reportedDate).toLocaleDateString('vi-VN')}</span>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -766,9 +966,19 @@ export function Customer360Modal({
 
                           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200/80 dark:border-slate-800">
                             <div className="flex items-center justify-between gap-2 flex-wrap">
-                              <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                                {evt.title}
-                              </h4>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                                  {evt.title}
+                                </h4>
+                                {(() => {
+                                  const badge = getEventBadge(evt.eventType);
+                                  return badge ? (
+                                    <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold border ${badge.className}`}>
+                                      {badge.label}
+                                    </span>
+                                  ) : null;
+                                })()}
+                              </div>
                               <span className="text-[10px] text-slate-400 font-mono">
                                 {new Date(evt.timestamp).toLocaleString('vi-VN')}
                               </span>

@@ -12,6 +12,7 @@
 
 import { NextRequest } from 'next/server';
 import { GET as getCustomers, POST as createCustomer } from '@/app/api/interior/crm/customers/route';
+import { POST as mergeCustomers } from '@/app/api/interior/crm/customers/merge/route';
 import {
   GET as getCustomer360,
   PATCH as updateCustomer,
@@ -37,6 +38,11 @@ import { resolveInteriorContext } from '../lib/server-context';
 import { SupabaseCustomerRepository } from '../repositories/crm/supabase-customer.repository';
 import { SupabaseInteriorRepository } from '../repositories/supabase.repository';
 import { Customer360AggregatorService } from '../services/crm/customer-360-aggregator.service';
+import { CustomerMergeService } from '../services/crm/customer-merge.service';
+import {
+  CustomerDefaultAddressConflictError,
+  CustomerPrimaryContactConflictError,
+} from '../domain/crm/customer-errors';
 
 jest.mock('../lib/server-context', () => ({
   resolveInteriorContext: jest.fn(),
@@ -187,6 +193,58 @@ describe('Interior CRM Customer API Routes', () => {
       expect(res.status).toBe(400);
       expect(json.success).toBe(false);
       expect(json.error).toContain('name is required');
+    });
+  });
+
+  describe('POST /api/interior/crm/customers/merge', () => {
+    it('authorizes through the resolved actor and delegates one atomic merge', async () => {
+      const sourceCustomerId = '123e4567-e89b-42d3-a456-426614174000';
+      const targetCustomerId = '123e4567-e89b-42d3-a456-426614174001';
+      const actorId = 'actor-admin';
+      const reason = 'Duplicate commercial customer record';
+      resolveContextMock.mockResolvedValueOnce({
+        ok: true,
+        tenantId: TENANT_ID,
+        supabase: {},
+        actor: { id: actorId },
+      } as unknown as Awaited<ReturnType<typeof resolveInteriorContext>>);
+      const mergeSpy = jest.spyOn(CustomerMergeService.prototype, 'mergeCustomers').mockResolvedValue({
+        success: true,
+        sourceCustomerId,
+        targetCustomerId,
+        contactsTransferred: 1,
+        addressesTransferred: 0,
+        mergeLog: {
+          id: 'merge-log-1',
+          tenantId: TENANT_ID,
+          sourceCustomerId,
+          targetCustomerId,
+          actorId,
+          reason,
+          contactsTransferredCount: 1,
+          addressesTransferredCount: 0,
+          mergedAt: '2026-11-21T00:00:00.000Z',
+        },
+      });
+
+      const request = new NextRequest('https://bella.example/api/interior/crm/customers/merge', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ sourceCustomerId, targetCustomerId, reason }),
+      });
+      const response = await mergeCustomers(request);
+      const json = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(json.data.contactsTransferred).toBe(1);
+      expect(mergeSpy).toHaveBeenCalledWith({
+        tenantId: TENANT_ID,
+        sourceCustomerId,
+        targetCustomerId,
+        reason,
+        actorId,
+      });
+      mergeSpy.mockRestore();
     });
   });
 
@@ -432,6 +490,18 @@ describe('Interior CRM Customer API Routes', () => {
       expect(delRes.status).toBe(200);
       expect(delJson.data.deleted).toBe(true);
     });
+
+    it('returns 409 when switching a primary contact conflicts with the database invariant', async () => {
+      CustomerRepoMock.prototype.updateContact = jest.fn().mockRejectedValue(new CustomerPrimaryContactConflictError());
+      const req = new NextRequest('https://bella.example/api/interior/crm/customers/cust-100/contacts/contact-2', {
+        method: 'PATCH',
+        body: JSON.stringify({ isPrimary: true }),
+      });
+      const res = await updateContact(req, { params: Promise.resolve({ id: 'cust-100', contactId: 'contact-2' }) });
+      const json = await res.json();
+      expect(res.status).toBe(409);
+      expect(json.error).toContain('Switch the existing contact');
+    });
   });
 
   describe('Addresses API Routes', () => {
@@ -496,6 +566,18 @@ describe('Interior CRM Customer API Routes', () => {
       const delJson = await delRes.json();
       expect(delRes.status).toBe(200);
       expect(delJson.data.deleted).toBe(true);
+    });
+
+    it('returns 409 when switching a default address conflicts with the database invariant', async () => {
+      CustomerRepoMock.prototype.updateAddress = jest.fn().mockRejectedValue(new CustomerDefaultAddressConflictError());
+      const req = new NextRequest('https://bella.example/api/interior/crm/customers/cust-100/addresses/addr-2', {
+        method: 'PATCH',
+        body: JSON.stringify({ isDefault: true }),
+      });
+      const res = await updateAddress(req, { params: Promise.resolve({ id: 'cust-100', addressId: 'addr-2' }) });
+      const json = await res.json();
+      expect(res.status).toBe(409);
+      expect(json.error).toContain('Switch the existing address');
     });
   });
 });

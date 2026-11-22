@@ -14,15 +14,28 @@ import { GET as getEvidence, POST as uploadEvidence } from '@/app/api/interior/d
 import { POST as decideApproval } from '@/app/api/interior/delivery/acceptance/sessions/[id]/approval/route';
 import { resolveInteriorContext } from '../lib/server-context';
 import { SupabaseInteriorRepository } from '../repositories/supabase.repository';
+import { createServiceClient } from '@/lib/supabase-service-client';
 
 jest.mock('../lib/server-context', () => ({
   resolveInteriorContext: jest.fn(),
   INTERIOR_PERMISSIONS: {
     handoverApprove: 'interior:handover:approve',
+    acceptanceApprove: 'interior:acceptance:approve',
   },
 }));
 
 jest.mock('../repositories/supabase.repository');
+jest.mock('@/lib/supabase-service-client', () => ({
+  createServiceClient: jest.fn(() => ({
+    storage: {
+      from: jest.fn(() => ({
+        upload: jest.fn().mockResolvedValue({ error: null }),
+        remove: jest.fn().mockResolvedValue({ error: null }),
+        download: jest.fn().mockResolvedValue({ data: new Blob(['evidence']), error: null }),
+      })),
+    },
+  })),
+}));
 
 const resolveContextMock = jest.mocked(resolveInteriorContext);
 const SupabaseRepoMock = jest.mocked(SupabaseInteriorRepository);
@@ -51,7 +64,25 @@ describe('Bella Interior O4-C: API Route Handlers', () => {
       listAcceptanceCampaigns: jest.fn().mockResolvedValue([
         { id: campaignId, tenantId, projectId, campaignCode: 'CP-01', campaignName: 'Test Campaign' },
       ]),
-      saveAcceptanceSession: jest.fn().mockResolvedValue(undefined),
+      createAcceptanceSession: jest.fn().mockResolvedValue(undefined),
+      updateAcceptanceInspectionResult: jest.fn().mockResolvedValue(undefined),
+      decideAcceptanceSession: jest.fn().mockResolvedValue({
+        id: sessionId,
+        tenantId,
+        campaignId,
+        projectId,
+        sessionCode: 'SS-01',
+        sessionType: 'ROOM_BY_ROOM',
+        inspectionScope: 'Living Room',
+        inspectionDate: '2026-11-21',
+        recorderActorId: actorId,
+        customerRepresentative: 'Nguyen Van A',
+        relatedBoqItemIds: [],
+        inspectionResult: 'ACCEPTED_WITH_REMARKS',
+        approvalStatus: 'APPROVED',
+        documentationStatus: 'PARTIAL',
+        approvedByActorId: actorId,
+      }),
       getAcceptanceSession: jest.fn().mockResolvedValue({
         id: sessionId,
         tenantId,
@@ -72,7 +103,7 @@ describe('Bella Interior O4-C: API Route Handlers', () => {
       listAcceptanceSessionsByProject: jest.fn().mockResolvedValue([]),
       saveAcceptanceNote: jest.fn().mockResolvedValue(undefined),
       listAcceptanceNotes: jest.fn().mockResolvedValue([]),
-      saveAcceptanceEvidence: jest.fn().mockResolvedValue(undefined),
+      saveAcceptanceEvidence: jest.fn().mockImplementation(async (_tenantId, evidence) => evidence),
       listAcceptanceEvidence: jest.fn().mockResolvedValue([]),
     };
 
@@ -83,6 +114,7 @@ describe('Bella Interior O4-C: API Route Handlers', () => {
       tenantId,
       actor: { id: actorId, full_name: 'Supervisor', roles: ['project_manager'] },
       supabase: {},
+      authorization: { authorize: jest.fn().mockResolvedValue({ status: 'ALLOW' }) },
     } as unknown as Awaited<ReturnType<typeof resolveInteriorContext>>);
   });
 
@@ -209,10 +241,87 @@ describe('Bella Interior O4-C: API Route Handlers', () => {
   // ─── Evidence Route ─────────────────────────────────────────────────────────
 
   describe('Evidence Route (/api/interior/delivery/acceptance/sessions/[id]/evidence)', () => {
+    it('GET: downloads only evidence belonging to the authorized session and project', async () => {
+      const evidenceId = '44444444-4444-4444-8444-444444444444';
+      mockRepoInstance.listAcceptanceEvidence.mockResolvedValue([{
+        id: evidenceId, tenantId, sessionId, bucketId: 'interior-site-evidence',
+        storagePath: `${tenantId}/${projectId}/acceptance/${sessionId}/file.pdf`, fileName: 'file.pdf',
+      }]);
+      const response = await getEvidence(new Request(`http://localhost/api/interior/delivery/acceptance/sessions/${sessionId}/evidence?evidenceId=${evidenceId}`),
+        { params: Promise.resolve({ id: sessionId }) });
+      expect(response.status).toBe(200);
+      expect(response.headers.get('cache-control')).toBe('private, no-store');
+      const ctx = await resolveContextMock.mock.results[0].value;
+      expect(ctx.authorization.authorize).toHaveBeenCalledWith({
+        permissionId: 'interior:acceptance_evidence:read', tenantId, projectId,
+      });
+      expect(createServiceClient).toHaveBeenCalledTimes(1);
+    });
+
+    it('GET: never downloads a foreign or improperly scoped storage path', async () => {
+      const evidenceId = '44444444-4444-4444-8444-444444444444';
+      mockRepoInstance.listAcceptanceEvidence.mockResolvedValue([{
+        id: evidenceId, tenantId, sessionId, bucketId: 'interior-site-evidence',
+        storagePath: `other-tenant/${projectId}/acceptance/${sessionId}/file.pdf`, fileName: 'file.pdf',
+      }]);
+      const response = await getEvidence(new Request(`http://localhost/api/interior/delivery/acceptance/sessions/${sessionId}/evidence?evidenceId=${evidenceId}`),
+        { params: Promise.resolve({ id: sessionId }) });
+      expect(response.status).toBe(404);
+      expect(createServiceClient).not.toHaveBeenCalled();
+    });
+
+    it('GET: does not download when the actor lacks permission for the session project', async () => {
+      const ctx = await resolveContextMock(new Request('http://localhost'));
+      if (!ctx.ok) throw new Error('Expected test context');
+      jest.mocked(ctx.authorization.authorize).mockResolvedValueOnce({ status: 'DENY', reason: 'NO_GRANT' });
+      const response = await getEvidence(new Request(`http://localhost/api/interior/delivery/acceptance/sessions/${sessionId}/evidence?projectId=55555555-5555-4555-8555-555555555555&evidenceId=44444444-4444-4444-8444-444444444444`),
+        { params: Promise.resolve({ id: sessionId }) });
+      expect(response.status).toBe(403);
+      expect(ctx.authorization.authorize).toHaveBeenCalledWith({
+        permissionId: 'interior:acceptance_evidence:read', tenantId, projectId,
+      });
+      expect(createServiceClient).not.toHaveBeenCalled();
+    });
+    it('POST: denies actors without evidence upload permission before parsing or storing the body', async () => {
+      resolveContextMock.mockResolvedValueOnce({
+        ok: false,
+        response: new Response(JSON.stringify({ success: false, error: 'INTERIOR_PERMISSION_DENIED' }), { status: 403 }),
+      });
+      const context = { params: Promise.resolve({ id: sessionId }) };
+      const res = await uploadEvidence(
+        new Request(`http://localhost/api/interior/delivery/acceptance/sessions/${sessionId}/evidence`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: '{invalid-json',
+        }),
+        context,
+      );
+
+      expect(res.status).toBe(403);
+      expect(SupabaseRepoMock).not.toHaveBeenCalled();
+    });
+
+    it('POST: rejects an oversized JSON request from Content-Length before auth or body parsing', async () => {
+      const context = { params: Promise.resolve({ id: sessionId }) };
+      const res = await uploadEvidence(
+        new Request(`http://localhost/api/interior/delivery/acceptance/sessions/${sessionId}/evidence`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': '14112089',
+          },
+          body: '{}',
+        }),
+        context,
+      );
+
+      expect(res.status).toBe(413);
+      expect(resolveContextMock).not.toHaveBeenCalled();
+    });
+
     it('POST: uploads base64 file and computes server SHA-256 with 201', async () => {
       const context = { params: Promise.resolve({ id: sessionId }) };
-      const rawPayload = 'BASE64_SIMULATED_IMAGE_PAYLOAD';
-      const fileBase64 = Buffer.from(rawPayload).toString('base64');
+      const fileBase64 = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0, 0]).toString('base64');
 
       const res = await uploadEvidence(
         new Request(`http://localhost/api/interior/delivery/acceptance/sessions/${sessionId}/evidence`, {
@@ -221,8 +330,12 @@ describe('Bella Interior O4-C: API Route Handlers', () => {
           body: JSON.stringify({
             evidenceCategory: 'CUSTOMER_SIGNOFF',
             fileBase64,
-            fileName: 'signed_handover.pdf',
+            fileName: 'signed_handover.png',
             mimeType: 'application/pdf',
+            tenantId: 'attacker-controlled-tenant',
+            actorId: 'attacker-controlled-actor',
+            storagePath: 'attacker-controlled/path',
+            bucketId: 'attacker-controlled-bucket',
           }),
         }),
         context
@@ -233,13 +346,17 @@ describe('Bella Interior O4-C: API Route Handlers', () => {
       expect(json.success).toBe(true);
       expect(json.data.sha256Hash).toBeDefined();
       expect(json.data.sha256Hash).toMatch(/^[0-9a-f]{64}$/);
+      expect(json.data.bucketId).toBe('interior-site-evidence');
+      expect(json.data.tenantId).toBe(tenantId);
+      expect(json.data.uploadedByUserId).toBe(actorId);
+      expect(json.data.storagePath).not.toContain('attacker-controlled');
     });
   });
 
   // ─── Approval Route ─────────────────────────────────────────────────────────
 
   describe('Approval Route (/api/interior/delivery/acceptance/sessions/[id]/approval)', () => {
-    it('POST: approves session when actor has manager role (interior:handover:approve)', async () => {
+    it('POST: approves session through the context-authorized atomic flow', async () => {
       const context = { params: Promise.resolve({ id: sessionId }) };
       const res = await decideApproval(
         new Request(`http://localhost/api/interior/delivery/acceptance/sessions/${sessionId}/approval`, {
@@ -248,6 +365,9 @@ describe('Bella Interior O4-C: API Route Handlers', () => {
           body: JSON.stringify({
             decision: 'APPROVED',
             approvalNotes: 'Duyệt bàn giao đợt 1',
+            actorId: 'attacker-controlled-actor',
+            tenantId: 'attacker-controlled-tenant',
+            approvedByActorId: 'attacker-controlled-approver',
           }),
         }),
         context
@@ -257,15 +377,18 @@ describe('Bella Interior O4-C: API Route Handlers', () => {
       const json = await res.json();
       expect(json.success).toBe(true);
       expect(json.data.approvalStatus).toBe('APPROVED');
+      expect(mockRepoInstance.decideAcceptanceSession).toHaveBeenCalledWith(expect.objectContaining({
+        tenantId,
+        sessionId,
+        actorId,
+      }));
     });
 
     it('POST: returns 403 when actor does not have handoverApprove permission', async () => {
       resolveContextMock.mockResolvedValueOnce({
-        ok: true,
-        tenantId,
-        actor: { id: actorId, full_name: 'Guest / Technician', roles: ['technician'] },
-        supabase: {},
-      } as unknown as Awaited<ReturnType<typeof resolveInteriorContext>>);
+        ok: false,
+        response: new Response(JSON.stringify({ success: false, error: 'INTERIOR_PERMISSION_DENIED' }), { status: 403 }),
+      });
 
       const context = { params: Promise.resolve({ id: sessionId }) };
       const res = await decideApproval(
@@ -282,7 +405,7 @@ describe('Bella Interior O4-C: API Route Handlers', () => {
       expect(res.status).toBe(403);
       const json = await res.json();
       expect(json.success).toBe(false);
-      expect(json.error).toContain('interior:handover:approve');
+      expect(json.error).toContain('INTERIOR_PERMISSION_DENIED');
     });
   });
 });

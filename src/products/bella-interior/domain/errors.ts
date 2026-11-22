@@ -183,7 +183,7 @@ export class AcceptanceInvalidMimeTypeError extends Error {
 
 export class AcceptanceManagerApprovalPermissionRequiredError extends Error {
   constructor(actorId: string) {
-    super(`Actor ${actorId} lacks required permission 'interior:handover:approve' to make manager acceptance decisions.`);
+    super(`Actor ${actorId} lacks required permission 'interior:acceptance:approve' to make acceptance decisions.`);
     this.name = 'AcceptanceManagerApprovalPermissionRequiredError';
   }
 }

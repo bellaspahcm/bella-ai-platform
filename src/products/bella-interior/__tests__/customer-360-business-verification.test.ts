@@ -479,14 +479,11 @@ describe('Customer 360 Business & Financial Correctness Verification (Cases A-J)
     });
 
     // Record merge
-    await customerRepo.recordMerge(TENANT_ID, {
-      tenantId: TENANT_ID,
+    await customerRepo.mergeAtomically(TENANT_ID, {
       sourceCustomerId: sourceCust.id,
       targetCustomerId: canonicalCust.id,
       actorId: 'admin-user',
       reason: 'Sáp nhập công ty con',
-      contactsTransferredCount: 0,
-      addressesTransferredCount: 0,
     });
 
     const projectOnAlias: InteriorProject = {

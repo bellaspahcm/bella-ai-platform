@@ -30,7 +30,7 @@ describe('Warranty project entry', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('marks the existing analytics output as sample data for a selected project', async () => {
+  it('renders the warranty overview and enables service ticket creation for a selected project', async () => {
     projectId = '123e4567-e89b-42d3-a456-426614174000';
     const overview = await InteriorWarrantyAnalyticsService.getWarrantyOverview('test-tenant', projectId);
     const fetchMock = jest.fn().mockResolvedValue({
@@ -43,6 +43,7 @@ describe('Warranty project entry', () => {
       `/api/interior/warranty/analytics?projectId=${projectId}`,
       { cache: 'no-store' },
     ));
-    expect(await screen.findByText(/hiện là dữ liệu mẫu/)).toBeInTheDocument();
+    expect(await screen.findByText('Warranty & Aftercare')).toBeInTheDocument();
+    expect(screen.getByText('Tổng Chứng Thư')).toBeInTheDocument();
   });
 });

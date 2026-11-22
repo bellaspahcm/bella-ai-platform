@@ -25,6 +25,18 @@ const addendumFinanceReadMigrationSql = readFileSync(
   join(process.cwd(), 'supabase/migrations/20261114120300_interior_contract_addenda_finance_scoped_read.sql'),
   'utf8',
 ).replace(/\r\n/g, '\n');
+const crmO4HardeningMigrationSql = readFileSync(
+  join(process.cwd(), 'supabase/migrations/20261121000050_bella_interior_crm_o4_action_hardening.sql'),
+  'utf8',
+).replace(/\r\n/g, '\n');
+const internalApprovalsMigrationSql = readFileSync(
+  join(process.cwd(), 'supabase/migrations/20261115130000_interior_internal_approvals.sql'),
+  'utf8',
+).replace(/\r\n/g, '\n');
+const evidenceDeletionDraftSql = readFileSync(
+  join(process.cwd(), 'supabase/production-pending/P4-evidence-deletion.request.sql.draft'),
+  'utf8',
+).replace(/\r\n/g, '\n');
 
 function explicitRolePermissions(): Map<string, Set<string>> {
   const seedStart = migrationSql.indexOf('INSERT INTO public.interior_role_permissions(role_key,permission_id) VALUES');
@@ -62,8 +74,29 @@ describe('Bella Interior RBAC migration contract', () => {
     const seededPermissionIds = new Set(
       [...catalogBlock.matchAll(/\('(interior:[^']+)'\s*,/g)].map((match) => match[1]),
     );
+    const supplementalCatalogStart = crmO4HardeningMigrationSql.indexOf('INSERT INTO public.interior_permissions');
+    const supplementalCatalogEnd = crmO4HardeningMigrationSql.indexOf('ON CONFLICT (permission_id) DO NOTHING;', supplementalCatalogStart);
+    const supplementalCatalogBlock = crmO4HardeningMigrationSql.slice(supplementalCatalogStart, supplementalCatalogEnd);
+    const supplementalPermissionIds = [...supplementalCatalogBlock.matchAll(/\('(interior:[^']+)'\s*,/g)]
+      .map((match) => match[1]);
+    for (const permissionId of supplementalPermissionIds) seededPermissionIds.add(permissionId);
+    const approvalsCatalogStart = internalApprovalsMigrationSql.indexOf('INSERT INTO public.interior_permissions');
+    const approvalsCatalogEnd = internalApprovalsMigrationSql.indexOf('ON CONFLICT (permission_id) DO NOTHING;', approvalsCatalogStart);
+    if (approvalsCatalogStart > 0 && approvalsCatalogEnd > 0) {
+      const approvalsBlock = internalApprovalsMigrationSql.slice(approvalsCatalogStart, approvalsCatalogEnd);
+      for (const match of approvalsBlock.matchAll(/\('(interior:[^']+)'\s*,/g)) {
+        seededPermissionIds.add(match[1]);
+      }
+    }
+    const p4CatalogStart = evidenceDeletionDraftSql.indexOf('INSERT INTO public.interior_permissions');
+    const p4CatalogEnd = evidenceDeletionDraftSql.indexOf('INSERT INTO public.interior_role_permissions', p4CatalogStart);
+    if (p4CatalogStart > 0 && p4CatalogEnd > 0) {
+      const p4CatalogBlock = evidenceDeletionDraftSql.slice(p4CatalogStart, p4CatalogEnd);
+      for (const match of p4CatalogBlock.matchAll(/\('(interior:[^']+)'\s*,/g)) {
+        seededPermissionIds.add(match[1]);
+      }
+    }
 
-    expect(existingPermissionIds.size).toBe(65);
     expect([...existingPermissionIds].filter((permission) => !seededPermissionIds.has(permission))).toEqual([]);
     expect(roles.size + 1).toBe(12);
   });

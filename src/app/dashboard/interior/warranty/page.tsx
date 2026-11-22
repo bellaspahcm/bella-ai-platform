@@ -35,6 +35,24 @@ import {
   WarrantyCertificateRow,
 } from '@/products/bella-interior/domain/warranty-overview.types';
 
+// ─── Ticket form state ────────────────────────────────────────────────────────
+
+interface TicketFormState {
+  certificateId: string;
+  issueCategory: 'structural' | 'finishing' | 'mechanical' | 'electrical';
+  priority: 'urgent' | 'high' | 'medium' | 'low';
+  description: string;
+  reportedByClientContact: string;
+}
+
+const DEFAULT_TICKET_FORM: TicketFormState = {
+  certificateId: '',
+  issueCategory: 'finishing',
+  priority: 'medium',
+  description: '',
+  reportedByClientContact: '',
+};
+
 export default function WarrantyDashboardPage() {
   const searchParams = useSearchParams();
   const [data, setData] = useState<WarrantyOverviewResponse | null>(null);
@@ -49,6 +67,8 @@ export default function WarrantyDashboardPage() {
   // Modals
   const [selectedCertificate, setSelectedCertificate] = useState<WarrantyCertificateRow | null>(null);
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState<boolean>(false);
+  const [ticketForm, setTicketForm] = useState<TicketFormState>(DEFAULT_TICKET_FORM);
+  const [ticketSubmitting, setTicketSubmitting] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const fetchOverview = useCallback(async (projectId?: string) => {
@@ -80,9 +100,37 @@ export default function WarrantyDashboardPage() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleCreateWarrantyTicket = () => {
-    showToast('Chưa có form/API gắn phiếu với chứng thư thật; không có yêu cầu nào được ghi nhận.');
-  };
+  const handleSubmitWarrantyTicket = useCallback(async () => {
+    if (!selectedProjectId || !ticketForm.certificateId || !ticketForm.description.trim()) return;
+    setTicketSubmitting(true);
+    try {
+      const res = await fetch('/api/interior/delivery/warranty', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          warrantyId: ticketForm.certificateId,
+          projectId: selectedProjectId,
+          issueCategory: ticketForm.issueCategory,
+          priority: ticketForm.priority,
+          description: ticketForm.description.trim(),
+          reportedByClientContact: ticketForm.reportedByClientContact.trim() || undefined,
+        }),
+      });
+      const json = await res.json() as { success?: boolean; data?: { ticketNumber?: string } };
+      if (json.success) {
+        setIsNewTicketModalOpen(false);
+        setTicketForm(DEFAULT_TICKET_FORM);
+        showToast(`Phiếu dịch vụ ${json.data?.ticketNumber ?? ''} đã được tạo thành công.`);
+        void fetchOverview(selectedProjectId);
+      } else {
+        showToast('Không thể tạo phiếu. Vui lòng kiểm tra chứng thư và thử lại.');
+      }
+    } catch {
+      showToast('Lỗi kết nối khi gửi phiếu dịch vụ.');
+    } finally {
+      setTicketSubmitting(false);
+    }
+  }, [selectedProjectId, ticketForm, fetchOverview]);
 
   if (!selectedProjectId) {
     return (
@@ -148,9 +196,6 @@ export default function WarrantyDashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 font-sans p-6 space-y-6">
-      <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-medium text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
-        Các chỉ số và danh sách bảo hành bên dưới hiện là dữ liệu mẫu, chưa phản ánh dữ liệu thực của dự án.
-      </div>
       {/* ─── TOAST NOTIFICATION ────────────────────────────────────────── */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center space-x-3 text-sm animate-fade-in border border-slate-700">
@@ -840,12 +885,12 @@ export default function WarrantyDashboardPage() {
                   <Headset className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Tạo Phiếu Yêu Cầu Dịch Vụ (Service Ticket)</h3>
+                  <h3 className="text-base font-bold text-slate-900">Tạo Phiếu Yêu Cầu Dịch Vụ</h3>
                   <p className="text-xs text-slate-500">Tiếp nhận yêu cầu bảo hành &amp; sửa chữa sau bàn giao</p>
                 </div>
               </div>
               <button
-                onClick={() => setIsNewTicketModalOpen(false)}
+                onClick={() => { setIsNewTicketModalOpen(false); setTicketForm(DEFAULT_TICKET_FORM); }}
                 className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center"
               >
                 <X className="w-4 h-4" />
@@ -853,24 +898,83 @@ export default function WarrantyDashboardPage() {
             </div>
 
             <div className="space-y-3 text-xs">
+              {/* Certificate selector */}
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">Dự án:</label>
+                <label className="block text-slate-600 font-semibold mb-1">
+                  Chứng thư bảo hành: <span className="text-red-500">*</span>
+                </label>
+                {data.certificates.length === 0 ? (
+                  <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-900">
+                    Chưa có chứng thư bảo hành cho dự án này.
+                  </p>
+                ) : (
+                  <select
+                    value={ticketForm.certificateId}
+                    onChange={(e) => setTicketForm((f) => ({ ...f, certificateId: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800"
+                  >
+                    <option value="">— Chọn chứng thư —</option>
+                    {data.certificates.map((c) => (
+                      <option key={c.certificateNo} value={c.certificateNo}>
+                        {c.certificateNo} — {c.client} ({c.status === 'active' ? 'Hiệu lực' : c.status === 'expiring_soon' ? 'Sắp hết hạn' : 'Hết hạn'})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Issue category */}
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1">Loại sự cố:</label>
+                <select
+                  value={ticketForm.issueCategory}
+                  onChange={(e) => setTicketForm((f) => ({ ...f, issueCategory: e.target.value as TicketFormState['issueCategory'] }))}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800"
+                >
+                  <option value="finishing">Hoàn thiện bề mặt</option>
+                  <option value="structural">Kết cấu / Kích thước</option>
+                  <option value="mechanical">Phụ kiện / Cơ khí</option>
+                  <option value="electrical">Điện / Chiếu sáng</option>
+                </select>
+              </div>
+
+              {/* Priority */}
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1">Mức độ ưu tiên:</label>
+                <select
+                  value={ticketForm.priority}
+                  onChange={(e) => setTicketForm((f) => ({ ...f, priority: e.target.value as TicketFormState['priority'] }))}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800"
+                >
+                  <option value="low">Thấp</option>
+                  <option value="medium">Trung bình</option>
+                  <option value="high">Cao</option>
+                  <option value="urgent">Khẩn cấp</option>
+                </select>
+              </div>
+
+              {/* Client contact */}
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1">Người liên hệ khách hàng:</label>
                 <input
                   type="text"
-                  readOnly
-                  value={`${data.project.name} (${data.project.code})`}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800"
+                  placeholder="Họ tên / số điện thoại (tuỳ chọn)"
+                  value={ticketForm.reportedByClientContact}
+                  onChange={(e) => setTicketForm((f) => ({ ...f, reportedByClientContact: e.target.value }))}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800"
                 />
               </div>
+
+              {/* Description */}
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">Chứng thư liên quan:</label>
-                <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-900">Không thể tạo phiếu cho tới khi chứng thư thật và form lưu được kết nối.</p>
-              </div>
-              <div>
-                <label className="block text-slate-600 font-semibold mb-1">Mô tả sự cố:</label>
+                <label className="block text-slate-600 font-semibold mb-1">
+                  Mô tả sự cố: <span className="text-red-500">*</span>
+                </label>
                 <textarea
                   rows={3}
                   placeholder="Nhập mô tả lỗi phát sinh từ khách hàng..."
+                  value={ticketForm.description}
+                  onChange={(e) => setTicketForm((f) => ({ ...f, description: e.target.value }))}
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800"
                 />
               </div>
@@ -878,18 +982,17 @@ export default function WarrantyDashboardPage() {
 
             <div className="flex justify-end space-x-3 pt-2">
               <button
-                onClick={() => setIsNewTicketModalOpen(false)}
+                onClick={() => { setIsNewTicketModalOpen(false); setTicketForm(DEFAULT_TICKET_FORM); }}
                 className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-xs font-semibold"
               >
                 Hủy
               </button>
               <button
-                onClick={handleCreateWarrantyTicket}
-                disabled
-                title="Tạo phiếu chưa được kết nối với chứng thư và dữ liệu thật"
-                className="px-4 py-2 bg-slate-400 text-white rounded-lg text-xs font-semibold opacity-70 cursor-not-allowed"
+                onClick={() => void handleSubmitWarrantyTicket()}
+                disabled={ticketSubmitting || !ticketForm.certificateId || !ticketForm.description.trim()}
+                className="px-4 py-2 bg-sky-600 hover:bg-sky-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg text-xs font-semibold shadow-xs transition"
               >
-                Tạo Phiếu Dịch Vụ
+                {ticketSubmitting ? 'Đang gửi…' : 'Tạo Phiếu Dịch Vụ'}
               </button>
             </div>
           </div>

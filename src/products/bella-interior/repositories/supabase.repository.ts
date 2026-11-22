@@ -1293,7 +1293,10 @@ function mapWarrantyTicketToRow(
 // ---------------------------------------------------------------------------
 
 export class SupabaseInteriorRepository implements IInteriorRepository, IInteriorAcceptanceRepository {
-  constructor(private readonly supabase: SupabaseClient) {}
+  constructor(
+    private readonly supabase: SupabaseClient,
+    private readonly trustedEvidenceClient?: SupabaseClient,
+  ) {}
 
   // ─── Design & Specification ────────────────────────────────────────────────
 
@@ -3045,7 +3048,7 @@ export class SupabaseInteriorRepository implements IInteriorRepository, IInterio
 
   async saveAcceptanceCampaign(tenantId: string, campaign: AcceptanceCampaign): Promise<void> {
     if (!tenantId || campaign.tenantId !== tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
-    const { error } = await this.supabase.from('interior_acceptance_campaigns').upsert({
+    const { error } = await this.supabase.from('interior_acceptance_campaigns').insert({
       id: campaign.id,
       tenant_id: tenantId,
       project_id: campaign.projectId,
@@ -3053,8 +3056,6 @@ export class SupabaseInteriorRepository implements IInteriorRepository, IInterio
       campaign_name: campaign.campaignName,
       description: campaign.description,
       created_by_user_id: campaign.createdByUserId,
-      created_at: campaign.createdAt,
-      updated_at: campaign.updatedAt,
     });
     if (error) throw new Error(`[InteriorRepo] saveAcceptanceCampaign failed: ${error.message}`);
   }
@@ -3084,9 +3085,9 @@ export class SupabaseInteriorRepository implements IInteriorRepository, IInterio
     return (data || []).map((row) => this.mapRowToAcceptanceCampaign(row));
   }
 
-  async saveAcceptanceSession(tenantId: string, session: AcceptanceSession): Promise<void> {
+  async createAcceptanceSession(tenantId: string, session: AcceptanceSession): Promise<void> {
     if (!tenantId || session.tenantId !== tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
-    const { error } = await this.supabase.from('interior_acceptance_sessions').upsert({
+    const { error } = await this.supabase.from('interior_acceptance_sessions').insert({
       id: session.id,
       tenant_id: tenantId,
       campaign_id: session.campaignId,
@@ -3100,16 +3101,47 @@ export class SupabaseInteriorRepository implements IInteriorRepository, IInterio
       customer_contact: session.customerContact,
       related_boq_item_ids: [...session.relatedBoqItemIds],
       inspection_result: session.inspectionResult,
-      approval_status: session.approvalStatus,
-      documentation_status: session.documentationStatus,
-      approved_by_actor_id: session.approvedByActorId,
-      approved_at: session.approvedAt,
-      rejection_reason: session.rejectionReason,
-      approval_notes: session.approvalNotes,
-      created_at: session.createdAt,
-      updated_at: session.updatedAt,
     });
-    if (error) throw new Error(`[InteriorRepo] saveAcceptanceSession failed: ${error.message}`);
+    if (error) throw new Error(`[InteriorRepo] createAcceptanceSession failed: ${error.message}`);
+  }
+
+  async updateAcceptanceInspectionResult(
+    tenantId: string,
+    sessionId: string,
+    inspectionResult: AcceptanceSession['inspectionResult'],
+    approvalNotes: string | null,
+  ): Promise<void> {
+    if (!tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const { error } = await this.supabase
+      .from('interior_acceptance_sessions')
+      .update({ inspection_result: inspectionResult, approval_notes: approvalNotes })
+      .eq('tenant_id', tenantId)
+      .eq('id', sessionId);
+    if (error) throw new Error(`[InteriorRepo] updateAcceptanceInspectionResult failed: ${error.message}`);
+  }
+
+  async decideAcceptanceSession(input: {
+    tenantId: string;
+    sessionId: string;
+    actorId: string;
+    decision: 'APPROVED' | 'REJECTED';
+    approvalNotes: string | null;
+    rejectionReason: string | null;
+  }): Promise<AcceptanceSession> {
+    if (!input.tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
+    const result = await interiorRbacRpcClient(this.supabase).rpc('interior_decide_acceptance_session', {
+      p_session_id: input.sessionId,
+      p_decision: input.decision,
+      p_approval_notes: input.approvalNotes,
+      p_rejection_reason: input.rejectionReason,
+    });
+    if (result.error) throw new Error(`[InteriorRepo] decideAcceptanceSession failed: ${result.error.message || 'RPC_FAILED'}`);
+    if (!isInteriorRbacRecord(result.data)) throw new Error('[InteriorRepo] decideAcceptanceSession returned invalid data');
+    const session = this.mapRowToAcceptanceSession(result.data);
+    if (session.tenantId !== input.tenantId || session.id !== input.sessionId || session.approvedByActorId !== input.actorId) {
+      throw new Error('[InteriorRepo] decideAcceptanceSession identity mismatch');
+    }
+    return session;
   }
 
   async getAcceptanceSession(tenantId: string, sessionId: string): Promise<AcceptanceSession | null> {
@@ -3151,7 +3183,7 @@ export class SupabaseInteriorRepository implements IInteriorRepository, IInterio
 
   async saveAcceptanceNote(tenantId: string, note: AcceptanceNoteItem): Promise<void> {
     if (!tenantId || note.tenantId !== tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
-    const { error } = await this.supabase.from('interior_acceptance_notes').upsert({
+    const { error } = await this.supabase.from('interior_acceptance_notes').insert({
       id: note.id,
       tenant_id: tenantId,
       session_id: note.sessionId,
@@ -3167,8 +3199,6 @@ export class SupabaseInteriorRepository implements IInteriorRepository, IInterio
       routed_entity_type: note.routedEntityType,
       routed_entity_id: note.routedEntityId,
       created_by_user_id: note.createdByUserId,
-      created_at: note.createdAt,
-      updated_at: note.updatedAt,
     });
     if (error) throw new Error(`[InteriorRepo] saveAcceptanceNote failed: ${error.message}`);
   }
@@ -3198,25 +3228,30 @@ export class SupabaseInteriorRepository implements IInteriorRepository, IInterio
     return (data || []).map((row) => this.mapRowToAcceptanceNote(row));
   }
 
-  async saveAcceptanceEvidence(tenantId: string, evidence: AcceptanceEvidenceObject): Promise<void> {
+  async saveAcceptanceEvidence(tenantId: string, evidence: AcceptanceEvidenceObject): Promise<AcceptanceEvidenceObject> {
     if (!tenantId || evidence.tenantId !== tenantId) throw new Error('[InteriorRepo] Tenant isolation violation');
-    const { error } = await this.supabase.from('interior_acceptance_evidence_objects').upsert({
-      id: evidence.id,
-      tenant_id: tenantId,
-      session_id: evidence.sessionId,
-      note_id: evidence.noteId,
-      evidence_category: evidence.evidenceCategory,
-      bucket_id: evidence.bucketId,
-      storage_path: evidence.storagePath,
-      file_name: evidence.fileName,
-      file_size_bytes: evidence.fileSizeBytes,
-      mime_type: evidence.mimeType,
-      sha256_hash: evidence.sha256Hash,
-      version: evidence.version,
-      uploaded_by_user_id: evidence.uploadedByUserId,
-      uploaded_at: evidence.uploadedAt,
+    if (!this.trustedEvidenceClient) {
+      throw new Error('[InteriorRepo] Trusted evidence metadata client is required');
+    }
+    const result = await interiorRbacRpcClient(this.trustedEvidenceClient).rpc('interior_record_acceptance_evidence', {
+      p_tenant_id: tenantId,
+      p_actor_id: evidence.uploadedByUserId,
+      p_session_id: evidence.sessionId,
+      p_note_id: evidence.noteId,
+      p_evidence_category: evidence.evidenceCategory,
+      p_bucket_id: evidence.bucketId,
+      p_storage_path: evidence.storagePath,
+      p_file_name: evidence.fileName,
+      p_file_size_bytes: evidence.fileSizeBytes,
+      p_mime_type: evidence.mimeType,
+      p_sha256_hash: evidence.sha256Hash,
+      p_version: evidence.version,
     });
-    if (error) throw new Error(`[InteriorRepo] saveAcceptanceEvidence failed: ${error.message}`);
+    if (result.error) throw new Error(`[InteriorRepo] saveAcceptanceEvidence failed: ${result.error.message || 'RPC_FAILED'}`);
+    if (!result.data || typeof result.data !== 'object' || Array.isArray(result.data)) {
+      throw new Error('[InteriorRepo] saveAcceptanceEvidence returned invalid metadata');
+    }
+    return this.mapRowToAcceptanceEvidence(result.data as Record<string, unknown>);
   }
 
   async listAcceptanceEvidence(tenantId: string, sessionId: string): Promise<AcceptanceEvidenceObject[]> {

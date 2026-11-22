@@ -82,46 +82,21 @@ export class CustomerMergeService {
       throw new CustomerMergeCycleDetectedError(sourceCustomerId, targetCustomerId);
     }
 
-    // 5. Atomic Execution with Rollback Safety
-    const prevStatus = source.profileStatus;
-    const prevMergedInto = source.mergedIntoId;
-    const prevUpdatedAt = source.updatedAt;
-
-    try {
-      const { contactsTransferred, addressesTransferred } = await this.customerRepo.transferRelationships(
-        tenantId,
-        sourceCustomerId,
-        targetCustomerId
-      );
-
-      (source as { profileStatus: string; mergedIntoId?: string; updatedAt: string }).profileStatus = 'merged';
-      (source as { profileStatus: string; mergedIntoId?: string; updatedAt: string }).mergedIntoId = targetCustomerId;
-      (source as { profileStatus: string; mergedIntoId?: string; updatedAt: string }).updatedAt = new Date().toISOString();
-
-      const mergeLog = await this.customerRepo.recordMerge(tenantId, {
-        tenantId,
+    // 5. All persistent changes are committed by one database operation.
+    const { contactsTransferred, addressesTransferred, mergeLog } = await this.customerRepo.mergeAtomically(tenantId, {
         sourceCustomerId,
         targetCustomerId,
         actorId,
         reason,
-        contactsTransferredCount: contactsTransferred,
-        addressesTransferredCount: addressesTransferred,
-      });
+    });
 
-      return {
-        success: true,
-        sourceCustomerId,
-        targetCustomerId,
-        contactsTransferred,
-        addressesTransferred,
-        mergeLog,
-      };
-    } catch (err) {
-      // Rollback in-memory status
-      (source as { profileStatus: string; mergedIntoId?: string; updatedAt: string }).profileStatus = prevStatus;
-      (source as { profileStatus: string; mergedIntoId?: string; updatedAt: string }).mergedIntoId = prevMergedInto;
-      (source as { profileStatus: string; mergedIntoId?: string; updatedAt: string }).updatedAt = prevUpdatedAt;
-      throw err;
-    }
+    return {
+      success: true,
+      sourceCustomerId,
+      targetCustomerId,
+      contactsTransferred,
+      addressesTransferred,
+      mergeLog,
+    };
   }
 }

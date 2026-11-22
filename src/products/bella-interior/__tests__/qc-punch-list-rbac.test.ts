@@ -125,4 +125,67 @@ describe('Interior QC punch-list RBAC routes', () => {
       p_rectification_note: 'Rechecked and passed',
     });
   });
+
+  it('transitions punch item from open to in_progress to start remediation', async () => {
+    const inProgressItem = { ...storedItem, status: 'in_progress' };
+    const rpc = jest.fn().mockResolvedValue({
+      data: [{ status: 'COMMITTED', reason: 'QC_ITEM_UPDATED', item: inProgressItem }],
+      error: null,
+    });
+    rpcClientFactoryMock.mockReturnValue({ rpc } as unknown as ReturnType<typeof interiorRbacRpcClient>);
+
+    const response = await updateQcItem(new Request(`https://bella.example/api/interior/delivery/punch-list/${itemId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'in_progress' }),
+    }), { params: Promise.resolve({ id: itemId }) });
+
+    expect(response.status).toBe(200);
+    expect(rpc).toHaveBeenCalledWith('interior_update_qc_item', {
+      p_item_id: itemId,
+      p_status: 'in_progress',
+      p_rectification_note: null,
+    });
+  });
+
+  it('transitions punch item from in_progress to rectified with rectification note', async () => {
+    const rectifiedItem = { ...storedItem, status: 'rectified', rectificationNote: 'Sanded and repainted' };
+    const rpc = jest.fn().mockResolvedValue({
+      data: [{ status: 'COMMITTED', reason: 'QC_ITEM_UPDATED', item: rectifiedItem }],
+      error: null,
+    });
+    rpcClientFactoryMock.mockReturnValue({ rpc } as unknown as ReturnType<typeof interiorRbacRpcClient>);
+
+    const response = await updateQcItem(new Request(`https://bella.example/api/interior/delivery/punch-list/${itemId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'rectified', rectificationNote: 'Sanded and repainted' }),
+    }), { params: Promise.resolve({ id: itemId }) });
+
+    expect(response.status).toBe(200);
+    expect(rpc).toHaveBeenCalledWith('interior_update_qc_item', {
+      p_item_id: itemId,
+      p_status: 'rectified',
+      p_rectification_note: 'Sanded and repainted',
+    });
+  });
+
+  it('rejects an invalid state transition with 409 INVALID_QC_STATE_TRANSITION', async () => {
+    const rpc = jest.fn().mockResolvedValue({
+      data: [{ status: 'DENIED', reason: 'INVALID_QC_STATE_TRANSITION' }],
+      error: null,
+    });
+    rpcClientFactoryMock.mockReturnValue({ rpc } as unknown as ReturnType<typeof interiorRbacRpcClient>);
+
+    const response = await updateQcItem(new Request(`https://bella.example/api/interior/delivery/punch-list/${itemId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'verified' }),
+    }), { params: Promise.resolve({ id: itemId }) });
+
+    expect(response.status).toBe(409);
+    const body = await response.json() as { success: boolean; error: string; reason: string };
+    expect(body.success).toBe(false);
+    expect(body.reason).toBe('INVALID_QC_STATE_TRANSITION');
+  });
 });

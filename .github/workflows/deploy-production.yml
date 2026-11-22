@@ -13,15 +13,13 @@ concurrency:
   group: production-deploy
   cancel-in-progress: false
 
-env:
-  PRODUCTION_BASE_URL: ${{ vars.PRODUCTION_BASE_URL || vars.E2E_BASE_URL || 'https://bella-spa-erp.vercel.app' }}
-  VERCEL_SCOPE: ${{ vars.VERCEL_SCOPE || 'bella-spa-s-projects' }}
-
 jobs:
   validate:
     name: Validate Main Release
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    environment:
+      name: Production
     steps:
       - name: Require main branch
         run: test "$GITHUB_REF" = refs/heads/main
@@ -40,15 +38,44 @@ jobs:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PRODUCTION_PROJECT_ID }}
           BYPASS_SECRET: ${{ secrets.E2E_VERCEL_AUTOMATION_BYPASS_SECRET }}
-          E2E_ADMIN_EMAIL: ${{ secrets.PRODUCTION_E2E_ADMIN_EMAIL || secrets.E2E_ADMIN_EMAIL }}
-          E2E_ADMIN_PASSWORD: ${{ secrets.PRODUCTION_E2E_ADMIN_PASSWORD || secrets.E2E_ADMIN_PASSWORD }}
+          PRODUCTION_BASE_URL: ${{ vars.PRODUCTION_BASE_URL }}
+          PRODUCTION_SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL }}
+          PRODUCTION_SUPABASE_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
+          PRODUCTION_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_PUBLISHABLE_KEY || secrets.PRODUCTION_SUPABASE_ANON_KEY }}
+          PRODUCTION_E2E_ADMIN_EMAIL: ${{ secrets.PRODUCTION_E2E_ADMIN_EMAIL }}
+          PRODUCTION_E2E_ADMIN_PASSWORD: ${{ secrets.PRODUCTION_E2E_ADMIN_PASSWORD }}
         run: |
           test -n "$VERCEL_TOKEN"
           test -n "$VERCEL_ORG_ID"
           test -n "$VERCEL_PROJECT_ID"
           test -n "$BYPASS_SECRET"
-          test -n "$E2E_ADMIN_EMAIL"
-          test -n "$E2E_ADMIN_PASSWORD"
+          test -n "$PRODUCTION_BASE_URL"
+          test -n "$PRODUCTION_SUPABASE_URL"
+          test -n "$PRODUCTION_SUPABASE_DB_URL"
+          test -n "$PRODUCTION_SUPABASE_PUBLISHABLE_KEY"
+          test -n "$PRODUCTION_E2E_ADMIN_EMAIL"
+          test -n "$PRODUCTION_E2E_ADMIN_PASSWORD"
+          node --input-type=module <<'NODE'
+          const expectedRef = 'lvnvkpyxtuilhrabtlwv';
+          const supabaseUrl = new URL(process.env.PRODUCTION_SUPABASE_URL);
+          if (supabaseUrl.protocol !== 'https:' || supabaseUrl.hostname !== `${expectedRef}.supabase.co` ||
+              supabaseUrl.username || supabaseUrl.password || supabaseUrl.port ||
+              (supabaseUrl.pathname !== '' && supabaseUrl.pathname !== '/') || supabaseUrl.search || supabaseUrl.hash) {
+            throw new Error('PRODUCTION_SUPABASE_URL must resolve to the reviewed Production project ref');
+          }
+          const databaseUrl = new URL(process.env.PRODUCTION_SUPABASE_DB_URL);
+          const validDatabaseScheme = ['postgres:', 'postgresql:'].includes(databaseUrl.protocol);
+          const directDatabase = databaseUrl.hostname === `db.${expectedRef}.supabase.co`;
+          const poolerDatabase = databaseUrl.hostname.endsWith('.pooler.supabase.com') &&
+            decodeURIComponent(databaseUrl.username).endsWith(`.${expectedRef}`);
+          if ((!directDatabase && !poolerDatabase) || !validDatabaseScheme || !databaseUrl.password) {
+            throw new Error('PRODUCTION_SUPABASE_DB_URL must target the reviewed Production project ref');
+          }
+          const baseUrl = new URL(process.env.PRODUCTION_BASE_URL);
+          if (baseUrl.protocol !== 'https:' || baseUrl.username || baseUrl.password || baseUrl.search || baseUrl.hash) {
+            throw new Error('PRODUCTION_BASE_URL must be an explicit HTTPS URL');
+          }
+          NODE
       - run: npm run lint
       - run: npm run test:critical
       - run: npm run security:audit
@@ -57,8 +84,8 @@ jobs:
       - run: npm run db:migration:zero-downtime -- --base HEAD^
       - run: npm run build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL || vars.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_PUBLISHABLE_KEY || vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || secrets.PRODUCTION_SUPABASE_ANON_KEY || vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_PUBLISHABLE_KEY || secrets.PRODUCTION_SUPABASE_ANON_KEY }}
 
   migrate:
     name: Apply Health Probe Migration
@@ -96,6 +123,8 @@ jobs:
     needs: migrate
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment:
+      name: Production
     outputs:
       deployment_url: ${{ steps.deploy.outputs.deployment_url }}
     env:
@@ -115,8 +144,8 @@ jobs:
       - run: npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
       - run: npx vercel build --prod --token="$VERCEL_TOKEN"
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL || vars.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_PUBLISHABLE_KEY || vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || secrets.PRODUCTION_SUPABASE_ANON_KEY || vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_PUBLISHABLE_KEY || secrets.PRODUCTION_SUPABASE_ANON_KEY }}
       - name: Deploy exact build without promotion
         id: deploy
         run: |
@@ -144,6 +173,8 @@ jobs:
     needs: preview
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    environment:
+      name: Production
     steps:
       - uses: actions/checkout@v6
         with:
@@ -161,8 +192,8 @@ jobs:
       - run: npm run e2e:auth-smoke
         env:
           E2E_BASE_URL: ${{ needs.preview.outputs.deployment_url }}
-          E2E_ADMIN_EMAIL: ${{ secrets.PRODUCTION_E2E_ADMIN_EMAIL || secrets.E2E_ADMIN_EMAIL }}
-          E2E_ADMIN_PASSWORD: ${{ secrets.PRODUCTION_E2E_ADMIN_PASSWORD || secrets.E2E_ADMIN_PASSWORD }}
+          E2E_ADMIN_EMAIL: ${{ secrets.PRODUCTION_E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.PRODUCTION_E2E_ADMIN_PASSWORD }}
           E2E_VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.E2E_VERCEL_AUTOMATION_BYPASS_SECRET }}
       - name: Upload production smoke artifacts
         if: always()
@@ -183,7 +214,6 @@ jobs:
     timeout-minutes: 10
     environment:
       name: Production
-      url: ${{ vars.PRODUCTION_BASE_URL || vars.E2E_BASE_URL || 'https://bella-spa-erp.vercel.app' }}
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
@@ -242,6 +272,10 @@ jobs:
     needs: promote
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment:
+      name: Production
+    env:
+      PRODUCTION_BASE_URL: ${{ vars.PRODUCTION_BASE_URL }}
     steps:
       - name: Sample production health
         run: |

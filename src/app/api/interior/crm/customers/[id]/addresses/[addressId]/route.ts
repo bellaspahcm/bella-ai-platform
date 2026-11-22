@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 import { SupabaseCustomerRepository } from '@/products/bella-interior/repositories/crm/supabase-customer.repository';
 import type { AddressType } from '@/products/bella-interior/domain/crm/customer.types';
+import { CustomerDefaultAddressConflictError } from '@/products/bella-interior/domain/crm/customer-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,7 +57,7 @@ export async function PATCH(
     );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'INTERIOR_CUSTOMER_ADDRESS_UPDATE_FAILED';
-    const status = message.includes('not found') ? 404 : 500;
+    const status = err instanceof CustomerDefaultAddressConflictError ? 409 : message.includes('not found') ? 404 : 500;
     return NextResponse.json({ success: false, error: message }, { status });
   }
 }

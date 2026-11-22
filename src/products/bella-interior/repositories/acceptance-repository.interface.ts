@@ -12,6 +12,8 @@ import type {
   AcceptanceSession,
   AcceptanceNoteItem,
   AcceptanceEvidenceObject,
+  AcceptanceApprovalStatus,
+  InspectionResult,
 } from '../domain/acceptance-handover.types';
 
 export interface IInteriorAcceptanceRepository {
@@ -21,7 +23,21 @@ export interface IInteriorAcceptanceRepository {
   listAcceptanceCampaigns(tenantId: string, projectId: string): Promise<AcceptanceCampaign[]>;
 
   // Acceptance Session Operations (Multi-Session Lifecycle)
-  saveAcceptanceSession(tenantId: string, session: AcceptanceSession): Promise<void>;
+  createAcceptanceSession(tenantId: string, session: AcceptanceSession): Promise<void>;
+  updateAcceptanceInspectionResult(
+    tenantId: string,
+    sessionId: string,
+    inspectionResult: InspectionResult,
+    approvalNotes: string | null,
+  ): Promise<void>;
+  decideAcceptanceSession(input: {
+    tenantId: string;
+    sessionId: string;
+    actorId: string;
+    decision: Exclude<AcceptanceApprovalStatus, 'PENDING'>;
+    approvalNotes: string | null;
+    rejectionReason: string | null;
+  }): Promise<AcceptanceSession>;
   getAcceptanceSession(tenantId: string, sessionId: string): Promise<AcceptanceSession | null>;
   listAcceptanceSessions(tenantId: string, campaignId: string): Promise<AcceptanceSession[]>;
   listAcceptanceSessionsByProject(tenantId: string, projectId: string): Promise<AcceptanceSession[]>;
@@ -32,6 +48,6 @@ export interface IInteriorAcceptanceRepository {
   listAcceptanceNotes(tenantId: string, sessionId: string): Promise<AcceptanceNoteItem[]>;
 
   // Evidence Objects Operations (Immutable Versioning & Server SHA-256)
-  saveAcceptanceEvidence(tenantId: string, evidence: AcceptanceEvidenceObject): Promise<void>;
+  saveAcceptanceEvidence(tenantId: string, evidence: AcceptanceEvidenceObject): Promise<AcceptanceEvidenceObject>;
   listAcceptanceEvidence(tenantId: string, sessionId: string): Promise<AcceptanceEvidenceObject[]>;
 }
