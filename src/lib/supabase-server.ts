@@ -56,30 +56,26 @@ export const createServerClient = cache(() => {
   }
 
   // PRODUCTION: Use SSR client with cookies
+  // Using getAll/setAll to correctly handle chunked Supabase auth cookies
+  // (sb-*-auth-token.0 / sb-*-auth-token.1) introduced in @supabase/ssr v0.5+
   const { url, publicKey } = requireSupabasePublicEnv();
   const client = createSupabaseServerClient<Database>(
     url,
     publicKey,
     {
       cookies: {
-        async get(name: string) {
+        async getAll() {
           const cookieStore = await cookies();
-          return cookieStore.get(name)?.value;
+          return cookieStore.getAll();
         },
-        async set(name: string, value: string, options) {
+        async setAll(cookiesToSet) {
           try {
             const cookieStore = await cookies();
-            cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Handle cookie setting errors in middleware
-          }
-        },
-        async remove(name: string, options) {
-          try {
-            const cookieStore = await cookies();
-            cookieStore.set({ name, value: '', ...options });
-          } catch (error) {
-            // Handle cookie removal errors in middleware
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Safe to ignore in Server Components / Route Handlers when handled by middleware
           }
         },
       },
