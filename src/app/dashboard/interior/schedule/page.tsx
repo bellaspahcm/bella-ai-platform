@@ -1,8 +1,28 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { createClient } from '@/lib/supabase-client';
+
+const supabase = createClient();
+const SCHEDULE_STORAGE_KEY = 'bella_interior_schedule_data_v1';
+
+async function getAuthToken(): Promise<string | undefined> {
+  const { data: authData } = await supabase.auth.getSession();
+  let token = authData?.session?.access_token;
+  if (!token && process.env.NODE_ENV === 'development') {
+    try {
+      const { data: signInData } = await supabase.auth.signInWithPassword({
+        email: 'demo.interior@bellaspa.vn',
+        password: 'password123',
+      });
+      token = signInData?.session?.access_token;
+    } catch {
+      // silent
+    }
+  }
+  return token;
+}
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -34,35 +54,35 @@ import type {
   ScheduleTaskCategory,
 } from '@/products/bella-interior/domain/schedule-overview.types';
 
-// Canonical initial schedule data matching domain analytics service
+// Fallback skeleton — counts zeroed so real API data is never masked
 const INITIAL_SCHEDULE_OVERVIEW: ScheduleOverviewResponse = {
   success: true,
-  tenantId: 'tenant-preloaded',
-  weekRangeLabel: '03 - 09/11/2026',
+  tenantId: '',
+  weekRangeLabel: '...',
   kpis: {
     totalTasks: {
-      value: 48,
+      value: 0,
       label: 'Tổng công việc',
-      trend: '↑ 12%',
+      trend: '↑ 0%',
       isPositiveTrend: true,
     },
     completedTasks: {
-      value: 32,
+      value: 0,
       label: 'Đã hoàn thành',
-      trend: '↑ 8%',
+      trend: '↑ 0%',
       isPositiveTrend: true,
     },
     inProgressTasks: {
-      value: 11,
+      value: 0,
       label: 'Đang thực hiện',
-      trend: '↓ 5%',
-      isPositiveTrend: false,
+      trend: '→ 0%',
+      isPositiveTrend: true,
     },
     overdueTasks: {
-      value: 5,
+      value: 0,
       label: 'Quá hạn',
-      trend: '↓ 2%',
-      isPositiveTrend: false,
+      trend: '→ 0%',
+      isPositiveTrend: true,
     },
   },
   timeSlots: [
@@ -80,207 +100,21 @@ const INITIAL_SCHEDULE_OVERVIEW: ScheduleOverviewResponse = {
     { dayOfWeek: 'CN', dateFormatted: '08/11', fullDate: '2026-11-08', isToday: false },
     { dayOfWeek: 'Thứ 2', dateFormatted: '09/11', fullDate: '2026-11-09', isToday: false },
   ],
-  calendarEvents: [
-    {
-      id: 'evt-1',
-      title: 'Khảo sát công trình',
-      projectName: 'Villa Sunrise',
-      assignee: 'KTS. Hoàng Long',
-      dayIndex: 0,
-      timeSlotId: 'slot-1',
-      category: 'design',
-      categoryLabel: 'Thiết kế',
-      badgeBgClass: 'bg-blue-50/90 dark:bg-blue-950/40',
-      badgeBorderClass: 'border-l-4 border-l-blue-500 border-blue-100 dark:border-blue-800',
-      textColorClass: 'text-blue-900 dark:text-blue-200',
-    },
-    {
-      id: 'evt-2',
-      title: 'Duyệt bản vẽ',
-      projectName: 'Office Tower',
-      assignee: 'KTS. Lê Hoàng',
-      dayIndex: 1,
-      timeSlotId: 'slot-2',
-      category: 'design',
-      categoryLabel: 'Thiết kế',
-      badgeBgClass: 'bg-emerald-50/90 dark:bg-emerald-950/40',
-      badgeBorderClass: 'border-l-4 border-l-emerald-500 border-emerald-100 dark:border-emerald-800',
-      textColorClass: 'text-emerald-900 dark:text-emerald-200',
-    },
-    {
-      id: 'evt-3',
-      title: 'Họp khách hàng',
-      projectName: 'Skyline Residence',
-      assignee: 'PM. Mai',
-      dayIndex: 2,
-      timeSlotId: 'slot-1',
-      category: 'design',
-      categoryLabel: 'Thiết kế',
-      badgeBgClass: 'bg-amber-50/90 dark:bg-amber-950/40',
-      badgeBorderClass: 'border-l-4 border-l-amber-500 border-amber-100 dark:border-amber-800',
-      textColorClass: 'text-amber-900 dark:text-amber-200',
-    },
-    {
-      id: 'evt-4',
-      title: 'Kiểm tra sản xuất',
-      projectName: 'Tủ bếp',
-      assignee: 'QĐ. Tuấn',
-      dayIndex: 3,
-      timeSlotId: 'slot-3',
-      category: 'workshop',
-      categoryLabel: 'Sản xuất',
-      badgeBgClass: 'bg-purple-50/90 dark:bg-purple-950/40',
-      badgeBorderClass: 'border-l-4 border-l-purple-500 border-purple-100 dark:border-purple-800',
-      textColorClass: 'text-purple-900 dark:text-purple-200',
-    },
-    {
-      id: 'evt-5',
-      title: 'Nghiệm thu',
-      projectName: 'Duplex Aqua Bay',
-      assignee: 'PM. Hùng',
-      dayIndex: 4,
-      timeSlotId: 'slot-3',
-      category: 'handover',
-      categoryLabel: 'Nghiệm thu',
-      badgeBgClass: 'bg-teal-50/90 dark:bg-teal-950/40',
-      badgeBorderClass: 'border-l-4 border-l-teal-500 border-teal-100 dark:border-teal-800',
-      textColorClass: 'text-teal-900 dark:text-teal-200',
-    },
-    {
-      id: 'evt-6',
-      title: 'Lắp đặt nội thất',
-      projectName: 'The Garden Villa',
-      assignee: 'Đội 1',
-      dayIndex: 6,
-      timeSlotId: 'slot-4',
-      category: 'site',
-      categoryLabel: 'Lắp đặt',
-      badgeBgClass: 'bg-sky-50/90 dark:bg-sky-950/40',
-      badgeBorderClass: 'border-l-4 border-l-sky-500 border-sky-100 dark:border-sky-800',
-      textColorClass: 'text-sky-900 dark:text-sky-200',
-    },
-  ],
-  attentionAlerts: [
-    {
-      id: 'alt-1',
-      title: '3 công việc quá hạn',
-      subtitle: 'Cần xử lý ngay',
-      actionLabel: 'Quá hạn',
-      actionClass: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300',
-      severity: 'critical',
-    },
-    {
-      id: 'alt-2',
-      title: '2 lịch có nguy cơ trùng',
-      subtitle: 'Kiểm tra phân công',
-      actionLabel: 'Cảnh báo',
-      actionClass: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300',
-      severity: 'warning',
-    },
-    {
-      id: 'alt-3',
-      title: '4 nhân sự chưa phân công',
-      subtitle: 'Có thể nhận thêm việc',
-      actionLabel: 'Cần xử lý',
-      actionClass: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300',
-      severity: 'info',
-    },
-  ],
+  calendarEvents: [],
+  attentionAlerts: [],
   resourceCapacity: {
-    readinessPercentage: 78,
+    readinessPercentage: 0,
     readinessLabel: 'Sẵn sàng làm việc',
-    workingCount: 18,
-    availableCount: 4,
-    overloadedCount: 2,
-    unassignedCount: 3,
+    workingCount: 0,
+    availableCount: 0,
+    overloadedCount: 0,
+    unassignedCount: 0,
   },
-  upcomingTasks: [
-    {
-      id: 'up-1',
-      time: '08:00',
-      title: 'Khảo sát công trình Villa Sunrise',
-      projectName: 'Villa Sunrise',
-      category: 'design',
-      categoryLabel: 'Thiết kế',
-      categoryClass: 'bg-blue-50 text-blue-700 border-blue-200',
-      assigneeAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg',
-    },
-    {
-      id: 'up-2',
-      time: '09:30',
-      title: 'Duyệt bản vẽ Office Tower',
-      projectName: 'Office Tower',
-      category: 'design',
-      categoryLabel: 'Thiết kế',
-      categoryClass: 'bg-blue-50 text-blue-700 border-blue-200',
-      assigneeAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg',
-    },
-    {
-      id: 'up-3',
-      time: '13:30',
-      title: 'Kiểm tra sản xuất Tủ bếp',
-      projectName: 'Tủ bếp',
-      category: 'workshop',
-      categoryLabel: 'Sản xuất',
-      categoryClass: 'bg-amber-50 text-amber-700 border-amber-200',
-      assigneeAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-2.jpg',
-    },
-    {
-      id: 'up-4',
-      time: '15:00',
-      title: 'Nghiệm thu lắp đặt Duplex Aqua Bay',
-      projectName: 'Duplex Aqua Bay',
-      category: 'site',
-      categoryLabel: 'Thi công',
-      categoryClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      assigneeAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-site.jpg',
-    },
-  ],
-  projectProgress: [
-    {
-      id: 'prog-1',
-      projectName: 'Villa Sunrise Renovation',
-      projectThumbnail: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
-      progressPercent: 92,
-      statusLabel: 'Đúng tiến độ',
-      statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      progressBarClass: 'bg-cyan-500',
-    },
-    {
-      id: 'prog-2',
-      projectName: 'Office Tower Lobby',
-      projectThumbnail: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/office-tower-wide.jpg',
-      progressPercent: 65,
-      statusLabel: 'Chậm tiến độ',
-      statusBadgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
-      progressBarClass: 'bg-cyan-500',
-    },
-    {
-      id: 'prog-3',
-      projectName: 'Skyline Residence',
-      projectThumbnail: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/skyline-residence-alt.jpg',
-      progressPercent: 80,
-      statusLabel: 'Đúng tiến độ',
-      statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      progressBarClass: 'bg-blue-600',
-    },
-    {
-      id: 'prog-4',
-      projectName: 'The Garden Villa',
-      projectThumbnail: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/the-garden-villa.jpg',
-      progressPercent: 45,
-      statusLabel: 'Cần chú ý',
-      statusBadgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
-      progressBarClass: 'bg-rose-500',
-    },
-  ],
+  upcomingTasks: [],
+  projectProgress: [],
   actionSuggestions: {
     title: 'Gợi ý hành động',
-    items: [
-      'Ưu tiên xử lý 3 công việc quá hạn (đặc biệt: nghiệm thu Duplex Aqua Bay)',
-      'Kiểm tra nguồn lực cho tuần tới (2 lịch có nguy cơ trùng)',
-      'Báo cáo tiến độ dự án chậm 15% (Office Tower Lobby)',
-    ],
+    items: [],
   },
 };
 
@@ -309,6 +143,7 @@ const CANONICAL_ASSIGNEES = [
 
 export default function SchedulePage() {
   const [data, setData] = useState<ScheduleOverviewResponse>(INITIAL_SCHEDULE_OVERVIEW);
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'week' | 'month' | 'timeline' | 'resource'>('week');
   const [weekOffset, setWeekOffset] = useState<number>(0);
 
@@ -342,33 +177,67 @@ export default function SchedulePage() {
     }
   }, [toastMessage]);
 
-  // Fetch initial schedule from intermediate API on mount
-  useEffect(() => {
-    let isMounted = true;
+  // ── Persist to / restore from localStorage ─────────────────────────────
+  const saveToStorage = useCallback((overview: ScheduleOverviewResponse) => {
+    try {
+      localStorage.setItem(SCHEDULE_STORAGE_KEY, JSON.stringify(overview));
+    } catch {
+      // storage unavailable
+    }
+  }, []);
 
-    async function fetchSchedule() {
+  const setDataAndPersist = useCallback(
+    (overview: ScheduleOverviewResponse) => {
+      setData(overview);
+      saveToStorage(overview);
+    },
+    [saveToStorage],
+  );
+
+  // Restore from localStorage immediately on mount (no flicker on refresh)
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem(SCHEDULE_STORAGE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached) as ScheduleOverviewResponse;
+        if (parsed && parsed.kpis) {
+          setData(parsed);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // ── Fetch schedule from API ───────────────────────────────────────────
+  const fetchSchedule = useCallback(
+    async (offset: number) => {
+      setIsLoading(true);
       try {
-        const res = await fetch('/api/interior/schedule');
+        const token = await getAuthToken();
+        const headers: Record<string, string> = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const res = await fetch(`/api/interior/schedule?weekOffset=${offset}`, { headers });
         if (res.ok) {
-          const json = await res.json();
-          if (isMounted && json.success) {
-            const incoming = json.data?.overview || json.overview;
-            if (incoming && typeof incoming === 'object' && incoming.kpis) {
-              setData(incoming);
-            }
+          const json = await res.json() as { success: boolean; data?: { overview?: ScheduleOverviewResponse } };
+          if (json.success && json.data?.overview?.kpis) {
+            setDataAndPersist(json.data.overview);
           }
         }
       } catch {
-        // Retain initial state
+        // Retain cached/initial state
+      } finally {
+        setIsLoading(false);
       }
-    }
+    },
+    [setDataAndPersist],
+  );
 
-    fetchSchedule();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  // Fetch on mount + whenever weekOffset changes
+  useEffect(() => {
+    void fetchSchedule(weekOffset);
+  }, [weekOffset, fetchSchedule]);
 
   // Open create modal with pre-selected cell
   const handleOpenCreateWithSlot = (dayIdx: number, slotId: string) => {
@@ -380,7 +249,7 @@ export default function SchedulePage() {
     setIsCreateModalOpen(true);
   };
 
-  // Submit task creation to intermediate API
+  // Submit task creation to API
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formTitle.trim()) {
@@ -392,6 +261,10 @@ export default function SchedulePage() {
     setCreateError(null);
 
     try {
+      const token = await getAuthToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const payload = {
         title: formTitle.trim(),
         projectName: formProject,
@@ -401,22 +274,23 @@ export default function SchedulePage() {
         timeSlotId: formTimeSlotId,
         priority: formPriority,
         notes: formNotes.trim() || undefined,
+        weekOffset,
       };
 
       const res = await fetch('/api/interior/schedule', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
+        const errJson = await res.json().catch(() => ({})) as { message?: string };
         throw new Error(errJson.message || 'Không thể tạo công việc');
       }
 
-      const resJson = await res.json();
-      if (resJson.success && resJson.data?.overview) {
-        setData(resJson.data.overview);
+      const resJson = await res.json() as { success: boolean; data?: { overview?: ScheduleOverviewResponse } };
+      if (resJson.success && resJson.data?.overview?.kpis) {
+        setDataAndPersist(resJson.data.overview);
       }
 
       setIsCreateModalOpen(false);
@@ -437,16 +311,20 @@ export default function SchedulePage() {
     setIsDetailActionLoading(true);
 
     try {
+      const token = await getAuthToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const res = await fetch('/api/interior/schedule', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ taskId: selectedTask.id }),
       });
 
       if (res.ok) {
-        const resJson = await res.json();
-        if (resJson.success && resJson.data?.overview) {
-          setData(resJson.data.overview);
+        const resJson = await res.json() as { success: boolean; data?: { overview?: ScheduleOverviewResponse } };
+        if (resJson.success && resJson.data?.overview?.kpis) {
+          setDataAndPersist(resJson.data.overview);
         }
       }
 
@@ -465,14 +343,19 @@ export default function SchedulePage() {
     setIsDetailActionLoading(true);
 
     try {
+      const token = await getAuthToken();
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const res = await fetch(`/api/interior/schedule?taskId=${encodeURIComponent(selectedTask.id)}`, {
         method: 'DELETE',
+        headers,
       });
 
       if (res.ok) {
-        const resJson = await res.json();
-        if (resJson.success && resJson.data?.overview) {
-          setData(resJson.data.overview);
+        const resJson = await res.json() as { success: boolean; data?: { overview?: ScheduleOverviewResponse } };
+        if (resJson.success && resJson.data?.overview?.kpis) {
+          setDataAndPersist(resJson.data.overview);
         }
       }
 
@@ -485,13 +368,9 @@ export default function SchedulePage() {
     }
   };
 
-  // Compute week range label based on offset
-  const computeWeekRangeLabel = (offset: number) => {
-    if (offset === 0) return '03 - 09/11/2026';
-    if (offset === -1) return '27/10 - 02/11/2026';
-    if (offset === 1) return '10 - 16/11/2026';
-    if (offset > 1) return `Tuần +${offset} (T11/2026)`;
-    return `Tuần ${offset} (T10/2026)`;
+  // Week range label comes from API; fallback to computed value
+  const computeWeekRangeLabel = (_offset: number) => {
+    return data.weekRangeLabel || '...';
   };
 
   return (
@@ -549,14 +428,8 @@ export default function SchedulePage() {
               </span>
             </button>
             <div className="flex items-center gap-2 pl-1 border-l border-slate-200 dark:border-slate-800">
-              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
-                <Image
-                  src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/finance-director-male.jpg'}
-                  alt="Nguyễn Văn Quang"
-                  fill
-                  sizes="32px"
-                  className="object-cover"
-                />
+              <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400">
+                <User className="w-4 h-4" />
               </div>
               <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                 Nguyễn Văn Quang
@@ -836,6 +709,12 @@ export default function SchedulePage() {
               >
                 Hôm nay
               </button>
+              {isLoading && (
+                <span className="inline-flex items-center gap-1 text-xs text-slate-400 animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
+                  Đang tải...
+                </span>
+              )}
             </div>
           </div>
 
@@ -1256,15 +1135,6 @@ export default function SchedulePage() {
                     >
                       {task.categoryLabel}
                     </span>
-                    <div className="relative w-5 h-5 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
-                      <Image
-                        src={task.assigneeAvatar}
-                        alt={task.title}
-                        fill
-                        sizes="20px"
-                        className="object-cover"
-                      />
-                    </div>
                   </div>
                 </button>
               );
@@ -1291,14 +1161,8 @@ export default function SchedulePage() {
               <div key={proj.id} className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="relative w-6 h-6 rounded-md overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
-                      <Image
-                        src={proj.projectThumbnail}
-                        alt={proj.projectName}
-                        fill
-                        sizes="24px"
-                        className="object-cover"
-                      />
+                    <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 text-slate-500">
+                      <Building className="w-3.5 h-3.5" />
                     </div>
                     <span className="font-medium text-slate-800 dark:text-slate-200 truncate text-[11px]">
                       {proj.projectName}
