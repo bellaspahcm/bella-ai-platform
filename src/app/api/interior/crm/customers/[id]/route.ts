@@ -96,6 +96,16 @@ export async function PATCH(
       }
     }
 
+    let finalNotes = body.notes;
+    if (body.status && typeof body.status === 'string') {
+      const stageTag = `[Lead stage: ${body.status.trim()}]`;
+      if (typeof finalNotes === 'string') {
+        finalNotes = `${finalNotes.replace(/\[Lead stage[^\]]*\]/gi, '').trim()} | ${stageTag}`.replace(/^ \| /, '').trim();
+      } else {
+        finalNotes = stageTag;
+      }
+    }
+
     const customerRepo = new SupabaseCustomerRepository(ctx.supabase);
     const updated = await customerRepo.update(ctx.tenantId, customerId.trim(), {
       name: body.name,
@@ -106,7 +116,7 @@ export async function PATCH(
       profileStatus: body.profileStatus,
       primaryPhone: body.primaryPhone,
       primaryEmail: body.primaryEmail,
-      notes: body.notes,
+      notes: finalNotes,
       assignedStaffId: body.assignedStaffId,
     });
 

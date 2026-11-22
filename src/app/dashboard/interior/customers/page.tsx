@@ -385,9 +385,25 @@ export default function CustomersPage() {
           // Ignore localStorage errors
         }
 
+        const localMap = new Map(localExtras.map((loc) => [loc.id, loc]));
+
+        // Overlay any locally updated status if newer than server
+        const mergedCustomers = mappedCustomers.map((mc) => {
+          const loc = localMap.get(mc.id);
+          if (loc && loc.status && loc.status !== mc.status) {
+            return {
+              ...mc,
+              status: loc.status,
+              statusLabel: loc.statusLabel || mc.statusLabel,
+              statusBadgeClass: loc.statusBadgeClass || mc.statusBadgeClass,
+            };
+          }
+          return mc;
+        });
+
         const serverIds = new Set(mappedCustomers.map((c) => c.id));
         const unmergedLocals = localExtras.filter((loc) => !serverIds.has(loc.id));
-        const finalCustomers = [...unmergedLocals, ...mappedCustomers];
+        const finalCustomers = [...unmergedLocals, ...mergedCustomers];
 
         return {
           ...prev,
@@ -527,7 +543,7 @@ export default function CustomersPage() {
   };
 
   const handleUpdateCustomerStatus = async (customerId: string, newStatus: CustomerStatus) => {
-    // Optimistic update
+    // 1. Optimistic update in UI state
     setData((prev) => ({
       ...prev,
       customers: prev.customers.map((c) =>
@@ -548,21 +564,44 @@ export default function CustomersPage() {
                 : newStatus === 'vip' ? 'bg-purple-50 text-purple-700 border-purple-200'
                 : newStatus === 'negotiating' ? 'bg-violet-50 text-violet-700 border-violet-200'
                 : newStatus === 'inactive' ? 'bg-stone-100 text-stone-600 border-stone-300'
+                : newStatus === 're_engagement' ? 'bg-amber-50 text-amber-700 border-amber-200'
                 : 'bg-blue-50 text-blue-700 border-blue-200',
             }
           : c
       ),
     }));
 
+    // 2. Persist in local storage so page reload/refresh preserves the updated status
     try {
+      if (typeof window !== 'undefined') {
+        const rawLocal = localStorage.getItem('bella_interior_crm_local_customers');
+        if (rawLocal) {
+          const list: CustomerItem[] = JSON.parse(rawLocal);
+          const updated = list.map((c) => c.id === customerId ? { ...c, status: newStatus } : c);
+          localStorage.setItem('bella_interior_crm_local_customers', JSON.stringify(updated));
+        }
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+
+    // 3. Persist to PostgreSQL database via PATCH
+    try {
+      const targetCustomer = data.customers.find((c) => c.id === customerId);
+      const prevNotes = (targetCustomer as any)?.notes || '';
+      const cleanedNotes = prevNotes.replace(/\[Lead stage[^\]]*\]/gi, '').trim();
+      const updatedNotes = cleanedNotes
+        ? `${cleanedNotes} | [Lead stage: ${newStatus}]`
+        : `[Lead stage: ${newStatus}]`;
+
       await fetch(`/api/interior/crm/customers/${customerId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        // Map CustomerStatus → profileStatus or notes; tier 'vip' maps naturally
         body: JSON.stringify({
+          status: newStatus,
           tier: newStatus === 'vip' ? 'vip' : undefined,
           profileStatus: newStatus === 'inactive' ? 'inactive' : 'active',
-          notes: `[Lead stage updated] ${newStatus}`,
+          notes: updatedNotes,
         }),
       });
     } catch {

@@ -249,6 +249,7 @@ export interface CustomerOverviewItem {
   readonly profileStatus?: 'active' | 'inactive' | 'merged';
   readonly primaryPhone?: string;
   readonly primaryEmail?: string;
+  readonly notes?: string;
 }
 
 export interface CustomerKPIOverview {
