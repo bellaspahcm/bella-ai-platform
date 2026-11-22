@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   X,
   User,
@@ -115,20 +115,15 @@ export function Customer360Modal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<Customer360Profile | null>(null);
-  // Keep latest authToken in a ref so the useEffect doesn't need it as a dependency
-  // (avoids re-fetching every time the parent refreshes the token)
-  const authTokenRef = useRef<string | undefined>(authToken);
-  authTokenRef.current = authToken;
-
-  // Stable fetch function — deps: only setters (stable) + authTokenRef (stable ref)
-  const fetchCustomer360 = useCallback(async (cid: string, signal: AbortSignal) => {
+  // Stable fetch function
+  const fetchCustomer360 = useCallback(async (cid: string, tokenProp: string | undefined, signal: AbortSignal) => {
     setLoading(true);
     setError(null);
     try {
       if (cid.startsWith('cust-')) {
         throw new Error('Dữ liệu khách hàng mẫu không tồn tại trong hệ thống thực tế. Vui lòng chọn khách hàng thực.');
       }
-      const token = authTokenRef.current ?? await getAuthToken();
+      const token = tokenProp ?? await getAuthToken();
       const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) {
         authHeaders['Authorization'] = `Bearer ${token}`;
@@ -162,7 +157,6 @@ export function Customer360Modal({
         setLoading(false);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -172,9 +166,11 @@ export function Customer360Modal({
       return;
     }
     const controller = new AbortController();
-    fetchCustomer360(customerId, controller.signal);
-    return () => { controller.abort(); };
-  }, [isOpen, customerId, fetchCustomer360]);
+    fetchCustomer360(customerId, authToken, controller.signal);
+    return () => {
+      controller.abort();
+    };
+  }, [isOpen, customerId, authToken, fetchCustomer360]);
 
   if (!isOpen) return null;
 
