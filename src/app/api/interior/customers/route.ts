@@ -84,3 +84,77 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ success: false, error: 'INTERIOR_CUSTOMER_LOOKUP_FAILED' }, { status: 503 });
   }
 }
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  try {
+    const ctx = await resolveInteriorContext(request);
+    if (!ctx.ok) return ctx.response;
+
+    const body = await request.json();
+    if (!body || typeof body !== 'object' || !body.name || typeof body.name !== 'string' || !body.name.trim()) {
+      return NextResponse.json(
+        { success: false, error: 'INVALID_CUSTOMER_INPUT: name is required and non-empty' },
+        { status: 400 }
+      );
+    }
+
+    const { SupabaseCustomerRepository } = await import('@/products/bella-interior/repositories/crm/supabase-customer.repository');
+    const customerRepo = new SupabaseCustomerRepository(ctx.supabase);
+
+    const customer = await customerRepo.create(ctx.tenantId, {
+      code: body.code,
+      name: body.name.trim(),
+      legalName: body.legalName?.trim() || undefined,
+      taxCode: body.taxCode?.trim() || undefined,
+      type: body.type || 'individual',
+      tier: body.tier || 'standard',
+      primaryPhone: (body.primaryPhone || body.phone)?.trim() || undefined,
+      primaryEmail: (body.primaryEmail || body.email)?.trim() || undefined,
+      notes: body.notes?.trim() || undefined,
+      assignedStaffId: body.assignedStaffId || undefined,
+    });
+
+    // Persist default site address if provided
+    const rawAddress = body.address || body.fullAddress;
+    const fullAddr = typeof rawAddress === 'string' ? rawAddress.trim() : rawAddress?.fullAddress?.trim();
+    if (fullAddr) {
+      try {
+        await customerRepo.addAddress(ctx.tenantId, customer.id, {
+          addressType: 'site_location',
+          fullAddress: fullAddr,
+          ward: (typeof rawAddress === 'object' ? rawAddress.ward : body.ward)?.trim() || undefined,
+          district: (typeof rawAddress === 'object' ? rawAddress.district : body.district)?.trim() || undefined,
+          city: (typeof rawAddress === 'object' ? rawAddress.city : body.city)?.trim() || 'TP. Hồ Chí Minh',
+          isDefault: true,
+        });
+      } catch (addrErr) {
+        console.warn('[CRM] Failed to add address during customer creation:', addrErr);
+      }
+    }
+
+    // Persist primary contact entry
+    const contactPhone = (body.primaryPhone || body.phone)?.trim();
+    if (contactPhone || body.contactName) {
+      try {
+        await customerRepo.addContact(ctx.tenantId, customer.id, {
+          name: body.contactName?.trim() || body.name.trim(),
+          role: 'primary_contact',
+          phone: contactPhone || '',
+          email: (body.primaryEmail || body.email)?.trim() || undefined,
+          position: body.contactPosition?.trim() || (body.type === 'enterprise' ? 'Đại diện dự án' : 'Chủ nhà'),
+          isPrimary: true,
+        });
+      } catch (contactErr) {
+        console.warn('[CRM] Failed to add contact during customer creation:', contactErr);
+      }
+    }
+
+    return NextResponse.json(
+      { success: true, data: customer },
+      { status: 201, headers: { 'Cache-Control': 'no-store, max-age=0' } }
+    );
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'INTERIOR_CUSTOMER_CREATE_FAILED';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
+}
