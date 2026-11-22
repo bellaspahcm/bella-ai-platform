@@ -63,6 +63,22 @@ export async function GET(
   }
 }
 
+function stripLeadStageTag(text: string): string {
+  return text
+    .split('|')
+    .map((s) => s.trim())
+    .filter((s) => !s.toLowerCase().startsWith('[lead stage:'))
+    .join(' | ');
+}
+
+function stripStaffTag(text: string): string {
+  return text
+    .split('|')
+    .map((s) => s.trim())
+    .filter((s) => !s.toLowerCase().startsWith('phụ trách:') && !s.toLowerCase().startsWith('kts:'))
+    .join(' | ');
+}
+
 export async function PATCH(
   request: NextRequest,
   segmentData: RouteParams
@@ -102,11 +118,13 @@ export async function PATCH(
     if (body.status && typeof body.status === 'string') {
       const stageTag = `[Lead stage: ${body.status.trim()}]`;
       if (typeof finalNotes === 'string') {
-        finalNotes = `${finalNotes.replace(/\[Lead stage[^\]]*\]/gi, '').trim()} | ${stageTag}`.replace(/^ \| /, '').trim();
+        const cleaned = stripLeadStageTag(finalNotes);
+        finalNotes = cleaned ? `${cleaned} | ${stageTag}` : stageTag;
       } else {
         const existing = await customerRepo.findById(ctx.tenantId, customerId.trim());
         const existingNotes = existing?.notes || '';
-        finalNotes = `${existingNotes.replace(/\[Lead stage[^\]]*\]/gi, '').trim()} | ${stageTag}`.replace(/^ \| /, '').trim();
+        const cleaned = stripLeadStageTag(existingNotes);
+        finalNotes = cleaned ? `${cleaned} | ${stageTag}` : stageTag;
       }
     }
 
@@ -117,11 +135,13 @@ export async function PATCH(
       if (!UUID_PATTERN.test(staffVal)) {
         const staffTag = `Phụ trách: ${staffVal}`;
         if (typeof finalNotes === 'string') {
-          finalNotes = `${finalNotes.replace(/(?:Phụ trách|KTS)[:\s]+[^|\]]+/gi, '').trim()} | ${staffTag}`.replace(/^ \| /, '').trim();
+          const cleaned = stripStaffTag(finalNotes);
+          finalNotes = cleaned ? `${cleaned} | ${staffTag}` : staffTag;
         } else {
           const existing = await customerRepo.findById(ctx.tenantId, customerId.trim());
           const existingNotes = existing?.notes || '';
-          finalNotes = `${existingNotes.replace(/(?:Phụ trách|KTS)[:\s]+[^|\]]+/gi, '').trim()} | ${staffTag}`.replace(/^ \| /, '').trim();
+          const cleaned = stripStaffTag(existingNotes);
+          finalNotes = cleaned ? `${cleaned} | ${staffTag}` : staffTag;
         }
         assignedStaffId = undefined;
       }
