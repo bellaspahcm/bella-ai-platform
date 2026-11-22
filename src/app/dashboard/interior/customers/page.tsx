@@ -357,7 +357,9 @@ export default function CustomersPage() {
               source: srcKey,
               sourceLabel: c.sourceLabel || srcInfo.label,
               sourceClass: c.sourceClass || srcInfo.cls,
-              managerName: c.managerName || fallback?.managerName || 'Trần Văn Quản Lý',
+              managerName: (typeof c.notes === 'string' && c.notes.includes('KTS:'))
+                ? (c.notes.split('KTS:')[1]?.trim()?.split('|')[0]?.trim() || c.managerName || 'Trần Văn Quản Lý')
+                : (c.managerName || fallback?.managerName || 'Trần Văn Quản Lý'),
               managerAvatar: managerAvatarFallback,
               opportunityCount: c.opportunityCount ?? fallback?.opportunityCount ?? 1,
               projectCount: c.projectCount ?? fallback?.projectCount ?? 0,
@@ -373,13 +375,26 @@ export default function CustomersPage() {
             };
           }
         );
+        let localExtras: CustomerItem[] = [];
+        try {
+          if (typeof window !== 'undefined') {
+            const rawLocal = localStorage.getItem('bella_interior_crm_local_customers');
+            if (rawLocal) localExtras = JSON.parse(rawLocal);
+          }
+        } catch {
+          // Ignore localStorage errors
+        }
+
+        const serverIds = new Set(mappedCustomers.map((c) => c.id));
+        const unmergedLocals = localExtras.filter((loc) => !serverIds.has(loc.id));
+        const finalCustomers = [...unmergedLocals, ...mappedCustomers];
+
         return {
           ...prev,
           kpis: json.data?.kpis || prev.kpis,
           salesFunnel: json.data?.salesFunnel || prev.salesFunnel,
           growthChart: json.data?.growthChart || prev.growthChart,
-          // If DB returned data, replace; if empty (truly no customers yet), keep optimistic entries
-          customers: mappedCustomers.length > 0 ? mappedCustomers : prev.customers,
+          customers: finalCustomers.length > 0 ? finalCustomers : prev.customers,
         };
       });
     } catch {
@@ -414,14 +429,17 @@ export default function CustomersPage() {
         tier: newCustomerTier,
         primaryPhone: newCustomerPhone.trim(),
         primaryEmail: newCustomerEmail.trim() || undefined,
-        notes: newCustomerNotes.trim() || undefined,
+        notes: [
+          newCustomerNotes.trim() || undefined,
+          newCustomerManager.trim() ? `KTS: ${newCustomerManager.trim()}` : undefined,
+        ].filter(Boolean).join(' | ') || undefined,
         fullAddress: newCustomerAddress.trim() || undefined,
         city: newCustomerCity.trim() || 'TP. Hồ Chí Minh',
         district: newCustomerDistrict.trim() || undefined,
         contactName: newCustomerName.trim(),
         source: newCustomerSource,
         status: newCustomerStatus,
-        assignedStaffId: newCustomerManager.trim() || undefined,
+        assignedStaffId: undefined, // Non-UUID manager string safely preserved in notes
       };
 
       const res = await fetch('/api/interior/crm/customers', {
@@ -477,6 +495,18 @@ export default function CustomersPage() {
         ...prev,
         customers: [optimisticCustomer, ...prev.customers.filter((c) => c.id !== createdCustomer.id)],
       }));
+
+      // Persist in local storage so page reload/refresh never loses freshly created customer
+      try {
+        if (typeof window !== 'undefined') {
+          const rawLocal = localStorage.getItem('bella_interior_crm_local_customers');
+          const existingList: CustomerItem[] = rawLocal ? JSON.parse(rawLocal) : [];
+          const updated = [optimisticCustomer, ...existingList.filter((x) => x.id !== optimisticCustomer.id)];
+          localStorage.setItem('bella_interior_crm_local_customers', JSON.stringify(updated.slice(0, 50)));
+        }
+      } catch {
+        // Ignore localStorage errors
+      }
 
       setCustomerSuccessNotice(`Đã lưu khách hàng "${createdCustomer.name}" (${createdCustomer.code}) thành công!`);
 

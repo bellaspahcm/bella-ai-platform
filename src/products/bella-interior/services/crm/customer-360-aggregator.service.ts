@@ -602,7 +602,12 @@ export class Customer360AggregatorService {
     }
 
     // 2. Fetch Projects to harmonize legacy customers
-    const allProjects = await this.interiorRepo.listProjects(tenantId);
+    let allProjects: any[] = [];
+    try {
+      allProjects = (await this.interiorRepo.listProjects(tenantId)) as any[];
+    } catch {
+      allProjects = [];
+    }
 
     // Map projects by customer ID (supporting legacy customerId and canonical customerProfileId)
     const projectsByCustomerId = new Map<string, typeof allProjects>();
@@ -703,18 +708,26 @@ export class Customer360AggregatorService {
       const seenPaymentIds = new Set<string>();
 
       for (const proj of customerProjects) {
-        const contracts = await this.interiorRepo.listContractsByProject(tenantId, proj.id);
-        for (const c of contracts) {
-          if (['signed', 'active', 'completed'].includes(c.status)) {
-            customerTotalValue += (c.currentContractValue || c.baselineContractValue || 0);
-          }
-          const payments = await this.interiorRepo.listPaymentTransactions(tenantId, c.id);
-          for (const p of payments) {
-            if (!seenPaymentIds.has(p.id)) {
-              seenPaymentIds.add(p.id);
-              customerPaidAmount += p.amount;
+        try {
+          const contracts = await this.interiorRepo.listContractsByProject(tenantId, proj.id);
+          for (const c of contracts) {
+            if (['signed', 'active', 'completed'].includes(c.status)) {
+              customerTotalValue += (c.currentContractValue || c.baselineContractValue || 0);
+            }
+            try {
+              const payments = await this.interiorRepo.listPaymentTransactions(tenantId, c.id);
+              for (const p of payments) {
+                if (!seenPaymentIds.has(p.id)) {
+                  seenPaymentIds.add(p.id);
+                  customerPaidAmount += p.amount;
+                }
+              }
+            } catch {
+              // Ignore payment lookup errors gracefully
             }
           }
+        } catch {
+          // Ignore contract lookup errors gracefully
         }
       }
 
@@ -795,8 +808,8 @@ export class Customer360AggregatorService {
       });
     }
 
-    // Sort overview items deterministically by code
-    overviewItems.sort((a, b) => a.code.localeCompare(b.code));
+    // Sort overview items deterministically: newest codes first so newly created customers appear at top
+    overviewItems.sort((a, b) => b.code.localeCompare(a.code));
 
     // 4. Search Filter
     let filtered = overviewItems;

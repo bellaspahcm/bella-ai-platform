@@ -98,6 +98,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const rawStaff = typeof body.assignedStaffId === 'string' ? body.assignedStaffId.trim() : undefined;
+    const assignedStaffId = rawStaff && UUID_PATTERN.test(rawStaff) ? rawStaff : undefined;
+    let notes = body.notes?.trim() || undefined;
+    if (rawStaff && !assignedStaffId) {
+      notes = notes ? `${notes} | KTS phụ trách: ${rawStaff}` : `KTS phụ trách: ${rawStaff}`;
+    }
+
     const { SupabaseCustomerRepository } = await import('@/products/bella-interior/repositories/crm/supabase-customer.repository');
     const customerRepo = new SupabaseCustomerRepository(ctx.supabase);
 
@@ -110,8 +118,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       tier: body.tier || 'standard',
       primaryPhone: (body.primaryPhone || body.phone)?.trim() || undefined,
       primaryEmail: (body.primaryEmail || body.email)?.trim() || undefined,
-      notes: body.notes?.trim() || undefined,
-      assignedStaffId: body.assignedStaffId || undefined,
+      notes,
+      assignedStaffId,
     });
 
     // Persist default site address if provided
