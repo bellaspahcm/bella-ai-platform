@@ -529,45 +529,45 @@ export default function WarrantyDashboardPage() {
         {/* LEFT 2 COLS: CERTIFICATES TABLE */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col justify-between">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-50/75 border-b border-slate-200 text-slate-500 font-semibold tracking-wider uppercase text-[11px]">
-                  <th className="py-3 px-3.5 w-10 text-center">#</th>
-                  <th className="py-3 px-3">Mã Chứng Thư</th>
-                  <th className="py-3 px-3">Dự Án</th>
-                  <th className="py-3 px-3">Khách Hàng</th>
-                  <th className="py-3 px-3">Ngày Bàn Giao</th>
-                  <th className="py-3 px-3">Ngày BĐ Bảo Hành</th>
-                  <th className="py-3 px-3">Ngày Hết Hạn</th>
-                  <th className="py-3 px-3">Phạm Vi Bảo Hành</th>
-                  <th className="py-3 px-3">Trạng Thái</th>
-                  <th className="py-3 px-3 text-center">Thao Tác</th>
+            <table className="w-full text-left text-xs border-collapse min-w-[1100px]">
+              <thead className="whitespace-nowrap">
+                <tr className="bg-slate-50/75 border-b border-slate-200 text-slate-500 font-semibold tracking-wider uppercase text-[11px] whitespace-nowrap">
+                  <th className="py-3 px-3.5 w-10 text-center whitespace-nowrap">#</th>
+                  <th className="py-3 px-3 whitespace-nowrap">Mã Chứng Thư</th>
+                  <th className="py-3 px-3 whitespace-nowrap">Dự Án</th>
+                  <th className="py-3 px-3 whitespace-nowrap">Khách Hàng</th>
+                  <th className="py-3 px-3 whitespace-nowrap">Ngày Bàn Giao</th>
+                  <th className="py-3 px-3 whitespace-nowrap">Ngày BĐ Bảo Hành</th>
+                  <th className="py-3 px-3 whitespace-nowrap">Ngày Hết Hạn</th>
+                  <th className="py-3 px-3 whitespace-nowrap">Phạm Vi Bảo Hành</th>
+                  <th className="py-3 px-3 whitespace-nowrap">Trạng Thái</th>
+                  <th className="py-3 px-3 text-center whitespace-nowrap">Thao Tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 whitespace-nowrap">
                 {displayedCertificates.map((cert) => (
                   <tr
                     key={cert.certificateNo}
                     className="hover:bg-slate-50/60 transition group cursor-pointer"
                     onClick={() => setSelectedCertificate(cert)}
                   >
-                    <td className="py-3 px-3.5 text-center font-medium text-slate-400">{cert.index}</td>
+                    <td className="py-3 px-3.5 text-center font-medium text-slate-400 whitespace-nowrap">{cert.index}</td>
                     <td className="py-3 px-3 font-semibold text-slate-800 whitespace-nowrap">{cert.certificateNo}</td>
                     <td className="py-3 px-3 font-medium text-slate-800 whitespace-nowrap">{cert.project}</td>
                     <td className="py-3 px-3 text-slate-700 whitespace-nowrap">{cert.client}</td>
                     <td className="py-3 px-3 text-slate-600 whitespace-nowrap">{cert.handoverDate}</td>
                     <td className="py-3 px-3 text-slate-600 whitespace-nowrap">{cert.warrantyStartDate}</td>
                     <td className="py-3 px-3 text-slate-600 whitespace-nowrap">{cert.warrantyExpires}</td>
-                    <td className="py-3 px-3 text-slate-600 max-w-[140px] truncate" title={cert.coverage}>
+                    <td className="py-3 px-3 text-slate-600 whitespace-nowrap" title={cert.coverage}>
                       {cert.coverage}
                     </td>
                     <td className="py-3 px-3 whitespace-nowrap">
-                      <span className={`inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium ${cert.statusBadgeClass}`}>
+                      <span className={`inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap ${cert.statusBadgeClass}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${cert.statusDotClass}`} />
                         <span>{cert.statusLabel}</span>
                       </span>
                     </td>
-                    <td className="py-3 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                    <td className="py-3 px-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <button
                         title="Tùy chọn"
                         onClick={() => setSelectedCertificate(cert)}

@@ -1193,55 +1193,55 @@ export default function InteriorBOQPage() {
         {currentTab === 'boq' ? (
           /* Tripartite Costing Itemized BOQ Table */
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left text-xs min-w-[1000px]">
+            <table className="w-full border-collapse text-left text-xs min-w-[1200px]">
               {/* Grouped Two-Tier Header */}
-              <thead>
+              <thead className="whitespace-nowrap">
                 {/* Row 1: Group Categories */}
-                <tr className="border-b border-slate-200/70 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-[11px] font-bold text-slate-600 dark:text-slate-400">
-                  <th className="py-2.5 px-3 w-10 text-center border-r border-slate-100 dark:border-slate-800">
+                <tr className="border-b border-slate-200/70 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-[11px] font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                  <th className="py-2.5 px-3 w-10 text-center border-r border-slate-100 dark:border-slate-800 whitespace-nowrap">
                     #
                   </th>
-                  <th colSpan={2} className="py-2.5 px-3 border-r border-slate-100 dark:border-slate-800 text-center">
+                  <th colSpan={2} className="py-2.5 px-3 border-r border-slate-100 dark:border-slate-800 text-center whitespace-nowrap">
                     Cấu kiện
                   </th>
-                  <th colSpan={2} className="py-2.5 px-3 border-r border-slate-100 dark:border-slate-800 text-center">
+                  <th colSpan={2} className="py-2.5 px-3 border-r border-slate-100 dark:border-slate-800 text-center whitespace-nowrap">
                     Khối lượng
                   </th>
-                  <th colSpan={2} className="py-2.5 px-3 border-r border-slate-100 dark:border-slate-800 text-center">
+                  <th colSpan={2} className="py-2.5 px-3 border-r border-slate-100 dark:border-slate-800 text-center whitespace-nowrap">
                     Giá vốn
                   </th>
-                  <th colSpan={4} className="py-2.5 px-3 border-r border-slate-100 dark:border-slate-800 text-center">
+                  <th colSpan={4} className="py-2.5 px-3 border-r border-slate-100 dark:border-slate-800 text-center whitespace-nowrap">
                     Thương mại
                   </th>
-                  <th className="py-2.5 px-2 text-center w-24">
+                  <th className="py-2.5 px-2 text-center w-24 whitespace-nowrap">
                     Thao tác
                   </th>
                 </tr>
 
                 {/* Row 2: Detailed Column Titles */}
-                <tr className="border-b border-slate-200/70 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                  <th className="py-2 px-3 text-center w-10">
+                <tr className="border-b border-slate-200/70 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                  <th className="py-2 px-3 text-center w-10 whitespace-nowrap">
                     <input
                       type="checkbox"
                       aria-label="Chọn tất cả"
                       className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                     />
                   </th>
-                  <th className="py-2 px-3">Khu vực / Hạng mục</th>
-                  <th className="py-2 px-3">Quy cách</th>
-                  <th className="py-2 px-2 text-center w-14">ĐVT</th>
-                  <th className="py-2 px-3 text-center w-16">Số lượng</th>
-                  <th className="py-2 px-3 text-right">Đơn giá vốn</th>
-                  <th className="py-2 px-3 text-right">Thành tiền vốn</th>
-                  <th className="py-2 px-3 text-right">Đơn giá bán</th>
-                  <th className="py-2 px-3 text-right">Thành tiền bán</th>
-                  <th className="py-2 px-3 text-right">Lợi nhuận</th>
-                  <th className="py-2 px-3 text-center w-18">Biên LN</th>
-                  <th className="py-2 px-2 text-center w-24">{isEditable ? 'Thao tác' : 'Trạng thái'}</th>
+                  <th className="py-2 px-3 whitespace-nowrap">Khu vực / Hạng mục</th>
+                  <th className="py-2 px-3 whitespace-nowrap">Quy cách</th>
+                  <th className="py-2 px-2 text-center w-14 whitespace-nowrap">ĐVT</th>
+                  <th className="py-2 px-3 text-center w-16 whitespace-nowrap">Số lượng</th>
+                  <th className="py-2 px-3 text-right whitespace-nowrap">Đơn giá vốn</th>
+                  <th className="py-2 px-3 text-right whitespace-nowrap">Thành tiền vốn</th>
+                  <th className="py-2 px-3 text-right whitespace-nowrap">Đơn giá bán</th>
+                  <th className="py-2 px-3 text-right whitespace-nowrap">Thành tiền bán</th>
+                  <th className="py-2 px-3 text-right whitespace-nowrap">Lợi nhuận</th>
+                  <th className="py-2 px-3 text-center w-18 whitespace-nowrap">Biên LN</th>
+                  <th className="py-2 px-2 text-center w-24 whitespace-nowrap">{isEditable ? 'Thao tác' : 'Trạng thái'}</th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 whitespace-nowrap">
                 {data.zoneGroups.map((group) => (
                   <React.Fragment key={group.zoneId}>
                     {/* Zone Group Header Row with Subtotals */}
@@ -1422,20 +1422,20 @@ export default function InteriorBOQPage() {
         ) : (
           /* Production BOM Materials Table */
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left text-xs min-w-[900px]">
-              <thead>
-                <tr className="border-b border-slate-200/70 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                  <th className="py-3 px-4">Mã vật tư</th>
-                  <th className="py-3 px-4">Tên vật tư &amp; Phân loại</th>
-                  <th className="py-3 px-4">Quy cách kỹ thuật</th>
-                  <th className="py-3 px-3 text-center">ĐVT</th>
-                  <th className="py-3 px-3 text-center">Định mức cần</th>
-                  <th className="py-3 px-3 text-center">Hao hụt (%)</th>
-                  <th className="py-3 px-3 text-center">Tổng xuất kho</th>
-                  <th className="py-3 px-4 text-center">Trạng thái kho</th>
+            <table className="w-full border-collapse text-left text-xs min-w-[1000px]">
+              <thead className="whitespace-nowrap">
+                <tr className="border-b border-slate-200/70 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                  <th className="py-3 px-4 whitespace-nowrap">Mã vật tư</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Tên vật tư &amp; Phân loại</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Quy cách kỹ thuật</th>
+                  <th className="py-3 px-3 text-center whitespace-nowrap">ĐVT</th>
+                  <th className="py-3 px-3 text-center whitespace-nowrap">Định mức cần</th>
+                  <th className="py-3 px-3 text-center whitespace-nowrap">Hao hụt (%)</th>
+                  <th className="py-3 px-3 text-center whitespace-nowrap">Tổng xuất kho</th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap">Trạng thái kho</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap">
                 {data.bomMaterials.map((mat) => (
                   <tr key={mat.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                     <td className="py-3 px-4 font-mono font-bold text-slate-900 dark:text-white text-[11px]">

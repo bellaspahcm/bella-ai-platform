@@ -173,15 +173,15 @@ function decodeCatalog(value: unknown): Catalog | null {
   if (!isRecord(value)) return null;
   const roles = Array.isArray(value.roles)
     ? value.roles.flatMap((item) => {
-        const role = decodeRole(item);
-        return role ? [role] : [];
-      })
+      const role = decodeRole(item);
+      return role ? [role] : [];
+    })
     : [];
   const permissions = Array.isArray(value.permissions)
     ? value.permissions.flatMap((item) => {
-        const permission = decodePermission(item);
-        return permission ? [permission] : [];
-      })
+      const permission = decodePermission(item);
+      return permission ? [permission] : [];
+    })
     : [];
   const projects = decodeScopeOptions(value.projects).map((option, index) => {
     const raw = Array.isArray(value.projects) && isRecord(value.projects[index]) ? value.projects[index] : null;
@@ -236,23 +236,23 @@ function decodeUsers(value: unknown): InteriorUser[] {
     if (!user_id || !email || !status) return [];
     const direct_grants = Array.isArray(item.direct_grants)
       ? item.direct_grants.flatMap((grant) => {
-          if (!isRecord(grant)) return [];
-          const grant_id = stringValue(grant.grant_id);
-          const permission_id = stringValue(grant.permission_id);
-          const scope_type = stringValue(grant.scope_type);
-          const grantStatus = stringValue(grant.status);
-          if (!grant_id || !permission_id || !scope_type || !grantStatus || !['TENANT', 'BRANCH', 'PROJECT', 'SELF'].includes(scope_type)) return [];
-          return [{ grant_id, permission_id, scope_type: scope_type as RoleScope, scope_id: stringValue(grant.scope_id), status: grantStatus }];
-        })
+        if (!isRecord(grant)) return [];
+        const grant_id = stringValue(grant.grant_id);
+        const permission_id = stringValue(grant.permission_id);
+        const scope_type = stringValue(grant.scope_type);
+        const grantStatus = stringValue(grant.status);
+        if (!grant_id || !permission_id || !scope_type || !grantStatus || !['TENANT', 'BRANCH', 'PROJECT', 'SELF'].includes(scope_type)) return [];
+        return [{ grant_id, permission_id, scope_type: scope_type as RoleScope, scope_id: stringValue(grant.scope_id), status: grantStatus }];
+      })
       : [];
     const delegations = Array.isArray(item.admin_role_delegations)
       ? item.admin_role_delegations.flatMap((entry) => {
-          if (!isRecord(entry)) return [];
-          const delegation_id = stringValue(entry.delegation_id);
-          const role_key = stringValue(entry.role_key);
-          const entryStatus = stringValue(entry.status);
-          return delegation_id && role_key && entryStatus ? [{ delegation_id, role_key, status: entryStatus }] : [];
-        })
+        if (!isRecord(entry)) return [];
+        const delegation_id = stringValue(entry.delegation_id);
+        const role_key = stringValue(entry.role_key);
+        const entryStatus = stringValue(entry.status);
+        return delegation_id && role_key && entryStatus ? [{ delegation_id, role_key, status: entryStatus }] : [];
+      })
       : [];
     return [{
       user_id,
@@ -857,17 +857,17 @@ export default function InteriorRoleManagementPage() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-semibold">
-                  <th className="py-3.5 px-5">Nhân viên</th>
-                  <th className="py-3.5 px-5">Vai trò</th>
-                  <th className="py-3.5 px-5">Phạm vi</th>
-                  <th className="py-3.5 px-5">Trạng thái</th>
-                  <th className="py-3.5 px-4 text-right"></th>
+            <table className="w-full text-left border-collapse text-xs min-w-[850px]">
+              <thead className="whitespace-nowrap">
+                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-semibold whitespace-nowrap">
+                  <th className="py-3.5 px-5 whitespace-nowrap">Nhân viên</th>
+                  <th className="py-3.5 px-5 whitespace-nowrap">Vai trò</th>
+                  <th className="py-3.5 px-5 whitespace-nowrap">Phạm vi</th>
+                  <th className="py-3.5 px-5 whitespace-nowrap">Trạng thái</th>
+                  <th className="py-3.5 px-4 text-right whitespace-nowrap"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 whitespace-nowrap">
                 {users.map((user, idx) => {
                   const avatarColor = getAvatarColor(idx);
                   const activeAssignments = user.roles.filter((r) => r.status === 'ACTIVE');
@@ -876,12 +876,11 @@ export default function InteriorRoleManagementPage() {
                   return (
                     <tr
                       key={user.user_id}
-                      className={`hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors ${
-                        selectedUserId === user.user_id ? 'bg-amber-50/30 dark:bg-amber-950/10' : ''
-                      }`}
+                      className={`hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors ${selectedUserId === user.user_id ? 'bg-amber-50/30 dark:bg-amber-950/10' : ''
+                        }`}
                     >
                       {/* Cột 1: Nhân viên */}
-                      <td className="py-4 px-5">
+                      <td className="py-4 px-5 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div
                             className={`w-9 h-9 rounded-full ${avatarColor.bg} ${avatarColor.text} font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs`}
@@ -898,7 +897,7 @@ export default function InteriorRoleManagementPage() {
                       </td>
 
                       {/* Cột 2: Vai trò */}
-                      <td className="py-4 px-5">
+                      <td className="py-4 px-5 whitespace-nowrap">
                         <div className="flex flex-wrap items-center gap-1.5">
                           {activeAssignments.length === 0 && (
                             <span className="text-slate-400 italic">Chưa gán vai trò</span>
@@ -910,13 +909,12 @@ export default function InteriorRoleManagementPage() {
                             return (
                               <span
                                 key={assignment.assignment_id}
-                                className={`text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full border ${
-                                  isOwner
-                                    ? 'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/60 dark:text-blue-300'
-                                    : isAdmin
+                                className={`text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full border ${isOwner
+                                  ? 'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/60 dark:text-blue-300'
+                                  : isAdmin
                                     ? 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300'
                                     : 'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/60 dark:text-blue-300'
-                                }`}
+                                  }`}
                               >
                                 {assignment.role_key}
                               </span>
@@ -926,7 +924,7 @@ export default function InteriorRoleManagementPage() {
                       </td>
 
                       {/* Cột 3: Phạm vi */}
-                      <td className="py-4 px-5">
+                      <td className="py-4 px-5 whitespace-nowrap">
                         <div className="text-slate-600 dark:text-slate-300 font-medium">
                           {primaryAssignment
                             ? scopeLabel(primaryAssignment.scope_type, primaryAssignment.scope_id, catalog)
@@ -940,15 +938,15 @@ export default function InteriorRoleManagementPage() {
                       </td>
 
                       {/* Cột 4: Trạng thái */}
-                      <td className="py-4 px-5">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-medium text-[11px]">
+                      <td className="py-4 px-5 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-medium text-[11px] whitespace-nowrap">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                           Đang hoạt động
                         </span>
                       </td>
 
                       {/* Cột 5: Thao tác */}
-                      <td className="py-4 px-4 text-right">
+                      <td className="py-4 px-4 text-right whitespace-nowrap">
                         <div className="relative inline-block text-left">
                           <button
                             onClick={() => {
@@ -1321,9 +1319,8 @@ export default function InteriorRoleManagementPage() {
               onClick={() => {
                 if (catalog.is_owner) setIsDelegationModalOpen(true);
               }}
-              className={`rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:border-slate-800 dark:bg-slate-900 flex items-center justify-between cursor-pointer hover:border-amber-400 dark:hover:border-amber-700 transition-all ${
-                !catalog.is_owner ? 'opacity-60 cursor-not-allowed' : ''
-              }`}
+              className={`rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:border-slate-800 dark:bg-slate-900 flex items-center justify-between cursor-pointer hover:border-amber-400 dark:hover:border-amber-700 transition-all ${!catalog.is_owner ? 'opacity-60 cursor-not-allowed' : ''
+                }`}
             >
               <div className="flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center shrink-0">
@@ -1346,9 +1343,8 @@ export default function InteriorRoleManagementPage() {
               onClick={() => {
                 if (catalog.is_owner) setIsDirectGrantModalOpen(true);
               }}
-              className={`rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:border-slate-800 dark:bg-slate-900 flex items-center justify-between cursor-pointer hover:border-amber-400 dark:hover:border-amber-700 transition-all ${
-                !catalog.is_owner ? 'opacity-60 cursor-not-allowed' : ''
-              }`}
+              className={`rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:border-slate-800 dark:bg-slate-900 flex items-center justify-between cursor-pointer hover:border-amber-400 dark:hover:border-amber-700 transition-all ${!catalog.is_owner ? 'opacity-60 cursor-not-allowed' : ''
+                }`}
             >
               <div className="flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center shrink-0">
@@ -1391,15 +1387,15 @@ export default function InteriorRoleManagementPage() {
           </div>
 
           <div className="overflow-x-auto mt-2">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-semibold">
-                  <th className="py-3 px-3">Người thực hiện</th>
-                  <th className="py-3 px-3">Hành động</th>
-                  <th className="py-3 px-3 text-right">Thời gian</th>
+            <table className="w-full text-left border-collapse text-xs min-w-[650px]">
+              <thead className="whitespace-nowrap">
+                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-semibold whitespace-nowrap">
+                  <th className="py-3 px-3 whitespace-nowrap">Người thực hiện</th>
+                  <th className="py-3 px-3 whitespace-nowrap">Hành động</th>
+                  <th className="py-3 px-3 text-right whitespace-nowrap">Thời gian</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 whitespace-nowrap">
                 {audit.slice(0, 5).map((event, idx) => {
                   const avatarColor = getAvatarColor(idx + 2);
                   const actorUser = users.find((u) => u.user_id === event.actor_user_id);
@@ -1407,7 +1403,7 @@ export default function InteriorRoleManagementPage() {
 
                   return (
                     <tr key={event.id ?? idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                      <td className="py-3 px-3">
+                      <td className="py-3 px-3 whitespace-nowrap">
                         <div className="flex items-center gap-2.5">
                           <div
                             className={`w-7 h-7 rounded-full ${avatarColor.bg} ${avatarColor.text} font-bold text-[10px] flex items-center justify-center shrink-0`}
@@ -1419,12 +1415,12 @@ export default function InteriorRoleManagementPage() {
                           </span>
                         </div>
                       </td>
-                      <td className="py-3 px-3">
+                      <td className="py-3 px-3 whitespace-nowrap">
                         <span className="text-slate-700 dark:text-slate-300 font-medium">
                           {formatAuditAction(event)}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-right text-slate-400">
+                      <td className="py-3 px-3 text-right text-slate-400 whitespace-nowrap">
                         {formatAuditTime(event.recorded_at ?? event.latest_at)}
                       </td>
                     </tr>
@@ -1757,11 +1753,10 @@ export default function InteriorRoleManagementPage() {
                     <span
                       key={pKey}
                       title={perm?.description ?? pKey}
-                      className={`text-[11px] px-2.5 py-1 rounded-lg border ${
-                        perm?.sensitive
-                          ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40'
-                          : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-900'
-                      }`}
+                      className={`text-[11px] px-2.5 py-1 rounded-lg border ${perm?.sensitive
+                        ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40'
+                        : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-900'
+                        }`}
                     >
                       {pKey.replace('interior:', '')}
                     </span>
@@ -2090,33 +2085,33 @@ export default function InteriorRoleManagementPage() {
               </button>
             </div>
 
-            <div className="mt-4 overflow-y-auto flex-1 pr-1">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-semibold">
-                    <th className="py-2.5 px-3">Người thực hiện</th>
-                    <th className="py-2.5 px-3">Hành động</th>
-                    <th className="py-2.5 px-3">Phạm vi / Vai trò</th>
-                    <th className="py-2.5 px-3 text-right">Thời gian</th>
+            <div className="mt-4 overflow-y-auto overflow-x-auto flex-1 pr-1">
+              <table className="w-full text-left border-collapse text-xs min-w-[700px]">
+                <thead className="whitespace-nowrap">
+                  <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-semibold whitespace-nowrap">
+                    <th className="py-2.5 px-3 whitespace-nowrap">Người thực hiện</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Hành động</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Phạm vi / Vai trò</th>
+                    <th className="py-2.5 px-3 text-right whitespace-nowrap">Thời gian</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 whitespace-nowrap">
                   {audit.map((event, idx) => {
                     const actorUser = users.find((u) => u.user_id === event.actor_user_id);
                     const actorName = actorUser?.full_name || actorUser?.email || 'Bella Interior Demo Manager';
 
                     return (
                       <tr key={event.id ?? idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                        <td className="py-2.5 px-3 font-semibold text-slate-800 dark:text-slate-200">
+                        <td className="py-2.5 px-3 font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
                           {actorName}
                         </td>
-                        <td className="py-2.5 px-3 text-slate-700 dark:text-slate-300">
+                        <td className="py-2.5 px-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
                           {formatAuditAction(event)}
                         </td>
-                        <td className="py-2.5 px-3 text-slate-500">
+                        <td className="py-2.5 px-3 text-slate-500 whitespace-nowrap">
                           {event.role_key || event.permission_id || (event.scope_type ? `${event.scope_type}` : '—')}
                         </td>
-                        <td className="py-2.5 px-3 text-right text-slate-400">
+                        <td className="py-2.5 px-3 text-right text-slate-400 whitespace-nowrap">
                           {formatAuditTime(event.recorded_at ?? event.latest_at)}
                         </td>
                       </tr>

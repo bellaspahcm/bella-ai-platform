@@ -492,20 +492,20 @@ export default function InteriorProjectFinancePage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400">
-                <th className="py-3 px-4 font-semibold">Dự án</th>
-                <th className="py-3 px-4 font-semibold">Khách hàng</th>
-                <th className="py-3 px-4 font-semibold">Giá trị hợp đồng</th>
-                <th className="py-3 px-4 font-semibold">Giá vốn</th>
-                <th className="py-3 px-4 font-semibold">Lợi nhuận gộp</th>
-                <th className="py-3 px-4 font-semibold">Biên lợi nhuận</th>
-                <th className="py-3 px-4 font-semibold">Đã thu</th>
-                <th className="py-3 px-4 font-semibold">Công nợ</th>
+          <table className="w-full text-left border-collapse text-xs min-w-[950px]">
+            <thead className="whitespace-nowrap">
+              <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                <th className="py-3 px-4 font-semibold whitespace-nowrap">Dự án</th>
+                <th className="py-3 px-4 font-semibold whitespace-nowrap">Khách hàng</th>
+                <th className="py-3 px-4 font-semibold whitespace-nowrap">Giá trị hợp đồng</th>
+                <th className="py-3 px-4 font-semibold whitespace-nowrap">Giá vốn</th>
+                <th className="py-3 px-4 font-semibold whitespace-nowrap">Lợi nhuận gộp</th>
+                <th className="py-3 px-4 font-semibold whitespace-nowrap">Biên lợi nhuận</th>
+                <th className="py-3 px-4 font-semibold whitespace-nowrap">Đã thu</th>
+                <th className="py-3 px-4 font-semibold whitespace-nowrap">Công nợ</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium text-slate-800 dark:text-slate-200">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap">
               {projectPLBreakdown.projects.map((proj) => (
                 <tr
                   key={proj.id}
@@ -790,16 +790,16 @@ export default function InteriorProjectFinancePage() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400">
-                  <th className="py-3 px-4 font-semibold">Ngày</th>
-                  <th className="py-3 px-4 font-semibold">Nội dung</th>
-                  <th className="py-3 px-4 font-semibold">Số tiền</th>
-                  <th className="py-3 px-4 font-semibold">Loại</th>
+            <table className="w-full text-left border-collapse text-xs min-w-[700px]">
+              <thead className="whitespace-nowrap">
+                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                  <th className="py-3 px-4 font-semibold whitespace-nowrap">Ngày</th>
+                  <th className="py-3 px-4 font-semibold whitespace-nowrap">Nội dung</th>
+                  <th className="py-3 px-4 font-semibold whitespace-nowrap">Số tiền</th>
+                  <th className="py-3 px-4 font-semibold whitespace-nowrap">Loại</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium whitespace-nowrap">
                 {recentTransactions.transactions.map((tx) => (
                   <tr
                     key={tx.id}
@@ -1060,18 +1060,18 @@ export default function InteriorProjectFinancePage() {
             {/* 6 Categories Detailed Table */}
             <div className="border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 text-slate-500 dark:text-slate-400">
-                      <th className="py-2.5 px-3 font-semibold">Khoản mục giá vốn</th>
-                      <th className="py-2.5 px-3 font-semibold">Dự toán</th>
-                      <th className="py-2.5 px-3 font-semibold">Thực tế</th>
-                      <th className="py-2.5 px-3 font-semibold">Chênh lệch</th>
-                      <th className="py-2.5 px-3 font-semibold">Dự kiến còn lại</th>
-                      <th className="py-2.5 px-3 font-semibold">Nhà cung cấp chính</th>
+                <table className="w-full text-left border-collapse text-xs min-w-[850px]">
+                  <thead className="whitespace-nowrap">
+                    <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                      <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Khoản mục giá vốn</th>
+                      <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Dự toán</th>
+                      <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Thực tế</th>
+                      <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Chênh lệch</th>
+                      <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Dự kiến còn lại</th>
+                      <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Nhà cung cấp chính</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium whitespace-nowrap">
                     {costControlDossier.categories.map((cat) => (
                       <tr key={cat.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
                         <td className="py-3 px-3">
@@ -1376,18 +1376,18 @@ export default function InteriorProjectFinancePage() {
               </h4>
               <div className="border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 text-slate-500 dark:text-slate-400">
-                        <th className="py-2.5 px-3 font-semibold">Dự án</th>
-                        <th className="py-2.5 px-3 font-semibold">Mức độ rủi ro</th>
-                        <th className="py-2.5 px-3 font-semibold">Biên ban đầu</th>
-                        <th className="py-2.5 px-3 font-semibold">Dự báo chốt</th>
-                        <th className="py-2.5 px-3 font-semibold">Nguyên nhân gốc rễ</th>
-                        <th className="py-2.5 px-3 font-semibold">Hành động khắc phục</th>
+                  <table className="w-full text-left border-collapse text-xs min-w-[850px]">
+                    <thead className="whitespace-nowrap">
+                      <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                        <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Dự án</th>
+                        <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Mức độ rủi ro</th>
+                        <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Biên ban đầu</th>
+                        <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Dự báo chốt</th>
+                        <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Nguyên nhân gốc rễ</th>
+                        <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Hành động khắc phục</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium whitespace-nowrap">
                       {riskRadar.projectRiskEvaluations.map((evalItem) => (
                         <tr key={evalItem.projectId} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
                           <td className="py-3 px-3 font-bold text-slate-900 dark:text-white">
@@ -1518,17 +1518,17 @@ export default function InteriorProjectFinancePage() {
 
             <div className="border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 text-slate-500 dark:text-slate-400">
-                      <th className="py-2.5 px-3 font-semibold">Mã GD</th>
-                      <th className="py-2.5 px-3 font-semibold">Ngày</th>
-                      <th className="py-2.5 px-3 font-semibold">Nội dung chứng từ</th>
-                      <th className="py-2.5 px-3 font-semibold">Số tiền</th>
-                      <th className="py-2.5 px-3 font-semibold">Chứng từ gốc (Source Ref)</th>
+                <table className="w-full text-left border-collapse text-xs min-w-[750px]">
+                  <thead className="whitespace-nowrap">
+                    <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                      <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Mã GD</th>
+                      <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Ngày</th>
+                      <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Nội dung chứng từ</th>
+                      <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Số tiền</th>
+                      <th className="py-2.5 px-3 font-semibold whitespace-nowrap">Chứng từ gốc (Source Ref)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium whitespace-nowrap">
                     {recentTransactions.transactions.map((tx) => (
                       <tr key={tx.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
                         <td className="py-3 px-3 font-mono font-bold text-slate-900 dark:text-white">

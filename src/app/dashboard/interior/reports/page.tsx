@@ -645,19 +645,19 @@ export default function InteriorReportsAnalyticsPage() {
 
           {/* Table */}
           <div className="overflow-x-auto mt-3">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                  <th className="py-2.5 pr-3">Dự án</th>
-                  <th className="py-2.5 px-3">Giá trị HĐ</th>
-                  <th className="py-2.5 px-3">Chi phí vật tư</th>
-                  <th className="py-2.5 px-3">Chi phí nhân công</th>
-                  <th className="py-2.5 px-3">Đã thu</th>
-                  <th className="py-2.5 px-3 text-center">Biên LN</th>
-                  <th className="py-2.5 pl-3 text-right">Trạng thái</th>
+            <table className="w-full text-left border-collapse min-w-[950px]">
+              <thead className="whitespace-nowrap">
+                <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                  <th className="py-2.5 pr-3 whitespace-nowrap">Dự án</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Giá trị HĐ</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Chi phí vật tư</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Chi phí nhân công</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Đã thu</th>
+                  <th className="py-2.5 px-3 text-center whitespace-nowrap">Biên LN</th>
+                  <th className="py-2.5 pl-3 text-right whitespace-nowrap">Trạng thái</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-slate-100 text-xs whitespace-nowrap">
                 {data.projectPerformance.map((row) => (
                   <tr
                     key={row.id}
@@ -665,7 +665,7 @@ export default function InteriorReportsAnalyticsPage() {
                     className="hover:bg-slate-50/80 transition cursor-pointer group"
                   >
                     {/* Project Name + Thumbnail */}
-                    <td className="py-3 pr-3">
+                    <td className="py-3 pr-3 whitespace-nowrap">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-100 shrink-0 relative border border-slate-100">
                           <Image
@@ -684,32 +684,32 @@ export default function InteriorReportsAnalyticsPage() {
                     </td>
 
                     {/* Contract Value */}
-                    <td className="py-3 px-3 font-semibold text-slate-700">
+                    <td className="py-3 px-3 font-semibold text-slate-700 whitespace-nowrap">
                       {row.contractValueFormatted}
                     </td>
 
                     {/* Material Cost */}
-                    <td className="py-3 px-3 text-slate-600">
+                    <td className="py-3 px-3 text-slate-600 whitespace-nowrap">
                       {row.materialCostFormatted}
                     </td>
 
                     {/* Labor Cost */}
-                    <td className="py-3 px-3 text-slate-600">
+                    <td className="py-3 px-3 text-slate-600 whitespace-nowrap">
                       {row.laborCostFormatted}
                     </td>
 
                     {/* Collected */}
-                    <td className="py-3 px-3 font-semibold text-slate-700">
+                    <td className="py-3 px-3 font-semibold text-slate-700 whitespace-nowrap">
                       {row.collectedFormatted}
                     </td>
 
                     {/* Gross Margin */}
-                    <td className="py-3 px-3 text-center font-bold text-slate-900">
+                    <td className="py-3 px-3 text-center font-bold text-slate-900 whitespace-nowrap">
                       {row.grossMarginFormatted}
                     </td>
 
                     {/* Status Badge */}
-                    <td className="py-3 pl-3 text-right">
+                    <td className="py-3 pl-3 text-right whitespace-nowrap">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                         {row.statusLabel}
