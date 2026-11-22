@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   User,
@@ -48,6 +48,8 @@ interface Customer360ModalProps {
   readonly onClose: () => void;
   readonly customerId: string | null;
   readonly initialCustomerName?: string;
+  /** Pre-resolved auth token from the parent page. Avoids re-authenticating on every modal open. */
+  readonly authToken?: string;
 }
 
 function getEventBadge(type: string): { label: string; className: string } | null {
@@ -107,11 +109,16 @@ export function Customer360Modal({
   onClose,
   customerId,
   initialCustomerName,
+  authToken,
 }: Customer360ModalProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'contacts' | 'commercial' | 'execution' | 'timeline'>('overview');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<Customer360Profile | null>(null);
+  // Keep latest authToken in a ref so the useEffect doesn't need it as a dependency
+  // (avoids re-fetching every time the parent refreshes the token)
+  const authTokenRef = useRef<string | undefined>(authToken);
+  authTokenRef.current = authToken;
 
   useEffect(() => {
     if (!isOpen || !customerId) {
@@ -129,9 +136,14 @@ export function Customer360Modal({
           throw new Error('Dữ liệu khách hàng mẫu không tồn tại trong hệ thống thực tế. Vui lòng chọn khách hàng thực.');
         }
 
-        const token = await getAuthToken();
+        // Use pre-resolved token from parent page (avoids re-auth race), fallback to own resolve
+        const token = authTokenRef.current ?? await getAuthToken();
         const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (token) authHeaders['Authorization'] = `Bearer ${token}`;
+        if (token) {
+          authHeaders['Authorization'] = `Bearer ${token}`;
+        } else {
+          console.warn('[Customer360Modal] No auth token available — request may return 401');
+        }
         const res = await fetch(`/api/interior/crm/customers/${encodeURIComponent(customerId!)}`, {
           headers: authHeaders,
         });

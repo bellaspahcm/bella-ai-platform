@@ -22,6 +22,8 @@ import {
   Lightbulb,
   MoreHorizontal,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Bell,
   List,
   LayoutGrid,
@@ -158,6 +160,12 @@ export default function CustomersPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
+  // Shared auth token: obtained once on page load, passed to all child modals
+  const [sharedAuthToken, setSharedAuthToken] = useState<string | undefined>(undefined);
+
+  // Pagination State (ensures fast rendering, avoids endless table layout shifts)
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   // Form Fields for Customer Creation
   const [newCustomerName, setNewCustomerName] = useState('');
@@ -213,8 +221,11 @@ export default function CustomersPage() {
     try {
       // Use the canonical CRM overview route which includes all customers (including lead-only, no project)
       const token = await getAuthToken();
+      // Cache token so Customer360Modal can reuse it without re-authenticating
+      if (token) setSharedAuthToken(token);
       const authHeaders: Record<string, string> = {};
       if (token) authHeaders['Authorization'] = `Bearer ${token}`;
+      // Sort desc so newly created customers appear at the top
       const res = await fetch('/api/interior/crm/customers?page=1&limit=200&sortOrder=desc', { headers: authHeaders });
       if (!res.ok) {
         if (res.status === 401) {
@@ -378,6 +389,7 @@ export default function CustomersPage() {
       if (newCustomerNotes.trim()) noteParts.push(newCustomerNotes.trim());
       if (assignedStaffParts.length > 0) noteParts.push(assignedStaffParts.join(' | '));
       if (newCustomerStatus) noteParts.push(`[Lead stage: ${newCustomerStatus}]`);
+      if (newCustomerSource) noteParts.push(`[Nguồn: ${newCustomerSource}]`);
       const finalNotes = noteParts.length > 0 ? noteParts.join(' | ') : undefined;
 
       const payload = {
@@ -577,6 +589,20 @@ export default function CustomersPage() {
       return matchesSearch && matchesType && matchesStatus;
     });
   }, [customersList, searchQuery, typeFilter, statusFilter]);
+
+  // Reset pagination to page 1 on query/filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, typeFilter, statusFilter]);
+
+  const totalItems = filteredCustomers.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+
+  const paginatedCustomers = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return filteredCustomers.slice(start, start + pageSize);
+  }, [filteredCustomers, safePage, pageSize]);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 dark:bg-slate-950 dark:text-slate-100 p-4 sm:p-6 lg:p-8 space-y-6">
@@ -1229,6 +1255,7 @@ export default function CustomersPage() {
             <table className="w-full text-left text-xs min-w-[1150px]">
               <thead className="bg-slate-50/70 dark:bg-slate-800/60 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/70 dark:border-slate-800 whitespace-nowrap">
                 <tr>
+                  <th className="py-3 px-3 text-center whitespace-nowrap w-12">STT</th>
                   <th className="py-3 px-4 whitespace-nowrap">KHÁCH HÀNG</th>
                   <th className="py-3 px-3 whitespace-nowrap">PHÂN LOẠI</th>
                   <th className="py-3 px-3 whitespace-nowrap">NGUỒN KHÁCH HÀNG</th>
@@ -1246,6 +1273,10 @@ export default function CustomersPage() {
                 {isLoading ? (
                   Array.from({ length: 6 }).map((_, idx) => (
                     <tr key={`skeleton-row-${idx}`} className="animate-pulse">
+                      {/* STT */}
+                      <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                        <div className="w-5 h-3 bg-slate-200 dark:bg-slate-700 rounded mx-auto" />
+                      </td>
                       {/* KHÁCH HÀNG */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
@@ -1303,7 +1334,7 @@ export default function CustomersPage() {
                   ))
                 ) : filteredCustomers.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="py-12 text-center text-slate-500 dark:text-slate-400">
+                    <td colSpan={12} className="py-12 text-center text-slate-500 dark:text-slate-400">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <Users className="w-8 h-8 text-slate-300 dark:text-slate-600" />
                         <span className="text-sm font-semibold">Không tìm thấy khách hàng nào</span>
@@ -1312,12 +1343,17 @@ export default function CustomersPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredCustomers.map((cust) => (
+                  paginatedCustomers.map((cust, idx) => (
                   <tr
                     key={cust.id}
                     onClick={() => handleOpenCustomer360(cust)}
                     className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
                   >
+                    {/* STT */}
+                    <td className="py-3.5 px-3 text-center font-mono text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                      {(safePage - 1) * pageSize + idx + 1}
+                    </td>
+
                     {/* KHÁCH HÀNG */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
@@ -1507,7 +1543,7 @@ export default function CustomersPage() {
                 </div>
               </div>
             ) : (
-              filteredCustomers.map((cust) => (
+              paginatedCustomers.map((cust) => (
               <div
                 key={cust.id}
                 className="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-3"
@@ -1564,6 +1600,90 @@ export default function CustomersPage() {
               </div>
             ))
             )}
+          </div>
+        )}
+
+        {/* Pagination Bar */}
+        {!isLoading && totalItems > 0 && (
+          <div className="px-4 py-3 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+              <span>
+                Hiển thị <strong className="text-slate-900 dark:text-white font-semibold">{(safePage - 1) * pageSize + 1}</strong> – <strong className="text-slate-900 dark:text-white font-semibold">{Math.min(safePage * pageSize, totalItems)}</strong> trong <strong className="text-slate-900 dark:text-white font-semibold">{totalItems}</strong> khách hàng
+              </span>
+              <div className="hidden sm:flex items-center gap-1.5 ml-2">
+                <span className="text-[11px] text-slate-400">Số dòng:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={safePage <= 1}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors flex items-center gap-1 font-medium"
+                aria-label="Trang trước"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Trước</span>
+              </button>
+
+              <div className="flex items-center gap-1 px-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((page) => {
+                    return page === 1 || page === totalPages || Math.abs(page - safePage) <= 1;
+                  })
+                  .reduce<(number | string)[]>((acc, page, idx, arr) => {
+                    if (idx > 0 && page - (arr[idx - 1] as number) > 1) {
+                      acc.push('...');
+                    }
+                    acc.push(page);
+                    return acc;
+                  }, [])
+                  .map((item, idx) =>
+                    typeof item === 'string' ? (
+                      <span key={`ellipsis-${idx}`} className="px-1 text-slate-400 text-xs select-none">
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={`page-${item}`}
+                        type="button"
+                        onClick={() => setCurrentPage(item)}
+                        className={`w-7 h-7 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center ${
+                          safePage === item
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    )
+                  )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={safePage >= totalPages}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors flex items-center gap-1 font-medium"
+                aria-label="Trang sau"
+              >
+                <span className="hidden sm:inline">Sau</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -2276,6 +2396,7 @@ export default function CustomersPage() {
         onClose={() => setIs360ModalOpen(false)}
         customerId={selectedCustomerId}
         initialCustomerName={selectedCustomerName}
+        authToken={sharedAuthToken}
       />
     </div>
   );

@@ -257,6 +257,7 @@ export interface CustomerOverviewItem {
   readonly primaryPhone?: string;
   readonly primaryEmail?: string;
   readonly notes?: string;
+  readonly createdAt?: string;
 }
 
 export interface CustomerKPIOverview {

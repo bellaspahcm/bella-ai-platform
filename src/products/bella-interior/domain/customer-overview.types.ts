@@ -80,6 +80,8 @@ export interface CustomerItem {
   readonly statusBadgeClass: string;
   readonly profileStatus?: 'active' | 'inactive' | 'merged';
   readonly notes?: string;
+  /** ISO timestamp of profile creation — used for sort-by-newest */
+  readonly createdAt?: string;
 }
 
 export interface CustomerAlertItem {
