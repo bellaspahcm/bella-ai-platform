@@ -62,6 +62,7 @@ import type {
   CustomerAlertItem,
   ActionSuggestion,
   CustomerSource,
+  CustomerStatus,
 } from '../../domain/customer-overview.types';
 
 function toSafeIsoString(dateInput: string | null | undefined): string {
@@ -776,42 +777,77 @@ export class Customer360AggregatorService {
         if (m) explicitLeadStage = m[1].toLowerCase();
       }
 
-      // Status derivation for UI overview
-      let status = explicitLeadStage || 'lead';
-      let statusLabel = 'Tiềm năng';
+      // Check project activity states
+      const hasActiveProjects = customerProjects.some((p) =>
+        ['in_progress', 'production', 'installation', 'handover', 'active', 'contract_signed', 'signed'].includes(p.status)
+      );
+      const hasNegotiatingProjects = customerProjects.some((p) =>
+        ['negotiating', 'contract_draft'].includes(p.status)
+      );
+      const hasQuotationProjects = customerProjects.some((p) =>
+        ['quotation', 'estimating'].includes(p.status)
+      );
+      const hasSurveyProjects = customerProjects.some((p) =>
+        ['lead', 'survey', 'design_concept', 'design_3d'].includes(p.status)
+      );
+      const allProjectsCompleted =
+        customerProjects.length > 0 &&
+        customerProjects.every((p) => ['completed', 'warranty', 'closed'].includes(p.status));
+
+      // Hierarchical Status Derivation reflecting Commercial Reality & Sales Funnel Alignment
+      let status: CustomerStatus = (explicitLeadStage as CustomerStatus) || 'lead';
+      let statusLabel = 'Khách hàng tiềm năng';
       let statusBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
 
-      if (profile.profileStatus === 'inactive') {
-        status = 'inactive';
-        statusLabel = 'Tạm dừng';
-        statusBadgeClass = 'bg-stone-100 text-stone-600 border-stone-300 dark:bg-stone-900/50 dark:text-stone-400 dark:border-stone-700';
-      } else if (profile.profileStatus === 'merged') {
+      if (profile.profileStatus === 'merged') {
         status = 'merged';
         statusLabel = 'Đã gộp';
         statusBadgeClass = 'bg-zinc-100 text-zinc-600 border-zinc-300 dark:bg-zinc-900/50 dark:text-zinc-400 dark:border-zinc-700';
-      } else if (profile.tier === 'vip' || status === 'vip') {
-        status = 'vip';
-        statusLabel = 'Khách hàng VIP';
-        statusBadgeClass = 'bg-purple-50 text-purple-700 border-purple-200';
-      } else if (status === 'negotiating') {
+      } else if (customerTotalValue > 0 || hasActiveProjects || explicitLeadStage === 'transacting') {
+        // Priority 1: Customer has active commercial transaction or signed contracts/projects
+        status = 'transacting';
+        statusLabel = 'Đang theo dự án';
+        statusBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      } else if (explicitLeadStage === 'negotiating' || hasNegotiatingProjects) {
+        // Priority 2: In contract/design negotiation
         status = 'negotiating';
         statusLabel = 'Đang đàm phán';
         statusBadgeClass = 'bg-violet-50 text-violet-700 border-violet-200';
-      } else if (status === 're_engagement') {
+      } else if (explicitLeadStage === 'quotation' || hasQuotationProjects) {
+        // Priority 3: Quotation / proposal stage
+        status = 'quotation';
+        statusLabel = 'Báo giá đề xuất';
+        statusBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+      } else if (explicitLeadStage === 'survey' || hasSurveyProjects) {
+        // Priority 4: Survey / consultation stage
+        status = 'survey';
+        statusLabel = 'Khảo sát & tư vấn';
+        statusBadgeClass = 'bg-teal-50 text-teal-700 border-teal-200';
+      } else if (explicitLeadStage === 're_engagement') {
+        // Priority 5: Re-engagement
         status = 're_engagement';
         statusLabel = 'Chăm sóc lại';
         statusBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
-      } else if (status === 'transacting' || customerProjects.length > 0) {
-        const hasActive = customerProjects.some((p) => p.status !== 'completed' && p.status !== 'warranty');
-        if (hasActive || status === 'transacting') {
-          status = 'transacting';
-          statusLabel = 'Đang theo dự án';
-          statusBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-        } else {
-          status = 'completed';
-          statusLabel = 'Đã hoàn thành';
-          statusBadgeClass = 'bg-slate-50 text-slate-700 border-slate-200';
-        }
+      } else if (allProjectsCompleted) {
+        // Priority 6: All past projects completed & handed over
+        status = 'completed';
+        statusLabel = 'Đã hoàn thành';
+        statusBadgeClass = 'bg-slate-50 text-slate-700 border-slate-200';
+      } else if ((profile.profileStatus === 'inactive' || explicitLeadStage === 'inactive') && customerTotalValue === 0 && customerProjects.length === 0) {
+        // Priority 7: Genuinely inactive lead (no active projects, no contract value)
+        status = 'inactive';
+        statusLabel = 'Tạm dừng';
+        statusBadgeClass = 'bg-stone-100 text-stone-600 border-stone-300 dark:bg-stone-900/50 dark:text-stone-400 dark:border-stone-700';
+      } else if (explicitLeadStage === 'vip' || profile.tier === 'vip') {
+        // Tier VIP fallback for initial leads
+        status = 'lead';
+        statusLabel = 'Khách hàng tiềm năng';
+        statusBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+      } else {
+        // Default new lead
+        status = 'lead';
+        statusLabel = 'Khách hàng tiềm năng';
+        statusBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
       }
 
       // Type Badge
@@ -964,7 +1000,9 @@ export class Customer360AggregatorService {
 
     // 5. Compute Dynamic KPIs (Canonical Single Source of Truth)
     const totalCustomers = allProfiles.length;
-    const potentialCustomers = overviewItems.filter((c) => c.status === 'lead').length;
+    const potentialCustomers = overviewItems.filter((c) =>
+      ['lead', 'survey', 'quotation', 'negotiating'].includes(c.status)
+    ).length;
     const activeTransacting = overviewItems.filter((c) => c.status === 'transacting').length;
     const vipCustomers = overviewItems.filter((c) => c.tier === 'vip' || c.status === 'vip').length;
 
@@ -987,7 +1025,7 @@ export class Customer360AggregatorService {
       potentialCustomers: {
         value: potentialCustomers,
         label: 'Khách hàng tiềm năng',
-        trend: potentialCustomers > 0 ? `${potentialCustomers} lead mới` : 'Chưa có lead',
+        trend: potentialCustomers > 0 ? `${potentialCustomers} lead đang theo dõi` : 'Chưa có lead',
         isPositiveTrend: potentialCustomers > 0,
       },
       activeTransacting: {
@@ -1005,31 +1043,44 @@ export class Customer360AggregatorService {
     };
 
     // 6. Real Dynamic Sales Funnel from Portfolio Lifecycle
-    const surveyCount = overviewItems.filter((c) => {
-      const projs = projectsByCustomerId.get(c.id) || [];
-      return projs.some((p) => ['lead', 'survey', 'design_concept', 'design_3d'].includes(p.status));
-    }).length;
-    const quotationCount = overviewItems.filter((c) => {
-      const projs = projectsByCustomerId.get(c.id) || [];
-      return projs.some((p) => ['quotation', 'estimating', 'contract_draft'].includes(p.status));
-    }).length;
-    const negotiatingCount = overviewItems.filter((c) => c.status === 'negotiating').length;
-    const signedCount = overviewItems.filter((c) => c.status === 'transacting' || c.totalValue > 0).length;
+    // Active pipeline customers (all non-merged records)
+    const activePipeline = overviewItems.filter((c) => c.status !== 'merged');
+    const totalPipeline = activePipeline.length || overviewItems.length;
 
-    const conversionRate = totalCustomers > 0 ? Math.round((signedCount / totalCustomers) * 100) : 0;
+    // Conversion Funnel Progression:
+    // Step 1: Tiềm năng (All prospective leads entering sales funnel)
+    const funnelStep1Count = totalPipeline;
+    // Step 2: Khảo sát & tư vấn (Progressed through survey, quotation, negotiating or signed)
+    const funnelStep2Count = overviewItems.filter((c) =>
+      ['survey', 'quotation', 'negotiating', 'transacting', 'completed'].includes(c.status) || c.totalValue > 0
+    ).length;
+    // Step 3: Báo giá đề xuất (Progressed through quotation, negotiating or signed)
+    const funnelStep3Count = overviewItems.filter((c) =>
+      ['quotation', 'negotiating', 'transacting', 'completed'].includes(c.status) || c.totalValue > 0
+    ).length;
+    // Step 4: Đàm phán (Progressed to negotiation or signed)
+    const funnelStep4Count = overviewItems.filter((c) =>
+      ['negotiating', 'transacting', 'completed'].includes(c.status) || c.totalValue > 0
+    ).length;
+    // Step 5: Ký hợp đồng (Active contract execution or completed)
+    const funnelStep5Count = overviewItems.filter((c) =>
+      c.status === 'transacting' || c.status === 'completed' || c.totalValue > 0
+    ).length;
+
+    const conversionRate = totalPipeline > 0 ? Math.round((funnelStep5Count / totalPipeline) * 100) : 0;
     const salesFunnel: CustomerSalesFunnel = {
       steps: [
-        { stepNumber: 1, label: 'Khách hàng tiềm năng', count: potentialCustomers, color: '#3b82f6' },
-        { stepNumber: 2, label: 'Khảo sát & tư vấn', count: surveyCount, color: '#10b981' },
-        { stepNumber: 3, label: 'Báo giá đề xuất', count: quotationCount, color: '#f59e0b' },
-        { stepNumber: 4, label: 'Đàm phán', count: negotiatingCount, color: '#8b5cf6' },
-        { stepNumber: 5, label: 'Ký hợp đồng', count: signedCount, color: '#6366f1' },
+        { stepNumber: 1, label: 'Khách hàng tiềm năng', count: funnelStep1Count, color: '#3b82f6' },
+        { stepNumber: 2, label: 'Khảo sát & tư vấn', count: funnelStep2Count, color: '#10b981' },
+        { stepNumber: 3, label: 'Báo giá đề xuất', count: funnelStep3Count, color: '#f59e0b' },
+        { stepNumber: 4, label: 'Đàm phán', count: funnelStep4Count, color: '#8b5cf6' },
+        { stepNumber: 5, label: 'Ký hợp đồng', count: funnelStep5Count, color: '#6366f1' },
       ],
       conversionRatePercent: conversionRate,
-      conversionRateTrend: signedCount > 0 ? `Tỷ lệ ký kết thực tế ${conversionRate}%` : 'Chưa có hợp đồng ký',
+      conversionRateTrend: funnelStep5Count > 0 ? `Tỷ lệ ký kết thực tế ${conversionRate}%` : 'Chưa có hợp đồng ký',
       isConversionPositive: conversionRate >= 20,
       targetAchievementLabel: conversionRate >= 20 ? 'Vượt chỉ tiêu' : 'Đang triển khai',
-      targetAchievementSub: `${signedCount}/${totalCustomers} KH đã ký hợp đồng`,
+      targetAchievementSub: `${funnelStep5Count}/${totalPipeline} KH đã ký hợp đồng`,
     };
 
     // 7. Real Dynamic Monthly Growth Chart

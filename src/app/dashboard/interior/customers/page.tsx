@@ -300,6 +300,8 @@ export default function CustomersPage() {
               status: c.status || fallback?.status || 'lead',
               statusLabel: c.statusLabel || fallback?.statusLabel || 'Khách hàng tiềm năng',
               statusBadgeClass: c.statusBadgeClass || fallback?.statusBadgeClass || 'bg-blue-50 text-blue-700 border-blue-200',
+              tier: c.tier || fallback?.tier || 'standard',
+              createdAt: c.createdAt || fallback?.createdAt,
               notes: c.notes || fallback?.notes || undefined,
             };
           }
@@ -458,9 +460,24 @@ export default function CustomersPage() {
         debtFormatted: '0 ₫',
         hasDebt: false,
         lastInteractionDate: 'Vừa xong',
-        status: createdCustomer.tier === 'vip' ? 'vip' : (newCustomerStatus || 'lead'),
-        statusLabel: createdCustomer.tier === 'vip' ? 'Khách hàng VIP' : (newCustomerStatus === 'negotiating' ? 'Đang đàm phán' : newCustomerStatus === 'transacting' ? 'Đang theo dự án' : newCustomerStatus === 'inactive' ? 'Tạm dừng' : 'Khách hàng tiềm năng'),
-        statusBadgeClass: createdCustomer.tier === 'vip' ? 'bg-purple-50 text-purple-700 border-purple-200' : (newCustomerStatus === 'transacting' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : newCustomerStatus === 'negotiating' ? 'bg-violet-50 text-violet-700 border-violet-200' : newCustomerStatus === 'inactive' ? 'bg-stone-100 text-stone-600 border-stone-300' : 'bg-blue-50 text-blue-700 border-blue-200'),
+        status: newCustomerStatus || 'lead',
+        statusLabel:
+          newCustomerStatus === 'transacting' ? 'Đang theo dự án'
+          : newCustomerStatus === 'negotiating' ? 'Đang đàm phán'
+          : newCustomerStatus === 'quotation' ? 'Báo giá đề xuất'
+          : newCustomerStatus === 'survey' ? 'Khảo sát & tư vấn'
+          : newCustomerStatus === 're_engagement' ? 'Chăm sóc lại'
+          : newCustomerStatus === 'inactive' ? 'Tạm dừng'
+          : 'Khách hàng tiềm năng',
+        statusBadgeClass:
+          newCustomerStatus === 'transacting' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+          : newCustomerStatus === 'negotiating' ? 'bg-violet-50 text-violet-700 border-violet-200'
+          : newCustomerStatus === 'quotation' ? 'bg-amber-50 text-amber-700 border-amber-200'
+          : newCustomerStatus === 'survey' ? 'bg-teal-50 text-teal-700 border-teal-200'
+          : newCustomerStatus === 're_engagement' ? 'bg-amber-50 text-amber-700 border-amber-200'
+          : newCustomerStatus === 'inactive' ? 'bg-stone-100 text-stone-600 border-stone-300'
+          : 'bg-blue-50 text-blue-700 border-blue-200',
+        tier: createdCustomer.tier || newCustomerTier || 'standard',
         notes: finalNotes,
       };
 
@@ -510,16 +527,22 @@ export default function CustomersPage() {
               status: newStatus,
               statusLabel:
                 newStatus === 'lead' ? 'Khách hàng tiềm năng'
+                : newStatus === 'survey' ? 'Khảo sát & tư vấn'
+                : newStatus === 'quotation' ? 'Báo giá đề xuất'
                 : newStatus === 'negotiating' ? 'Đang đàm phán'
                 : newStatus === 'transacting' ? 'Đang theo dự án'
+                : newStatus === 'completed' ? 'Đã hoàn thành'
                 : newStatus === 'vip' ? 'Khách hàng VIP'
                 : newStatus === 'inactive' ? 'Tạm dừng'
                 : newStatus === 're_engagement' ? 'Chăm sóc lại'
                 : 'Đã gộp',
               statusBadgeClass:
                 newStatus === 'transacting' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : newStatus === 'survey' ? 'bg-teal-50 text-teal-700 border-teal-200'
+                : newStatus === 'quotation' ? 'bg-amber-50 text-amber-700 border-amber-200'
                 : newStatus === 'vip' ? 'bg-purple-50 text-purple-700 border-purple-200'
                 : newStatus === 'negotiating' ? 'bg-violet-50 text-violet-700 border-violet-200'
+                : newStatus === 'completed' ? 'bg-slate-50 text-slate-700 border-slate-200'
                 : newStatus === 'inactive' ? 'bg-stone-100 text-stone-600 border-stone-300'
                 : newStatus === 're_engagement' ? 'bg-amber-50 text-amber-700 border-amber-200'
                 : 'bg-blue-50 text-blue-700 border-blue-200',
@@ -1201,10 +1224,13 @@ export default function CustomersPage() {
               className="appearance-none pl-3 pr-7 py-1.5 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors cursor-pointer"
             >
               <option value="all">Trạng thái ⌵</option>
-              <option value="transacting">Đang giao dịch</option>
-              <option value="lead">Tiềm năng</option>
-              <option value="negotiating">Đang đàm phán</option>
+              <option value="lead">1. Khách hàng tiềm năng</option>
+              <option value="survey">2. Khảo sát &amp; tư vấn</option>
+              <option value="quotation">3. Báo giá đề xuất</option>
+              <option value="negotiating">4. Đang đàm phán</option>
+              <option value="transacting">5. Đang theo dự án</option>
               <option value="re_engagement">Chăm sóc lại</option>
+              <option value="inactive">Tạm dừng</option>
             </select>
           </div>
 
@@ -1385,11 +1411,18 @@ export default function CustomersPage() {
 
                     {/* PHÂN LOẠI */}
                     <td className="py-3.5 px-3 whitespace-nowrap">
-                      <span
-                        className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap ${cust.typeBadgeClass}`}
-                      >
-                        {cust.typeLabel}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span
+                          className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap ${cust.typeBadgeClass}`}
+                        >
+                          {cust.typeLabel}
+                        </span>
+                        {cust.tier === 'vip' && (
+                          <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800">
+                            VIP
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* NGUỒN KHÁCH HÀNG */}
@@ -1478,11 +1511,13 @@ export default function CustomersPage() {
                           className="absolute inset-0 w-full opacity-0 cursor-pointer"
                           aria-label={`Đổi trạng thái của ${cust.name}`}
                         >
-                          <option value="lead">Khách hàng tiềm năng</option>
-                          <option value="negotiating">Đang đàm phán</option>
-                          <option value="transacting">Đang theo dự án</option>
+                          <option value="lead">1. Khách hàng tiềm năng</option>
+                          <option value="survey">2. Khảo sát &amp; tư vấn</option>
+                          <option value="quotation">3. Báo giá đề xuất</option>
+                          <option value="negotiating">4. Đang đàm phán</option>
+                          <option value="transacting">5. Đang theo dự án</option>
+                          <option value="completed">Đã hoàn thành</option>
                           <option value="re_engagement">Chăm sóc lại</option>
-                          <option value="vip">Khách hàng VIP</option>
                           <option value="inactive">Tạm dừng</option>
                         </select>
                       </div>
@@ -1569,8 +1604,16 @@ export default function CustomersPage() {
                   </span>
                 </div>
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-xs space-y-1 text-slate-600 dark:text-slate-400">
-                  <div className="flex justify-between">
-                    <span>Phân loại:</span> <strong className="text-slate-800 dark:text-slate-200">{cust.typeLabel}</strong>
+                  <div className="flex justify-between items-center">
+                    <span>Phân loại:</span>
+                    <div className="flex items-center gap-1">
+                      <strong className="text-slate-800 dark:text-slate-200">{cust.typeLabel}</strong>
+                      {cust.tier === 'vip' && (
+                        <span className="inline-flex px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800">
+                          VIP
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between">
                     <span>Tổng giá trị:</span> <strong className="text-amber-600 dark:text-amber-400 font-mono">{cust.totalValueFormatted}</strong>
@@ -2231,11 +2274,12 @@ export default function CustomersPage() {
                       onChange={(e) => setNewCustomerStatus(e.target.value as CustomerStatus)}
                       className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
                     >
-                      <option value="lead">🔵 Khách hàng tiềm năng (Mới tiếp nhận)</option>
-                      <option value="negotiating">🟣 Khảo sát &amp; Đàm phán phương án</option>
-                      <option value="transacting">🟢 Đã ký hợp đồng &amp; Đang thi công</option>
-                      <option value="re_engagement">🟡 Chăm sóc lại</option>
-                      <option value="vip">⭐ Khách hàng VIP</option>
+                      <option value="lead">🔵 1. Khách hàng tiềm năng (Mới tiếp nhận)</option>
+                      <option value="survey">🟢 2. Khảo sát &amp; Tư vấn thiết kế</option>
+                      <option value="quotation">🟡 3. Báo giá &amp; Dự toán đề xuất</option>
+                      <option value="negotiating">🟣 4. Đàm phán &amp; Chốt hợp đồng</option>
+                      <option value="transacting">🟢 5. Đã ký hợp đồng &amp; Đang thi công</option>
+                      <option value="re_engagement">🟠 Chăm sóc lại</option>
                       <option value="inactive">⚪ Tạm dừng / Chưa có nhu cầu</option>
                     </select>
                   </div>
