@@ -363,25 +363,10 @@ export class SupabaseCustomerRepository implements ICustomerRepository {
 
   async delete(tenantId: string, id: string): Promise<boolean> {
     this.assertTenant(tenantId);
-    const existing = await this.findById(tenantId, id);
-    if (!existing) {
-      throw new CustomerNotFoundError(id);
-    }
-
-    const { error } = await this.client
-      .from('interior_customers')
-      .delete()
-      .eq('tenant_id', tenantId)
-      .eq('id', id);
-
-    if (error) {
-      if (error.message?.includes('CUSTOMER_DELETE_FORBIDDEN') || error.code === '23503') {
-        throw new CustomerDeleteForbiddenError(id, error.message);
-      }
-      throw error;
-    }
-
-    return true;
+    throw new CustomerDeleteForbiddenError(
+      id,
+      'CUSTOMER_HARD_DELETE_PROHIBITED: Bella Interior preserves all customer historical data. Use archive instead.'
+    );
   }
 
   // ─── Contacts ────────────────────────────────────────────────────────────────

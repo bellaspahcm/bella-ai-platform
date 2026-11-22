@@ -919,4 +919,28 @@ describe('Bella Interior CRM — Customer Persistence Design & Simulation (Phase
     expect(verificationReadiness.alterTableLockDuration).toBe('NOT_MEASURED');
     expect(verificationReadiness.productionMigrationAuthorized).toBe('NOT_AUTHORIZED');
   });
+
+  it('16. Hard Delete Prohibited & Archive Lifecycle — Bella Interior preserves customer history via profile_status = inactive', async () => {
+    // 1. Calling delete() directly on repository throws CustomerDeleteForbiddenError
+    await expect(repo.delete(TENANT_A, 'cust-hard-del-1')).rejects.toThrow(
+      'CUSTOMER_HARD_DELETE_PROHIBITED'
+    );
+
+    // 2. Calling archive() sets profile_status to inactive
+    const created = await repo.create(TENANT_A, {
+      code: 'KH-000999',
+      name: 'Archive Test Customer',
+      type: 'individual',
+      tier: 'standard',
+    });
+
+    const archived = await repo.archive(TENANT_A, created.id);
+    expect(archived.profileStatus).toBe('inactive');
+
+    // 3. Customer still exists in storage and retains all data
+    const found = await repo.findById(TENANT_A, created.id);
+    expect(found).not.toBeNull();
+    expect(found?.profileStatus).toBe('inactive');
+    expect(found?.code).toBe('KH-000999');
+  });
 });

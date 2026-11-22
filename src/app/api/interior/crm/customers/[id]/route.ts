@@ -141,46 +141,31 @@ export async function DELETE(
     const { searchParams } = new URL(request.url);
     const hardDelete = searchParams.get('hard') === 'true';
 
-    const customerRepo = new SupabaseCustomerRepository(ctx.supabase);
-
+    // Hard delete is strictly prohibited to preserve historical contracts, projects, and warranties
     if (hardDelete) {
-      try {
-        await customerRepo.delete(ctx.tenantId, customerId.trim());
-        return NextResponse.json(
-          { success: true, data: { deleted: true, id: customerId.trim() } },
-          { status: 200 }
-        );
-      } catch (delErr: unknown) {
-        const delMsg = delErr instanceof Error ? delErr.message : String(delErr);
-        if (delMsg.includes('CUSTOMER_DELETE_FORBIDDEN')) {
-          // Fallback to archive
-          const archived = await customerRepo.archive(ctx.tenantId, customerId.trim());
-          return NextResponse.json(
-            {
-              success: true,
-              data: {
-                deleted: false,
-                archived: true,
-                id: customerId.trim(),
-                reason: 'Hard delete restricted due to project or merge dependencies; archived instead.',
-                customer: archived,
-              },
-            },
-            { status: 200 }
-          );
-        }
-        throw delErr;
-      }
-    } else {
-      const archived = await customerRepo.archive(ctx.tenantId, customerId.trim());
       return NextResponse.json(
         {
-          success: true,
-          data: { archived: true, id: customerId.trim(), customer: archived },
+          success: false,
+          error: 'CUSTOMER_HARD_DELETE_PROHIBITED: Bella Interior preserves all customer historical data. Use archive instead.',
         },
-        { status: 200 }
+        { status: 400 }
       );
     }
+
+    const customerRepo = new SupabaseCustomerRepository(ctx.supabase);
+    const archived = await customerRepo.archive(ctx.tenantId, customerId.trim());
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          archived: true,
+          id: customerId.trim(),
+          customer: archived,
+          profileStatus: 'inactive',
+        },
+      },
+      { status: 200 }
+    );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'INTERIOR_CUSTOMER_DELETE_FAILED';
     const status = message.includes('Customer not found') ? 404 : 500;

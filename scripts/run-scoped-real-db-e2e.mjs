@@ -121,7 +121,7 @@ const SCOPED_REAL_DB_SUITES = [
   {
     name: 'Bella Interior Commercial customer transaction chain',
     patterns: [
-      /^supabase\/migrations\/\d+_interior_.*\.sql$/i,
+      /^supabase\/migrations\/\d+_(bella_)?interior_.*\.sql$/i,
       /^scripts\/(apply-e2e-pr-migrations|check-supabase-migrations)\.cjs$/,
       /^src\/__tests__\/supabase-migration-check\.test\.ts$/,
       /^src\/products\/bella-interior\//,
@@ -419,7 +419,7 @@ const INTERIOR_COMMERCIAL_REAL_DB_TEST =
 function shouldRunInteriorCommercialFirst(files) {
   return files.some((file) => (
     file === INTERIOR_COMMERCIAL_REAL_DB_TEST
-    || /^supabase\/migrations\/\d+_interior_/i.test(file)
+    || /^supabase\/migrations\/\d+_(bella_)?interior_/i.test(file)
   ));
 }
 

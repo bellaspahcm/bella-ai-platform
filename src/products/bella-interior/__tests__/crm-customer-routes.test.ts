@@ -403,6 +403,18 @@ describe('Interior CRM Customer API Routes', () => {
       expect(json.data.archived).toBe(true);
       expect(json.data.customer.profileStatus).toBe('inactive');
     });
+
+    it('rejects hard delete request with 400 and preserves historical data', async () => {
+      const req = new NextRequest('https://bella.example/api/interior/crm/customers/cust-100?hard=true', {
+        method: 'DELETE',
+      });
+      const res = await deleteCustomer(req, { params: Promise.resolve({ id: 'cust-100' }) });
+      const json = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(json.success).toBe(false);
+      expect(json.error).toContain('CUSTOMER_HARD_DELETE_PROHIBITED');
+    });
   });
 
   describe('Contacts API Routes', () => {

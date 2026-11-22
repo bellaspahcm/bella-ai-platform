@@ -214,6 +214,16 @@ export class InteriorCustomerAnalyticsService {
           label: 'VIP',
           badgeClass: 'text-amber-700 bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800',
         };
+      case 'inactive':
+        return {
+          label: 'Đã lưu trữ',
+          badgeClass: 'text-stone-600 bg-stone-100 dark:bg-stone-900/50 border-stone-300 dark:border-stone-700',
+        };
+      case 'merged':
+        return {
+          label: 'Đã gộp',
+          badgeClass: 'text-zinc-600 bg-zinc-100 dark:bg-zinc-900/50 border-zinc-300 dark:border-zinc-700',
+        };
     }
   }
 

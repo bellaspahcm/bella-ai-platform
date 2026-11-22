@@ -181,26 +181,10 @@ export class InMemoryCustomerRepository implements ICustomerRepository {
   }
 
   async delete(tenantId: string, id: string): Promise<boolean> {
-    const store = this.getStore(tenantId);
-    const existing = store.profiles.get(id);
-    if (!existing) {
-      throw new CustomerNotFoundError(id);
-    }
-
-    const hasAliases = store.aliases.has(id) || Array.from(store.aliases.values()).some((a) => a.canonicalCustomerId === id);
-    const hasMerges = store.mergeLogs.some((m) => m.sourceCustomerId === id || m.targetCustomerId === id);
-    if (hasAliases || hasMerges) {
-      throw new CustomerDeleteForbiddenError(id, 'Customer has associated merge audit history. Set profile_status to inactive or merged instead.');
-    }
-
-    store.profiles.delete(id);
-    for (const [cId, contact] of store.contacts.entries()) {
-      if (contact.customerId === id) store.contacts.delete(cId);
-    }
-    for (const [aId, address] of store.addresses.entries()) {
-      if (address.customerId === id) store.addresses.delete(aId);
-    }
-    return true;
+    throw new CustomerDeleteForbiddenError(
+      id,
+      'CUSTOMER_HARD_DELETE_PROHIBITED: Bella Interior preserves all customer historical data. Use archive instead.'
+    );
   }
 
   // ─── Contacts ─────────────────────────────────────────────────────────────────

@@ -36,10 +36,10 @@ END
 $storage_bucket$;
 
 -- Action catalog. Existing customer:read and handover:approve remain intact.
+-- Note: Hard delete prohibited for customers (lifecycle managed via profile_status = 'inactive').
 INSERT INTO public.interior_permissions(permission_id,module_key,action_key,description,sensitive) VALUES
   ('interior:customer:create','customer','CREATE','Tạo hồ sơ khách hàng',false),
   ('interior:customer:update','customer','UPDATE','Cập nhật hồ sơ khách hàng',false),
-  ('interior:customer:delete','customer','DELETE','Xóa hồ sơ khách hàng',true),
   ('interior:customer:merge','customer','MERGE','Gộp hồ sơ khách hàng',true),
   ('interior:customer_contact:read','customer_contact','READ','Xem liên hệ khách hàng',false),
   ('interior:customer_contact:create','customer_contact','CREATE','Tạo liên hệ khách hàng',false),
@@ -67,7 +67,7 @@ ON CONFLICT (permission_id) DO NOTHING;
 INSERT INTO public.interior_role_permissions(role_key,permission_id)
 SELECT 'OWNER',permission_id FROM public.interior_permissions
 WHERE permission_id IN (
-  'interior:customer:create','interior:customer:update','interior:customer:delete','interior:customer:merge',
+  'interior:customer:create','interior:customer:update','interior:customer:merge',
   'interior:customer_contact:read','interior:customer_contact:create','interior:customer_contact:update','interior:customer_contact:delete',
   'interior:customer_address:read','interior:customer_address:create','interior:customer_address:update','interior:customer_address:delete',
   'interior:acceptance_campaign:read','interior:acceptance_campaign:create','interior:acceptance_campaign:update',
@@ -185,16 +185,14 @@ CREATE POLICY interior_customers_update ON public.interior_customers
   USING (public.interior_has_permission('interior:customer:update',tenant_id,NULL,NULL))
   WITH CHECK (tenant_id=public.interior_actor_tenant()
     AND public.interior_has_permission('interior:customer:update',tenant_id,NULL,NULL));
-CREATE POLICY interior_customers_delete ON public.interior_customers
-  AS PERMISSIVE FOR DELETE TO authenticated
-  USING (public.interior_has_permission('interior:customer:delete',tenant_id,NULL,NULL));
+-- Hard delete prohibited: Customer lifecycle is preserved via profile_status = 'inactive' (Archive).
+DROP POLICY IF EXISTS interior_customers_delete ON public.interior_customers;
 REVOKE ALL ON public.interior_customers FROM PUBLIC,anon,authenticated;
 GRANT SELECT ON public.interior_customers TO authenticated;
 GRANT INSERT(id,tenant_id,code,name,legal_name,tax_code,type,tier,primary_phone,primary_email,notes,assigned_staff_id)
   ON public.interior_customers TO authenticated;
 GRANT UPDATE(name,legal_name,tax_code,type,tier,profile_status,primary_phone,primary_email,notes,assigned_staff_id)
   ON public.interior_customers TO authenticated;
-GRANT DELETE ON public.interior_customers TO authenticated;
 GRANT SELECT,INSERT,UPDATE,DELETE ON public.interior_customers TO service_role;
 
 CREATE OR REPLACE FUNCTION public.interior_guard_customer_actor_fields()
