@@ -280,7 +280,8 @@ export default function CustomersPage() {
   const [newCustomerCity, setNewCustomerCity] = useState('TP. Hồ Chí Minh');
   const [newCustomerDistrict, setNewCustomerDistrict] = useState('');
   const [newCustomerSource, setNewCustomerSource] = useState<CustomerSource>('website');
-  const [newCustomerManager, setNewCustomerManager] = useState('KTS. Lê Hoàng Quân');
+  const [newCustomerManager, setNewCustomerManager] = useState('');
+  const [newCustomerStatus, setNewCustomerStatus] = useState<CustomerStatus>('lead');
   const [newCustomerNotes, setNewCustomerNotes] = useState('');
   const [isSubmittingCustomer, setIsSubmittingCustomer] = useState(false);
   const [customerError, setCustomerError] = useState<string | null>(null);
@@ -308,7 +309,8 @@ export default function CustomersPage() {
     setNewCustomerCity('TP. Hồ Chí Minh');
     setNewCustomerDistrict('');
     setNewCustomerSource('website');
-    setNewCustomerManager('KTS. Lê Hoàng Quân');
+    setNewCustomerManager('');
+    setNewCustomerStatus('lead');
     setNewCustomerNotes('');
     setCustomerError(null);
   };
@@ -406,9 +408,12 @@ export default function CustomersPage() {
         city: newCustomerCity.trim() || 'TP. Hồ Chí Minh',
         district: newCustomerDistrict.trim() || undefined,
         contactName: newCustomerName.trim(),
+        source: newCustomerSource,
+        status: newCustomerStatus,
+        assignedStaffId: newCustomerManager.trim() || undefined,
       };
 
-      const res = await fetch('/api/interior/customers', {
+      const res = await fetch('/api/interior/crm/customers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -452,9 +457,9 @@ export default function CustomersPage() {
         debtFormatted: '0 ₫',
         hasDebt: false,
         lastInteractionDate: 'Vừa xong',
-        status: createdCustomer.tier === 'vip' ? 'vip' : 'transacting',
-        statusLabel: createdCustomer.tier === 'vip' ? 'Khách hàng VIP' : 'Đang theo dự án',
-        statusBadgeClass: createdCustomer.tier === 'vip' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        status: createdCustomer.tier === 'vip' ? 'vip' : (newCustomerStatus || 'lead'),
+        statusLabel: createdCustomer.tier === 'vip' ? 'Khách hàng VIP' : (newCustomerStatus === 'negotiating' ? 'Đang đàm phán' : newCustomerStatus === 'transacting' ? 'Đang theo dự án' : newCustomerStatus === 'inactive' ? 'Tạm dừng' : 'Khách hàng tiềm năng'),
+        statusBadgeClass: createdCustomer.tier === 'vip' ? 'bg-purple-50 text-purple-700 border-purple-200' : (newCustomerStatus === 'transacting' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : newCustomerStatus === 'negotiating' ? 'bg-violet-50 text-violet-700 border-violet-200' : newCustomerStatus === 'inactive' ? 'bg-stone-100 text-stone-600 border-stone-300' : 'bg-blue-50 text-blue-700 border-blue-200'),
       };
 
       setData((prev) => ({
@@ -477,6 +482,50 @@ export default function CustomersPage() {
       setCustomerError(msg);
     } finally {
       setIsSubmittingCustomer(false);
+    }
+  };
+
+  const handleUpdateCustomerStatus = async (customerId: string, newStatus: CustomerStatus) => {
+    // Optimistic update
+    setData((prev) => ({
+      ...prev,
+      customers: prev.customers.map((c) =>
+        c.id === customerId
+          ? {
+              ...c,
+              status: newStatus,
+              statusLabel:
+                newStatus === 'lead' ? 'Khách hàng tiềm năng'
+                : newStatus === 'negotiating' ? 'Đang đàm phán'
+                : newStatus === 'transacting' ? 'Đang theo dự án'
+                : newStatus === 'vip' ? 'Khách hàng VIP'
+                : newStatus === 'inactive' ? 'Tạm dừng'
+                : newStatus === 're_engagement' ? 'Chăm sóc lại'
+                : 'Đã gộp',
+              statusBadgeClass:
+                newStatus === 'transacting' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : newStatus === 'vip' ? 'bg-purple-50 text-purple-700 border-purple-200'
+                : newStatus === 'negotiating' ? 'bg-violet-50 text-violet-700 border-violet-200'
+                : newStatus === 'inactive' ? 'bg-stone-100 text-stone-600 border-stone-300'
+                : 'bg-blue-50 text-blue-700 border-blue-200',
+            }
+          : c
+      ),
+    }));
+
+    try {
+      await fetch(`/api/interior/crm/customers/${customerId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        // Map CustomerStatus → profileStatus or notes; tier 'vip' maps naturally
+        body: JSON.stringify({
+          tier: newStatus === 'vip' ? 'vip' : undefined,
+          profileStatus: newStatus === 'inactive' ? 'inactive' : 'active',
+          notes: `[Lead stage updated] ${newStatus}`,
+        }),
+      });
+    } catch {
+      // Non-critical: optimistic update already applied; server sync on next refresh
     }
   };
 
@@ -1172,14 +1221,31 @@ export default function CustomersPage() {
                       {cust.lastInteractionDate}
                     </td>
 
-                    {/* TRẠNG THÁI */}
-                    <td className="py-3.5 px-3 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${cust.statusBadgeClass}`}
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-current inline-block" />
-                        {cust.statusLabel}
-                      </span>
+                    {/* TRẠNG THÁI — interactive lead stage selector */}
+                    <td className="py-3.5 px-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <div className="relative group">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border cursor-pointer select-none ${cust.statusBadgeClass}`}
+                          title="Nhấn để đổi trạng thái lead"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-current inline-block" />
+                          {cust.statusLabel}
+                          <ChevronDown className="w-2.5 h-2.5 ml-0.5 opacity-60" />
+                        </span>
+                        <select
+                          value={cust.status}
+                          onChange={(e) => void handleUpdateCustomerStatus(cust.id, e.target.value as CustomerStatus)}
+                          className="absolute inset-0 w-full opacity-0 cursor-pointer"
+                          aria-label={`Đổi trạng thái của ${cust.name}`}
+                        >
+                          <option value="lead">Khách hàng tiềm năng</option>
+                          <option value="negotiating">Đang đàm phán</option>
+                          <option value="transacting">Đang theo dự án</option>
+                          <option value="re_engagement">Chăm sóc lại</option>
+                          <option value="vip">Khách hàng VIP</option>
+                          <option value="inactive">Tạm dừng</option>
+                        </select>
+                      </div>
                     </td>
 
                     {/* THAO TÁC */}
@@ -1679,10 +1745,29 @@ export default function CustomersPage() {
                       onChange={(e) => setNewCustomerManager(e.target.value)}
                       className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
                     >
+                      <option value="">— Chưa phân công KTS —</option>
                       <option value="KTS. Lê Hoàng Quân">KTS. Lê Hoàng Quân (Chủ trì thiết kế)</option>
                       <option value="Trần Văn Quản Lý">Trần Văn Quản Lý (Giám sát &amp; Quản trị)</option>
                       <option value="KTS. Nguyễn Minh Khoa">KTS. Nguyễn Minh Khoa (Nội thất hiện đại)</option>
                       <option value="KTS. Phạm Thu Hà">KTS. Phạm Thu Hà (Cổ điển &amp; Indochine)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                      Trạng thái lead
+                    </label>
+                    <select
+                      value={newCustomerStatus}
+                      onChange={(e) => setNewCustomerStatus(e.target.value as CustomerStatus)}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                    >
+                      <option value="lead">🔵 Khách hàng tiềm năng (Mới tiếp nhận)</option>
+                      <option value="negotiating">🟣 Khảo sát &amp; Đàm phán phương án</option>
+                      <option value="transacting">🟢 Đã ký hợp đồng &amp; Đang thi công</option>
+                      <option value="re_engagement">🟡 Chăm sóc lại</option>
+                      <option value="vip">⭐ Khách hàng VIP</option>
+                      <option value="inactive">⚪ Tạm dừng / Chưa có nhu cầu</option>
                     </select>
                   </div>
                 </div>
