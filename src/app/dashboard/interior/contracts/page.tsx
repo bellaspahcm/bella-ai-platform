@@ -823,20 +823,20 @@ export default function InteriorContractsPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 uppercase text-[10px] tracking-wider font-semibold border-b border-slate-200 dark:border-slate-800">
+              <table className="w-full text-left text-xs min-w-[950px]">
+                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 uppercase text-[10px] tracking-wider font-semibold border-b border-slate-200 dark:border-slate-800 whitespace-nowrap">
                   <tr>
-                    <th className="py-3 px-4">Đợt thanh toán</th>
-                    <th className="py-3 px-3 text-center">Tỷ lệ</th>
-                    <th className="py-3 px-4 text-right">Giá trị</th>
-                    <th className="py-3 px-4 text-right">Đã thu</th>
-                    <th className="py-3 px-4 text-right">Còn thiếu</th>
-                    <th className="py-3 px-4 text-center">Hạn thanh toán</th>
-                    <th className="py-3 px-4 text-center">Trạng thái</th>
-                    <th className="py-3 px-4 text-center">Thao tác</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Đợt thanh toán</th>
+                    <th className="py-3 px-3 text-center whitespace-nowrap">Tỷ lệ</th>
+                    <th className="py-3 px-4 text-right whitespace-nowrap">Giá trị</th>
+                    <th className="py-3 px-4 text-right whitespace-nowrap">Đã thu</th>
+                    <th className="py-3 px-4 text-right whitespace-nowrap">Còn thiếu</th>
+                    <th className="py-3 px-4 text-center whitespace-nowrap">Hạn thanh toán</th>
+                    <th className="py-3 px-4 text-center whitespace-nowrap">Trạng thái</th>
+                    <th className="py-3 px-4 text-center whitespace-nowrap">Thao tác</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium whitespace-nowrap">
                   {milestones.map((m) => {
                     let badgeClass = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
                     if (m.statusBadgeVariant === 'success') {

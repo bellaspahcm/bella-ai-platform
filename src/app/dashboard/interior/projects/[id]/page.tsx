@@ -317,33 +317,33 @@ export default function ProjectDetailPage({
                 Danh sách phòng &amp; Phân khu chức năng
               </h2>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 border-b border-slate-100 dark:border-slate-800">
+                <table className="w-full text-left text-xs min-w-[650px]">
+                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 border-b border-slate-100 dark:border-slate-800 whitespace-nowrap">
                     <tr>
-                      <th className="py-2.5 px-3">Mã phòng</th>
-                      <th className="py-2.5 px-3">Tên phòng</th>
-                      <th className="py-2.5 px-3">Tầng</th>
-                      <th className="py-2.5 px-3 text-right">Diện tích</th>
-                      <th className="py-2.5 px-3 text-right">Thao tác</th>
+                      <th className="py-2.5 px-3 whitespace-nowrap">Mã phòng</th>
+                      <th className="py-2.5 px-3 whitespace-nowrap">Tên phòng</th>
+                      <th className="py-2.5 px-3 whitespace-nowrap">Tầng</th>
+                      <th className="py-2.5 px-3 text-right whitespace-nowrap">Diện tích</th>
+                      <th className="py-2.5 px-3 text-right whitespace-nowrap">Thao tác</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 whitespace-nowrap">
                     {project.rooms.map((room) => (
                       <tr key={room.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
-                        <td className="py-3 px-3 font-mono font-medium text-slate-700 dark:text-slate-300">
+                        <td className="py-3 px-3 font-mono font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
                           {room.code}
                         </td>
-                        <td className="py-3 px-3 font-semibold text-slate-900 dark:text-white">
+                        <td className="py-3 px-3 font-semibold text-slate-900 dark:text-white whitespace-nowrap">
                           {room.name}
                         </td>
-                        <td className="py-3 px-3 text-slate-500">Tầng {room.floor}</td>
-                        <td className="py-3 px-3 text-right font-medium text-slate-900 dark:text-white">
+                        <td className="py-3 px-3 text-slate-500 whitespace-nowrap">Tầng {room.floor}</td>
+                        <td className="py-3 px-3 text-right font-medium text-slate-900 dark:text-white whitespace-nowrap">
                           {room.areaSquareMeters} m²
                         </td>
-                        <td className="py-3 px-3 text-right">
+                        <td className="py-3 px-3 text-right whitespace-nowrap">
                           <Link
                             href={`/dashboard/interior/design?projectId=${project.id}&room=${room.id}`}
-                            className="inline-flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 font-medium"
+                            className="inline-flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 font-medium whitespace-nowrap"
                           >
                             Xem 3D <ExternalLink className="w-3 h-3" />
                           </Link>

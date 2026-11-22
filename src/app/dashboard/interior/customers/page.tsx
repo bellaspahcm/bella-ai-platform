@@ -952,23 +952,23 @@ export default function CustomersPage() {
         <div className="lg:col-span-9 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden shadow-2xs">
           {viewMode === 'list' ? (
             <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/70 dark:bg-slate-800/60 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/70 dark:border-slate-800">
+            <table className="w-full text-left text-xs min-w-[1150px]">
+              <thead className="bg-slate-50/70 dark:bg-slate-800/60 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/70 dark:border-slate-800 whitespace-nowrap">
                 <tr>
-                  <th className="py-3 px-4">KHÁCH HÀNG</th>
-                  <th className="py-3 px-3">PHÂN LOẠI</th>
-                  <th className="py-3 px-3">NGUỒN KHÁCH HÀNG</th>
-                  <th className="py-3 px-3">NGƯỜI PHỤ TRÁCH</th>
-                  <th className="py-3 px-2 text-center">CƠ HỘI</th>
-                  <th className="py-3 px-2 text-center">SỐ DỰ ÁN</th>
-                  <th className="py-3 px-3">TỔNG GIÁ TRỊ</th>
-                  <th className="py-3 px-3">CÔNG NỢ</th>
-                  <th className="py-3 px-3">LẦN TƯƠNG TÁC</th>
-                  <th className="py-3 px-3">TRẠNG THÁI</th>
-                  <th className="py-3 px-2 text-center">THAO TÁC</th>
+                  <th className="py-3 px-4 whitespace-nowrap">KHÁCH HÀNG</th>
+                  <th className="py-3 px-3 whitespace-nowrap">PHÂN LOẠI</th>
+                  <th className="py-3 px-3 whitespace-nowrap">NGUỒN KHÁCH HÀNG</th>
+                  <th className="py-3 px-3 whitespace-nowrap">NGƯỜI PHỤ TRÁCH</th>
+                  <th className="py-3 px-2 text-center whitespace-nowrap">CƠ HỘI</th>
+                  <th className="py-3 px-2 text-center whitespace-nowrap">SỐ DỰ ÁN</th>
+                  <th className="py-3 px-3 whitespace-nowrap">TỔNG GIÁ TRỊ</th>
+                  <th className="py-3 px-3 whitespace-nowrap">CÔNG NỢ</th>
+                  <th className="py-3 px-3 whitespace-nowrap">LẦN TƯƠNG TÁC</th>
+                  <th className="py-3 px-3 whitespace-nowrap">TRẠNG THÁI</th>
+                  <th className="py-3 px-2 text-center whitespace-nowrap">THAO TÁC</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap">
                 {filteredCustomers.map((cust) => (
                   <tr
                     key={cust.id}
@@ -976,7 +976,7 @@ export default function CustomersPage() {
                     className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
                   >
                     {/* KHÁCH HÀNG */}
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="relative w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 bg-slate-100 flex items-center justify-center">
                           {cust.avatar ? (
@@ -994,10 +994,10 @@ export default function CustomersPage() {
                           )}
                         </div>
                         <div>
-                          <div className="font-bold text-slate-900 dark:text-white leading-tight">
+                          <div className="font-bold text-slate-900 dark:text-white leading-tight whitespace-nowrap">
                             {cust.name}
                           </div>
-                          <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                          <div className="text-[10px] text-slate-400 font-mono mt-0.5 whitespace-nowrap">
                             {cust.code}
                           </div>
                         </div>
@@ -1005,18 +1005,18 @@ export default function CustomersPage() {
                     </td>
 
                     {/* PHÂN LOẠI */}
-                    <td className="py-3.5 px-3">
+                    <td className="py-3.5 px-3 whitespace-nowrap">
                       <span
-                        className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${cust.typeBadgeClass}`}
+                        className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap ${cust.typeBadgeClass}`}
                       >
                         {cust.typeLabel}
                       </span>
                     </td>
 
                     {/* NGUỒN KHÁCH HÀNG */}
-                    <td className="py-3.5 px-3">
+                    <td className="py-3.5 px-3 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border ${cust.sourceClass}`}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border whitespace-nowrap ${cust.sourceClass}`}
                       >
                         {cust.source === 'referral' && <Users className="w-3 h-3" />}
                         {cust.source === 'marketing' && <PhoneCall className="w-3 h-3" />}

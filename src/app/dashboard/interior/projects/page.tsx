@@ -795,29 +795,29 @@ export default function ProjectsPage() {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-2xs">
           {viewMode === 'list' ? (
             <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="bg-slate-50/70 dark:bg-slate-800/50 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
+            <table className="w-full text-left text-xs sm:text-sm min-w-[1200px]">
+              <thead className="bg-slate-50/70 dark:bg-slate-800/50 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800 whitespace-nowrap">
                 <tr>
-                  <th className="py-3 px-4">Dự án</th>
-                  <th className="py-3 px-4">Khách hàng</th>
-                  <th className="py-3 px-4">Phụ trách</th>
-                  <th className="py-3 px-4">Giai đoạn</th>
-                  <th className="py-3 px-4">Tiến độ</th>
-                  <th className="py-3 px-4">Hạn hoàn thành</th>
-                  <th className="py-3 px-4">Giá trị HĐ</th>
-                  <th className="py-3 px-4">Biên lợi nhuận</th>
-                  <th className="py-3 px-4">Công việc tiếp theo</th>
-                  <th className="py-3 px-4 text-center">Thao tác</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Dự án</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Khách hàng</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Phụ trách</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Giai đoạn</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Tiến độ</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Hạn hoàn thành</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Giá trị HĐ</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Biên lợi nhuận</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Công việc tiếp theo</th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap">Thao tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap">
                 {filteredProjects.map((project: PortfolioProjectItem) => (
                   <tr
                     key={project.id}
                     className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
                   >
                     {/* Cột 1: Dự án */}
-                    <td className="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
+                    <td className="py-3.5 px-4 font-semibold text-slate-900 dark:text-white whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <img
                           src={project.imageUrl}
@@ -827,11 +827,11 @@ export default function ProjectsPage() {
                         <div>
                           <Link
                             href={`/dashboard/interior/projects/${project.id}`}
-                            className="font-bold text-slate-900 dark:text-white hover:text-amber-600 dark:hover:text-amber-400 leading-tight transition-colors"
+                            className="font-bold text-slate-900 dark:text-white hover:text-amber-600 dark:hover:text-amber-400 leading-tight transition-colors whitespace-nowrap"
                           >
                             {project.name}
                           </Link>
-                          <p className="text-[11px] text-slate-400 font-mono mt-0.5">
+                          <p className="text-[11px] text-slate-400 font-mono mt-0.5 whitespace-nowrap">
                             {project.code}
                           </p>
                         </div>
@@ -839,38 +839,38 @@ export default function ProjectsPage() {
                     </td>
 
                     {/* Cột 2: Khách hàng */}
-                    <td className="py-3.5 px-4">
-                      <p className="font-medium text-slate-800 dark:text-slate-200">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <p className="font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap">
                         {project.customerName}
                       </p>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-[11px] text-slate-400 whitespace-nowrap">
                         {project.customerSegment}
                       </p>
                     </td>
 
                     {/* Cột 3: Phụ trách */}
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <img
                           src={project.leadArchitectAvatar}
                           alt={project.leadArchitect}
                           className="w-6 h-6 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700"
                         />
-                        <span className="font-medium text-slate-700 dark:text-slate-300 text-xs">
+                        <span className="font-medium text-slate-700 dark:text-slate-300 text-xs whitespace-nowrap">
                           {project.leadArchitect}
                         </span>
                       </div>
                     </td>
 
                     {/* Cột 4: Giai đoạn */}
-                    <td className="py-3.5 px-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${project.stageBadgeClass}`}>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border whitespace-nowrap ${project.stageBadgeClass}`}>
                         ● {project.stageLabel}
                       </span>
                     </td>
 
                     {/* Cột 5: Tiến độ */}
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="space-y-1 w-24">
                         <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                           {project.progressPercent}%
@@ -881,44 +881,44 @@ export default function ProjectsPage() {
                             style={{ width: `${project.progressPercent}%` }}
                           />
                         </div>
-                        <p className={`text-[11px] ${project.scheduleStatusClass}`}>
+                        <p className={`text-[11px] whitespace-nowrap ${project.scheduleStatusClass}`}>
                           {project.scheduleStatusLabel}
                         </p>
                       </div>
                     </td>
 
                     {/* Cột 6: Hạn hoàn thành */}
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="space-y-0.5">
-                        <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+                        <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap">
                           <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{project.deadlineDate}</span>
+                          <span className="whitespace-nowrap">{project.deadlineDate}</span>
                         </div>
-                        <p className={`text-[11px] ${project.daysRemainingClass}`}>
+                        <p className={`text-[11px] whitespace-nowrap ${project.daysRemainingClass}`}>
                           {project.daysRemainingLabel}
                         </p>
                       </div>
                     </td>
 
                     {/* Cột 7: Giá trị HĐ */}
-                    <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
+                    <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white whitespace-nowrap">
                       {project.contractValueFormatted}
                     </td>
 
                     {/* Cột 8: Biên lợi nhuận */}
-                    <td className="py-3.5 px-4 font-bold text-emerald-600 dark:text-emerald-400">
+                    <td className="py-3.5 px-4 font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                       {project.grossMarginFormatted}
                     </td>
 
                     {/* Cột 9: Công việc tiếp theo */}
-                    <td className="py-3.5 px-4">
-                      <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <span className="text-xs font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
                         {project.nextAction}
                       </span>
                     </td>
 
                     {/* Cột 10: Thao tác */}
-                    <td className="py-3.5 px-4 text-center">
+                    <td className="py-3.5 px-4 text-center whitespace-nowrap">
                       <div className="inline-flex items-center gap-1">
                         <button
                           type="button"

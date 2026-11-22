@@ -870,28 +870,28 @@ export default function InteriorDashboardPage() {
 
         {/* Data Table */}
         <div className="overflow-x-auto -mx-6 px-6">
-          <table className="w-full text-left text-xs sm:text-sm">
-            <thead className="bg-slate-50/80 dark:bg-slate-800/50 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-y border-slate-100 dark:border-slate-800">
+          <table className="w-full text-left text-xs sm:text-sm min-w-[1100px]">
+            <thead className="bg-slate-50/80 dark:bg-slate-800/50 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-y border-slate-100 dark:border-slate-800 whitespace-nowrap">
               <tr>
-                <th className="py-3 px-4">Dự án</th>
-                <th className="py-3 px-4">Khách hàng</th>
-                <th className="py-3 px-4">Phụ trách</th>
-                <th className="py-3 px-4">Giai đoạn</th>
-                <th className="py-3 px-4">Tiến độ</th>
-                <th className="py-3 px-4">Bản vẽ</th>
-                <th className="py-3 px-4">Giá trị HĐ</th>
-                <th className="py-3 px-4">Biên lợi nhuận</th>
-                <th className="py-3 px-4">Thao tác</th>
+                <th className="py-3 px-4 whitespace-nowrap">Dự án</th>
+                <th className="py-3 px-4 whitespace-nowrap">Khách hàng</th>
+                <th className="py-3 px-4 whitespace-nowrap">Phụ trách</th>
+                <th className="py-3 px-4 whitespace-nowrap">Giai đoạn</th>
+                <th className="py-3 px-4 whitespace-nowrap">Tiến độ</th>
+                <th className="py-3 px-4 whitespace-nowrap">Bản vẽ</th>
+                <th className="py-3 px-4 whitespace-nowrap">Giá trị HĐ</th>
+                <th className="py-3 px-4 whitespace-nowrap">Biên lợi nhuận</th>
+                <th className="py-3 px-4 whitespace-nowrap">Thao tác</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap">
               {filteredProjects.map((project) => (
                 <tr
                   key={project.id}
                   className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
                   onClick={() => setSelectedWorkspaceProject(project)}
                 >
-                  <td className="py-3.5 px-4">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     <div className="flex items-center gap-3">
                       <img
                         src={project.imageUrl}
@@ -899,35 +899,35 @@ export default function InteriorDashboardPage() {
                         className="w-11 h-11 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700 flex-shrink-0"
                       />
                       <div>
-                        <p className="font-bold text-slate-900 dark:text-white group-hover:text-amber-600 transition-colors">
+                        <p className="font-bold text-slate-900 dark:text-white group-hover:text-amber-600 transition-colors whitespace-nowrap">
                           {project.name}
                         </p>
-                        <p className="text-[11px] text-slate-400 font-mono mt-0.5">
+                        <p className="text-[11px] text-slate-400 font-mono mt-0.5 whitespace-nowrap">
                           {project.code}
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-3.5 px-4">
-                    <p className="font-semibold text-slate-900 dark:text-white">{project.customerName}</p>
-                    <p className="text-[11px] text-slate-400">{project.projectType}</p>
+                  <td className="py-3.5 px-4 whitespace-nowrap">
+                    <p className="font-semibold text-slate-900 dark:text-white whitespace-nowrap">{project.customerName}</p>
+                    <p className="text-[11px] text-slate-400 whitespace-nowrap">{project.projectType}</p>
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[10px] flex items-center justify-center">
                         {project.architectAvatar}
                       </div>
-                      <span className="font-medium text-slate-700 dark:text-slate-300 text-xs">
+                      <span className="font-medium text-slate-700 dark:text-slate-300 text-xs whitespace-nowrap">
                         {project.leadArchitect}
                       </span>
                     </div>
                   </td>
-                  <td className="py-3.5 px-4">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${project.statusColor}`}>
+                  <td className="py-3.5 px-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${project.statusColor}`}>
                       ● {project.statusLabel}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     <div className="space-y-1 w-24">
                       <div className="flex justify-between text-[11px] font-bold text-slate-700 dark:text-slate-300">
                         <span>{project.progressPercent}%</span>
@@ -940,19 +940,19 @@ export default function InteriorDashboardPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="py-3.5 px-4">
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/40">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/40 whitespace-nowrap">
                       <ShieldCheck className="w-3.5 h-3.5" />
                       Rev #{project.approvedRevisionNumber} Lock
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
+                  <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white whitespace-nowrap">
                     {formatCurrency(project.contractValue)}
                   </td>
-                  <td className="py-3.5 px-4 font-bold text-emerald-600 dark:text-emerald-400">
+                  <td className="py-3.5 px-4 font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                     {project.grossMarginPercent}%
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     <button
                       type="button"
                       onClick={(e) => {

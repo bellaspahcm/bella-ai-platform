@@ -534,40 +534,40 @@ export default function InteriorMaterialsPage() {
         /* ─── View 2: Spec Sheet Table View ─── */
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse min-w-[900px]">
-              <thead>
-                <tr className="bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 font-bold text-slate-600 dark:text-slate-300">
-                  <th className="py-3 px-4">Mã Spec</th>
-                  <th className="py-3 px-4">Tên Vật Liệu</th>
-                  <th className="py-3 px-4">Thương Hiệu / Xuất Xứ</th>
-                  <th className="py-3 px-4">Quy Cách Kỹ Thuật</th>
-                  <th className="py-3 px-4">Khu Vực Ứng Dụng</th>
-                  <th className="py-3 px-4">Trạng Thái Spec</th>
-                  <th className="py-3 px-4 text-center">Thao Tác</th>
+            <table className="w-full text-left text-xs border-collapse min-w-[1000px]">
+              <thead className="whitespace-nowrap">
+                <tr className="bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 font-bold text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                  <th className="py-3 px-4 whitespace-nowrap">Mã Spec</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Tên Vật Liệu</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Thương Hiệu / Xuất Xứ</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Quy Cách Kỹ Thuật</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Khu Vực Ứng Dụng</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Trạng Thái Spec</th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap">Thao Tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap">
                 {filteredMaterials.map((mat) => (
                   <tr key={mat.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
+                    <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white whitespace-nowrap">
                       {mat.code}
                     </td>
-                    <td className="py-3.5 px-4">
-                      <div className="font-bold text-slate-900 dark:text-white">{mat.name}</div>
-                      <div className="text-[11px] text-slate-400">{mat.categoryLabel}</div>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <div className="font-bold text-slate-900 dark:text-white whitespace-nowrap">{mat.name}</div>
+                      <div className="text-[11px] text-slate-400 whitespace-nowrap">{mat.categoryLabel}</div>
                     </td>
-                    <td className="py-3.5 px-4">
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">{mat.brand}</span>
-                      <div className="text-[11px] text-slate-400">{mat.origin}</div>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <span className="font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">{mat.brand}</span>
+                      <div className="text-[11px] text-slate-400 whitespace-nowrap">{mat.origin}</div>
                     </td>
-                    <td className="py-3.5 px-4 max-w-xs text-[11px] text-slate-600 dark:text-slate-400">
+                    <td className="py-3.5 px-4 text-[11px] text-slate-600 dark:text-slate-400 whitespace-nowrap">
                       {mat.specDetails}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-medium">
+                    <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-medium whitespace-nowrap">
                       {mat.roomArea}
                     </td>
-                    <td className="py-3.5 px-4">
-                      <span className={`px-2 py-0.5 rounded text-[11px] font-bold border ${mat.statusBadgeClass}`}>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <span className={`px-2 py-0.5 rounded text-[11px] font-bold border whitespace-nowrap ${mat.statusBadgeClass}`}>
                         {mat.statusLabel}
                       </span>
                     </td>

@@ -657,15 +657,15 @@ export default function ProductionDashboardPage() {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
+          <table className="w-full text-xs min-w-[950px]">
+            <thead className="whitespace-nowrap">
               <tr className="border-b border-slate-100 bg-slate-50">
                 {ordersTable.headers.map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-slate-500 font-medium whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="whitespace-nowrap">
               {ordersTable.rows
                 .filter((row) => activeTab === 'all' || row.status === activeTab || (activeTab === 'delayed' && row.status === 'delayed'))
                 .map((row, idx) => (
@@ -691,7 +691,7 @@ export default function ProductionDashboardPage() {
                         {row.statusLabel}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <button className="p-1 hover:bg-slate-100 rounded-lg transition-colors">
                         <IconMoreHorizontal className="w-4 h-4 text-slate-400" />
                       </button>

@@ -842,21 +842,21 @@ export default function SchedulePage() {
           {/* ─── TAB 1: WEEK MATRIX VIEW ─── */}
           {activeTab === 'week' && (
             <div className="overflow-x-auto flex-1 flex flex-col">
-              <table className="w-full border-collapse text-left text-xs min-w-[700px] h-full">
-                <thead>
-                  <tr className="border-b border-slate-200/70 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400">
-                    <th className="py-2.5 px-3 text-center font-bold text-[11px] w-28 border-r border-slate-100 dark:border-slate-800">
+              <table className="w-full border-collapse text-left text-xs min-w-[950px] h-full">
+                <thead className="whitespace-nowrap">
+                  <tr className="border-b border-slate-200/70 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                    <th className="py-2.5 px-3 text-center font-bold text-[11px] w-28 border-r border-slate-100 dark:border-slate-800 whitespace-nowrap">
                       Thời gian
                     </th>
                     {data.days.map((day) => (
                       <th
                         key={day.fullDate}
-                        className="py-2 px-2 text-center border-r border-slate-100 dark:border-slate-800 last:border-r-0"
+                        className="py-2 px-2 text-center border-r border-slate-100 dark:border-slate-800 last:border-r-0 whitespace-nowrap min-w-[120px]"
                       >
-                        <div className="font-bold text-slate-900 dark:text-white text-xs">
+                        <div className="font-bold text-slate-900 dark:text-white text-xs whitespace-nowrap">
                           {day.dayOfWeek}
                         </div>
-                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                        <div className="text-[10px] text-slate-400 font-mono mt-0.5 whitespace-nowrap">
                           {day.dateFormatted}
                         </div>
                       </th>
@@ -867,7 +867,7 @@ export default function SchedulePage() {
                   {data.timeSlots.map((slot) => (
                     <tr key={slot.slotId} className="h-[68px]">
                       {/* Time Column */}
-                      <td className="py-1.5 px-3 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-50/40 dark:bg-slate-850/30 border-r border-slate-100 dark:border-slate-800 align-middle">
+                      <td className="py-1.5 px-3 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-50/40 dark:bg-slate-850/30 border-r border-slate-100 dark:border-slate-800 align-middle whitespace-nowrap">
                         {slot.timeRange}
                       </td>
 
