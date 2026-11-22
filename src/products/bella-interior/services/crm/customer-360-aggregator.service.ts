@@ -728,23 +728,33 @@ export class Customer360AggregatorService {
       let statusLabel = 'Tiềm năng';
       let statusBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
 
-      if (customerProjects.length > 0) {
-        const hasActive = customerProjects.some((p) => p.status !== 'completed' && p.status !== 'warranty');
-        if (hasActive) {
-          status = 'transacting';
-          statusLabel = 'Đang theo dự án';
-          statusBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-        } else {
-          status = 'completed';
-          statusLabel = 'Đã hoàn thành';
-          statusBadgeClass = 'bg-slate-50 text-slate-700 border-slate-200';
+      if (profile.profileStatus === 'inactive') {
+        status = 'inactive';
+        statusLabel = 'Đã lưu trữ';
+        statusBadgeClass = 'bg-stone-100 text-stone-600 border-stone-300 dark:bg-stone-900/50 dark:text-stone-400 dark:border-stone-700';
+      } else if (profile.profileStatus === 'merged') {
+        status = 'merged';
+        statusLabel = 'Đã gộp';
+        statusBadgeClass = 'bg-zinc-100 text-zinc-600 border-zinc-300 dark:bg-zinc-900/50 dark:text-zinc-400 dark:border-zinc-700';
+      } else {
+        if (customerProjects.length > 0) {
+          const hasActive = customerProjects.some((p) => p.status !== 'completed' && p.status !== 'warranty');
+          if (hasActive) {
+            status = 'transacting';
+            statusLabel = 'Đang theo dự án';
+            statusBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+          } else {
+            status = 'completed';
+            statusLabel = 'Đã hoàn thành';
+            statusBadgeClass = 'bg-slate-50 text-slate-700 border-slate-200';
+          }
         }
-      }
 
-      if (profile.tier === 'vip') {
-        status = 'vip';
-        statusLabel = 'Khách hàng VIP';
-        statusBadgeClass = 'bg-purple-50 text-purple-700 border-purple-200';
+        if (profile.tier === 'vip') {
+          status = 'vip';
+          statusLabel = 'Khách hàng VIP';
+          statusBadgeClass = 'bg-purple-50 text-purple-700 border-purple-200';
+        }
       }
 
       // Type Badge
@@ -779,6 +789,7 @@ export class Customer360AggregatorService {
         status,
         statusLabel,
         statusBadgeClass,
+        profileStatus: profile.profileStatus,
         primaryPhone: profile.primaryPhone,
         primaryEmail: profile.primaryEmail,
       });

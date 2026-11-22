@@ -29,7 +29,7 @@ describe('Bella Interior CRM and O4 authorization hardening contract', () => {
     for (const permission of [
       'interior:customer:create',
       'interior:customer:update',
-      'interior:customer:delete',
+      'interior:customer:merge',
       'interior:customer_contact:read',
       'interior:customer_contact:create',
       'interior:customer_contact:update',
@@ -41,6 +41,10 @@ describe('Bella Interior CRM and O4 authorization hardening contract', () => {
     ]) {
       expect(migrationSql).toContain(`'${permission}'`);
     }
+
+    // Hard delete is strictly prohibited for customer records
+    expect(migrationSql).not.toContain("'interior:customer:delete'");
+    expect(migrationSql).toContain('DROP POLICY IF EXISTS interior_customers_delete');
   });
 
   it('keeps tenant guards and checks action permissions on each CRM table operation', () => {

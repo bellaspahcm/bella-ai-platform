@@ -10,7 +10,7 @@
 
 export type CustomerType = 'enterprise' | 'individual' | 'organization';
 export type CustomerSource = 'referral' | 'marketing' | 'partner' | 'returning' | 'website';
-export type CustomerStatus = 'transacting' | 'lead' | 'negotiating' | 're_engagement' | 'vip';
+export type CustomerStatus = 'transacting' | 'lead' | 'negotiating' | 're_engagement' | 'vip' | 'inactive' | 'merged';
 export type CRMAlertSeverity = 'critical' | 'warning' | 'info' | 'success';
 
 export interface CustomerKPIItem {
@@ -78,6 +78,7 @@ export interface CustomerItem {
   readonly status: CustomerStatus;
   readonly statusLabel: string;
   readonly statusBadgeClass: string;
+  readonly profileStatus?: 'active' | 'inactive' | 'merged';
 }
 
 export interface CustomerAlertItem {

@@ -31,7 +31,7 @@ describe('Interior route action and scope mapping', () => {
     expect(requiredInteriorPermission(new Request(`${base}/123e4567-e89b-42d3-a456-426614174000`, { method: 'DELETE' }), null))
       .toBe(INTERIOR_PERMISSIONS.customerUpdate);
     expect(requiredInteriorPermission(new Request(`${base}/123e4567-e89b-42d3-a456-426614174000?hard=true`, { method: 'DELETE' }), null))
-      .toBe(INTERIOR_PERMISSIONS.customerDelete);
+      .toBe(INTERIOR_PERMISSIONS.customerUpdate);
     expect(requiredInteriorPermission(new Request(`${base}/123e4567-e89b-42d3-a456-426614174000/contacts`, { method: 'POST' }), null))
       .toBe(INTERIOR_PERMISSIONS.customerContactCreate);
     expect(requiredInteriorPermission(new Request(`${base}/123e4567-e89b-42d3-a456-426614174000/contacts/123e4567-e89b-42d3-a456-426614174001`, { method: 'DELETE' }), null))

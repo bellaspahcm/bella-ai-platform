@@ -246,6 +246,7 @@ export interface CustomerOverviewItem {
   readonly status: string;
   readonly statusLabel: string;
   readonly statusBadgeClass: string;
+  readonly profileStatus?: 'active' | 'inactive' | 'merged';
   readonly primaryPhone?: string;
   readonly primaryEmail?: string;
 }

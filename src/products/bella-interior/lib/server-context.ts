@@ -34,7 +34,7 @@ export const INTERIOR_PERMISSIONS = {
   customerRead: 'interior:customer:read',
   customerCreate: 'interior:customer:create',
   customerUpdate: 'interior:customer:update',
-  customerDelete: 'interior:customer:delete',
+  customerArchive: 'interior:customer:update',
   customerMerge: 'interior:customer:merge',
   customerContactRead: 'interior:customer_contact:read',
   customerContactCreate: 'interior:customer_contact:create',
@@ -167,12 +167,7 @@ export function requiredInteriorPermission(request: Request, body: JsonRecord | 
   }
   if (/^\/api\/interior\/crm\/customers\/[^/]+$/.test(pathname)) {
     if (method === 'GET') return INTERIOR_PERMISSIONS.customerRead;
-    if (method === 'PATCH') return INTERIOR_PERMISSIONS.customerUpdate;
-    if (method === 'DELETE') {
-      return url.searchParams.get('hard') === 'true'
-        ? INTERIOR_PERMISSIONS.customerDelete
-        : INTERIOR_PERMISSIONS.customerUpdate;
-    }
+    if (method === 'PATCH' || method === 'DELETE') return INTERIOR_PERMISSIONS.customerUpdate;
   }
   if (/^\/api\/interior\/crm\/customers\/[^/]+\/contacts$/.test(pathname)) {
     if (method === 'GET') return INTERIOR_PERMISSIONS.customerContactRead;
