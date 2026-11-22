@@ -37,6 +37,8 @@ import {
   CustomerMergeRelationshipConflictError,
 } from '../../domain/crm/customer-errors';
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // Raw Database Row Interfaces
 interface CustomerRow {
   id: string;
@@ -286,6 +288,10 @@ export class SupabaseCustomerRepository implements ICustomerRepository {
       code = codeData as string;
     }
 
+    const safeStaffId = input.assignedStaffId && UUID_PATTERN.test(input.assignedStaffId.trim())
+      ? input.assignedStaffId.trim()
+      : null;
+
     const insertPayload = {
       tenant_id: tenantId,
       code,
@@ -297,7 +303,7 @@ export class SupabaseCustomerRepository implements ICustomerRepository {
       primary_phone: input.primaryPhone ?? null,
       primary_email: input.primaryEmail ?? null,
       notes: input.notes ?? null,
-      assigned_staff_id: input.assignedStaffId ?? null,
+      assigned_staff_id: safeStaffId,
     };
 
     const { data, error } = await this.client
@@ -339,7 +345,11 @@ export class SupabaseCustomerRepository implements ICustomerRepository {
     if (input.primaryPhone !== undefined) updatePayload.primary_phone = input.primaryPhone;
     if (input.primaryEmail !== undefined) updatePayload.primary_email = input.primaryEmail;
     if (input.notes !== undefined) updatePayload.notes = input.notes;
-    if (input.assignedStaffId !== undefined) updatePayload.assigned_staff_id = input.assignedStaffId;
+    if (input.assignedStaffId !== undefined) {
+      updatePayload.assigned_staff_id = input.assignedStaffId && UUID_PATTERN.test(input.assignedStaffId.trim())
+        ? input.assignedStaffId.trim()
+        : null;
+    }
 
     if (Object.keys(updatePayload).length === 0) return existing;
 

@@ -63,6 +63,22 @@ export async function GET(
   }
 }
 
+function stripLeadStageTag(text: string): string {
+  return text
+    .split('|')
+    .map((s) => s.trim())
+    .filter((s) => !s.toLowerCase().startsWith('[lead stage:'))
+    .join(' | ');
+}
+
+function stripStaffTag(text: string): string {
+  return text
+    .split('|')
+    .map((s) => s.trim())
+    .filter((s) => !s.toLowerCase().startsWith('phụ trách:') && !s.toLowerCase().startsWith('kts:'))
+    .join(' | ');
+}
+
 export async function PATCH(
   request: NextRequest,
   segmentData: RouteParams
@@ -97,6 +113,40 @@ export async function PATCH(
     }
 
     const customerRepo = new SupabaseCustomerRepository(ctx.supabase);
+    let finalNotes = body.notes;
+
+    if (body.status && typeof body.status === 'string') {
+      const stageTag = `[Lead stage: ${body.status.trim()}]`;
+      if (typeof finalNotes === 'string') {
+        const cleaned = stripLeadStageTag(finalNotes);
+        finalNotes = cleaned ? `${cleaned} | ${stageTag}` : stageTag;
+      } else {
+        const existing = await customerRepo.findById(ctx.tenantId, customerId.trim());
+        const existingNotes = existing?.notes || '';
+        const cleaned = stripLeadStageTag(existingNotes);
+        finalNotes = cleaned ? `${cleaned} | ${stageTag}` : stageTag;
+      }
+    }
+
+    let assignedStaffId = body.assignedStaffId;
+    if (typeof assignedStaffId === 'string') {
+      const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const staffVal = assignedStaffId.trim();
+      if (!UUID_PATTERN.test(staffVal)) {
+        const staffTag = `Phụ trách: ${staffVal}`;
+        if (typeof finalNotes === 'string') {
+          const cleaned = stripStaffTag(finalNotes);
+          finalNotes = cleaned ? `${cleaned} | ${staffTag}` : staffTag;
+        } else {
+          const existing = await customerRepo.findById(ctx.tenantId, customerId.trim());
+          const existingNotes = existing?.notes || '';
+          const cleaned = stripStaffTag(existingNotes);
+          finalNotes = cleaned ? `${cleaned} | ${staffTag}` : staffTag;
+        }
+        assignedStaffId = undefined;
+      }
+    }
+
     const updated = await customerRepo.update(ctx.tenantId, customerId.trim(), {
       name: body.name,
       legalName: body.legalName,
@@ -106,8 +156,8 @@ export async function PATCH(
       profileStatus: body.profileStatus,
       primaryPhone: body.primaryPhone,
       primaryEmail: body.primaryEmail,
-      notes: body.notes,
-      assignedStaffId: body.assignedStaffId,
+      notes: finalNotes,
+      assignedStaffId,
     });
 
     return NextResponse.json(

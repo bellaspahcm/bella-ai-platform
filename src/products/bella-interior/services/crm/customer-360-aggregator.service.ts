@@ -602,7 +602,12 @@ export class Customer360AggregatorService {
     }
 
     // 2. Fetch Projects to harmonize legacy customers
-    const allProjects = await this.interiorRepo.listProjects(tenantId);
+    let allProjects: any[] = [];
+    try {
+      allProjects = (await this.interiorRepo.listProjects(tenantId)) as any[];
+    } catch {
+      allProjects = [];
+    }
 
     // Map projects by customer ID (supporting legacy customerId and canonical customerProfileId)
     const projectsByCustomerId = new Map<string, typeof allProjects>();
@@ -703,18 +708,26 @@ export class Customer360AggregatorService {
       const seenPaymentIds = new Set<string>();
 
       for (const proj of customerProjects) {
-        const contracts = await this.interiorRepo.listContractsByProject(tenantId, proj.id);
-        for (const c of contracts) {
-          if (['signed', 'active', 'completed'].includes(c.status)) {
-            customerTotalValue += (c.currentContractValue || c.baselineContractValue || 0);
-          }
-          const payments = await this.interiorRepo.listPaymentTransactions(tenantId, c.id);
-          for (const p of payments) {
-            if (!seenPaymentIds.has(p.id)) {
-              seenPaymentIds.add(p.id);
-              customerPaidAmount += p.amount;
+        try {
+          const contracts = await this.interiorRepo.listContractsByProject(tenantId, proj.id);
+          for (const c of contracts) {
+            if (['signed', 'active', 'completed'].includes(c.status)) {
+              customerTotalValue += (c.currentContractValue || c.baselineContractValue || 0);
+            }
+            try {
+              const payments = await this.interiorRepo.listPaymentTransactions(tenantId, c.id);
+              for (const p of payments) {
+                if (!seenPaymentIds.has(p.id)) {
+                  seenPaymentIds.add(p.id);
+                  customerPaidAmount += p.amount;
+                }
+              }
+            } catch {
+              // Ignore payment lookup errors gracefully
             }
           }
+        } catch {
+          // Ignore contract lookup errors gracefully
         }
       }
 
@@ -723,37 +736,48 @@ export class Customer360AggregatorService {
 
       if (query.hasDebt !== undefined && hasDebt !== query.hasDebt) continue;
 
+      // Extract explicit lead stage from notes if stored
+      let explicitLeadStage: string | null = null;
+      if (profile.notes) {
+        const m = profile.notes.match(/\[Lead stage:\s*([a-z_]+)\]/i) || profile.notes.match(/\[Lead stage updated\]\s*([a-z_]+)/i);
+        if (m) explicitLeadStage = m[1].toLowerCase();
+      }
+
       // Status derivation for UI overview
-      let status = 'lead';
+      let status = explicitLeadStage || 'lead';
       let statusLabel = 'Tiềm năng';
       let statusBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
 
       if (profile.profileStatus === 'inactive') {
         status = 'inactive';
-        statusLabel = 'Đã lưu trữ';
+        statusLabel = 'Tạm dừng';
         statusBadgeClass = 'bg-stone-100 text-stone-600 border-stone-300 dark:bg-stone-900/50 dark:text-stone-400 dark:border-stone-700';
       } else if (profile.profileStatus === 'merged') {
         status = 'merged';
         statusLabel = 'Đã gộp';
         statusBadgeClass = 'bg-zinc-100 text-zinc-600 border-zinc-300 dark:bg-zinc-900/50 dark:text-zinc-400 dark:border-zinc-700';
-      } else {
-        if (customerProjects.length > 0) {
-          const hasActive = customerProjects.some((p) => p.status !== 'completed' && p.status !== 'warranty');
-          if (hasActive) {
-            status = 'transacting';
-            statusLabel = 'Đang theo dự án';
-            statusBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-          } else {
-            status = 'completed';
-            statusLabel = 'Đã hoàn thành';
-            statusBadgeClass = 'bg-slate-50 text-slate-700 border-slate-200';
-          }
-        }
-
-        if (profile.tier === 'vip') {
-          status = 'vip';
-          statusLabel = 'Khách hàng VIP';
-          statusBadgeClass = 'bg-purple-50 text-purple-700 border-purple-200';
+      } else if (profile.tier === 'vip' || status === 'vip') {
+        status = 'vip';
+        statusLabel = 'Khách hàng VIP';
+        statusBadgeClass = 'bg-purple-50 text-purple-700 border-purple-200';
+      } else if (status === 'negotiating') {
+        status = 'negotiating';
+        statusLabel = 'Đang đàm phán';
+        statusBadgeClass = 'bg-violet-50 text-violet-700 border-violet-200';
+      } else if (status === 're_engagement') {
+        status = 're_engagement';
+        statusLabel = 'Chăm sóc lại';
+        statusBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+      } else if (status === 'transacting' || customerProjects.length > 0) {
+        const hasActive = customerProjects.some((p) => p.status !== 'completed' && p.status !== 'warranty');
+        if (hasActive || status === 'transacting') {
+          status = 'transacting';
+          statusLabel = 'Đang theo dự án';
+          statusBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        } else {
+          status = 'completed';
+          statusLabel = 'Đã hoàn thành';
+          statusBadgeClass = 'bg-slate-50 text-slate-700 border-slate-200';
         }
       }
 
@@ -763,6 +787,26 @@ export class Customer360AggregatorService {
         profile.type === 'enterprise'
           ? 'bg-amber-50 text-amber-700 border-amber-200'
           : 'bg-blue-50 text-blue-700 border-blue-200';
+
+      // Resolve manager name / assigned team (Sale & KTS) from notes if stored
+      let managerName = '— Chưa phân công —';
+      if (profile.notes) {
+        const saleMatch = profile.notes.match(/Sale[:\s]+([^|\]]+)/i);
+        const ktsMatch = profile.notes.match(/KTS[:\s]+([^|\]]+)/i);
+        const genericMatch = profile.notes.match(/(?:Phụ trách|Quản lý)[:\s]+([^|\]]+)/i);
+
+        if (saleMatch && ktsMatch) {
+          managerName = `${saleMatch[1].trim()} (Sale) • ${ktsMatch[1].trim()}`;
+        } else if (saleMatch) {
+          managerName = `${saleMatch[1].trim()} (Sale)`;
+        } else if (ktsMatch) {
+          managerName = ktsMatch[1].trim();
+        } else if (genericMatch) {
+          managerName = genericMatch[1].trim();
+        }
+      } else if (profile.code?.startsWith('KH-0000')) {
+        managerName = '— Chưa phân công —';
+      }
 
       overviewItems.push({
         id: profile.id,
@@ -776,7 +820,7 @@ export class Customer360AggregatorService {
         source: 'referral',
         sourceLabel: 'Giới thiệu',
         sourceClass: 'bg-amber-50 text-amber-700 border-amber-200',
-        managerName: 'Trần Văn Quản Lý',
+        managerName,
         managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg',
         opportunityCount: Math.max(1, customerProjects.length),
         projectCount: customerProjects.length,
@@ -792,11 +836,13 @@ export class Customer360AggregatorService {
         profileStatus: profile.profileStatus,
         primaryPhone: profile.primaryPhone,
         primaryEmail: profile.primaryEmail,
+        notes: profile.notes || undefined,
       });
     }
 
-    // Sort overview items deterministically by code
-    overviewItems.sort((a, b) => a.code.localeCompare(b.code));
+    // Sort overview items deterministically by code (default: asc, or desc when requested)
+    const sortOrder = query.sortOrder ?? 'asc';
+    overviewItems.sort((a, b) => (sortOrder === 'desc' ? b.code.localeCompare(a.code) : a.code.localeCompare(b.code)));
 
     // 4. Search Filter
     let filtered = overviewItems;

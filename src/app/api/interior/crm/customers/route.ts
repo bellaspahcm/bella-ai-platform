@@ -29,6 +29,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const tier = (searchParams.get('tier') as CustomerTier) || undefined;
     const profileStatus = (searchParams.get('profileStatus') as CustomerProfileStatus) || undefined;
     const hasDebt = searchParams.has('hasDebt') ? searchParams.get('hasDebt') === 'true' : undefined;
+    const sortOrder = (searchParams.get('sortOrder') as 'asc' | 'desc') || undefined;
 
     const customerRepo = new SupabaseCustomerRepository(ctx.supabase);
     const interiorRepo = new SupabaseInteriorRepository(ctx.supabase);
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       tier,
       profileStatus,
       hasDebt,
+      sortOrder,
     });
 
     return NextResponse.json(
@@ -70,6 +72,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const rawStaff = typeof body.assignedStaffId === 'string' ? body.assignedStaffId.trim() : undefined;
+    const assignedStaffId = rawStaff && UUID_PATTERN.test(rawStaff) ? rawStaff : undefined;
+    let notes = body.notes?.trim() || undefined;
+    if (rawStaff && !assignedStaffId) {
+      notes = notes ? `${notes} | Phụ trách: ${rawStaff}` : `Phụ trách: ${rawStaff}`;
+    }
+    if (body.status && typeof body.status === 'string') {
+      const stageTag = `[Lead stage: ${body.status.trim()}]`;
+      if (!notes || !notes.includes(stageTag)) {
+        notes = notes ? `${notes} | ${stageTag}` : stageTag;
+      }
+    }
+
     const customerRepo = new SupabaseCustomerRepository(ctx.supabase);
     const customer = await customerRepo.create(ctx.tenantId, {
       code: body.code,
@@ -80,8 +96,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       tier: body.tier || 'standard',
       primaryPhone: (body.primaryPhone || body.phone)?.trim() || undefined,
       primaryEmail: (body.primaryEmail || body.email)?.trim() || undefined,
-      notes: body.notes?.trim() || undefined,
-      assignedStaffId: body.assignedStaffId || undefined,
+      notes,
+      assignedStaffId,
     });
 
     // Persist default site address if provided

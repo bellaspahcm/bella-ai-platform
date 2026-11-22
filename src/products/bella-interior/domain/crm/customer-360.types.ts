@@ -219,6 +219,7 @@ export interface CustomerOverviewQuery {
   readonly tier?: CustomerTier;
   readonly profileStatus?: CustomerProfileStatus;
   readonly hasDebt?: boolean;
+  readonly sortOrder?: 'asc' | 'desc';
 }
 
 export interface CustomerOverviewItem {
@@ -249,6 +250,7 @@ export interface CustomerOverviewItem {
   readonly profileStatus?: 'active' | 'inactive' | 'merged';
   readonly primaryPhone?: string;
   readonly primaryEmail?: string;
+  readonly notes?: string;
 }
 
 export interface CustomerKPIOverview {
