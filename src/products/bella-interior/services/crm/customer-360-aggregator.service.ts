@@ -789,7 +789,7 @@ export class Customer360AggregatorService {
           : 'bg-blue-50 text-blue-700 border-blue-200';
 
       // Resolve manager name / assigned team (Sale & KTS) from notes if stored
-      let managerName = 'Trần Văn Quản Lý';
+      let managerName = '— Chưa phân công —';
       if (profile.notes) {
         const saleMatch = profile.notes.match(/Sale[:\s]+([^|\]]+)/i);
         const ktsMatch = profile.notes.match(/KTS[:\s]+([^|\]]+)/i);
