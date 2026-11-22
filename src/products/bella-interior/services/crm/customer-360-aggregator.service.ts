@@ -119,7 +119,12 @@ export class Customer360AggregatorService {
     }
 
     // 3. Fallback: If not found in CRM repo, check if projects reference this customer ID/code
-    const allProjects = await this.interiorRepo.listProjects(tenantId);
+    let allProjects: any[] = [];
+    try {
+      allProjects = (await this.interiorRepo.listProjects(tenantId)) as any[];
+    } catch {
+      allProjects = [];
+    }
     if (!profile) {
       const matchingProjects = allProjects.filter(
         (p) => p.customerId === trimmedInput || p.customerPhone === trimmedInput || p.customerProfileId === trimmedInput
@@ -273,138 +278,154 @@ export class Customer360AggregatorService {
       }
 
       // Commercial: Contracts & Payments
-      const contracts = await this.interiorRepo.listContractsByProject(tenantId, project.id);
-      for (const c of contracts) {
-        const addenda = await this.interiorRepo.listContractAddenda(tenantId, c.id);
-        const contractValue = c.currentContractValue || c.baselineContractValue || 0;
-        const payments = await this.interiorRepo.listPaymentTransactions(tenantId, c.id);
-        const contractPaidAmount = payments.reduce((sum, p) => sum + p.amount, 0);
-        const contractRemainingDebt = Math.max(0, contractValue - contractPaidAmount);
+      try {
+        const contracts = await this.interiorRepo.listContractsByProject(tenantId, project.id);
+        for (const c of contracts) {
+          const addenda = await this.interiorRepo.listContractAddenda(tenantId, c.id);
+          const contractValue = c.currentContractValue || c.baselineContractValue || 0;
+          const payments = await this.interiorRepo.listPaymentTransactions(tenantId, c.id);
+          const contractPaidAmount = payments.reduce((sum, p) => sum + p.amount, 0);
+          const contractRemainingDebt = Math.max(0, contractValue - contractPaidAmount);
 
-        contractSummaries.push({
-          id: c.id,
-          projectId: project.id,
-          projectName: project.name,
-          contractNumber: c.contractNumber,
-          title: c.title,
-          status: c.status,
-          contractValue,
-          paidAmount: contractPaidAmount,
-          remainingDebt: contractRemainingDebt,
-          signedDate: c.signedDate,
-          addendaCount: addenda.length,
-        });
-
-        if (c.signedDate) {
-          timelineEvents.push({
-            id: `evt-contract-${c.id}`,
-            eventType: 'contract_signed',
-            timestamp: toSafeIsoString(c.signedDate),
-            title: `Ký hợp đồng: ${c.contractNumber}`,
-            description: `${c.title} — Giá trị: ${contractValue.toLocaleString('vi-VN')} ₫`,
+          contractSummaries.push({
+            id: c.id,
+            projectId: project.id,
+            projectName: project.name,
+            contractNumber: c.contractNumber,
+            title: c.title,
             status: c.status,
-            projectId: project.id,
-            projectName: project.name,
-            referenceId: c.contractNumber,
-          });
-        }
-
-        for (const p of payments) {
-          paymentSummaries.push({
-            id: p.id,
-            contractId: c.id,
-            milestoneId: p.milestoneId,
-            referenceCode: p.referenceCode,
-            amount: p.amount,
-            paymentMethod: p.paymentMethod,
-            transactionDate: p.transactionDate,
-            proofUrl: p.proofUrl,
+            contractValue,
+            paidAmount: contractPaidAmount,
+            remainingDebt: contractRemainingDebt,
+            signedDate: c.signedDate,
+            addendaCount: addenda.length,
           });
 
-          const isRefund = p.amount < 0;
-          timelineEvents.push({
-            id: `evt-payment-${p.id}`,
-            eventType: isRefund ? 'payment_refunded' : 'payment_received',
-            timestamp: toSafeIsoString(p.transactionDate),
-            title: isRefund
-              ? `Hoàn tiền / Điều chỉnh giảm: ${Math.abs(p.amount).toLocaleString('vi-VN')} ₫`
-              : `Thanh toán: ${p.amount.toLocaleString('vi-VN')} ₫`,
-            description: `Mã GD: ${p.referenceCode} (${p.paymentMethod}) cho hợp đồng ${c.contractNumber}`,
-            status: 'completed',
-            projectId: project.id,
-            projectName: project.name,
-            referenceId: p.id,
-          });
+          if (c.signedDate) {
+            timelineEvents.push({
+              id: `evt-contract-${c.id}`,
+              eventType: 'contract_signed',
+              timestamp: toSafeIsoString(c.signedDate),
+              title: `Ký hợp đồng: ${c.contractNumber}`,
+              description: `${c.title} — Giá trị: ${contractValue.toLocaleString('vi-VN')} ₫`,
+              status: c.status,
+              projectId: project.id,
+              projectName: project.name,
+              referenceId: c.contractNumber,
+            });
+          }
+
+          for (const p of payments) {
+            paymentSummaries.push({
+              id: p.id,
+              contractId: c.id,
+              milestoneId: p.milestoneId,
+              referenceCode: p.referenceCode,
+              amount: p.amount,
+              paymentMethod: p.paymentMethod,
+              transactionDate: p.transactionDate,
+              proofUrl: p.proofUrl,
+            });
+
+            const isRefund = p.amount < 0;
+            timelineEvents.push({
+              id: `evt-payment-${p.id}`,
+              eventType: isRefund ? 'payment_refunded' : 'payment_received',
+              timestamp: toSafeIsoString(p.transactionDate),
+              title: isRefund
+                ? `Hoàn tiền / Điều chỉnh giảm: ${Math.abs(p.amount).toLocaleString('vi-VN')} ₫`
+                : `Thanh toán: ${p.amount.toLocaleString('vi-VN')} ₫`,
+              description: `Mã GD: ${p.referenceCode} (${p.paymentMethod}) cho hợp đồng ${c.contractNumber}`,
+              status: 'completed',
+              projectId: project.id,
+              projectName: project.name,
+              referenceId: p.id,
+            });
+          }
         }
+      } catch {
+        // Contract query is optional / RBAC scoped
       }
 
       // Execution: Production Orders
-      const productionOrders = await this.interiorRepo.listProductionOrders(tenantId, project.id);
-      for (const po of productionOrders) {
-        productionOrderSummaries.push({
-          id: po.id,
-          projectId: project.id,
-          projectName: project.name,
-          orderNumber: po.orderNumber,
-          status: po.status,
-          scheduledCompletionDate: po.scheduledCompletionDate,
-        });
+      try {
+        const productionOrders = await this.interiorRepo.listProductionOrders(tenantId, project.id);
+        for (const po of productionOrders) {
+          productionOrderSummaries.push({
+            id: po.id,
+            projectId: project.id,
+            projectName: project.name,
+            orderNumber: po.orderNumber,
+            status: po.status,
+            scheduledCompletionDate: po.scheduledCompletionDate,
+          });
+        }
+      } catch {
+        // Production order query is optional / RBAC scoped
       }
 
       // Execution: Site Diaries
-      const siteDiaries = await this.interiorRepo.listSiteDiaries(tenantId, project.id);
-      for (const d of siteDiaries) {
-        const summary = (d.activitiesCompleted && d.activitiesCompleted.length > 0)
-          ? d.activitiesCompleted.join('; ')
-          : `Nhật ký ngày ${d.date}`;
+      try {
+        const siteDiaries = await this.interiorRepo.listSiteDiaries(tenantId, project.id);
+        for (const d of siteDiaries) {
+          const summary = (d.activitiesCompleted && d.activitiesCompleted.length > 0)
+            ? d.activitiesCompleted.join('; ')
+            : `Nhật ký ngày ${d.date}`;
 
-        siteDiarySummaries.push({
-          id: d.id,
-          projectId: project.id,
-          projectName: project.name,
-          date: d.date,
-          weather: d.weather,
-          progressSummary: summary,
-          photoCount: d.photoUrls ? d.photoUrls.length : 0,
-        });
+          siteDiarySummaries.push({
+            id: d.id,
+            projectId: project.id,
+            projectName: project.name,
+            date: d.date,
+            weather: d.weather,
+            progressSummary: summary,
+            photoCount: d.photoUrls ? d.photoUrls.length : 0,
+          });
 
-        timelineEvents.push({
-          id: `evt-diary-${d.id}`,
-          eventType: 'site_diary_logged',
-          timestamp: toSafeIsoString(d.date),
-          title: `Nhật ký công trường: ${project.name}`,
-          description: summary,
-          projectId: project.id,
-          projectName: project.name,
-          referenceId: d.id,
-        });
+          timelineEvents.push({
+            id: `evt-diary-${d.id}`,
+            eventType: 'site_diary_logged',
+            timestamp: toSafeIsoString(d.date),
+            title: `Nhật ký công trường: ${project.name}`,
+            description: summary,
+            projectId: project.id,
+            projectName: project.name,
+            referenceId: d.id,
+          });
+        }
+      } catch {
+        // Site diary query is optional / RBAC scoped
       }
 
       // Execution: QC Punch Lists
-      const punchLists = await this.interiorRepo.listPunchListItems(tenantId, project.id);
-      for (const pl of punchLists) {
-        punchListSummaries.push({
-          id: pl.id,
-          projectId: project.id,
-          projectName: project.name,
-          itemName: pl.itemName,
-          roomZoneName: pl.roomZoneName,
-          severity: pl.severity,
-          status: pl.status,
-          verifiedAt: pl.verifiedAt,
-        });
+      try {
+        const punchLists = await this.interiorRepo.listPunchListItems(tenantId, project.id);
+        for (const pl of punchLists) {
+          punchListSummaries.push({
+            id: pl.id,
+            projectId: project.id,
+            projectName: project.name,
+            itemName: pl.itemName,
+            roomZoneName: pl.roomZoneName,
+            severity: pl.severity,
+            status: pl.status,
+            verifiedAt: pl.verifiedAt,
+          });
 
-        timelineEvents.push({
-          id: `evt-punch-${pl.id}`,
-          eventType: 'qc_punch_list',
-          timestamp: toSafeIsoString(pl.verifiedAt || pl.deadline),
-          title: `Hạng mục QC (${pl.itemName}) — ${pl.status}`,
-          description: `Khu vực: ${pl.roomZoneName} | Mức độ: ${pl.severity} | ${pl.description}`,
-          status: pl.status,
-          projectId: project.id,
-          projectName: project.name,
-          referenceId: pl.itemName,
-        });
+          timelineEvents.push({
+            id: `evt-punch-${pl.id}`,
+            eventType: 'qc_punch_list',
+            timestamp: toSafeIsoString(pl.verifiedAt || pl.deadline),
+            title: `Hạng mục QC (${pl.itemName}) — ${pl.status}`,
+            description: `Khu vực: ${pl.roomZoneName} | Mức độ: ${pl.severity} | ${pl.description}`,
+            status: pl.status,
+            projectId: project.id,
+            projectName: project.name,
+            referenceId: pl.itemName,
+          });
+        }
+      } catch {
+        // QC punch list query is optional / RBAC scoped
       }
 
       // Handover: Dossier & Acceptance
@@ -482,35 +503,39 @@ export class Customer360AggregatorService {
         }
       }
 
-      const warrantyTickets = await this.interiorRepo.listWarrantyTickets(tenantId, project.id);
-      for (const wt of warrantyTickets) {
-        const matchedCert = wt.certificateId ? certificateMap.get(wt.certificateId) : undefined;
-        warrantySummaries.push({
-          id: wt.id,
-          projectId: project.id,
-          projectName: project.name,
-          ticketNumber: wt.ticketNumber,
-          defectCategory: wt.defectCategory,
-          status: wt.status,
-          reportedDate: wt.reportedDate,
-          resolvedDate: wt.resolvedDate,
-          certificateId: wt.certificateId,
-          certificateNumber: matchedCert?.certificateNumber,
-          priority: 'standard',
-          description: wt.customerReport,
-        });
+      try {
+        const warrantyTickets = await this.interiorRepo.listWarrantyTickets(tenantId, project.id);
+        for (const wt of warrantyTickets) {
+          const matchedCert = wt.certificateId ? certificateMap.get(wt.certificateId) : undefined;
+          warrantySummaries.push({
+            id: wt.id,
+            projectId: project.id,
+            projectName: project.name,
+            ticketNumber: wt.ticketNumber,
+            defectCategory: wt.defectCategory,
+            status: wt.status,
+            reportedDate: wt.reportedDate,
+            resolvedDate: wt.resolvedDate,
+            certificateId: wt.certificateId,
+            certificateNumber: matchedCert?.certificateNumber,
+            priority: 'standard',
+            description: wt.customerReport,
+          });
 
-        timelineEvents.push({
-          id: `evt-warranty-${wt.id}`,
-          eventType: wt.status === 'resolved' || wt.status === 'closed' ? 'warranty_ticket_resolved' : 'warranty_ticket_opened',
-          timestamp: toSafeIsoString(wt.resolvedDate || wt.reportedDate),
-          title: `Phiếu bảo hành: ${wt.ticketNumber}`,
-          description: `Vấn đề: ${wt.defectCategory} | Trạng thái: ${wt.status} | Nội dung: ${wt.customerReport}`,
-          status: wt.status,
-          projectId: project.id,
-          projectName: project.name,
-          referenceId: wt.ticketNumber,
-        });
+          timelineEvents.push({
+            id: `evt-warranty-${wt.id}`,
+            eventType: wt.status === 'resolved' || wt.status === 'closed' ? 'warranty_ticket_resolved' : 'warranty_ticket_opened',
+            timestamp: toSafeIsoString(wt.resolvedDate || wt.reportedDate),
+            title: `Phiếu bảo hành: ${wt.ticketNumber}`,
+            description: `Vấn đề: ${wt.defectCategory} | Trạng thái: ${wt.status} | Nội dung: ${wt.customerReport}`,
+            status: wt.status,
+            projectId: project.id,
+            projectName: project.name,
+            referenceId: wt.ticketNumber,
+          });
+        }
+      } catch {
+        // Warranty tickets query is optional / RBAC scoped
       }
     }
 

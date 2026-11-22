@@ -9,7 +9,7 @@ export default function UsersRedirectPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/dashboard/settings?product=bella_interior&tab=staff');
+    router.replace('/dashboard/interior/roles');
   }, [router]);
 
   return (
@@ -19,17 +19,17 @@ export default function UsersRedirectPage() {
       </div>
       <div>
         <h2 className="text-base font-bold text-slate-900 dark:text-white">
-          Đang chuyển hướng đến Quản lý Nhân sự & Đội ngũ Dự án...
+          Đang chuyển hướng đến Quản lý Nhân sự & Phân quyền...
         </h2>
         <p className="text-xs text-slate-500 mt-1">
-          Hệ thống tài khoản và phân quyền người dùng đã được hợp nhất vào Cài đặt hệ thống Bella ERP.
+          Hệ thống tài khoản và phân quyền người dùng Bella Interior được quản lý tập trung tại trang Phân quyền.
         </p>
       </div>
       <Link
-        href="/dashboard/settings?product=bella_interior&tab=staff"
+        href="/dashboard/interior/roles"
         className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-xs transition-colors"
       >
-        Mở Cài đặt Nhân sự <ArrowRight className="w-3.5 h-3.5" />
+        Mở Phân quyền Nhân sự <ArrowRight className="w-3.5 h-3.5" />
       </Link>
     </div>
   );
