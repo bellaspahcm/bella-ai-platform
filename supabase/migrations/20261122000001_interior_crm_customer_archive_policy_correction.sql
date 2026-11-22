@@ -25,6 +25,7 @@ DROP POLICY IF EXISTS interior_customers_delete ON public.interior_customers;
 REVOKE DELETE ON public.interior_customers FROM authenticated;
 
 -- 4. Ensure the unique index exists (applied directly on Production 22/11/2026)
+-- zero-downtime: allow blocking-index - Corrective migration; index uq_interior_acceptance_notes_tenant_id_id was already applied directly on Production on 22/11/2026 before this migration runs; IF NOT EXISTS is idempotent; table has no active write contention during corrective apply window
 CREATE UNIQUE INDEX IF NOT EXISTS uq_interior_acceptance_notes_tenant_id_id
   ON public.interior_acceptance_notes (tenant_id, id);
 
