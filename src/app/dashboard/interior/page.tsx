@@ -933,14 +933,9 @@ export default function InteriorDashboardPage() {
                     <p className="text-[11px] text-slate-400 whitespace-nowrap">{project.projectType}</p>
                   </td>
                   <td className="py-3.5 px-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[10px] flex items-center justify-center">
-                        {project.architectAvatar}
-                      </div>
-                      <span className="font-medium text-slate-700 dark:text-slate-300 text-xs whitespace-nowrap">
-                        {project.leadArchitect}
-                      </span>
-                    </div>
+                    <span className="font-medium text-slate-700 dark:text-slate-300 text-xs whitespace-nowrap">
+                      {project.leadArchitect}
+                    </span>
                   </td>
                   <td className="py-3.5 px-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${project.statusColor}`}>

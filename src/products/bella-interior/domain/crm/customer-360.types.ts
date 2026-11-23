@@ -232,7 +232,7 @@ export interface CustomerOverviewItem {
   readonly id: string;
   readonly code: string;
   readonly name: string;
-  readonly avatar: string;
+  readonly avatar?: string;
   readonly type: CustomerType;
   readonly typeLabel: string;
   readonly typeBadgeClass: string;
@@ -241,7 +241,7 @@ export interface CustomerOverviewItem {
   readonly sourceLabel: string;
   readonly sourceClass: string;
   readonly managerName: string;
-  readonly managerAvatar: string;
+  readonly managerAvatar?: string;
   readonly opportunityCount: number;
   readonly projectCount: number;
   readonly totalValue: number;

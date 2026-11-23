@@ -909,16 +909,9 @@ export default function ProjectsPage() {
 
                     {/* Cột 3: Phụ trách */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={project.leadArchitectAvatar}
-                          alt={project.leadArchitect}
-                          className="w-6 h-6 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700"
-                        />
-                        <span className="font-medium text-slate-700 dark:text-slate-300 text-xs whitespace-nowrap">
-                          {project.leadArchitect}
-                        </span>
-                      </div>
+                      <span className="font-medium text-slate-700 dark:text-slate-300 text-xs whitespace-nowrap">
+                        {project.leadArchitect}
+                      </span>
                     </td>
 
                     {/* Cột 4: Giai đoạn */}
