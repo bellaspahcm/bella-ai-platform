@@ -243,14 +243,8 @@ export default function CustomersPage() {
         const mappedCustomers: CustomerItem[] = incomingCustomers.map(
           (c: any, idx: number) => {
             const fallback = prev.customers.find((df) => df.id === c.id || df.name === c.name);
-            const avatarFallback =
-              c.avatar ||
-              fallback?.avatar ||
-              'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg';
-            const managerAvatarFallback =
-              c.managerAvatar ||
-              fallback?.managerAvatar ||
-              'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg';
+            const avatarFallback = c.avatar || fallback?.avatar || undefined;
+            const managerAvatarFallback = c.managerAvatar || fallback?.managerAvatar || undefined;
             const sourceMap: Record<string, { label: string; cls: string }> = {
               referral:  { label: 'Khách hàng cũ giới thiệu', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
               returning: { label: 'Khách hàng quay lại',      cls: 'bg-green-50 text-green-700 border-green-200' },
@@ -435,7 +429,7 @@ export default function CustomersPage() {
         id: createdCustomer.id,
         code: createdCustomer.code || `KH-${Date.now().toString().slice(-4)}`,
         name: createdCustomer.name,
-        avatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg',
+        avatar: '',
         type: createdCustomer.type || 'individual',
         typeLabel: createdCustomer.type === 'enterprise' ? 'Doanh nghiệp' : 'Cá nhân',
         typeBadgeClass: createdCustomer.type === 'enterprise' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200',
@@ -452,7 +446,7 @@ export default function CustomersPage() {
             : 'Website / KTS',
         sourceClass: 'bg-blue-50 text-blue-700 border-blue-200',
         managerName: displayManager,
-        managerAvatar: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-male-architect-1.jpg',
+        managerAvatar: '',
         opportunityCount: 1,
         projectCount: 0,
         totalValue: 0,
@@ -1357,29 +1351,12 @@ export default function CustomersPage() {
 
                     {/* KHÁCH HÀNG */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div className="relative w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 bg-slate-100 flex items-center justify-center">
-                          {cust.avatar ? (
-                            <Image
-                              src={cust.avatar}
-                              alt={cust.name}
-                              fill
-                              sizes="36px"
-                              className="object-cover"
-                            />
-                          ) : (
-                            <span className="font-bold text-slate-500 text-xs">
-                              {cust.name ? cust.name.charAt(0) : 'K'}
-                            </span>
-                          )}
+                      <div>
+                        <div className="font-bold text-slate-900 dark:text-white leading-tight whitespace-nowrap">
+                          {cust.name}
                         </div>
-                        <div>
-                          <div className="font-bold text-slate-900 dark:text-white leading-tight whitespace-nowrap">
-                            {cust.name}
-                          </div>
-                          <div className="text-[10px] text-slate-400 font-mono mt-0.5 whitespace-nowrap">
-                            {cust.code}
-                          </div>
+                        <div className="text-[10px] text-slate-400 font-mono mt-0.5 whitespace-nowrap">
+                          {cust.code}
                         </div>
                       </div>
                     </td>
@@ -1415,27 +1392,10 @@ export default function CustomersPage() {
                     </td>
 
                     {/* NGƯỜI PHỤ TRÁCH */}
-                    <td className="py-3.5 px-3">
-                      <div className="flex items-center gap-2">
-                        <div className="relative w-6 h-6 rounded-full overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 bg-slate-100 flex items-center justify-center">
-                          {cust.managerAvatar ? (
-                            <Image
-                              src={cust.managerAvatar}
-                              alt={cust.managerName}
-                              fill
-                              sizes="24px"
-                              className="object-cover"
-                            />
-                          ) : (
-                            <span className="font-bold text-slate-500 text-[9px]">
-                              {cust.managerName ? cust.managerName.charAt(0) : 'Q'}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[11px] font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                          {cust.managerName}
-                        </span>
-                      </div>
+                    <td className="py-3.5 px-3 whitespace-nowrap">
+                      <span className="text-[11px] font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                        {cust.managerName}
+                      </span>
                     </td>
 
                     {/* CƠ HỘI */}
@@ -1559,20 +1519,9 @@ export default function CustomersPage() {
                 className="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-3"
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="relative w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 bg-slate-100 flex items-center justify-center">
-                      {cust.avatar ? (
-                        <Image src={cust.avatar} alt={cust.name} fill sizes="36px" className="object-cover" />
-                      ) : (
-                        <span className="font-bold text-slate-500 text-xs">
-                          {cust.name ? cust.name.charAt(0) : 'K'}
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <div className="font-bold text-sm text-slate-900 dark:text-white">{cust.name}</div>
-                      <div className="text-[10px] font-mono text-slate-400">{cust.code}</div>
-                    </div>
+                  <div>
+                    <div className="font-bold text-sm text-slate-900 dark:text-white">{cust.name}</div>
+                    <div className="text-[10px] font-mono text-slate-400">{cust.code}</div>
                   </div>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${cust.statusBadgeClass}`}>
                     {cust.statusLabel}

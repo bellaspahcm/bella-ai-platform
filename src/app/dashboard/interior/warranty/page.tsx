@@ -762,17 +762,7 @@ export default function WarrantyDashboardPage() {
             {data.recentActivities.map((act) => (
               <div key={act.id} className="flex items-start justify-between space-x-3 text-xs">
                 <div className="flex items-start space-x-2.5">
-                  {act.avatarUrl ? (
-                    <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 relative mt-0.5 border border-slate-200">
-                      <Image
-                        src={act.avatarUrl}
-                        alt="User"
-                        width={24}
-                        height={24}
-                        className="object-cover"
-                      />
-                    </div>
-                  ) : act.iconName === 'check-circle' ? (
+                  {act.iconName === 'check-circle' ? (
                     <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <CheckCircle2 className="w-3 h-3" />
                     </div>
