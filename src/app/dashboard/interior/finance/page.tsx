@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import InteriorUserBar from '@/components/interior/InteriorUserBar';
 import {
   Calendar,
   RefreshCw,
@@ -152,31 +153,8 @@ export default function InteriorProjectFinancePage() {
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-emerald-600' : ''}`} />
           </button>
 
-          {/* Notification Bell */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowDebtModal(true)}
-              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-colors cursor-pointer"
-              aria-label="Thông báo tài chính"
-            >
-              <Bell className="w-4 h-4" />
-              {data.user.notificationsCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center ring-2 ring-white dark:ring-slate-900">
-                  {data.user.notificationsCount}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* User Profile Avatar */}
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800 cursor-pointer">
-            <img
-              src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/finance-director-male.jpg'}
-              alt={data.user.name}
-              className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-500/20 dark:ring-emerald-500/40"
-            />
-          </div>
+          {/* Top user bar & notifications */}
+          <InteriorUserBar />
         </div>
       </div>
 
