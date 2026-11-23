@@ -788,7 +788,7 @@ export class Customer360AggregatorService {
         ['quotation', 'estimating'].includes(p.status)
       );
       const hasSurveyProjects = customerProjects.some((p) =>
-        ['lead', 'survey', 'design_concept', 'design_3d'].includes(p.status)
+        ['survey', 'design_concept', 'design_3d'].includes(p.status)
       );
       const allProjectsCompleted =
         customerProjects.length > 0 &&
