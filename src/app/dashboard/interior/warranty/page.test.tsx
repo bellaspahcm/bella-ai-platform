@@ -7,6 +7,32 @@ import { InteriorWarrantyAnalyticsService } from '@/products/bella-interior/serv
 let projectId: string | null = null;
 jest.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(projectId ? { projectId } : ''),
+  useRouter: () => ({ push: jest.fn(), back: jest.fn(), refresh: jest.fn(), replace: jest.fn() }),
+  usePathname: () => '/dashboard/interior/warranty',
+}));
+
+jest.mock('@/lib/user-context', () => ({
+  useUser: () => ({ user: null, role: null, isLoading: false }),
+  useOptionalUser: () => null,
+}));
+
+jest.mock('@/lib/supabase-client', () => ({
+  createClient: () => ({
+    auth: {
+      getSession: async () => ({ data: { session: null } }),
+      signOut: async () => ({}),
+    },
+  }),
+  supabase: {
+    auth: {
+      getSession: async () => ({ data: { session: null } }),
+      signOut: async () => ({}),
+    },
+  },
+}));
+
+jest.mock('@/lib/dashboard-client-context', () => ({
+  clearDashboardClientContextCache: jest.fn(),
 }));
 
 describe('Warranty project entry', () => {

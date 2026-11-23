@@ -18,7 +18,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase-client';
-import { useUser } from '@/lib/user-context';
+import { useOptionalUser } from '@/lib/user-context';
 import { clearDashboardClientContextCache } from '@/lib/dashboard-client-context';
 
 interface NotificationItem {
@@ -76,7 +76,7 @@ interface InteriorUserBarProps {
 
 export default function InteriorUserBar({ className = '', align = 'right' }: InteriorUserBarProps) {
   const router = useRouter();
-  const userContext = useUser();
+  const userContext = useOptionalUser();
   const currentUser = userContext?.user;
 
   // Real auth state
