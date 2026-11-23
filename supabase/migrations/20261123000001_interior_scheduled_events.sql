@@ -66,54 +66,12 @@ CREATE TRIGGER trg_interior_scheduled_events_updated_at
 -- ── Row Level Security ───────────────────────────────────────
 ALTER TABLE public.interior_scheduled_events ENABLE ROW LEVEL SECURITY;
 
--- Allow authenticated users to read events for their own tenant
-CREATE POLICY "interior_scheduled_events_tenant_read"
+-- Unified tenant-scoped policy using the canonical interior_actor_tenant() helper
+-- (consistent with all other interior product tables in this codebase)
+CREATE POLICY tenant_isolation_policy
   ON public.interior_scheduled_events
-  FOR SELECT
-  TO authenticated
-  USING (tenant_id = (
-    SELECT tenant_id FROM public.interior_project_members
-    WHERE user_id = auth.uid()
-    LIMIT 1
-  ));
-
--- Allow authenticated users to insert events for their own tenant
-CREATE POLICY "interior_scheduled_events_tenant_insert"
-  ON public.interior_scheduled_events
-  FOR INSERT
-  TO authenticated
-  WITH CHECK (tenant_id = (
-    SELECT tenant_id FROM public.interior_project_members
-    WHERE user_id = auth.uid()
-    LIMIT 1
-  ));
-
--- Allow authenticated users to update events for their own tenant
-CREATE POLICY "interior_scheduled_events_tenant_update"
-  ON public.interior_scheduled_events
-  FOR UPDATE
-  TO authenticated
-  USING (tenant_id = (
-    SELECT tenant_id FROM public.interior_project_members
-    WHERE user_id = auth.uid()
-    LIMIT 1
-  ))
-  WITH CHECK (tenant_id = (
-    SELECT tenant_id FROM public.interior_project_members
-    WHERE user_id = auth.uid()
-    LIMIT 1
-  ));
-
--- Allow authenticated users to delete events for their own tenant
-CREATE POLICY "interior_scheduled_events_tenant_delete"
-  ON public.interior_scheduled_events
-  FOR DELETE
-  TO authenticated
-  USING (tenant_id = (
-    SELECT tenant_id FROM public.interior_project_members
-    WHERE user_id = auth.uid()
-    LIMIT 1
-  ));
+  USING (tenant_id = public.interior_actor_tenant())
+  WITH CHECK (tenant_id = public.interior_actor_tenant());
 
 -- ── Grants ───────────────────────────────────────────────────
 GRANT SELECT, INSERT, UPDATE, DELETE
