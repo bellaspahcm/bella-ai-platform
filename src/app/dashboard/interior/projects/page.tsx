@@ -41,6 +41,7 @@ import type {
   PortfolioOverviewResponse,
   PortfolioProjectItem,
 } from '@/products/bella-interior/domain/portfolio-overview.types';
+import InteriorUserBar from '@/components/interior/InteriorUserBar';
 
 // Baseline fallback matching canonical domain definition exactly
 const INITIAL_PORTFOLIO: PortfolioOverviewResponse = {
@@ -620,31 +621,9 @@ export default function ProjectsPage() {
           </p>
         </div>
 
-        {/* User bar &amp; Actions */}
+        {/* User bar & Actions */}
         <div className="flex items-center gap-4">
-          <div className="hidden sm:flex items-center gap-3 pr-2 border-r border-slate-200 dark:border-slate-800">
-            <button
-              type="button"
-              className="relative p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label="Thông báo"
-            >
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                3
-              </span>
-            </button>
-            <div className="flex items-center gap-2 pl-1 cursor-pointer">
-              <img
-                src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/finance-director-male.jpg'}
-                alt="Nguyễn Văn Quang"
-                className="w-7 h-7 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700"
-              />
-              <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                Nguyễn Văn Quang
-              </span>
-              <ChevronDown className="w-3 h-3 text-slate-400" />
-            </div>
-          </div>
+          <InteriorUserBar />
 
           <button
             type="button"

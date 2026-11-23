@@ -21,6 +21,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import InteriorUserBar from '@/components/interior/InteriorUserBar';
 import {
   Layers,
   CheckCircle2,
@@ -758,32 +759,8 @@ export default function InteriorDesignStudioPage() {
             />
           </div>
 
-          {/* Notifications with Red Badge */}
-          <button
-            type="button"
-            className="relative p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-2xs transition-colors"
-            aria-label="Thông báo"
-          >
-            <Bell className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center">
-              3
-            </span>
-          </button>
-
-          {/* User Profile */}
-          <div className="flex items-center gap-2 pl-1 cursor-pointer">
-            <img
-              src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg'}
-              alt="Nguyễn Văn Quang"
-              className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700"
-            />
-            <div className="hidden sm:flex items-center gap-1">
-              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                Nguyễn Văn Quang
-              </span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </div>
-          </div>
+          {/* Top user profile & notifications */}
+          <InteriorUserBar />
         </div>
       </div>
 

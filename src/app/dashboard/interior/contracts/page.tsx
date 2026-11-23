@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import CommercialWorkflowModal from './commercial-workflow-modal';
+import InteriorUserBar from '@/components/interior/InteriorUserBar';
 import {
   Handshake,
   Coins,
@@ -632,30 +633,8 @@ export default function InteriorContractsPage() {
             <span>{warrantyIssuedCertNumber ? `CT: ${warrantyIssuedCertNumber}` : issuingWarranty ? 'Đang phát hành…' : 'Phát hành Chứng Thư BH'}</span>
           </button>
 
-          <div className="relative">
-            <button
-              type="button"
-              className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-lg relative"
-              aria-label="Thông báo"
-            >
-              <Bell className="w-4 h-4" />
-              {alerts.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {alerts.length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-            <div className="w-8 h-8 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-xs">
-              M
-            </div>
-            <div className="hidden sm:block text-left text-xs">
-              <div className="font-semibold text-slate-900 dark:text-white">{header.managerName}</div>
-              <div className="text-[10px] text-slate-500">{header.managerRole}</div>
-            </div>
-          </div>
+          {/* Top user bar & notifications */}
+          <InteriorUserBar />
         </div>
       </div>
 

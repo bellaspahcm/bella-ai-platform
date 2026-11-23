@@ -37,6 +37,8 @@ import type {
   BusinessChainPeriodData,
   PortfolioOverviewResponse,
 } from '@/products/bella-interior/domain/portfolio-overview.types';
+import { useUser } from '@/lib/user-context';
+import InteriorUserBar from '@/components/interior/InteriorUserBar';
 
 interface MockProject {
   id: string;
@@ -263,6 +265,11 @@ const DEFAULT_BUSINESS_CHAIN_PROGRESS: BusinessChainProgressOverview = {
 };
 
 export default function InteriorDashboardPage() {
+  const userContext = useUser();
+  const userName = userContext?.user?.full_name
+    ? userContext.user.full_name.split(' ').slice(-1)[0]
+    : 'bạn';
+
   const [projects, setProjects] = useState<MockProject[]>(INITIAL_PROJECTS);
   const [portfolioData, setPortfolioData] = useState<PortfolioOverviewResponse | null>(null);
   const [activeTab, setActiveTab] = useState<string>('all');
@@ -370,6 +377,19 @@ export default function InteriorDashboardPage() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+      {/* ─── 00. TOP CONTROL & USER BAR ───────────────────────────────── */}
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+            Bella Interior OS
+          </span>
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-tight">
+            Trung tâm Điều hành Nội thất
+          </h2>
+        </div>
+        <InteriorUserBar />
+      </div>
+
       {/* ─── 01. VIEWPORT HERO BANNER ─────────────────────────────────── */}
       <div className="interior-hero relative rounded-3xl bg-gradient-to-r from-slate-900 via-[#0F2744] to-[#1B365D] text-white p-6 sm:p-8 shadow-sm overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         {/* Ambient background decoration */}
@@ -382,7 +402,7 @@ export default function InteriorDashboardPage() {
             Hệ điều hành Nội thất Doanh nghiệp
           </div>
           <h1 className="interior-hero-title text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
-            Chào buổi sáng, Mai!
+            Chào buổi sáng, {userName}!
           </h1>
           <p className="interior-hero-description text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
             Theo dõi toàn bộ dự án thiết kế và thi công nội thất theo thời gian thực.

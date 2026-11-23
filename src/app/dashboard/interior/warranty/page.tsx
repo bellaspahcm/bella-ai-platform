@@ -3,6 +3,7 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import InteriorUserBar from '@/components/interior/InteriorUserBar';
 import { useSearchParams } from 'next/navigation';
 import {
   ShieldCheck,
@@ -251,22 +252,7 @@ export default function WarrantyDashboardPage() {
             <span>Làm mới</span>
           </button>
 
-          <button
-            title="Thông báo"
-            className="relative w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm transition"
-          >
-            <Bell className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-white">
-              {data.project.notificationCount}
-            </span>
-          </button>
-
-          <button
-            title="Menu ứng dụng"
-            className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm transition"
-          >
-            <LayoutGrid className="w-4 h-4" />
-          </button>
+          <InteriorUserBar />
         </div>
       </div>
 

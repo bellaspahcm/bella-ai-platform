@@ -48,6 +48,7 @@ import type {
 } from '@/products/bella-interior/domain/customer-overview.types';
 import { supabase } from '@/lib/supabase-client';
 import { Customer360Modal } from './customer-360-modal';
+import InteriorUserBar from '@/components/interior/InteriorUserBar';
 
 /**
  * Resolves a valid access token for API requests.
@@ -655,34 +656,8 @@ export default function CustomersPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Top user profile header matching mock image */}
-          <div className="hidden sm:flex items-center gap-3 pr-2">
-            <button
-              type="button"
-              className="relative p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label="Thông báo"
-            >
-              <Bell className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-              <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center">
-                3
-              </span>
-            </button>
-            <div className="flex items-center gap-2 pl-1 border-l border-slate-200 dark:border-slate-800">
-              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
-                <Image
-                  src={'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/finance-director-male.jpg'}
-                  alt="Nguyễn Văn Quang"
-                  fill
-                  sizes="32px"
-                  className="object-cover"
-                />
-              </div>
-              <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                Nguyễn Văn Quang
-              </span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </div>
-          </div>
+          {/* Top user profile header */}
+          <InteriorUserBar />
 
           <button
             type="button"
