@@ -267,6 +267,7 @@ export function requiredInteriorPermission(request: Request, body: JsonRecord | 
     if (method === 'GET') return INTERIOR_PERMISSIONS.scheduleRead;
     if (method === 'POST') return INTERIOR_PERMISSIONS.scheduleCreate;
     if (method === 'PATCH') return INTERIOR_PERMISSIONS.scheduleUpdate;
+    if (method === 'DELETE') return INTERIOR_PERMISSIONS.scheduleUpdate;
   }
   if (pathname === '/api/interior/installation/analytics' && method === 'GET') return INTERIOR_PERMISSIONS.installationRead;
   if (pathname === '/api/interior/production/analytics' && method === 'GET') return INTERIOR_PERMISSIONS.productionRead;
@@ -526,7 +527,7 @@ export async function resolveInteriorContext(
     const isCustomerList = new URL(request.url).pathname.replace(/\/+$/, '') === '/api/interior/customers'
       && request.method.toUpperCase() === 'GET';
     const isScheduleCollection = new URL(request.url).pathname.replace(/\/+$/, '') === '/api/interior/schedule'
-      && request.method.toUpperCase() === 'GET'
+      && ['GET', 'POST', 'PATCH', 'DELETE'].includes(request.method.toUpperCase())
       && projectId === undefined;
     const isAuditRead = new URL(request.url).pathname.replace(/\/+$/, '') === '/api/interior/rbac/audit'
       && request.method.toUpperCase() === 'GET';
