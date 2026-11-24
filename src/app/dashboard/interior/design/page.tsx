@@ -496,13 +496,17 @@ function InteriorDesignStudioContent() {
    * nếu là đường dẫn giả (local path chưa upload) thì hiển thị toast hướng dẫn.
    */
   const handleOpenFile = (fileUrl: string, label: string) => {
-    const isRealUrl = fileUrl.startsWith('http://') || fileUrl.startsWith('https://');
+    const isRealUrl =
+      fileUrl.startsWith('http://') ||
+      fileUrl.startsWith('https://') ||
+      fileUrl.startsWith('/drawings/') ||
+      fileUrl.startsWith('/docs/');
     if (isRealUrl) {
       window.open(fileUrl, '_blank', 'noopener,noreferrer');
     } else {
       setToastType('info');
       setToastMessage(
-        `"${label}" chưa có tệp trên cloud. Dùng nút "+ Tải lên" để upload tệp lên Cloudflare R2.`,
+        `"${label}" chưa có tệp trên hệ thống. Dùng nút "+ Tải lên" để upload tệp lên hệ thống lưu trữ.`,
       );
       setTimeout(() => { setToastMessage(null); setToastType('success'); }, 5000);
     }
@@ -1008,7 +1012,7 @@ function InteriorDesignStudioContent() {
             <div className="max-w-2xl relative z-10 space-y-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs font-bold">
                 <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                <span>Không gian Thiết kế & Hồ sơ Kỹ thuật</span>
+                <span>Không gian Thiết kế &amp; Hồ sơ Kỹ thuật</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
                 Design Studio — Danh mục Công trình
@@ -1219,8 +1223,8 @@ function InteriorDesignStudioContent() {
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">
                     <tr>
-                      <th className="py-3 px-4">Dự án & Mã</th>
-                      <th className="py-3 px-4">Khách hàng & Địa điểm</th>
+                      <th className="py-3 px-4">Dự án &amp; Mã</th>
+                      <th className="py-3 px-4">Khách hàng &amp; Địa điểm</th>
                       <th className="py-3 px-4">Trạng thái thiết kế</th>
                       <th className="py-3 px-4">KTS Chủ trì</th>
                       <th className="py-3 px-4">Dự toán</th>
@@ -1863,6 +1867,7 @@ function InteriorDesignStudioContent() {
                           {dwg.downloadUrl && (
                             <a
                               href={dwg.downloadUrl}
+                              download={dwg.drawingCode ? `${dwg.drawingCode}.dwg` : true}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-colors shadow-2xs"
@@ -2951,6 +2956,7 @@ function InteriorDesignStudioContent() {
                 {selectedDrawingForView.downloadUrl && (
                   <a
                     href={selectedDrawingForView.downloadUrl}
+                    download={selectedDrawingForView.drawingCode ? `${selectedDrawingForView.drawingCode}.dwg` : true}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-colors shadow-sm"
