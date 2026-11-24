@@ -16,10 +16,21 @@ import {
   Clock,
   Sparkles,
   ExternalLink,
+  Eye,
+  Check,
+  RotateCcw,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase-client';
 import { useOptionalUser } from '@/lib/user-context';
 import { clearDashboardClientContextCache } from '@/lib/dashboard-client-context';
+import {
+  INTERIOR_ROLES,
+  getInteriorRoleDisplayName,
+  getSimulatedInteriorRole,
+  setSimulatedInteriorRole,
+  INTERIOR_ROLE_CHANGE_EVENT,
+  type InteriorRoleKey,
+} from '@/products/bella-interior/lib/interior-rbac-navigation';
 
 interface NotificationItem {
   id: string;
@@ -87,10 +98,23 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
   // Dropdown states
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isRoleSwitcherOpen, setIsRoleSwitcherOpen] = useState(false);
+  const [simulatedRole, setSimulatedRoleState] = useState<InteriorRoleKey | null>(null);
   const [notifications, setNotifications] = useState<NotificationItem[]>(DEFAULT_NOTIFICATIONS);
 
   const notifRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const roleSwitcherRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setSimulatedRoleState(getSimulatedInteriorRole());
+    const handleRoleChange = (e: Event) => {
+      const customEvt = e as CustomEvent<{ role: InteriorRoleKey | null }>;
+      setSimulatedRoleState(customEvt.detail?.role ?? null);
+    };
+    window.addEventListener(INTERIOR_ROLE_CHANGE_EVENT, handleRoleChange);
+    return () => window.removeEventListener(INTERIOR_ROLE_CHANGE_EVENT, handleRoleChange);
+  }, []);
 
   // Load current user from session / context
   useEffect(() => {
@@ -124,16 +148,9 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
   const displayEmail = currentUser?.email || sessionEmail || 'admin@bellaspa.vn';
 
   const roleRaw = currentUser?.role || sessionRole || 'admin';
-  const displayRole =
-    roleRaw.toLowerCase() === 'admin' || roleRaw.toLowerCase() === 'owner'
-      ? 'Quản trị viên'
-      : roleRaw.toLowerCase() === 'pm' || roleRaw.toLowerCase() === 'project_manager'
-      ? 'Quản lý dự án'
-      : roleRaw.toLowerCase() === 'architect'
-      ? 'Kiến trúc sư trưởng'
-      : roleRaw.toLowerCase() === 'qs'
-      ? 'Kỹ sư dự toán (QS)'
-      : 'Quản trị viên';
+  const displayRole = simulatedRole
+    ? `${getInteriorRoleDisplayName(simulatedRole)} (Mô phỏng)`
+    : getInteriorRoleDisplayName(roleRaw);
 
   // Compute avatar initials
   const initials = displayName
@@ -167,12 +184,16 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setIsUserMenuOpen(false);
       }
+      if (roleSwitcherRef.current && !roleSwitcherRef.current.contains(event.target as Node)) {
+        setIsRoleSwitcherOpen(false);
+      }
     }
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setIsNotifOpen(false);
         setIsUserMenuOpen(false);
+        setIsRoleSwitcherOpen(false);
       }
     }
 
@@ -198,6 +219,117 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
 
   return (
     <div className={`flex items-center gap-2 sm:gap-3 ${className}`}>
+      {/* ─── 00. ROLE SWITCHER (RBAC SIMULATOR) ─── */}
+      <div className="relative" ref={roleSwitcherRef}>
+        <button
+          type="button"
+          onClick={() => {
+            setIsRoleSwitcherOpen((prev) => !prev);
+            setIsNotifOpen(false);
+            setIsUserMenuOpen(false);
+          }}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl border text-xs transition-all cursor-pointer font-medium ${
+            simulatedRole
+              ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/60 text-amber-900 dark:text-amber-200 shadow-xs'
+              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+          }`}
+          title="Chuyển đổi góc nhìn vai trò (RBAC Simulator)"
+        >
+          <Eye className={`w-3.5 h-3.5 ${simulatedRole ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`} />
+          <span className="hidden md:inline font-bold">
+            {simulatedRole ? `Góc nhìn: ${getInteriorRoleDisplayName(simulatedRole)}` : 'Góc nhìn vai trò'}
+          </span>
+          <span className="md:hidden font-bold">
+            {simulatedRole ? getInteriorRoleDisplayName(simulatedRole).split(' ')[0] : 'Vai trò'}
+          </span>
+          <ChevronDown className={`w-3 h-3 transition-transform ${isRoleSwitcherOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        {isRoleSwitcherOpen && (
+          <div
+            className={`absolute mt-2 w-72 sm:w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150 ${
+              align === 'left' ? 'left-0' : 'right-0'
+            }`}
+          >
+            {/* Header */}
+            <div className="p-3.5 px-4 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <span className="font-bold text-xs text-slate-900 dark:text-white block">
+                  Mô phỏng góc nhìn RBAC
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                  Xem trước menu và giao diện thực tế từng vai trò
+                </span>
+              </div>
+              {simulatedRole && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSimulatedInteriorRole(null);
+                    setIsRoleSwitcherOpen(false);
+                  }}
+                  className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Đặt lại
+                </button>
+              )}
+            </div>
+
+            {/* Roles List */}
+            <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 p-1">
+              {INTERIOR_ROLES.map((r) => {
+                const isSelected = simulatedRole ? simulatedRole === r.roleKey : (r.roleKey === 'OWNER' || r.roleKey === 'ADMIN');
+                return (
+                  <button
+                    key={r.roleKey}
+                    type="button"
+                    onClick={() => {
+                      if (r.roleKey === 'OWNER' || r.roleKey === 'ADMIN') {
+                        setSimulatedInteriorRole(null);
+                      } else {
+                        setSimulatedInteriorRole(r.roleKey);
+                      }
+                      setIsRoleSwitcherOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-xl transition-colors flex items-center justify-between gap-2.5 cursor-pointer ${
+                      isSelected
+                        ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200'
+                        : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-bold ${isSelected ? 'text-amber-800 dark:text-amber-300' : 'text-slate-900 dark:text-white'}`}>
+                          {r.displayName}
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium">
+                          {r.badgeLabel}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                        {r.shortDesc}
+                      </p>
+                    </div>
+                    {isSelected && (
+                      <Check className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Footer */}
+            <div className="p-2.5 px-3 bg-slate-50/60 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
+              <span>Đang chọn: <strong>{simulatedRole ? getInteriorRoleDisplayName(simulatedRole) : 'Toàn quyền (Admin)'}</strong></span>
+              {simulatedRole && (
+                <span className="text-amber-600 dark:text-amber-400 font-medium">Đang mô phỏng</span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* ─── 01. NOTIFICATION BELL WITH INTERACTIVE POPOVER ─── */}
       <div className="relative" ref={notifRef}>
         <button
@@ -205,6 +337,7 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
           onClick={() => {
             setIsNotifOpen((prev) => !prev);
             setIsUserMenuOpen(false);
+            setIsRoleSwitcherOpen(false);
           }}
           className={`relative p-2 rounded-xl border transition-colors cursor-pointer ${
             isNotifOpen
@@ -321,6 +454,7 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
           onClick={() => {
             setIsUserMenuOpen((prev) => !prev);
             setIsNotifOpen(false);
+            setIsRoleSwitcherOpen(false);
           }}
           className={`flex items-center gap-2 pl-2 pr-1.5 py-1 rounded-xl border transition-colors cursor-pointer ${
             isUserMenuOpen
