@@ -54,7 +54,7 @@ interface AddendumMilestoneInput extends PaymentMilestoneInput {
 }
 
 interface ContractCreateBody {
-  action?: 'create-contract' | 'release-to-workshop' | 'record-payment' | 'create-addendum';
+  action?: 'create-contract' | 'release-to-workshop' | 'record-payment' | 'create-addendum' | 'staff-sign-contract';
   projectId?: string;
   quotationId?: string;
   quotationCustomerApprovalId?: string;
@@ -80,6 +80,7 @@ interface ContractCreateBody {
   addendumReason?: string;
   addendumValue?: number;
   addendumMilestones?: AddendumMilestoneInput[];
+  internalNotes?: string;
 }
 
 function isIsoCalendarDate(value: string): boolean {
@@ -661,6 +662,53 @@ export async function POST(request: Request): Promise<NextResponse> {
         return NextResponse.json({ success: false, error: 'INTERIOR_CONTRACT_NOT_FOUND' }, { status: 404 });
       }
       return NextResponse.json({ success: false, error: 'INTERIOR_ADDENDUM_PERSISTENCE_FAILED' }, { status: 503 });
+    }
+  }
+
+  // Handle action: staff-sign-contract — internal approval on behalf of customer
+  if (body.action === 'staff-sign-contract') {
+    const STAFF_SIGN_ROLES = new Set(['owner', 'admin', 'director', 'pm']);
+    const actorRole = typeof ctx.actor.role === 'string' ? ctx.actor.role.toLowerCase() : '';
+    if (!STAFF_SIGN_ROLES.has(actorRole)) {
+      return NextResponse.json({ success: false, error: 'INTERIOR_PERMISSION_DENIED' }, { status: 403 });
+    }
+    if (!validInteriorUuid(body.contractId)) {
+      return NextResponse.json({ success: false, error: 'INTERIOR_CONTRACT_ID_INVALID' }, { status: 400 });
+    }
+    if (typeof body.internalNotes !== 'string' || !body.internalNotes.trim()) {
+      return NextResponse.json({ success: false, error: 'INTERIOR_STAFF_SIGN_NOTES_REQUIRED' }, { status: 400 });
+    }
+    const repository = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+    try {
+      const existing = await repository.getContract(ctx.tenantId, body.contractId as string);
+      if (!existing) {
+        return NextResponse.json({ success: false, error: 'INTERIOR_CONTRACT_NOT_FOUND' }, { status: 404 });
+      }
+      if (existing.status !== 'draft' && existing.status !== 'in_review') {
+        return NextResponse.json({ success: false, error: 'INTERIOR_CONTRACT_NOT_SIGNABLE' }, { status: 409 });
+      }
+      const now = new Date().toISOString();
+      const actorName = typeof ctx.actor.full_name === 'string' && ctx.actor.full_name.trim()
+        ? ctx.actor.full_name.trim() : String(ctx.actor.id);
+      const noteEntry = `[Duyệt nội bộ ${now.slice(0, 10)} bởi ${actorName}]: ${(body.internalNotes as string).trim()}`;
+      const updated = {
+        ...existing,
+        status: 'signed' as const,
+        signedDate: now.slice(0, 10),
+        notes: existing.notes ? `${existing.notes}\n\n${noteEntry}` : noteEntry,
+        updatedAt: now,
+      };
+      await repository.saveContract(ctx.tenantId, updated);
+      return NextResponse.json({ success: true, data: { contractId: existing.id, status: 'signed' } }, {
+        status: 200,
+        headers: { 'Cache-Control': 'no-store, max-age=0' },
+      });
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : '';
+      if (message.includes('AuthorizationViolation')) {
+        return NextResponse.json({ success: false, error: 'INTERIOR_PERMISSION_DENIED' }, { status: 403 });
+      }
+      return NextResponse.json({ success: false, error: 'INTERIOR_CONTRACT_SIGN_FAILED' }, { status: 503 });
     }
   }
 
