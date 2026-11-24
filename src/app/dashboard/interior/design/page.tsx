@@ -1850,15 +1850,29 @@ function InteriorDesignStudioContent() {
                         {hasFile ? dwg.statusLabel : 'Chờ nộp tệp'}
                       </span>
                       {hasFile ? (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedDrawingForView(dwg)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs font-bold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 transition-colors shadow-2xs"
-                          title="Xem bản vẽ CAD 2D tương tác"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>Xem 2D</span>
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedDrawingForView(dwg)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors"
+                            title="Xem thông tin chi tiết tệp bản vẽ"
+                          >
+                            <FileCode className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                            <span>Chi tiết</span>
+                          </button>
+                          {dwg.downloadUrl && (
+                            <a
+                              href={dwg.downloadUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-colors shadow-2xs"
+                              title={`Tải tệp ${dwg.fileType} (${dwg.fileSize}) về máy tính`}
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>Tải về</span>
+                            </a>
+                          )}
+                        </div>
                       ) : (
                         <button
                           type="button"
@@ -2819,222 +2833,132 @@ function InteriorDesignStudioContent() {
         </div>
       )}
 
-      {/* ─── Modal 8: Xem bản vẽ kỹ thuật 2D tương tác (CAD Blueprint Interactive Viewer) ─── */}
+      {/* ─── Modal 8: Thông tin tệp CAD kỹ thuật & Tải về máy tính ─── */}
       {selectedDrawingForView && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-in fade-in">
-          <div className={`w-full max-w-6xl max-h-[95vh] rounded-2xl flex flex-col shadow-2xl border overflow-hidden ${
-            cadTheme === 'dark'
-              ? 'bg-[#0f172a] text-slate-100 border-slate-700'
-              : 'bg-white text-slate-900 border-slate-300'
-          }`}>
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
             {/* Header */}
-            <div className={`px-5 py-3.5 border-b flex items-center justify-between gap-4 ${
-              cadTheme === 'dark' ? 'border-slate-800 bg-slate-900/80' : 'border-slate-200 bg-slate-50'
-            }`}>
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold text-xs shrink-0 border border-blue-500/30">
+            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm shrink-0 border border-blue-500/20">
                   {selectedDrawingForView.fileType}
                 </div>
-                <div className="min-w-0">
+                <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm sm:text-base font-bold truncate">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
                       {selectedDrawingForView.title}
                     </h3>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                       {selectedDrawingForView.statusLabel}
                     </span>
                   </div>
-                  <div className="text-xs opacity-70 font-mono mt-0.5 truncate">
-                    {selectedDrawingForView.drawingCode} · KTS: {selectedDrawingForView.author} · Tỉ lệ: {selectedDrawingForView.scale || '1:100'} · Tờ: {selectedDrawingForView.sheetNumber || 'KT-01'} · {selectedDrawingForView.fileSize}
+                  <div className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                    {selectedDrawingForView.drawingCode} · KTS: {selectedDrawingForView.author}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedDrawingForView(null)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-5">
+              {/* File Specs Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
+                  <div className="text-[11px] text-slate-400">Định dạng tệp</div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                    AutoCAD ({selectedDrawingForView.fileType})
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
+                  <div className="text-[11px] text-slate-400">Dung lượng</div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                    {selectedDrawingForView.fileSize}
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
+                  <div className="text-[11px] text-slate-400">Tỷ lệ bản vẽ</div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                    {selectedDrawingForView.scale || '1:100'}
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
+                  <div className="text-[11px] text-slate-400">Số hiệu tờ</div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                    {selectedDrawingForView.sheetNumber || 'KT-01/18'}
                   </div>
                 </div>
               </div>
 
-              {/* Toolbar */}
-              <div className="flex items-center gap-2 shrink-0">
+              {/* Technical Notice */}
+              <div className="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 text-xs text-blue-900 dark:text-blue-300 space-y-2">
+                <div className="flex items-center gap-2 font-bold">
+                  <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                  <span>Hồ sơ kỹ thuật CAD gốc được bảo vệ toàn vẹn</span>
+                </div>
+                <p className="leading-relaxed text-slate-600 dark:text-slate-300 text-[11px]">
+                  Tệp bản vẽ định dạng gốc (.DWG) chứa đầy đủ các layer kiến trúc, kích thước kỹ thuật thi công và ký hiệu vật tư. Để đảm bảo tính chính xác tuyệt đối và không làm sai lệch bản vẽ của KTS, vui lòng tải tệp gốc về máy tính để mở bằng <strong>AutoCAD, Revit, SketchUp</strong> hoặc xem qua <strong>Autodesk Viewer</strong>.
+                </p>
+              </div>
+
+              {/* Project & Approval Info */}
+              <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 space-y-2 text-xs">
+                <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-400">Dự án công trình:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{data.project.name} ({data.project.code})</span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-400">Chủ trì thiết kế:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{selectedDrawingForView.author}</span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-400">Người phê duyệt:</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">Trần Thị Mai (Đã duyệt chính thức)</span>
+                </div>
+                <div className="flex justify-between py-1">
+                  <span className="text-slate-400">Ngày phát hành hồ sơ:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{selectedDrawingForView.updatedDateFormatted}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/60">
+              <a
+                href="https://viewer.autodesk.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Xem bằng Autodesk Viewer</span>
+              </a>
+
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setCadTheme(cadTheme === 'dark' ? 'light' : 'dark')}
-                  className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                    cadTheme === 'dark'
-                      ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
-                      : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'
-                  }`}
-                  title="Chuyển chế độ nền CAD (Đen) / Nền in ấn (Trắng)"
+                  onClick={() => setSelectedDrawingForView(null)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
-                  {cadTheme === 'dark' ? '☀️ Nền in ấn' : '🌙 Nền CAD'}
+                  Đóng
                 </button>
-
-                <div className={`flex items-center rounded-lg border p-0.5 ${
-                  cadTheme === 'dark' ? 'border-slate-700 bg-slate-800' : 'border-slate-300 bg-white'
-                }`}>
-                  <button
-                    type="button"
-                    onClick={() => setCadZoom((prev) => Math.max(0.6, prev - 0.2))}
-                    className="p-1 rounded hover:bg-slate-700/50"
-                    title="Thu nhỏ"
-                  >
-                    <ZoomOut className="w-4 h-4" />
-                  </button>
-                  <span className="px-2 text-xs font-mono font-semibold">
-                    {Math.round(cadZoom * 100)}%
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setCadZoom((prev) => Math.min(2.0, prev + 0.2))}
-                    className="p-1 rounded hover:bg-slate-700/50"
-                    title="Phóng to"
-                  >
-                    <ZoomIn className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCadZoom(1)}
-                    className="p-1 rounded hover:bg-slate-700/50 ml-1"
-                    title="Vừa màn hình"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
                 {selectedDrawingForView.downloadUrl && (
                   <a
                     href={selectedDrawingForView.downloadUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shadow-sm"
-                    title="Tải tệp CAD gốc về máy"
+                    className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-colors shadow-sm"
                   >
-                    <Download className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Tải DWG gốc</span>
+                    <Download className="w-4 h-4" />
+                    <span>Tải tệp DWG gốc ({selectedDrawingForView.fileSize})</span>
                   </a>
                 )}
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedDrawingForView(null);
-                    setCadZoom(1);
-                  }}
-                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors ml-1"
-                  title="Đóng"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* CAD Canvas */}
-            <div className="flex-1 overflow-auto p-4 sm:p-6 flex items-center justify-center relative min-h-[460px]">
-              <div
-                className="transition-transform duration-200 origin-center"
-                style={{ transform: `scale(${cadZoom})` }}
-              >
-                {/* Technical CAD Blueprint Vector Render */}
-                <div className={`w-[850px] h-[520px] rounded-lg border-2 p-6 relative flex flex-col justify-between shadow-xl ${
-                  cadTheme === 'dark'
-                    ? 'bg-[#080e1a] border-cyan-500/40 text-cyan-400'
-                    : 'bg-white border-slate-900 text-slate-900'
-                }`}>
-                  {/* Architectural Grid Lines */}
-                  <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:16px_16px]" />
-
-                  {/* Top Dimensions & Axis Header */}
-                  <div className="relative z-10 flex items-center justify-between pb-2 border-b border-dashed border-current opacity-70 text-[11px] font-mono">
-                    <div className="flex items-center gap-12">
-                      <span className="w-6 h-6 rounded-full border border-current flex items-center justify-center font-bold">1</span>
-                      <span>← 4,500 mm →</span>
-                      <span className="w-6 h-6 rounded-full border border-current flex items-center justify-center font-bold">2</span>
-                      <span>← 5,200 mm →</span>
-                      <span className="w-6 h-6 rounded-full border border-current flex items-center justify-center font-bold">3</span>
-                      <span>← 3,800 mm →</span>
-                      <span className="w-6 h-6 rounded-full border border-current flex items-center justify-center font-bold">4</span>
-                    </div>
-                    <div className="font-bold tracking-wider">CỐT SÀN HOÀN THIỆN +0.000</div>
-                  </div>
-
-                  {/* Floorplan Blueprint Schematics */}
-                  <div className="relative z-10 grid grid-cols-12 gap-3 flex-1 py-4">
-                    {/* Left: Living Room & Tea Area */}
-                    <div className="col-span-6 border-2 border-current rounded p-3 relative flex flex-col justify-between">
-                      <div className="text-[11px] font-bold font-mono tracking-wide">
-                        01. PHÒNG KHÁCH LIÊN THÔNG (48.5 m²)
-                      </div>
-                      <div className="space-y-2 py-2">
-                        <div className="border border-dashed border-current rounded p-2 text-center text-[10px] font-mono">
-                          [ HỆ SOFA L-SHAPE VẢI CAO CẤP &amp; BÀN TRÀ ĐÁ MARQUINA ]
-                        </div>
-                        <div className="border-t border-b border-current py-1 text-center text-[10px] font-mono opacity-80">
-                          ════ VÁCH ỐP VENEER ÓC CHÓ &amp; KỆ TIVI TREO ════
-                        </div>
-                      </div>
-                      <div className="flex justify-between text-[10px] font-mono opacity-70">
-                        <span>Cao độ trần: +3,450 mm</span>
-                        <span>Đèn ray nam châm LED 4000K</span>
-                      </div>
-                    </div>
-
-                    {/* Right: Dining & Island Kitchen */}
-                    <div className="col-span-6 grid grid-rows-2 gap-3">
-                      <div className="border-2 border-current rounded p-3 flex flex-col justify-between">
-                        <div className="text-[11px] font-bold font-mono tracking-wide">
-                          02. KHU VỰC BÀN ĂN &amp; ĐÈN THẢ (22.0 m²)
-                        </div>
-                        <div className="border border-dashed border-current rounded p-1 text-center text-[10px] font-mono">
-                          BÀN ĂN NGUYÊN TẤM ÓC CHÓ 8 GHẾ
-                        </div>
-                        <div className="text-[10px] font-mono opacity-70">Cửa trượt kính Slim view ban công</div>
-                      </div>
-
-                      <div className="border-2 border-current rounded p-3 flex flex-col justify-between">
-                        <div className="text-[11px] font-bold font-mono tracking-wide">
-                          03. ĐẢO BẾP &amp; TỦ BẾP ACRYLIC (18.5 m²)
-                        </div>
-                        <div className="flex gap-2">
-                          <div className="border border-current p-1 flex-1 text-center text-[10px] font-mono">
-                            ĐẢO BẾP ĐÁ VICOSTONE
-                          </div>
-                          <div className="border border-current p-1 flex-1 text-center text-[10px] font-mono">
-                            HỆ TỦ KỊCH TRẦN
-                          </div>
-                        </div>
-                        <div className="text-[10px] font-mono opacity-70">Phụ kiện Blum &amp; Hafele chính hãng</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bottom: Title Block (Khung tên bản vẽ chuẩn kỹ thuật) */}
-                  <div className="relative z-10 border-2 border-current rounded-sm p-3 grid grid-cols-12 gap-2 text-[10px] font-mono">
-                    <div className="col-span-4 border-r border-current pr-2">
-                      <div className="font-bold text-[11px] tracking-wider text-emerald-500">PHÚ CƯỜNG DESIGN &amp; FIT-OUT</div>
-                      <div className="opacity-70 mt-0.5">Dự án: {data.project.name}</div>
-                      <div className="opacity-70">Mã DA: {data.project.code}</div>
-                    </div>
-                    <div className="col-span-5 border-r border-current pr-2">
-                      <div className="font-bold uppercase truncate">{selectedDrawingForView.title}</div>
-                      <div className="opacity-70 mt-0.5">Chủ trì: {selectedDrawingForView.author}</div>
-                      <div className="opacity-70">Kiểm tra: Trần Thị Mai (Trưởng phòng TK)</div>
-                    </div>
-                    <div className="col-span-3 text-right">
-                      <div className="font-bold text-emerald-400">APPROVED · ĐÃ DUYỆT</div>
-                      <div className="opacity-70 mt-0.5">Bản vẽ: {selectedDrawingForView.sheetNumber || 'KT-01/18'}</div>
-                      <div className="opacity-70">Tỉ lệ: {selectedDrawingForView.scale || '1:100'}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer status bar */}
-            <div className={`px-5 py-2.5 border-t flex items-center justify-between text-xs ${
-              cadTheme === 'dark' ? 'border-slate-800 bg-slate-900/60 text-slate-400' : 'border-slate-200 bg-slate-100 text-slate-600'
-            }`}>
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                <span>Hồ sơ đã kiểm tra tiêu chuẩn sản xuất xưởng &amp; thi công fit-out</span>
-              </div>
-              <div className="font-mono text-[11px] opacity-75">
-                Cloudflare R2 Secure CAD Asset · Invariant Locked
               </div>
             </div>
           </div>
