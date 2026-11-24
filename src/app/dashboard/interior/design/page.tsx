@@ -19,8 +19,9 @@
  * @module src/app/dashboard/interior/design/page
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import InteriorUserBar from '@/components/interior/InteriorUserBar';
 import {
   Layers,
@@ -50,6 +51,13 @@ import {
   Trash2,
   ImageIcon,
   HardDrive,
+  Building,
+  LayoutGrid,
+  List as ListIcon,
+  ArrowLeft,
+  Sparkles,
+  MapPin,
+  ExternalLink,
 } from 'lucide-react';
 
 import type {
@@ -301,7 +309,92 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
   ],
 };
 
-export default function InteriorDesignStudioPage() {
+interface InteriorProjectItem {
+  id: string;
+  code: string;
+  name: string;
+  status: string;
+  customer_name?: string | null;
+  client_name?: string | null;
+  site_address?: string | null;
+  project_type?: string | null;
+  estimated_budget?: number | string | null;
+  contract_value?: number | string | null;
+  lead_architect_name?: string | null;
+  leadArchitect?: string | null;
+  created_at?: string | null;
+}
+
+const PROJECT_COVER_IMAGES = [
+  'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/installation/site-progress-main.jpg',
+  'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/luxury-living-room.jpg',
+  'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/bedroom-render-modern.jpg',
+  'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/kitchen-design-render.jpg',
+  'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/office-tower-wide.jpg',
+  'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/bathroom-design.jpg',
+  'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/project-render-warm.jpg',
+];
+
+function getProjectCoverImage(index: number): string {
+  return PROJECT_COVER_IMAGES[index % PROJECT_COVER_IMAGES.length];
+}
+
+function formatProjectStatusLabel(status: string): string {
+  switch (status) {
+    case 'inquiry': return 'Khảo sát / Tiếp nhận';
+    case 'design': return 'Đang thiết kế';
+    case 'approved': return 'Đã duyệt thiết kế';
+    case 'production': return 'Sản xuất xưởng';
+    case 'installation': return 'Thi công lắp đặt';
+    case 'handover': return 'Nghiệm thu bàn giao';
+    case 'completed': return 'Hoàn thành';
+    case 'cancelled': return 'Đã hủy';
+    case 'active':
+    case 'in_progress':
+    default: return 'Đang thực hiện';
+  }
+}
+
+function formatProjectStatusBadge(status: string): string {
+  switch (status) {
+    case 'approved':
+    case 'completed':
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800';
+    case 'production':
+    case 'installation':
+      return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800';
+    case 'inquiry':
+    case 'design':
+      return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800';
+    case 'cancelled':
+      return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800';
+    default:
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800';
+  }
+}
+
+function formatBudgetDisplay(budget?: number | string | null): string {
+  if (!budget) return '3.85 tỷ';
+  const num = Number(budget);
+  if (isNaN(num) || num <= 0) return '3.85 tỷ';
+  if (num >= 1_000_000_000) return `${(num / 1_000_000_000).toFixed(2).replace(/\.?0+$/, '')} tỷ`;
+  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(0)} triệu`;
+  return `${num.toLocaleString('vi-VN')} đ`;
+}
+
+function InteriorDesignStudioContent() {
+  const searchParams = useSearchParams();
+  const initialProjectId = searchParams.get('projectId');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(initialProjectId || null);
+  const [projectOptions, setProjectOptions] = useState<InteriorProjectItem[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState<boolean>(true);
+  const [viewMode, setViewMode] = useState<'gallery' | 'list'>('gallery');
+  const [hubSearchQuery, setHubSearchQuery] = useState<string>('');
+  const [hubStatusFilter, setHubStatusFilter] = useState<string>('all');
+  const [showProjectDropdown, setShowProjectDropdown] = useState<boolean>(false);
+  const [switcherSearch, setSwitcherSearch] = useState<string>('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const [data, setData] = useState<DesignStudioOverviewResponse>(INITIAL_DESIGN_OVERVIEW);
   const [selectedVisualId, setSelectedVisualId] = useState<string>('vis-1');
   const [activeViewerTab, setActiveViewerTab] = useState<'3d' | 'technical' | 'documents'>('3d');
@@ -357,12 +450,63 @@ export default function InteriorDesignStudioPage() {
   const [isTogglingLock, setIsTogglingLock] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Load projects list
   useEffect(() => {
+    let isMounted = true;
+    async function loadProjects() {
+      try {
+        const res = await fetch('/api/interior/projects', { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          const items = Array.isArray(json.data?.projects) ? (json.data.projects as InteriorProjectItem[]) : [];
+          if (isMounted) {
+            setProjectOptions(items);
+            setProjectsLoading(false);
+          }
+        } else {
+          if (isMounted) setProjectsLoading(false);
+        }
+      } catch {
+        if (isMounted) setProjectsLoading(false);
+      }
+    }
+    loadProjects();
+    return () => { isMounted = false; };
+  }, []);
+
+  // Sync selected project with URL query param if present
+  useEffect(() => {
+    const urlProjectId = searchParams.get('projectId');
+    if (urlProjectId && urlProjectId !== selectedProjectId) {
+      setSelectedProjectId(urlProjectId);
+    }
+  }, [searchParams, selectedProjectId]);
+
+  // Click outside to close Project Switcher dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowProjectDropdown(false);
+      }
+    }
+    if (showProjectDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showProjectDropdown]);
+
+  // Load design data whenever selectedProjectId changes
+  useEffect(() => {
+    if (!selectedProjectId) return;
     let isMounted = true;
 
     async function fetchDesignData() {
       try {
-        const res = await fetch('/api/interior/design');
+        const res = await fetch(`/api/interior/design?projectId=${encodeURIComponent(selectedProjectId || '')}`, {
+          cache: 'no-store',
+        });
         if (res.ok) {
           const json = await res.json();
           const incoming = json.data?.overview || json.data || json;
@@ -384,7 +528,54 @@ export default function InteriorDesignStudioPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [selectedProjectId]);
+
+  // Project navigation handlers
+  const handleSelectProject = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    setShowProjectDropdown(false);
+    const url = new URL(window.location.href);
+    url.searchParams.set('projectId', projectId);
+    window.history.pushState(null, '', url.toString());
+  };
+
+  const handleReturnToHub = () => {
+    setSelectedProjectId(null);
+    setShowProjectDropdown(false);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('projectId');
+    window.history.pushState(null, '', url.pathname);
+  };
+
+  // Filtered projects for the Project Hub
+  const filteredProjects = projectOptions.filter((p) => {
+    const matchesSearch =
+      !hubSearchQuery.trim() ||
+      p.name?.toLowerCase().includes(hubSearchQuery.toLowerCase()) ||
+      p.code?.toLowerCase().includes(hubSearchQuery.toLowerCase()) ||
+      (p.customer_name && p.customer_name.toLowerCase().includes(hubSearchQuery.toLowerCase())) ||
+      (p.client_name && p.client_name.toLowerCase().includes(hubSearchQuery.toLowerCase())) ||
+      (p.site_address && p.site_address.toLowerCase().includes(hubSearchQuery.toLowerCase()));
+
+    const matchesStatus =
+      hubStatusFilter === 'all' ||
+      (hubStatusFilter === 'in_progress' && (p.status === 'in_progress' || p.status === 'active' || p.status === 'design' || p.status === 'inquiry')) ||
+      (hubStatusFilter === 'approved' && p.status === 'approved') ||
+      (hubStatusFilter === 'production' && (p.status === 'production' || p.status === 'installation' || p.status === 'handover'));
+
+    return matchesSearch && matchesStatus;
+  });
+
+  // Filtered projects for the Quick Switcher dropdown inside Studio
+  const filteredSwitcherProjects = projectOptions.filter((p) => {
+    if (!switcherSearch.trim()) return true;
+    const q = switcherSearch.toLowerCase();
+    return (
+      p.name?.toLowerCase().includes(q) ||
+      p.code?.toLowerCase().includes(q) ||
+      (p.customer_name && p.customer_name.toLowerCase().includes(q))
+    );
+  });
 
   // Active Visual item selected
   const activeVisual: DesignVisualItem =
@@ -730,55 +921,444 @@ export default function InteriorDesignStudioPage() {
         </div>
       )}
 
-      {/* ─── Top Header: Breadcrumbs &amp; Search / User Bar ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-          <Link
-            href="/dashboard/interior/projects"
-            className="hover:text-slate-900 dark:hover:text-white transition-colors"
-          >
-            Dự án
-          </Link>
-          <span className="text-slate-400">›</span>
-          <span className="font-semibold text-slate-800 dark:text-slate-200">
-            {data.project.name} ({data.project.code})
-          </span>
-        </div>
-
-        {/* Search, Notifications &amp; User */}
-        <div className="flex items-center gap-3">
-          {/* Search Box */}
-          <div className="relative hidden md:block">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Tìm kiếm... (Ctrl + K)"
-              readOnly
-              className="w-56 pl-8 pr-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none cursor-pointer shadow-2xs"
-            />
+      {!selectedProjectId ? (
+        /* ─── 00. DESIGN STUDIO PROJECT HUB (GALLERY / LIST VIEW) ─── */
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Hub Top Bar: Breadcrumb & User Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200/80 dark:border-slate-800">
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+              <FolderOpen className="w-4 h-4 text-amber-500" />
+              <span>Dự án</span>
+              <span className="text-slate-300 dark:text-slate-700">›</span>
+              <span className="text-slate-900 dark:text-white font-bold">
+                Design Studio (Hồ sơ thiết kế)
+              </span>
+            </div>
+            <InteriorUserBar />
           </div>
 
-          {/* Top user profile & notifications */}
-          <InteriorUserBar />
-        </div>
-      </div>
+          {/* Hub Hero Header */}
+          <div className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-950 p-6 sm:p-8 rounded-3xl border border-amber-200/60 dark:border-amber-900/40 relative overflow-hidden shadow-xs">
+            <div className="max-w-2xl relative z-10 space-y-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs font-bold">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span>Không gian Thiết kế & Hồ sơ Kỹ thuật</span>
+              </div>
+              <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+                Design Studio — Danh mục Công trình
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                Chọn công trình để mở hồ sơ chi tiết gồm phối cảnh 3D Render, bản vẽ kỹ thuật 2D CAD (DWG/PDF), danh mục vật liệu và quản lý khóa phiên bản (Approved Design Lock).
+              </p>
+            </div>
+          </div>
 
-      {/* ─── Project Title &amp; Action Buttons Row ─── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Title &amp; Status Badge */}
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            {data.project.name}
-          </h1>
-          <button
-            type="button"
-            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${data.project.statusBadgeClass} transition-colors`}
-          >
-            <span>{data.project.statusLabel}</span>
-            <ChevronDown className="w-3 h-3 ml-0.5" />
-          </button>
+          {/* Controls: Search, Filter Tabs & View Toggle (Gallery / List) */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+            {/* Search Input */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Tìm theo tên dự án, mã INT/PRJ, khách hàng..."
+                value={hubSearchQuery}
+                onChange={(e) => setHubSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              />
+              {hubSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setHubSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Filter Pills & View Switcher */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              {/* Status Filters */}
+              <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                {[
+                  { key: 'all', label: `Tất cả (${projectOptions.length})` },
+                  { key: 'in_progress', label: 'Đang thiết kế' },
+                  { key: 'approved', label: 'Đã duyệt' },
+                  { key: 'production', label: 'Sản xuất / Thi công' },
+                ].map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => setHubStatusFilter(f.key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      hubStatusFilter === f.key
+                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* View Switcher: Gallery vs List */}
+              <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('gallery')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    viewMode === 'gallery'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                  title="Chế độ xem Gallery (Thẻ ảnh 3D)"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Gallery</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('list')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    viewMode === 'list'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                  title="Chế độ xem Danh sách bảng"
+                >
+                  <ListIcon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Danh sách</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Content: Gallery Mode or List Mode */}
+          {projectsLoading ? (
+            <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+              <p className="text-xs font-medium">Đang tải danh mục dự án...</p>
+            </div>
+          ) : filteredProjects.length === 0 ? (
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 space-y-3">
+              <FolderOpen className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                Không tìm thấy dự án nào phù hợp với bộ lọc
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setHubSearchQuery('');
+                  setHubStatusFilter('all');
+                }}
+                className="px-4 py-2 rounded-xl bg-amber-600 text-white text-xs font-bold hover:bg-amber-700 transition-colors"
+              >
+                Đặt lại bộ lọc
+              </button>
+            </div>
+          ) : viewMode === 'gallery' ? (
+            /* ─── GALLERY VIEW (CARDS WITH 3D RENDERS) ─── */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProjects.map((p, idx) => {
+                const cover = getProjectCoverImage(idx);
+                const statusLabel = formatProjectStatusLabel(p.status);
+                const statusBadge = formatProjectStatusBadge(p.status);
+                const budgetStr = formatBudgetDisplay(p.estimated_budget || p.contract_value);
+
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() => handleSelectProject(p.id)}
+                    className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 overflow-hidden shadow-xs hover:shadow-xl hover:border-amber-400/60 dark:hover:border-amber-500/40 transition-all duration-300 flex flex-col cursor-pointer transform hover:-translate-y-1"
+                  >
+                    {/* Card Cover Image */}
+                    <div className="relative aspect-video w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                      <img
+                        src={cover}
+                        alt={p.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/30" />
+
+                      {/* Top Badges */}
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                        <span className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white font-mono text-[11px] font-bold border border-white/20">
+                          {p.code}
+                        </span>
+                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold backdrop-blur-md border ${statusBadge}`}>
+                          {statusLabel}
+                        </span>
+                      </div>
+
+                      {/* Bottom Info Overlay */}
+                      <div className="absolute bottom-3 left-3 right-3 text-white">
+                        <p className="text-[11px] font-medium text-amber-300 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate">{p.site_address || 'TP. Hồ Chí Minh'}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Card Content */}
+                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                      <div className="space-y-1.5">
+                        <h3 className="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors line-clamp-1">
+                          {p.name}
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                          Khách hàng: <strong className="text-slate-700 dark:text-slate-300">{p.customer_name || p.client_name || 'Khách hàng'}</strong>
+                        </p>
+                      </div>
+
+                      {/* Quick Metrics */}
+                      <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-center">
+                        <div className="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl">
+                          <span className="block text-[10px] uppercase font-bold text-slate-400">3D Render</span>
+                          <span className="text-xs font-black text-slate-800 dark:text-slate-200">5 views</span>
+                        </div>
+                        <div className="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl">
+                          <span className="block text-[10px] uppercase font-bold text-slate-400">Bản vẽ CAD</span>
+                          <span className="text-xs font-black text-slate-800 dark:text-slate-200">3 DWG</span>
+                        </div>
+                        <div className="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl">
+                          <span className="block text-[10px] uppercase font-bold text-slate-400">Dự toán</span>
+                          <span className="text-xs font-black text-amber-600 dark:text-amber-400">{budgetStr}</span>
+                        </div>
+                      </div>
+
+                      {/* Action Button */}
+                      <div className="pt-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectProject(p.id);
+                          }}
+                          className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-amber-600 dark:bg-slate-800 dark:hover:bg-amber-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        >
+                          <span>Mở Design Studio</span>
+                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* ─── LIST VIEW (TABLE) ─── */
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">
+                    <tr>
+                      <th className="py-3 px-4">Dự án & Mã</th>
+                      <th className="py-3 px-4">Khách hàng & Địa điểm</th>
+                      <th className="py-3 px-4">Trạng thái thiết kế</th>
+                      <th className="py-3 px-4">KTS Chủ trì</th>
+                      <th className="py-3 px-4">Dự toán</th>
+                      <th className="py-3 px-4 text-right">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {filteredProjects.map((p, idx) => {
+                      const cover = getProjectCoverImage(idx);
+                      const statusLabel = formatProjectStatusLabel(p.status);
+                      const statusBadge = formatProjectStatusBadge(p.status);
+                      const budgetStr = formatBudgetDisplay(p.estimated_budget || p.contract_value);
+
+                      return (
+                        <tr
+                          key={p.id}
+                          onClick={() => handleSelectProject(p.id)}
+                          className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                        >
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={cover}
+                                alt={p.name}
+                                className="w-12 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-slate-700"
+                              />
+                              <div className="min-w-0">
+                                <p className="font-bold text-slate-900 dark:text-white truncate group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                                  {p.name}
+                                </p>
+                                <span className="font-mono text-[10px] text-slate-400">
+                                  {p.code}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
+                            <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                              {p.customer_name || p.client_name || 'Khách hàng'}
+                            </p>
+                            <p className="text-[10px] text-slate-400 truncate">
+                              {p.site_address || 'TP. Hồ Chí Minh'}
+                            </p>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusBadge}`}>
+                              {statusLabel}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
+                            {p.lead_architect_name || p.leadArchitect || 'KTS. Bella Interior'}
+                          </td>
+                          <td className="py-3 px-4 font-bold text-amber-600 dark:text-amber-400">
+                            {budgetStr}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelectProject(p.id);
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-amber-600 dark:bg-slate-800 dark:hover:bg-amber-600 text-slate-700 hover:text-white dark:text-slate-300 dark:hover:text-white font-bold text-xs inline-flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <span>Vào Studio</span>
+                              <ArrowRight className="w-3 h-3" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
+      ) : (
+        /* ─── 01. DESIGN STUDIO WORKSPACE (PROJECT SPECIFIC VIEW) ─── */
+        <>
+          {/* ─── Top Header: Breadcrumbs & Search / User Bar ─── */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
+            {/* Breadcrumb with Back to Hub button */}
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+              <button
+                type="button"
+                onClick={handleReturnToHub}
+                className="hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1 font-semibold text-slate-600 dark:text-slate-300 cursor-pointer"
+                title="Quay lại danh sách dự án (Gallery / List)"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Danh sách dự án</span>
+              </button>
+              <span className="text-slate-400">›</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                {data.project.name} ({data.project.code})
+              </span>
+            </div>
+
+            {/* Search, Notifications & User */}
+            <div className="flex items-center gap-3">
+              {/* Search Box */}
+              <div className="relative hidden md:block">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm... (Ctrl + K)"
+                  readOnly
+                  className="w-56 pl-8 pr-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none cursor-pointer shadow-2xs"
+                />
+              </div>
+
+              {/* Top user profile & notifications */}
+              <InteriorUserBar />
+            </div>
+          </div>
+
+          {/* ─── Project Title & Action Buttons Row (Interactive Project Switcher!) ─── */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* Title, Switcher Dropdown & Status Badge */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative inline-block" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowProjectDropdown((prev) => !prev)}
+                  className="flex items-center gap-2.5 px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-2xl text-slate-900 dark:text-white border border-slate-200/90 dark:border-slate-800 shadow-xs transition-all cursor-pointer group"
+                  title="Bấm để chọn chuyển đổi sang dự án khác"
+                >
+                  <Building className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <div className="text-left">
+                    <span className="block text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                      Dự án thiết kế
+                    </span>
+                    <span className="text-lg sm:text-xl font-extrabold tracking-tight truncate max-w-[280px] sm:max-w-[420px] block leading-tight">
+                      {data.project.name}
+                    </span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform duration-200 ${showProjectDropdown ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showProjectDropdown && (
+                  <div className="absolute top-full left-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-1">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800">
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder="Tìm kiếm dự án..."
+                          value={switcherSearch}
+                          onChange={(e) => setSwitcherSearch(e.target.value)}
+                          className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+
+                    <div className="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 p-1">
+                      {filteredSwitcherProjects.map((p) => {
+                        const isCurrent = p.id === selectedProjectId;
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => handleSelectProject(p.id)}
+                            className={`w-full text-left px-3 py-2.5 rounded-xl transition-colors flex items-center justify-between gap-2 cursor-pointer ${
+                              isCurrent
+                                ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 font-bold'
+                                : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'
+                            }`}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs truncate font-semibold text-slate-900 dark:text-white">
+                                {p.name}
+                              </p>
+                              <p className="text-[10px] text-slate-400 mt-0.5 truncate">
+                                {p.code} • {p.customer_name || 'Khách hàng'} • {formatBudgetDisplay(p.estimated_budget)}
+                              </p>
+                            </div>
+                            {isCurrent && (
+                              <Check className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800">
+                      <button
+                        type="button"
+                        onClick={handleReturnToHub}
+                        className="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <LayoutGrid className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Xem tất cả dự án (Gallery / List)</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border ${data.project.statusBadgeClass}`}>
+                {data.project.statusLabel}
+              </span>
+            </div>
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
@@ -2127,6 +2707,22 @@ export default function InteriorDesignStudioPage() {
           </div>
         </div>
       )}
+        </>
+      )}
     </div>
+  );
+}
+
+export default function InteriorDesignStudioPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-950 flex items-center justify-center text-slate-400">
+          <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+        </div>
+      }
+    >
+      <InteriorDesignStudioContent />
+    </Suspense>
   );
 }

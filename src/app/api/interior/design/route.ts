@@ -11,6 +11,40 @@ import type {
 
 export const dynamic = 'force-dynamic';
 
+function formatStatusLabel(status: string): string {
+  switch (status) {
+    case 'inquiry': return 'Khảo sát / Tiếp nhận';
+    case 'design': return 'Đang thiết kế';
+    case 'approved': return 'Đã duyệt thiết kế';
+    case 'production': return 'Sản xuất xưởng';
+    case 'installation': return 'Thi công lắp đặt';
+    case 'handover': return 'Nghiệm thu bàn giao';
+    case 'completed': return 'Hoàn thành';
+    case 'cancelled': return 'Đã hủy';
+    case 'active':
+    case 'in_progress':
+    default: return 'Đang thực hiện';
+  }
+}
+
+function formatStatusBadge(status: string): string {
+  switch (status) {
+    case 'approved':
+    case 'completed':
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800';
+    case 'production':
+    case 'installation':
+      return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800';
+    case 'inquiry':
+    case 'design':
+      return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800';
+    case 'cancelled':
+      return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800';
+    default:
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800';
+  }
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
   if (!ctx.ok) return ctx.response;
@@ -33,10 +67,45 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     if (effectiveProjectId) {
       const rpc = interiorRbacRpcClient(ctx.supabase);
-      const [revisionResult, roomZoneResult] = await Promise.all([
+      const [revisionResult, roomZoneResult, projectsResult] = await Promise.all([
         rpc.rpc('interior_list_design_revisions', { p_project_id: effectiveProjectId }),
         rpc.rpc('interior_list_room_zones', { p_project_id: effectiveProjectId }),
+        rpc.rpc('interior_list_projects'),
       ]);
+
+      let finalOverview = overview;
+      const allProjects = Array.isArray(projectsResult.data) ? projectsResult.data : [];
+      const projectRow = allProjects.find(
+        (p) => typeof p === 'object' && p !== null && (p as { id?: string }).id === effectiveProjectId
+      ) as Record<string, unknown> | undefined;
+
+      if (projectRow) {
+        const pCode = typeof projectRow.code === 'string' ? projectRow.code : 'INT-PROJECT';
+        const pName = typeof projectRow.name === 'string' ? projectRow.name : 'Dự án nội thất';
+        const pStatus = typeof projectRow.status === 'string' ? projectRow.status : 'in_progress';
+        const pCustomer = typeof projectRow.customer_name === 'string' ? projectRow.customer_name : 'Khách hàng';
+        const budgetNum = Number(projectRow.estimated_budget) || 0;
+        const budgetFormatted = budgetNum >= 1_000_000_000
+          ? `${(budgetNum / 1_000_000_000).toFixed(2).replace(/\.?0+$/, '')} tỷ`
+          : budgetNum >= 1_000_000
+          ? `${(budgetNum / 1_000_000).toFixed(0)} triệu`
+          : `${budgetNum.toLocaleString('vi-VN')} đ`;
+
+        finalOverview = {
+          ...overview,
+          project: {
+            id: effectiveProjectId,
+            code: pCode,
+            name: pName,
+            breadcrumbLabel: `Dự án > ${pName} (${pCode})`,
+            status: pStatus,
+            statusLabel: formatStatusLabel(pStatus),
+            statusBadgeClass: formatStatusBadge(pStatus),
+            clientName: pCustomer,
+            contractValueFormatted: budgetFormatted,
+          },
+        };
+      }
 
       const revisions = Array.isArray(revisionResult.data)
         ? revisionResult.data.filter(isInteriorRbacRecord)
@@ -51,7 +120,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           projectId: effectiveProjectId,
           revisions,
           roomZones,
-          overview,
+          overview: finalOverview,
         },
       }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
     }
