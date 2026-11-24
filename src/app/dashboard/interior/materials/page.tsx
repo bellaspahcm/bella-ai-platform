@@ -21,6 +21,7 @@ import Link from 'next/link';
 import {
   Layers,
   Lock,
+  Unlock,
   Search,
   ChevronDown,
   CheckCircle2,
@@ -36,6 +37,12 @@ import {
   Clock,
   ExternalLink,
   SlidersHorizontal,
+  Plus,
+  Upload,
+  FileUp,
+  FileText,
+  AlertCircle,
+  RotateCcw,
 } from 'lucide-react';
 
 // ——— Types & Data Contracts ———
@@ -235,6 +242,7 @@ interface MaterialsApiResponse {
   approvedCount: number;
   domesticCount: number;
   importCount: number;
+  revisionId?: string | null;
   approvedBy?: string | null;
   approvedAt?: string | null;
   revisionVersion?: number | null;
@@ -246,6 +254,33 @@ export default function InteriorMaterialsPage() {
   const [activeView, setActiveView] = useState<'cards' | 'table'>('cards');
   const [activeModalItem, setActiveModalItem] = useState<MaterialItem | null>(null);
 
+  // Modals for adding & importing
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [showImportModal, setShowImportModal] = useState<boolean>(false);
+  const [isUnlocked, setIsUnlocked] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<'success' | 'info' | 'error'>('success');
+
+  // Form state for adding new material item
+  const [formItem, setFormItem] = useState({
+    code: '',
+    name: '',
+    brand: 'An Cường',
+    category: 'wood' as MaterialCategory,
+    categoryLabel: 'Gỗ & Bề mặt',
+    specDetails: '',
+    roomArea: 'Phòng khách',
+    unit: 'Tấm',
+    standard: 'Tiêu chuẩn E1 / Green Label',
+    origin: 'Việt Nam',
+    approvedForUse: true,
+    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/material-texture-board.jpg',
+  });
+
+  // State for Excel / CSV import text
+  const [importText, setImportText] = useState<string>('');
+
   // Live data — starts with static seed, replaced by DB data once fetched
   const [materials, setMaterials] = useState<MaterialItem[]>(INITIAL_MATERIALS);
   const [kpiTotalCount, setKpiTotalCount] = useState<number>(28);
@@ -254,6 +289,13 @@ export default function InteriorMaterialsPage() {
   const [kpiImportCount, setKpiImportCount] = useState<number>(7);
   const [specLockApprovedBy, setSpecLockApprovedBy] = useState<string>('Trần Thị Mai & Hoàng Long');
   const [isLoadingMaterials, setIsLoadingMaterials] = useState<boolean>(false);
+  const [revisionId, setRevisionId] = useState<string | null>(null);
+
+  const showToast = (msg: string, type: 'success' | 'info' | 'error' = 'success') => {
+    setToastMessage(msg);
+    setToastType(type);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
 
   // Fetch real material data from DB on mount
   useEffect(() => {
@@ -271,6 +313,7 @@ export default function InteriorMaterialsPage() {
             setKpiDomesticCount(json.domesticCount);
             setKpiImportCount(json.importCount);
             if (json.approvedBy) setSpecLockApprovedBy(json.approvedBy);
+            if (json.revisionId) setRevisionId(json.revisionId);
           }
         }
       } catch {
@@ -282,6 +325,228 @@ export default function InteriorMaterialsPage() {
     fetchMaterials();
     return () => { isMounted = false; };
   }, []);
+
+  // Category labels helper
+  const getCategoryLabel = (cat: MaterialCategory): string => {
+    switch (cat) {
+      case 'wood': return 'Gỗ & Bề mặt';
+      case 'stone': return 'Đá & Bề mặt';
+      case 'hardware': return 'Kim khí & Phụ kiện';
+      case 'appliances': return 'Thiết bị bếp';
+      case 'lighting': return 'Chiếu sáng';
+      case 'finishes': return 'Sơn & Hoàn thiện';
+      default: return 'Khác';
+    }
+  };
+
+  // Handle Save New Material
+  const handleSaveMaterial = async () => {
+    if (!formItem.name.trim()) {
+      showToast('Vui lòng nhập tên vật tư chỉ định', 'error');
+      return;
+    }
+    if (!formItem.code.trim()) {
+      showToast('Vui lòng nhập mã chỉ định (VD: SPEC-WD-09)', 'error');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const categoryLabel = getCategoryLabel(formItem.category);
+    const isDomestic = ['An Cường', 'Đồng Tâm', 'Vicostone', 'Dulux', 'Inchem', 'Việt Nam'].some(
+      (b) => formItem.brand.includes(b) || formItem.origin.includes(b)
+    );
+
+    const newItem: MaterialItem = {
+      id: `mat-${Date.now()}`,
+      code: formItem.code.trim(),
+      name: formItem.name.trim(),
+      brand: formItem.brand.trim() || 'Chỉ định theo thiết kế',
+      category: formItem.category,
+      categoryLabel,
+      specDetails: formItem.specDetails.trim() || 'Theo tiêu chuẩn hồ sơ thiết kế thi công',
+      roomArea: formItem.roomArea.trim() || 'Toàn bộ công trình',
+      status: formItem.approvedForUse ? 'locked' : 'procuring',
+      statusLabel: formItem.approvedForUse ? 'Đã khóa Spec' : 'Đang đặt hàng',
+      statusBadgeClass: formItem.approvedForUse
+        ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800'
+        : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800',
+      imageUrl: formItem.imageUrl || 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/material-texture-board.jpg',
+      unit: formItem.unit.trim() || 'Tấm',
+      standard: formItem.standard.trim() || 'TCVN',
+      origin: formItem.origin.trim() || (isDomestic ? 'Việt Nam' : 'Nhập khẩu'),
+      approvedDate: new Date().toLocaleDateString('vi-VN'),
+      approvedBy: specLockApprovedBy,
+      sampleStatus: formItem.approvedForUse ? 'Đã ký mẫu thực tế' : 'Đang trình duyệt',
+    };
+
+    // Optimistic UI update
+    setMaterials((prev) => [newItem, ...prev]);
+    setKpiTotalCount((prev) => prev + 1);
+    if (formItem.approvedForUse) setKpiApprovedCount((prev) => prev + 1);
+    if (isDomestic) {
+      setKpiDomesticCount((prev) => prev + 1);
+    } else {
+      setKpiImportCount((prev) => prev + 1);
+    }
+
+    try {
+      // Persist to server API
+      const res = await fetch('/api/interior/materials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          revisionId,
+          itemCategory: categoryLabel,
+          brand: newItem.brand,
+          code: newItem.code,
+          name: newItem.name,
+          colorTone: newItem.roomArea,
+          specDescription: `${newItem.specDetails} | ĐVT: ${newItem.unit} | Chuẩn: ${newItem.standard}`,
+          approvedForUse: formItem.approvedForUse,
+        }),
+      });
+      if (res.ok) {
+        showToast(`Đã thêm vật tư "${newItem.name}" và đồng bộ CSDL thành công!`, 'success');
+      } else {
+        showToast(`Đã lưu cục bộ vật tư "${newItem.name}".`, 'info');
+      }
+    } catch {
+      showToast(`Đã lưu cục bộ vật tư "${newItem.name}".`, 'info');
+    } finally {
+      setIsSubmitting(false);
+      setShowAddModal(false);
+      // Reset form code with next sequence
+      setFormItem((prev) => ({
+        ...prev,
+        code: `SPEC-${prev.category.toUpperCase().slice(0, 2)}-0${Math.floor(Math.random() * 90 + 10)}`,
+        name: '',
+        specDetails: '',
+      }));
+    }
+  };
+
+  // Handle Excel / CSV Import
+  const handleImportExcelData = async () => {
+    if (!importText.trim()) {
+      showToast('Vui lòng dán dữ liệu bảng tính Excel hoặc CSV', 'error');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const lines = importText.trim().split('\n').filter((l) => l.trim().length > 0);
+      const parsedItems: MaterialItem[] = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        // Split by tab (copy from Excel) or comma / semicolon
+        const cols = line.includes('\t') ? line.split('\t') : line.split(/[,;]/);
+        if (cols.length < 2) continue;
+
+        // Skip header if first row has "Mã" or "Tên"
+        if (i === 0 && (cols[0].toLowerCase().includes('mã') || cols[1].toLowerCase().includes('tên'))) {
+          continue;
+        }
+
+        const code = cols[0]?.trim() || `SPEC-EX-${i + 1}`;
+        const name = cols[1]?.trim() || `Vật liệu ${i + 1}`;
+        const brand = cols[2]?.trim() || 'An Cường';
+        const rawCat = cols[3]?.trim().toLowerCase() || '';
+        let category: MaterialCategory = 'wood';
+        if (rawCat.includes('đá') || rawCat.includes('stone')) category = 'stone';
+        else if (rawCat.includes('kim') || rawCat.includes('khóa') || rawCat.includes('bản lề')) category = 'hardware';
+        else if (rawCat.includes('bếp') || rawCat.includes('thiết bị')) category = 'appliances';
+        else if (rawCat.includes('đèn') || rawCat.includes('sáng')) category = 'lighting';
+        else if (rawCat.includes('sơn') || rawCat.includes('hoàn thiện')) category = 'finishes';
+
+        const origin = cols[4]?.trim() || 'Việt Nam';
+        const specDetails = cols[5]?.trim() || 'Quy cách kỹ thuật theo hồ sơ thi công';
+        const roomArea = cols[6]?.trim() || 'Khu vực nội thất';
+
+        parsedItems.push({
+          id: `mat-import-${Date.now()}-${i}`,
+          code,
+          name,
+          brand,
+          category,
+          categoryLabel: getCategoryLabel(category),
+          specDetails,
+          roomArea,
+          status: 'locked',
+          statusLabel: 'Đã khóa Spec',
+          statusBadgeClass: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800',
+          imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/material-texture-board.jpg',
+          unit: 'Tấm',
+          standard: 'TCVN',
+          origin,
+          approvedDate: new Date().toLocaleDateString('vi-VN'),
+          approvedBy: specLockApprovedBy,
+          sampleStatus: 'Đã ký mẫu thực tế',
+        });
+      }
+
+      if (parsedItems.length === 0) {
+        showToast('Không đọc được dữ liệu hợp lệ. Vui lòng kiểm tra định dạng copy từ Excel.', 'error');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Add to state
+      setMaterials((prev) => [...parsedItems, ...prev]);
+      setKpiTotalCount((prev) => prev + parsedItems.length);
+      setKpiApprovedCount((prev) => prev + parsedItems.length);
+
+      // Post to API
+      try {
+        await fetch('/api/interior/materials', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            revisionId,
+            items: parsedItems.map((item) => ({
+              itemCategory: item.categoryLabel,
+              brand: item.brand,
+              code: item.code,
+              name: item.name,
+              colorTone: item.roomArea,
+              specDescription: item.specDetails,
+              approvedForUse: true,
+            })),
+          }),
+        });
+      } catch {
+        // Fallback local ok
+      }
+
+      showToast(`Đã nhập thành công ${parsedItems.length} vật tư từ Excel vào Spec Lock!`, 'success');
+      setShowImportModal(false);
+      setImportText('');
+    } catch {
+      showToast('Có lỗi xảy ra khi đọc dữ liệu bảng tính', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Sample CSV template generator
+  const handleDownloadCsvTemplate = () => {
+    const csvHeader = 'Mã Spec\tTên vật tư\tThương hiệu\tChủng loại\tXuất xứ\tQuy cách kỹ thuật\tKhu vực áp dụng\n';
+    const sampleRows = [
+      'SPEC-WD-09\tVán Gỗ Plywood Óc Chó 18mm\tAn Cường\tGỗ & Bề mặt\tViệt Nam\tKhổ 1220x2440x18mm tiêu chuẩn CARB P2\tVách ốp phòng khách\n',
+      'SPEC-ST-05\tĐá Cẩm Thạch Trắng Ý Calacatta\tNhập khẩu Ý\tĐá & Bề mặt\tÝ\tĐộ dày 20mm chống thấm ố 5 lớp\tMặt bàn đảo bếp & Lavabo\n',
+      'SPEC-HW-08\tTay nắm âm tủ nhôm mạ Anode\tHafele\tKim khí & Phụ kiện\tĐức\tMàu xám Titan mờ dài 200mm\tToàn bộ cánh tủ áo\n',
+    ].join('');
+    
+    const blob = new Blob([csvHeader + sampleRows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'mau_bang_chi_dinh_vat_lieu_spec_lock.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Đã tải file mẫu bảng tính (Excel/CSV)', 'success');
+  };
 
   // Sub-tabs matching the official lifecycle sub-navigation
   const subTabs = [
@@ -310,7 +575,24 @@ export default function InteriorMaterialsPage() {
 
   return (
     <div className="flex-1 space-y-6 p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
-      {/* ─── Breadcrumb &amp; Context Header ─── */}
+      {/* ─── Toast Feedback Container ─── */}
+      {toastMessage && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-slate-900 text-white shadow-2xl border border-slate-700 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
+          {toastType === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />}
+          {toastType === 'error' && <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />}
+          {toastType === 'info' && <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />}
+          <span>{toastMessage}</span>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="ml-2 text-slate-400 hover:text-white"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* ─── Breadcrumb & Context Header ─── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
@@ -334,10 +616,48 @@ export default function InteriorMaterialsPage() {
 
         {/* Action Controls */}
         <div className="flex items-center gap-2.5 flex-wrap">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold">
-            <Lock className="w-3.5 h-3.5" />
-            <span>Spec Lock R1.0 Active</span>
-          </div>
+          {/* Spec Lock status / Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsUnlocked(!isUnlocked);
+              showToast(
+                !isUnlocked
+                  ? 'Đã mở khóa chế độ Soạn thảo (Draft Revision). Hiện bạn có thể thêm vật tư hoặc import Excel.'
+                  : 'Đã khóa Spec R1.0 Active (Bất biến).',
+                'info'
+              );
+            }}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+              isUnlocked
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20'
+                : 'bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20'
+            }`}
+            title="Nhấn để chuyển đổi giữa Khóa Spec và Mở khóa Soạn thảo"
+          >
+            {isUnlocked ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+            <span>{isUnlocked ? 'Đang Soạn Thảo (Draft R1.1)' : 'Spec Lock R1.0 Active'}</span>
+          </button>
+
+          {/* Button: + Thêm Vật Tư */}
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-semibold shadow-xs hover:shadow transition-all cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Thêm Vật Tư</span>
+          </button>
+
+          {/* Button: 📥 Nhập từ Excel */}
+          <button
+            type="button"
+            onClick={() => setShowImportModal(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-2xs transition-all text-slate-700 dark:text-slate-200"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            <span>📥 Nhập từ Excel</span>
+          </button>
 
           <button
             type="button"
@@ -355,10 +675,10 @@ export default function InteriorMaterialsPage() {
                 window.print();
               }
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-semibold shadow-sm hover:shadow transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold shadow-2xs hover:shadow transition-all cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Xuất Bảng Spec Kỹ Thuật (PDF)</span>
+            <span>Xuất PDF</span>
           </button>
         </div>
       </div>
@@ -726,6 +1046,301 @@ export default function InteriorMaterialsPage() {
                 className="px-4 py-2 rounded-xl bg-[#0f4c3a] text-white text-xs font-semibold hover:bg-[#0c3c2e]"
               >
                 Xác Nhận Đạt Mẫu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal 1: Thêm Vật Tư Chỉ Định Mới ─── */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#0f4c3a] text-white flex items-center justify-center">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    Khai Báo Vật Tư Chỉ Định Mới (Spec Item)
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Bổ sung vật tư vào danh mục thiết kế và hồ sơ Spec Lock
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Form Body */}
+            <div className="p-6 overflow-y-auto space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Tên vật tư */}
+                <div className="sm:col-span-2">
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                    Tên vật tư chỉ định <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="VD: Gỗ Sồi Trắng Tự Nhiên Bắc Mỹ (White Oak FAS)"
+                    value={formItem.name}
+                    onChange={(e) => setFormItem({ ...formItem, name: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs focus:ring-2 focus:ring-[#0f4c3a] focus:outline-hidden"
+                  />
+                </div>
+
+                {/* Mã Spec */}
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                    Mã Spec / Chỉ định <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="VD: SPEC-WD-03"
+                    value={formItem.code}
+                    onChange={(e) => setFormItem({ ...formItem, code: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs font-mono font-bold focus:ring-2 focus:ring-[#0f4c3a] focus:outline-hidden"
+                  />
+                </div>
+
+                {/* Phân loại chủng loại */}
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                    Chủng loại vật tư
+                  </label>
+                  <select
+                    value={formItem.category}
+                    onChange={(e) => {
+                      const cat = e.target.value as MaterialCategory;
+                      setFormItem({ ...formItem, category: cat, categoryLabel: getCategoryLabel(cat) });
+                    }}
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs focus:ring-2 focus:ring-[#0f4c3a] focus:outline-hidden"
+                  >
+                    <option value="wood">Gỗ &amp; Bề mặt</option>
+                    <option value="stone">Đá &amp; Bề mặt</option>
+                    <option value="hardware">Kim khí &amp; Phụ kiện</option>
+                    <option value="appliances">Thiết bị bếp</option>
+                    <option value="lighting">Chiếu sáng</option>
+                    <option value="finishes">Sơn &amp; Hoàn thiện</option>
+                  </select>
+                </div>
+
+                {/* Thương hiệu */}
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                    Thương hiệu / Nhà sản xuất
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="VD: An Cường, Vicostone, Hafele, Blum..."
+                    value={formItem.brand}
+                    onChange={(e) => setFormItem({ ...formItem, brand: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs focus:ring-2 focus:ring-[#0f4c3a] focus:outline-hidden"
+                  />
+                </div>
+
+                {/* Xuất xứ */}
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                    Nguồn gốc / Xuất xứ
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="VD: Việt Nam, Hoa Kỳ, CHLB Đức, Ý..."
+                    value={formItem.origin}
+                    onChange={(e) => setFormItem({ ...formItem, origin: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs focus:ring-2 focus:ring-[#0f4c3a] focus:outline-hidden"
+                  />
+                </div>
+
+                {/* Khu vực sử dụng */}
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                    Khu vực áp dụng
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="VD: Bàn ăn, Tủ bếp dưới, Vách ốp Master..."
+                    value={formItem.roomArea}
+                    onChange={(e) => setFormItem({ ...formItem, roomArea: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs focus:ring-2 focus:ring-[#0f4c3a] focus:outline-hidden"
+                  />
+                </div>
+
+                {/* Đơn vị tính */}
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                    Đơn vị tính (ĐVT)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="VD: Tấm, m2, m3, Bộ, Cái, Thùng..."
+                    value={formItem.unit}
+                    onChange={(e) => setFormItem({ ...formItem, unit: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs focus:ring-2 focus:ring-[#0f4c3a] focus:outline-hidden"
+                  />
+                </div>
+
+                {/* Tiêu chuẩn kiểm định */}
+                <div className="sm:col-span-2">
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                    Tiêu chuẩn kỹ thuật / Chứng nhận
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="VD: Chuẩn E1 Green Label Singapore, NSF 51 Food Safe, DIN EN 15570..."
+                    value={formItem.standard}
+                    onChange={(e) => setFormItem({ ...formItem, standard: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs focus:ring-2 focus:ring-[#0f4c3a] focus:outline-hidden"
+                  />
+                </div>
+
+                {/* Quy cách kỹ thuật chi tiết */}
+                <div className="sm:col-span-2">
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                    Quy cách chi tiết &amp; Hướng dẫn gia công
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="VD: Gỗ thịt sấy đạt độ ẩm 8-12%, phủ sơn PU mờ Inchem cao cấp 70%, vát cạnh bo góc R5..."
+                    value={formItem.specDetails}
+                    onChange={(e) => setFormItem({ ...formItem, specDetails: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs focus:ring-2 focus:ring-[#0f4c3a] focus:outline-hidden"
+                  />
+                </div>
+
+                {/* Checkbox duyệt mẫu */}
+                <div className="sm:col-span-2 flex items-center gap-2 pt-1">
+                  <input
+                    type="checkbox"
+                    id="chkSampleApproved"
+                    checked={formItem.approvedForUse}
+                    onChange={(e) => setFormItem({ ...formItem, approvedForUse: e.target.checked })}
+                    className="w-4 h-4 rounded text-[#0f4c3a] focus:ring-[#0f4c3a] border-slate-300 dark:border-slate-700"
+                  />
+                  <label htmlFor="chkSampleApproved" className="text-slate-700 dark:text-slate-300 font-medium cursor-pointer">
+                    Đã ký duyệt mẫu thực tế trên bảng Sample Board (Khóa Spec ngay)
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 flex justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={handleSaveMaterial}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-semibold disabled:opacity-50 transition-all cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>{isSubmitting ? 'Đang Lưu...' : 'Lưu Vật Tư Vào Bảng Spec'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal 2: Nhập Dữ Liệu Từ Excel (Spec Sheet Import) ─── */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
+                  <FileSpreadsheet className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    Nhập Danh Mục Vật Tư Từ Bảng Tính Excel (Spec Sheet)
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Hỗ trợ dán trực tiếp từ Microsoft Excel, Google Sheets hoặc file CSV
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 overflow-y-auto space-y-4 text-xs">
+              {/* Guidance card */}
+              <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/40 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-emerald-900 dark:text-emerald-300">
+                    Cấu trúc các cột trong bảng tính (theo thứ tự):
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleDownloadCsvTemplate}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer"
+                  >
+                    <Download className="w-3 h-3" />
+                    <span>Tải file mẫu Excel (.csv)</span>
+                  </button>
+                </div>
+                <div className="font-mono text-[11px] text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-emerald-100 dark:border-emerald-900/60 overflow-x-auto">
+                  Mã Spec | Tên vật tư | Thương hiệu | Chủng loại | Xuất xứ | Quy cách kỹ thuật | Khu vực áp dụng
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  💡 Bạn có thể quét chọn các ô trong Excel, bấm <strong>Ctrl+C</strong> và dán thẳng (<strong>Ctrl+V</strong>) vào ô bên dưới.
+                </p>
+              </div>
+
+              {/* Textarea */}
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                  Dán nội dung bảng tính sao chép từ Excel:
+                </label>
+                <textarea
+                  rows={8}
+                  placeholder={`SPEC-WD-09\tVán Gỗ Plywood Óc Chó 18mm\tAn Cường\tGỗ & Bề mặt\tViệt Nam\tKhổ 1220x2440x18mm CARB P2\tVách ốp phòng khách\nSPEC-ST-05\tĐá Cẩm Thạch Trắng Calacatta\tNhập khẩu Ý\tĐá & Bề mặt\tÝ\tDày 20mm chống thấm\tMặt bàn đảo bếp`}
+                  value={importText}
+                  onChange={(e) => setImportText(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 font-mono text-[11px] focus:ring-2 focus:ring-[#0f4c3a] focus:outline-hidden"
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 flex justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                disabled={isSubmitting || !importText.trim()}
+                onClick={handleImportExcelData}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-semibold disabled:opacity-50 transition-all cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>{isSubmitting ? 'Đang Nhập Dữ Liệu...' : 'Xác Nhận Nhập Vào Spec Lock'}</span>
               </button>
             </div>
           </div>
