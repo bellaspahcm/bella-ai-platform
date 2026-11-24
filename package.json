@@ -183,7 +183,7 @@
     "html-to-image": "^1.11.13",
     "ioredis": "^5.11.1",
     "lucide-react": "^1.20.0",
-    "next": "^16.4.1",
+    "next": "^16.4.6",
     "next-themes": "^0.4.6",
     "nodemailer": "^10.0.9",
     "react": "19.2.4",
