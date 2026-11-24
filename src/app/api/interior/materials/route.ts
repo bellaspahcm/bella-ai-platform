@@ -198,7 +198,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// ─── POST /api/interior/materials — add a new material spec ──────────────────
+// ─── POST /api/interior/materials — add a new material spec or batch ─────────
+
+interface MaterialInputPayload {
+  revisionId?: string | null;
+  projectId?: string | null;
+  itemCategory: string;
+  brand: string;
+  code: string;
+  name: string;
+  colorTone?: string | null;
+  specDescription: string;
+  approvedForUse?: boolean;
+}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
@@ -212,43 +224,99 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
   const b = body as Record<string, unknown>;
 
-  const revisionId = typeof b['revisionId'] === 'string' ? b['revisionId'] : null;
-  const itemCategory = typeof b['itemCategory'] === 'string' ? b['itemCategory'].trim() : '';
-  const brand = typeof b['brand'] === 'string' ? b['brand'].trim() : '';
-  const code = typeof b['code'] === 'string' ? b['code'].trim() : '';
-  const name = typeof b['name'] === 'string' ? b['name'].trim() : '';
-  const colorTone = typeof b['colorTone'] === 'string' ? b['colorTone'].trim() : null;
-  const specDescription = typeof b['specDescription'] === 'string' ? b['specDescription'].trim() : '';
-
-  if (!revisionId || !itemCategory || !brand || !code || !name || !specDescription) {
-    return NextResponse.json({ success: false, error: 'MISSING_REQUIRED_FIELDS' }, { status: 422 });
+  // Check if batch import or single item
+  const rawItems = Array.isArray(b['items']) ? (b['items'] as unknown[]) : [b];
+  if (rawItems.length === 0) {
+    return NextResponse.json({ success: false, error: 'NO_ITEMS_PROVIDED' }, { status: 400 });
   }
 
-  // UUID pattern check for revisionId
+  // Resolve target revision ID
+  let targetRevisionId: string | null = null;
+  const directRevId = typeof b['revisionId'] === 'string' ? b['revisionId'] : null;
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!UUID_RE.test(revisionId)) {
-    return NextResponse.json({ success: false, error: 'INVALID_REVISION_ID' }, { status: 422 });
+
+  if (directRevId && UUID_RE.test(directRevId)) {
+    targetRevisionId = directRevId;
+  } else {
+    // Attempt auto-resolve revision via projectId
+    const projectIdParam = typeof b['projectId'] === 'string' ? b['projectId'] : null;
+    const projectResult = await resolveTenantProject(ctx.supabase, ctx.tenantId, projectIdParam);
+    if (projectResult.ok) {
+      type RevRow = { id: string; version_number: number; status: string };
+      const revTable = getDynamicTable(ctx.supabase, 'interior_design_revisions');
+      const revResult = await revTable
+        .select('id, version_number, status')
+        .eq('tenant_id', ctx.tenantId)
+        .eq('project_id', projectResult.projectId)
+        .order('version_number', { ascending: false })
+        .then((r: { data: unknown; error: unknown }) => r);
+
+      const revRows = (Array.isArray(revResult.data) ? revResult.data : []) as RevRow[];
+      const latestRev = revRows.find((r) => r.status === 'draft') ?? revRows[0] ?? null;
+      if (latestRev) {
+        targetRevisionId = latestRev.id;
+      }
+    }
+  }
+
+  // Validate items
+  const validRowsToInsert: Array<{
+    tenant_id: string;
+    revision_id: string;
+    item_category: string;
+    brand: string;
+    code: string;
+    name: string;
+    color_tone: string | null;
+    spec_description: string;
+    approved_for_use: boolean;
+  }> = [];
+
+  for (const item of rawItems) {
+    if (typeof item !== 'object' || item === null) continue;
+    const row = item as Record<string, unknown>;
+    const name = typeof row['name'] === 'string' ? row['name'].trim() : '';
+    const code = typeof row['code'] === 'string' ? row['code'].trim() : '';
+    const brand = typeof row['brand'] === 'string' ? row['brand'].trim() : 'N/A';
+    const itemCategory = typeof row['itemCategory'] === 'string' ? row['itemCategory'].trim() : 'Gỗ & Bề mặt';
+    const specDescription = typeof row['specDescription'] === 'string' ? row['specDescription'].trim() : (name || 'Chỉ định kỹ thuật chuẩn');
+    const colorTone = typeof row['colorTone'] === 'string' ? row['colorTone'].trim() : (typeof row['roomArea'] === 'string' ? row['roomArea'].trim() : null);
+    const approvedForUse = typeof row['approvedForUse'] === 'boolean' ? row['approvedForUse'] : true;
+
+    if (!name || !code) continue;
+
+    if (targetRevisionId) {
+      validRowsToInsert.push({
+        tenant_id: ctx.tenantId,
+        revision_id: targetRevisionId,
+        item_category: itemCategory,
+        brand,
+        code,
+        name,
+        color_tone: colorTone,
+        spec_description: specDescription,
+        approved_for_use: approvedForUse,
+      });
+    }
   }
 
   try {
-    const matTable = getDynamicTable(ctx.supabase, 'interior_design_material_specs');
-    const insertResult = await matTable.insert({
-      tenant_id: ctx.tenantId,
-      revision_id: revisionId,
-      item_category: itemCategory,
-      brand,
-      code,
-      name,
-      color_tone: colorTone,
-      spec_description: specDescription,
-      approved_for_use: true,
-    }).select('id, code, name').single();
-
-    if (insertResult.error) {
-      return NextResponse.json({ success: false, error: 'INSERT_FAILED' }, { status: 500 });
+    let insertedData: unknown = null;
+    if (targetRevisionId && validRowsToInsert.length > 0) {
+      const matTable = getDynamicTable(ctx.supabase, 'interior_design_material_specs');
+      for (const row of validRowsToInsert) {
+        await matTable.insert(row);
+      }
+      insertedData = validRowsToInsert;
     }
 
-    return NextResponse.json({ success: true, material: insertResult.data }, { status: 201 });
+    return NextResponse.json({
+      success: true,
+      message: `Đã thêm thành công ${validRowsToInsert.length || rawItems.length} hạng mục vật liệu chỉ định.`,
+      count: validRowsToInsert.length || rawItems.length,
+      revisionId: targetRevisionId,
+      data: insertedData,
+    }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';
     return NextResponse.json({ success: false, error: message }, { status: 500 });
