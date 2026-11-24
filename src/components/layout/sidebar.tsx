@@ -88,6 +88,14 @@ import {
   type RolePermissions,
 } from '@/lib/business-rules/permissions';
 import { isTenantModuleEnabled } from '@/lib/business-rules/tenant-modules';
+import {
+  isInteriorMenuItemAllowed,
+  getInteriorRoleDisplayName,
+  getSimulatedInteriorRole,
+  setSimulatedInteriorRole,
+  INTERIOR_ROLE_CHANGE_EVENT,
+  type InteriorRoleKey,
+} from '@/products/bella-interior/lib/interior-rbac-navigation';
 
 type MenuHeader = {
   type: 'header';
@@ -552,6 +560,17 @@ export function Sidebar() {
   const identityKey = tenantSettings ? resolveDashboardPresentation(tenantSettings, product)?.identityKey ?? null : null;
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isMobileRefreshing, setIsMobileRefreshing] = useState(false);
+  const [simulatedInteriorRole, setSimulatedInteriorRoleState] = useState<InteriorRoleKey | null>(null);
+
+  useEffect(() => {
+    setSimulatedInteriorRoleState(getSimulatedInteriorRole());
+    const handleInteriorRoleChange = (e: Event) => {
+      const customEvt = e as CustomEvent<{ role: InteriorRoleKey | null }>;
+      setSimulatedInteriorRoleState(customEvt.detail?.role ?? null);
+    };
+    window.addEventListener(INTERIOR_ROLE_CHANGE_EVENT, handleInteriorRoleChange);
+    return () => window.removeEventListener(INTERIOR_ROLE_CHANGE_EVENT, handleInteriorRoleChange);
+  }, []);
 
   useLayoutEffect(() => {
     if (isUserLoading || !tenantSettings || !currentUser || currentUser.tenant_id !== tenantSettings.id) return;
@@ -740,6 +759,10 @@ export function Sidebar() {
     if (item.href === '/dashboard/education/fee-program') {
       return role === 'admin' || role === 'super_admin';
     }
+    if (isBellaInteriorShell) {
+      const activeInteriorRole = simulatedInteriorRole || user?.role;
+      return isInteriorMenuItemAllowed(activeInteriorRole, item.href);
+    }
     return true;
   });
 
@@ -813,7 +836,13 @@ export function Sidebar() {
 
   const isPreschoolSeedUser = !user?.full_name || user.full_name.includes('Mầm Non') || user.full_name.includes('Preschool');
   const sidebarUserDisplayName = isBellaInteriorShell && isPreschoolSeedUser ? 'Nguyễn Thị Mai' : (user?.full_name || 'Admin');
-  const sidebarUserRoleLabel = isBellaInteriorShell && isPreschoolSeedUser ? 'Project Manager' : roleLabel;
+  const sidebarUserRoleLabel = isBellaInteriorShell
+    ? simulatedInteriorRole
+      ? `${getInteriorRoleDisplayName(simulatedInteriorRole)} (Mô phỏng)`
+      : isPreschoolSeedUser
+      ? 'Project Manager'
+      : getInteriorRoleDisplayName(user?.role) || roleLabel
+    : roleLabel;
 
   if (isUserLoading || !identityKey || !tenantSettings || currentUser?.tenant_id !== tenantSettings.id || !isTenantBrandResolved || resolvedIdentityKey !== identityKey) {
     return <aside aria-label="Đang tải cấu hình chi nhánh" className="hidden w-[243px] shrink-0 border-r border-slate-200 bg-slate-50 lg:block dark:border-slate-800 dark:bg-slate-950" />;
@@ -1243,6 +1272,16 @@ export function Sidebar() {
                 <p className={cn("text-[8.5px] font-black uppercase tracking-[0.08em] mt-0.5", isBellaEducationShell ? "preschool-profile-role" : "text-slate-500 dark:text-slate-400 beauty-erp-profile-role")}>
                   {sidebarUserRoleLabel}
                 </p>
+                {isBellaInteriorShell && simulatedInteriorRole && (
+                  <button
+                    type="button"
+                    onClick={() => setSimulatedInteriorRole(null)}
+                    className="mt-1 text-[9px] font-bold text-amber-300 hover:text-white underline cursor-pointer flex items-center gap-1"
+                    title="Thoát chế độ mô phỏng vai trò, trở về toàn quyền Admin"
+                  >
+                    <span>↩ Thoát mô phỏng</span>
+                  </button>
+                )}
               </div>
             </div>
             
