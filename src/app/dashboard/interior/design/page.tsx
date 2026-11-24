@@ -58,6 +58,12 @@ import {
   Sparkles,
   MapPin,
   ExternalLink,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Download,
+  ShieldCheck,
+  FileCode,
 } from 'lucide-react';
 
 import type {
@@ -194,8 +200,12 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
       updatedDateFormatted: '06/11/2026',
       statusLabel: 'Đã duyệt',
       statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      fileUrl: '/drawings/INT-2024-001-ARCH-01.dwg',
+      fileUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/blueprints/DET-04.dwg',
       fileSize: '14.8 MB',
+      hasFile: true,
+      downloadUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/blueprints/DET-04.dwg',
+      sheetNumber: 'KT-01/18',
+      scale: '1:100',
     },
     {
       id: 'dwg-2',
@@ -206,8 +216,12 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
       updatedDateFormatted: '06/11/2026',
       statusLabel: 'Đã duyệt',
       statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      fileUrl: '/drawings/INT-2024-001-DET-02.dwg',
+      fileUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/blueprints/DET-04.dwg',
       fileSize: '22.4 MB',
+      hasFile: true,
+      downloadUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/blueprints/DET-04.dwg',
+      sheetNumber: 'KT-06/18',
+      scale: '1:25',
     },
     {
       id: 'dwg-3',
@@ -218,8 +232,12 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
       updatedDateFormatted: '04/11/2026',
       statusLabel: 'Đã duyệt',
       statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      fileUrl: '/drawings/INT-2024-001-MEP-01.pdf',
+      fileUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/handover/handover-signoff.jpg',
       fileSize: '8.2 MB',
+      hasFile: true,
+      downloadUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/handover/handover-signoff.jpg',
+      sheetNumber: 'MEP-01/08',
+      scale: '1:100',
     },
   ],
   relatedDocuments: [
@@ -231,7 +249,9 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
       author: 'Phòng Kỹ Thuật Bella',
       updatedDateFormatted: '06/11/2026',
       fileSize: '4.5 MB',
-      fileUrl: '/docs/spec-walnut-wood.pdf',
+      fileUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/handover/handover-signoff.jpg',
+      hasFile: true,
+      downloadUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/handover/handover-signoff.jpg',
     },
     {
       id: 'doc-2',
@@ -241,7 +261,21 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
       author: 'Trần Thị Mai',
       updatedDateFormatted: '06/11/2026',
       fileSize: '1.2 MB',
-      fileUrl: '/docs/concept-signoff.pdf',
+      fileUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/handover/handover-signoff.jpg',
+      hasFile: true,
+      downloadUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/handover/handover-signoff.jpg',
+    },
+    {
+      id: 'doc-3',
+      title: 'Bảng mẫu vật liệu thực tế (Physical Moodboard & Material Swatch)',
+      documentCategory: 'Moodboard',
+      fileType: 'PDF',
+      author: 'KTS. Hoàng Long',
+      updatedDateFormatted: '02/11/2026',
+      fileSize: '18.6 MB',
+      fileUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/material-texture-board.jpg',
+      hasFile: true,
+      downloadUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/material-texture-board.jpg',
     },
   ],
   materials: [
@@ -405,6 +439,12 @@ function InteriorDesignStudioContent() {
   const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
   const [showBoqModal, setShowBoqModal] = useState<boolean>(false);
   const [showAllMaterialsModal, setShowAllMaterialsModal] = useState<boolean>(false);
+
+  // 2D CAD Blueprint & Document Interactive Viewers
+  const [selectedDrawingForView, setSelectedDrawingForView] = useState<DesignTechnicalDrawingItem | null>(null);
+  const [selectedDocForView, setSelectedDocForView] = useState<DesignDocumentItem | null>(null);
+  const [cadTheme, setCadTheme] = useState<'dark' | 'light'>('dark');
+  const [cadZoom, setCadZoom] = useState<number>(1);
 
   // Ingestion / Upload Modals
   const [showUpload3DModal, setShowUpload3DModal] = useState<boolean>(false);
@@ -1785,43 +1825,55 @@ function InteriorDesignStudioContent() {
                 Danh mục hồ sơ bản vẽ kỹ thuật kiến trúc, bổ đồ gỗ &amp; MEP:
               </div>
 
-              {data.technicalDrawings.map((dwg) => (
-                <div
-                  key={dwg.id}
-                  className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3 hover:border-slate-300 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs shrink-0">
-                      {dwg.fileType}
+              {data.technicalDrawings.map((dwg) => {
+                const hasFile = dwg.hasFile !== false && Boolean(dwg.fileUrl);
+                return (
+                  <div
+                    key={dwg.id}
+                    className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3 hover:border-slate-300 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs shrink-0">
+                        {dwg.fileType}
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white">
+                          {dwg.title}
+                        </div>
+                        <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                          {dwg.drawingCode} · {dwg.author} · {hasFile ? dwg.fileSize : 'Chưa có tệp'}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white">
-                        {dwg.title}
-                      </div>
-                      <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-                        {dwg.drawingCode} · {dwg.author} · {dwg.fileSize}
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border ${hasFile ? dwg.statusBadgeClass : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+                        {hasFile ? dwg.statusLabel : 'Chờ nộp tệp'}
+                      </span>
+                      {hasFile ? (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDrawingForView(dwg)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs font-bold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 transition-colors shadow-2xs"
+                          title="Xem bản vẽ CAD 2D tương tác"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Xem 2D</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setShowUpload2DModal(true)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs font-bold text-amber-800 dark:text-amber-300 hover:bg-amber-100 transition-colors shadow-2xs"
+                          title="Tải lên tệp bản vẽ"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Nộp tệp</span>
+                        </button>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border ${dwg.statusBadgeClass}`}>
-                      {dwg.statusLabel}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenFile(dwg.fileUrl, dwg.title)}
-                      className="p-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:border-slate-400 transition-colors"
-                      title={
-                        dwg.fileUrl.startsWith('http')
-                          ? 'Xem / Tải về tệp'
-                          : 'Chưa có tệp — cần tải lên trước'
-                      }
-                    >
-                      <Eye className={`w-3.5 h-3.5 ${!dwg.fileUrl.startsWith('http') ? 'opacity-40' : ''}`} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -1858,38 +1910,55 @@ function InteriorDesignStudioContent() {
                 Hồ sơ chỉ dẫn thi công, biên bản nghiệm thu &amp; moodboard:
               </div>
 
-              {data.relatedDocuments.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3 hover:border-slate-300 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/50 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold text-xs shrink-0">
-                      {doc.fileType}
+              {data.relatedDocuments.map((doc) => {
+                const hasFile = doc.hasFile !== false && Boolean(doc.fileUrl);
+                return (
+                  <div
+                    key={doc.id}
+                    className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3 hover:border-slate-300 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/50 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold text-xs shrink-0">
+                        {doc.fileType}
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white">
+                          {doc.title}
+                        </div>
+                        <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                          {doc.documentCategory} · {doc.author} · {hasFile ? doc.fileSize : 'Chưa có tệp'}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white">
-                        {doc.title}
-                      </div>
-                      <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-                        {doc.documentCategory} · {doc.author} · {doc.fileSize}
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border ${hasFile ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+                        {hasFile ? 'Đã duyệt' : 'Chờ nộp'}
+                      </span>
+                      {hasFile ? (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDocForView(doc)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs font-bold text-amber-800 dark:text-amber-300 hover:bg-amber-100 transition-colors shadow-2xs"
+                          title="Xem tài liệu kỹ thuật"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Xem</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setShowUploadDocModal(true)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs font-bold text-amber-800 dark:text-amber-300 hover:bg-amber-100 transition-colors shadow-2xs"
+                          title="Tải lên tài liệu"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Nộp tệp</span>
+                        </button>
+                      )}
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleOpenFile(doc.fileUrl, doc.title)}
-                    className="p-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:border-slate-400 transition-colors"
-                    title={
-                      doc.fileUrl.startsWith('http')
-                        ? 'Xem / Tải về tài liệu'
-                        : 'Chưa có tệp — cần tải lên trước'
-                    }
-                  >
-                    <Eye className={`w-3.5 h-3.5 ${!doc.fileUrl.startsWith('http') ? 'opacity-40' : ''}`} />
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -2746,6 +2815,345 @@ function InteriorDesignStudioContent() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal 8: Xem bản vẽ kỹ thuật 2D tương tác (CAD Blueprint Interactive Viewer) ─── */}
+      {selectedDrawingForView && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-in fade-in">
+          <div className={`w-full max-w-6xl max-h-[95vh] rounded-2xl flex flex-col shadow-2xl border overflow-hidden ${
+            cadTheme === 'dark'
+              ? 'bg-[#0f172a] text-slate-100 border-slate-700'
+              : 'bg-white text-slate-900 border-slate-300'
+          }`}>
+            {/* Header */}
+            <div className={`px-5 py-3.5 border-b flex items-center justify-between gap-4 ${
+              cadTheme === 'dark' ? 'border-slate-800 bg-slate-900/80' : 'border-slate-200 bg-slate-50'
+            }`}>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold text-xs shrink-0 border border-blue-500/30">
+                  {selectedDrawingForView.fileType}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm sm:text-base font-bold truncate">
+                      {selectedDrawingForView.title}
+                    </h3>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                      {selectedDrawingForView.statusLabel}
+                    </span>
+                  </div>
+                  <div className="text-xs opacity-70 font-mono mt-0.5 truncate">
+                    {selectedDrawingForView.drawingCode} · KTS: {selectedDrawingForView.author} · Tỉ lệ: {selectedDrawingForView.scale || '1:100'} · Tờ: {selectedDrawingForView.sheetNumber || 'KT-01'} · {selectedDrawingForView.fileSize}
+                  </div>
+                </div>
+              </div>
+
+              {/* Toolbar */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setCadTheme(cadTheme === 'dark' ? 'light' : 'dark')}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                    cadTheme === 'dark'
+                      ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                      : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'
+                  }`}
+                  title="Chuyển chế độ nền CAD (Đen) / Nền in ấn (Trắng)"
+                >
+                  {cadTheme === 'dark' ? '☀️ Nền in ấn' : '🌙 Nền CAD'}
+                </button>
+
+                <div className={`flex items-center rounded-lg border p-0.5 ${
+                  cadTheme === 'dark' ? 'border-slate-700 bg-slate-800' : 'border-slate-300 bg-white'
+                }`}>
+                  <button
+                    type="button"
+                    onClick={() => setCadZoom((prev) => Math.max(0.6, prev - 0.2))}
+                    className="p-1 rounded hover:bg-slate-700/50"
+                    title="Thu nhỏ"
+                  >
+                    <ZoomOut className="w-4 h-4" />
+                  </button>
+                  <span className="px-2 text-xs font-mono font-semibold">
+                    {Math.round(cadZoom * 100)}%
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setCadZoom((prev) => Math.min(2.0, prev + 0.2))}
+                    className="p-1 rounded hover:bg-slate-700/50"
+                    title="Phóng to"
+                  >
+                    <ZoomIn className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCadZoom(1)}
+                    className="p-1 rounded hover:bg-slate-700/50 ml-1"
+                    title="Vừa màn hình"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {selectedDrawingForView.downloadUrl && (
+                  <a
+                    href={selectedDrawingForView.downloadUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shadow-sm"
+                    title="Tải tệp CAD gốc về máy"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Tải DWG gốc</span>
+                  </a>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedDrawingForView(null);
+                    setCadZoom(1);
+                  }}
+                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors ml-1"
+                  title="Đóng"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* CAD Canvas */}
+            <div className="flex-1 overflow-auto p-4 sm:p-6 flex items-center justify-center relative min-h-[460px]">
+              <div
+                className="transition-transform duration-200 origin-center"
+                style={{ transform: `scale(${cadZoom})` }}
+              >
+                {/* Technical CAD Blueprint Vector Render */}
+                <div className={`w-[850px] h-[520px] rounded-lg border-2 p-6 relative flex flex-col justify-between shadow-xl ${
+                  cadTheme === 'dark'
+                    ? 'bg-[#080e1a] border-cyan-500/40 text-cyan-400'
+                    : 'bg-white border-slate-900 text-slate-900'
+                }`}>
+                  {/* Architectural Grid Lines */}
+                  <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:16px_16px]" />
+
+                  {/* Top Dimensions & Axis Header */}
+                  <div className="relative z-10 flex items-center justify-between pb-2 border-b border-dashed border-current opacity-70 text-[11px] font-mono">
+                    <div className="flex items-center gap-12">
+                      <span className="w-6 h-6 rounded-full border border-current flex items-center justify-center font-bold">1</span>
+                      <span>← 4,500 mm →</span>
+                      <span className="w-6 h-6 rounded-full border border-current flex items-center justify-center font-bold">2</span>
+                      <span>← 5,200 mm →</span>
+                      <span className="w-6 h-6 rounded-full border border-current flex items-center justify-center font-bold">3</span>
+                      <span>← 3,800 mm →</span>
+                      <span className="w-6 h-6 rounded-full border border-current flex items-center justify-center font-bold">4</span>
+                    </div>
+                    <div className="font-bold tracking-wider">CỐT SÀN HOÀN THIỆN +0.000</div>
+                  </div>
+
+                  {/* Floorplan Blueprint Schematics */}
+                  <div className="relative z-10 grid grid-cols-12 gap-3 flex-1 py-4">
+                    {/* Left: Living Room & Tea Area */}
+                    <div className="col-span-6 border-2 border-current rounded p-3 relative flex flex-col justify-between">
+                      <div className="text-[11px] font-bold font-mono tracking-wide">
+                        01. PHÒNG KHÁCH LIÊN THÔNG (48.5 m²)
+                      </div>
+                      <div className="space-y-2 py-2">
+                        <div className="border border-dashed border-current rounded p-2 text-center text-[10px] font-mono">
+                          [ HỆ SOFA L-SHAPE VẢI CAO CẤP &amp; BÀN TRÀ ĐÁ MARQUINA ]
+                        </div>
+                        <div className="border-t border-b border-current py-1 text-center text-[10px] font-mono opacity-80">
+                          ════ VÁCH ỐP VENEER ÓC CHÓ &amp; KỆ TIVI TREO ════
+                        </div>
+                      </div>
+                      <div className="flex justify-between text-[10px] font-mono opacity-70">
+                        <span>Cao độ trần: +3,450 mm</span>
+                        <span>Đèn ray nam châm LED 4000K</span>
+                      </div>
+                    </div>
+
+                    {/* Right: Dining & Island Kitchen */}
+                    <div className="col-span-6 grid grid-rows-2 gap-3">
+                      <div className="border-2 border-current rounded p-3 flex flex-col justify-between">
+                        <div className="text-[11px] font-bold font-mono tracking-wide">
+                          02. KHU VỰC BÀN ĂN &amp; ĐÈN THẢ (22.0 m²)
+                        </div>
+                        <div className="border border-dashed border-current rounded p-1 text-center text-[10px] font-mono">
+                          BÀN ĂN NGUYÊN TẤM ÓC CHÓ 8 GHẾ
+                        </div>
+                        <div className="text-[10px] font-mono opacity-70">Cửa trượt kính Slim view ban công</div>
+                      </div>
+
+                      <div className="border-2 border-current rounded p-3 flex flex-col justify-between">
+                        <div className="text-[11px] font-bold font-mono tracking-wide">
+                          03. ĐẢO BẾP &amp; TỦ BẾP ACRYLIC (18.5 m²)
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="border border-current p-1 flex-1 text-center text-[10px] font-mono">
+                            ĐẢO BẾP ĐÁ VICOSTONE
+                          </div>
+                          <div className="border border-current p-1 flex-1 text-center text-[10px] font-mono">
+                            HỆ TỦ KỊCH TRẦN
+                          </div>
+                        </div>
+                        <div className="text-[10px] font-mono opacity-70">Phụ kiện Blum &amp; Hafele chính hãng</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom: Title Block (Khung tên bản vẽ chuẩn kỹ thuật) */}
+                  <div className="relative z-10 border-2 border-current rounded-sm p-3 grid grid-cols-12 gap-2 text-[10px] font-mono">
+                    <div className="col-span-4 border-r border-current pr-2">
+                      <div className="font-bold text-[11px] tracking-wider text-emerald-500">PHÚ CƯỜNG DESIGN &amp; FIT-OUT</div>
+                      <div className="opacity-70 mt-0.5">Dự án: {data.project.name}</div>
+                      <div className="opacity-70">Mã DA: {data.project.code}</div>
+                    </div>
+                    <div className="col-span-5 border-r border-current pr-2">
+                      <div className="font-bold uppercase truncate">{selectedDrawingForView.title}</div>
+                      <div className="opacity-70 mt-0.5">Chủ trì: {selectedDrawingForView.author}</div>
+                      <div className="opacity-70">Kiểm tra: Trần Thị Mai (Trưởng phòng TK)</div>
+                    </div>
+                    <div className="col-span-3 text-right">
+                      <div className="font-bold text-emerald-400">APPROVED · ĐÃ DUYỆT</div>
+                      <div className="opacity-70 mt-0.5">Bản vẽ: {selectedDrawingForView.sheetNumber || 'KT-01/18'}</div>
+                      <div className="opacity-70">Tỉ lệ: {selectedDrawingForView.scale || '1:100'}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer status bar */}
+            <div className={`px-5 py-2.5 border-t flex items-center justify-between text-xs ${
+              cadTheme === 'dark' ? 'border-slate-800 bg-slate-900/60 text-slate-400' : 'border-slate-200 bg-slate-100 text-slate-600'
+            }`}>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                <span>Hồ sơ đã kiểm tra tiêu chuẩn sản xuất xưởng &amp; thi công fit-out</span>
+              </div>
+              <div className="font-mono text-[11px] opacity-75">
+                Cloudflare R2 Secure CAD Asset · Invariant Locked
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal 9: Xem tài liệu kỹ thuật & biên bản nghiệm thu (Document Viewer) ─── */}
+      {selectedDocForView && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                    {selectedDocForView.title}
+                  </h3>
+                  <div className="text-xs text-slate-400 font-mono mt-0.5">
+                    {selectedDocForView.documentCategory} · {selectedDocForView.author} · {selectedDocForView.fileSize}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedDocForView(null)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Document Paper Container */}
+            <div className="flex-1 overflow-auto p-6 bg-slate-100 dark:bg-slate-950/60 flex justify-center">
+              <div className="w-full max-w-2xl bg-white dark:bg-slate-900 shadow-md border border-slate-200 dark:border-slate-800 p-8 rounded-xl space-y-5 text-slate-800 dark:text-slate-200 text-xs sm:text-sm">
+                {/* Doc Header Stamp */}
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+                  <div>
+                    <div className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">
+                      BELLA INTERIOR OS — OFFICIAL SPECIFICATION
+                    </div>
+                    <div className="text-base font-bold text-slate-900 dark:text-white mt-1">
+                      {selectedDocForView.title}
+                    </div>
+                  </div>
+                  <div className="border-2 border-emerald-600 text-emerald-600 font-bold px-3 py-1 rounded text-xs uppercase tracking-wider rotate-[-4deg]">
+                    APPROVED SIGN-OFF
+                  </div>
+                </div>
+
+                <div className="space-y-3 leading-relaxed">
+                  <p>
+                    <strong>Dự án:</strong> {data.project.name} ({data.project.code})
+                  </p>
+                  <p>
+                    <strong>Chủ đầu tư / Khách hàng:</strong> {data.project.clientName}
+                  </p>
+                  <p>
+                    <strong>Ngày nghiệm thu phát hành:</strong> {selectedDocForView.updatedDateFormatted}
+                  </p>
+                  <p>
+                    <strong>Người phê duyệt kỹ thuật:</strong> {selectedDocForView.author}
+                  </p>
+
+                  <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2 mt-4">
+                    <div className="font-bold text-slate-900 dark:text-white">Nội dung chỉ dẫn &amp; tiêu chuẩn kỹ thuật:</div>
+                    <ul className="list-disc pl-5 space-y-1 text-slate-600 dark:text-slate-300 text-xs">
+                      <li>Độ ẩm cốt gỗ tự nhiên và ván MDF kháng ẩm đạt chuẩn ≤ 12% theo tiêu chuẩn TCVN.</li>
+                      <li>Sơn phủ bóng mờ 50% PU Inchem 4 lớp chống ố vàng và trầy xước.</li>
+                      <li>Hệ phụ kiện ray trượt, bản lề giảm chấn Blum Clip Top BLUMOTION bảo hành 5 năm.</li>
+                      <li>Đá thạch anh Vicostone độ dày 20mm bo mài mòi 45 độ sắc nét, liền mạch.</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Signatures */}
+                <div className="grid grid-cols-2 gap-6 pt-6 border-t border-slate-200 dark:border-slate-800">
+                  <div className="text-center space-y-1">
+                    <div className="text-[11px] text-slate-400">Đại diện khách hàng</div>
+                    <div className="font-bold text-slate-900 dark:text-white pt-8">{data.project.clientName}</div>
+                    <div className="text-[10px] text-emerald-600">Đã ký xác nhận</div>
+                  </div>
+                  <div className="text-center space-y-1">
+                    <div className="text-[11px] text-slate-400">Chủ trì thiết kế Bella</div>
+                    <div className="font-bold text-slate-900 dark:text-white pt-8">{selectedDocForView.author}</div>
+                    <div className="text-[10px] text-emerald-600">Phê duyệt kỹ thuật</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900">
+              <span className="text-xs text-slate-400">
+                Tài liệu pháp lý đính kèm hợp đồng thi công fit-out
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDocForView(null)}
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  Đóng
+                </button>
+                {selectedDocForView.downloadUrl && (
+                  <a
+                    href={selectedDocForView.downloadUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Tải PDF gốc</span>
+                  </a>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}

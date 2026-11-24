@@ -68,6 +68,11 @@ export interface DesignTechnicalDrawingItem {
   readonly statusBadgeClass: string;
   readonly fileUrl: string;
   readonly fileSize: string;
+  readonly previewImageUrl?: string;
+  readonly downloadUrl?: string;
+  readonly hasFile?: boolean;
+  readonly sheetNumber?: string;
+  readonly scale?: string;
 }
 
 export interface DesignDocumentItem {
@@ -79,6 +84,9 @@ export interface DesignDocumentItem {
   readonly updatedDateFormatted: string;
   readonly fileSize: string;
   readonly fileUrl: string;
+  readonly previewImageUrl?: string;
+  readonly downloadUrl?: string;
+  readonly hasFile?: boolean;
 }
 
 export interface DesignMaterialItem {
