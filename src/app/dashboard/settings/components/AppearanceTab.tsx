@@ -361,9 +361,9 @@ export default function AppearanceTab() {
             <Palette className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Giao diện & Module</h2>
+            <h2 className="text-2xl font-bold text-foreground">Giao diện {'&'} Module</h2>
             <p className="text-sm font-semibold text-muted-foreground">
-              Cấu hình phong cách hiển thị, nhận diện thương hiệu và module theo từng doanh nghiệp & chi nhánh.
+              Cấu hình phong cách hiển thị, nhận diện thương hiệu và module theo từng doanh nghiệp {'&'} chi nhánh.
             </p>
           </div>
         </div>
