@@ -539,6 +539,7 @@ export default function InteriorContractsPage() {
               createQuotationAvailable: data?.workflowCommands?.createQuotationAvailable === true,
               requestCustomerApprovalAvailable: data?.workflowCommands?.requestCustomerApprovalAvailable === true,
               createContractAvailable: data?.workflowCommands?.createContractAvailable === true,
+              staffSignContractAvailable: data?.workflowCommands?.requestCustomerApprovalAvailable === true,
             }}
             onClose={() => setShowNewContractModal(false)}
             onChanged={() => loadData(selectedProjectId)}
@@ -587,6 +588,7 @@ export default function InteriorContractsPage() {
               createQuotationAvailable: false,
               requestCustomerApprovalAvailable: data.workflowCommands?.requestCustomerApprovalAvailable === true,
               createContractAvailable: false,
+              staffSignContractAvailable: data.workflowCommands?.requestCustomerApprovalAvailable === true,
             }}
             contract={{
               id: data.commercialWorkflow.contractId,
@@ -1819,6 +1821,7 @@ export default function InteriorContractsPage() {
             createQuotationAvailable: data.workflowCommands?.createQuotationAvailable === true,
             requestCustomerApprovalAvailable: data.workflowCommands?.requestCustomerApprovalAvailable === true,
             createContractAvailable: data.workflowCommands?.createContractAvailable === true,
+            staffSignContractAvailable: data.workflowCommands?.requestCustomerApprovalAvailable === true,
           }}
           contract={data.commercialWorkflow ? {
             id: data.commercialWorkflow.contractId,

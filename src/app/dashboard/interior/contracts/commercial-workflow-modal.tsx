@@ -40,9 +40,17 @@ interface CommercialWorkflowPermissions {
   createQuotationAvailable: boolean;
   requestCustomerApprovalAvailable: boolean;
   createContractAvailable: boolean;
+  staffSignContractAvailable?: boolean;
 }
 
 type ContractApprovalCheck = 'not_applicable' | 'checking' | 'clear' | 'pending' | 'unavailable';
+
+interface PendingApprovalRecord {
+  id: string;
+  status: string;
+  expiresAt: string | null;
+  sentByActorName: string | null;
+}
 
 interface CommercialWorkflowModalProps {
   projectId: string;
@@ -151,6 +159,9 @@ export default function CommercialWorkflowModal({
   const [loadError, setLoadError] = useState('');
   const [contractApprovalCheck, setContractApprovalCheck] = useState<ContractApprovalCheck>(contract ? 'checking' : 'not_applicable');
   const [approvalLink, setApprovalLink] = useState<{ url: string; label: string } | null>(null);
+  const [pendingApproval, setPendingApproval] = useState<PendingApprovalRecord | null>(null);
+  const [staffSignNotes, setStaffSignNotes] = useState('');
+  const [showStaffSignPanel, setShowStaffSignPanel] = useState(false);
 
   const loadCommercialRecords = useCallback(async () => {
     setLoading(true);
@@ -205,8 +216,19 @@ export default function CommercialWorkflowModal({
       setContractApprovalCheck('not_applicable');
     } else if (approvalsResponse?.ok && isRecord(approvalsBody) && approvalsBody.success === true
       && Array.isArray(approvalsBody.data)) {
-      setContractApprovalCheck(approvalsBody.data.some((item: unknown) => isRecord(item) && item.status === 'pending')
-        ? 'pending' : 'clear');
+      const pendingItem = approvalsBody.data.find((item: unknown) => isRecord(item) && item.status === 'pending');
+      if (pendingItem && isRecord(pendingItem)) {
+        setContractApprovalCheck('pending');
+        setPendingApproval({
+          id: typeof pendingItem.id === 'string' ? pendingItem.id : '',
+          status: 'pending',
+          expiresAt: typeof pendingItem.expiresAt === 'string' ? pendingItem.expiresAt : null,
+          sentByActorName: typeof pendingItem.sentByActorName === 'string' ? pendingItem.sentByActorName : null,
+        });
+      } else {
+        setContractApprovalCheck('clear');
+        setPendingApproval(null);
+      }
     } else {
       setContractApprovalCheck('unavailable');
       nextLoadError = 'Không thể xác minh yêu cầu chấp thuận đang chờ; thao tác tạo liên kết ký đã bị khóa.';
@@ -260,9 +282,40 @@ export default function CommercialWorkflowModal({
       const url = customerPageUrl(result.approvalId, result.customerApprovalEndpoint);
       if (!url) throw new Error('Máy chủ không trả về liên kết chấp thuận hợp lệ.');
       setApprovalLink({ url, label });
-      if (subjectType === 'contract') setContractApprovalCheck('pending');
+      if (subjectType === 'contract') {
+        setContractApprovalCheck('pending');
+        if (typeof result.approvalId === 'string') {
+          setPendingApproval({ id: result.approvalId, status: 'pending', expiresAt: null, sentByActorName: null });
+        }
+      }
       toast.success('Đã tạo yêu cầu. Chưa có chấp thuận nào được ghi nhận từ thao tác này.');
       await loadCommercialRecords();
+      await onChanged();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : errorMessage(null));
+    } finally {
+      setSavingAction(null);
+    }
+  };
+
+  const staffSignContract = async () => {
+    if (!contract) return;
+    if (!staffSignNotes.trim()) {
+      toast.error('Cần ghi rõ cơ sở xác nhận (kênh liên hệ, ngày, người đại diện khách).');
+      return;
+    }
+    setSavingAction('staff-sign');
+    try {
+      await saveJson('/api/interior/contracts', {
+        action: 'staff-sign-contract',
+        projectId,
+        contractId: contract.id,
+        internalNotes: staffSignNotes.trim(),
+      });
+      toast.success('Đã ghi nhận ký kết thay mặt khách hàng. Hợp đồng chuyển sang trạng thái Đã ký.');
+      setShowStaffSignPanel(false);
+      setStaffSignNotes('');
+      onClose();
       await onChanged();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : errorMessage(null));
@@ -390,17 +443,96 @@ export default function CommercialWorkflowModal({
               <section className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Chữ ký hợp đồng</h3>
                 <p className="mt-1 text-xs text-slate-500">Hợp đồng chỉ chuyển sang đã ký sau khi khách hàng gửi quyết định kèm chứng từ chữ ký thật.</p>
+
+                {/* Option 1: Gửi link cho khách ký */}
                 {contractCanRequestApproval && permissions.requestCustomerApprovalAvailable ? (
-                  <button type="button" onClick={() => void requestApproval('contract', contract.id, `Hợp đồng phiên bản báo giá ${contract.quotationVersionNumber}`)}
-                    disabled={contractApprovalCheck !== 'clear' || savingAction !== null}
-                    className="mt-3 inline-flex items-center gap-2 rounded-lg border border-emerald-300 px-3 py-2 text-xs font-semibold text-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-800 dark:text-emerald-300">
-                    {savingAction === `approval:${contract.id}` ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                    {contractApprovalCheck === 'checking' ? 'Đang kiểm tra yêu cầu ký…'
-                      : contractApprovalCheck === 'pending' ? 'Đã có yêu cầu ký đang chờ khách'
-                        : contractApprovalCheck === 'unavailable' ? 'Không thể xác minh yêu cầu ký'
-                          : 'Tạo liên kết để khách ký'}
-                  </button>
-                ) : <p className="mt-2 text-xs text-slate-500">Trạng thái hợp đồng hiện tại: {contract.status}.</p>}
+                  <div className="mt-3 space-y-2">
+                    {contractApprovalCheck === 'pending' ? (
+                      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/30">
+                        <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">
+                          ⏳ Đã có yêu cầu ký đang chờ khách phản hồi
+                        </p>
+                        {pendingApproval?.sentByActorName ? (
+                          <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-300">Gửi bởi: {pendingApproval.sentByActorName}{pendingApproval.expiresAt ? ` · Hết hạn: ${new Date(pendingApproval.expiresAt).toLocaleDateString('vi-VN')}` : ''}</p>
+                        ) : null}
+                        <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-300">
+                          Link đã gửi trong phiên trước không thể khôi phục (token 1 lần). Nếu cần gửi lại, bấm nút bên dưới để tạo yêu cầu mới.
+                        </p>
+                        <button type="button"
+                          onClick={() => void requestApproval('contract', contract.id, `Hợp đồng phiên bản báo giá ${contract.quotationVersionNumber}`)}
+                          disabled={savingAction !== null}
+                          className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-amber-400 px-3 py-1.5 text-[11px] font-semibold text-amber-800 disabled:opacity-50 dark:border-amber-700 dark:text-amber-300">
+                          {savingAction === `approval:${contract.id}` ? <LoaderCircle className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+                          Thu hồi & gửi link mới cho khách
+                        </button>
+                      </div>
+                    ) : (
+                      <button type="button" onClick={() => void requestApproval('contract', contract.id, `Hợp đồng phiên bản báo giá ${contract.quotationVersionNumber}`)}
+                        disabled={contractApprovalCheck === 'checking' || contractApprovalCheck === 'unavailable' || savingAction !== null}
+                        className="inline-flex items-center gap-2 rounded-lg border border-emerald-300 px-3 py-2 text-xs font-semibold text-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-800 dark:text-emerald-300">
+                        {savingAction === `approval:${contract.id}` ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                        {contractApprovalCheck === 'checking' ? 'Đang kiểm tra yêu cầu ký…'
+                          : contractApprovalCheck === 'unavailable' ? 'Không thể xác minh yêu cầu ký'
+                            : 'Tạo liên kết để khách ký (Option 1)'}
+                      </button>
+                    )}
+                  </div>
+                ) : null}
+
+                {/* Divider */}
+                {contractCanRequestApproval && permissions.staffSignContractAvailable ? (
+                  <div className="my-3 flex items-center gap-2">
+                    <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">hoặc</span>
+                    <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                  </div>
+                ) : null}
+
+                {/* Option 2: Duyệt nội bộ thay mặt khách */}
+                {contractCanRequestApproval && permissions.staffSignContractAvailable ? (
+                  <div>
+                    {!showStaffSignPanel ? (
+                      <button type="button" onClick={() => setShowStaffSignPanel(true)}
+                        disabled={savingAction !== null}
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Duyệt thay mặt khách (Option 2)
+                      </button>
+                    ) : (
+                      <div className="rounded-lg border border-slate-300 p-3 dark:border-slate-700">
+                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">Xác nhận ký kết — duyệt nội bộ thay mặt khách hàng</p>
+                        <p className="mt-1 text-[11px] text-slate-500">Dùng khi khách hàng đã xác nhận bằng lời nói, email hoặc kênh khác. Ghi rõ cơ sở xác nhận bên dưới. Hành động này sẽ chuyển hợp đồng sang trạng thái Đã ký và được ghi lại vào audit log.</p>
+                        <label className="mt-3 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                          Cơ sở xác nhận <span className="text-rose-500">*</span>
+                          <textarea
+                            value={staffSignNotes}
+                            onChange={(event) => setStaffSignNotes(event.target.value)}
+                            maxLength={1000}
+                            rows={3}
+                            placeholder="Ví dụ: Khách hàng Nguyễn Văn A xác nhận qua điện thoại ngày 24/11/2026, lúc 10:30. Đã lưu ghi âm #REC-001."
+                            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                          />
+                        </label>
+                        <div className="mt-2 flex justify-end gap-2">
+                          <button type="button" onClick={() => { setShowStaffSignPanel(false); setStaffSignNotes(''); }}
+                            className="rounded-lg px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
+                            Huỷ
+                          </button>
+                          <button type="button" onClick={() => void staffSignContract()}
+                            disabled={savingAction !== null || !staffSignNotes.trim()}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50 dark:bg-slate-200 dark:text-slate-900">
+                            {savingAction === 'staff-sign' ? <LoaderCircle className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+                            Xác nhận ký — Duyệt nội bộ
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+
+                {!contractCanRequestApproval ? (
+                  <p className="mt-2 text-xs text-slate-500">Trạng thái hợp đồng hiện tại: {contract.status}.</p>
+                ) : null}
               </section>
             ) : null}
 
