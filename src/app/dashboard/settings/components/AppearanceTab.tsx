@@ -246,11 +246,22 @@ export default function AppearanceTab() {
 
       const nextModuleKey = getDefaultTenantModuleKey(tenant.enabled_modules, tenant.name);
       const normalizedBrandTheme = normalizeTenantBrandThemeForModule(tenant.brand_theme, nextModuleKey);
+      const normalizedModules = normalizeEnabledModules(tenant.enabled_modules);
+      const effectiveLogoUrl = tenant.logo_url || normalizedBrandTheme.logoUrl || '';
+
       setTenantId(tenant.id);
       setBrandTheme(normalizedBrandTheme);
-      setLogoUrl(tenant.logo_url || normalizedBrandTheme.logoUrl || '');
-      setEnabledModules(normalizeEnabledModules(tenant.enabled_modules));
+      setLogoUrl(effectiveLogoUrl);
+      setEnabledModules(normalizedModules);
       setTenantModuleKey(nextModuleKey);
+
+      applyBrandThemePreview({
+        tenantId: tenant.id,
+        enabledModules: normalizedModules,
+        brandTheme: normalizedBrandTheme,
+        logoUrl: effectiveLogoUrl,
+        persist: true,
+      });
     } catch (error) {
       console.warn('Tenant display config load fallback:', error);
     } finally {
@@ -261,17 +272,6 @@ export default function AppearanceTab() {
   useEffect(() => {
     loadTenantDisplayConfig();
   }, [loadTenantDisplayConfig]);
-
-  useEffect(() => {
-    if (isLoadingTenantConfig || !tenantId) return;
-    applyBrandThemePreview({
-      tenantId,
-      enabledModules,
-      brandTheme,
-      logoUrl,
-      persist: true, // ✅ Persist to storage so hard refresh keeps theme
-    });
-  }, [brandTheme, enabledModules, isLoadingTenantConfig, logoUrl, tenantId]);
 
   const handleThemeChange = (newTheme: 'light' | 'dark') => {
     if (theme === newTheme) return;
@@ -290,38 +290,21 @@ export default function AppearanceTab() {
     window.dispatchEvent(new Event('theme-change'));
   };
 
-  const updateBrandTheme = (patch: Partial<TenantBrandTheme>) => {
+  const handleBrandThemeFieldChange = (patch: Partial<TenantBrandTheme>) => {
     const updated = { ...brandTheme, ...patch };
     setBrandTheme(updated);
-    
-    // Auto-save changes immediately for better UX
-    saveTenantSettings({
-      brand_theme: normalizeTenantBrandThemeForModule(updated, tenantModuleKey),
-    }).then((result) => {
-      if (result.success) {
-        clearDashboardClientContextCache();
-        applyBrandThemePreview({
-          tenantId,
-          enabledModules,
-          brandTheme: updated,
-          logoUrl,
-          persist: true,
-        });
-        toast.success('Đã cập nhật giao diện');
-      } else {
-        toast.error(result.error);
-        // Revert on error
-        setBrandTheme(brandTheme);
-      }
-    }).catch((error) => {
-      console.error('Auto-save brand theme failed', error);
-      toast.error('Không thể lưu tự động');
-      setBrandTheme(brandTheme);
+    // Live visual preview without persisting to backend or toast spam
+    applyBrandThemePreview({
+      tenantId,
+      enabledModules,
+      brandTheme: updated,
+      logoUrl,
+      persist: false,
     });
   };
 
   const applyBrandPreset = (preset: (typeof brandPresetOptions)[number]) => {
-    updateBrandTheme({
+    handleBrandThemeFieldChange({
       stylePreset: preset.value,
       primaryColor: preset.primaryColor,
       accentColor: preset.accentColor,
@@ -504,7 +487,7 @@ export default function AppearanceTab() {
                 <FieldLabel>Tên thương hiệu</FieldLabel>
                 <input
                   value={brandTheme.brandName}
-                  onChange={(event) => updateBrandTheme({ brandName: event.target.value })}
+                  onChange={(event) => setBrandTheme((prev) => ({ ...prev, brandName: event.target.value }))}
                   placeholder={
                     tenantModuleKey === 'real_estate' 
                       ? 'VD: Bella Land Premium' 
@@ -532,13 +515,13 @@ export default function AppearanceTab() {
                   <input
                     type="color"
                     value={brandTheme.primaryColor}
-                    onChange={(event) => updateBrandTheme({ primaryColor: event.target.value })}
+                    onChange={(event) => handleBrandThemeFieldChange({ primaryColor: event.target.value })}
                     className="h-10 w-12 cursor-pointer rounded-xl border-0 bg-transparent p-0"
                     aria-label="Màu chính"
                   />
                   <input
                     value={brandTheme.primaryColor}
-                    onChange={(event) => updateBrandTheme({ primaryColor: event.target.value })}
+                    onChange={(event) => handleBrandThemeFieldChange({ primaryColor: event.target.value })}
                     className="min-w-0 flex-1 bg-transparent text-sm font-black text-slate-900 outline-none"
                   />
                 </div>
@@ -550,13 +533,13 @@ export default function AppearanceTab() {
                   <input
                     type="color"
                     value={brandTheme.accentColor}
-                    onChange={(event) => updateBrandTheme({ accentColor: event.target.value })}
+                    onChange={(event) => handleBrandThemeFieldChange({ accentColor: event.target.value })}
                     className="h-10 w-12 cursor-pointer rounded-xl border-0 bg-transparent p-0"
                     aria-label="Màu nhấn"
                   />
                   <input
                     value={brandTheme.accentColor}
-                    onChange={(event) => updateBrandTheme({ accentColor: event.target.value })}
+                    onChange={(event) => handleBrandThemeFieldChange({ accentColor: event.target.value })}
                     className="min-w-0 flex-1 bg-transparent text-sm font-black text-slate-900 outline-none"
                   />
                 </div>
@@ -566,7 +549,7 @@ export default function AppearanceTab() {
                 <FieldLabel>Tên hiển thị trên portal</FieldLabel>
                 <input
                   value={brandTheme.portalDisplayName}
-                  onChange={(event) => updateBrandTheme({ portalDisplayName: event.target.value })}
+                  onChange={(event) => setBrandTheme((prev) => ({ ...prev, portalDisplayName: event.target.value }))}
                   placeholder="Tên khách nhìn thấy khi vào portal"
                   className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 text-sm font-bold text-slate-900 outline-none transition focus:border-rose-300 focus:bg-white focus:ring-4 focus:ring-rose-50"
                 />
@@ -576,7 +559,7 @@ export default function AppearanceTab() {
                 <FieldLabel>Tên trên báo giá / hóa đơn</FieldLabel>
                 <input
                   value={brandTheme.invoiceDisplayName}
-                  onChange={(event) => updateBrandTheme({ invoiceDisplayName: event.target.value })}
+                  onChange={(event) => setBrandTheme((prev) => ({ ...prev, invoiceDisplayName: event.target.value }))}
                   placeholder="Tên dùng cho báo giá và chứng từ"
                   className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 text-sm font-bold text-slate-900 outline-none transition focus:border-rose-300 focus:bg-white focus:ring-4 focus:ring-rose-50"
                 />
@@ -639,7 +622,7 @@ export default function AppearanceTab() {
                       <button
                         key={option.value}
                         type="button"
-                        onClick={() => updateBrandTheme({ radiusStyle: option.value })}
+                        onClick={() => handleBrandThemeFieldChange({ radiusStyle: option.value })}
                         className={cn(
                           'min-h-10 flex-1 rounded-xl px-3 text-xs font-black transition',
                           brandTheme.radiusStyle === option.value ? 'bg-white text-primary shadow-sm' : 'text-slate-500',
@@ -658,7 +641,7 @@ export default function AppearanceTab() {
                       <button
                         key={option.value}
                         type="button"
-                        onClick={() => updateBrandTheme({ buttonStyle: option.value })}
+                        onClick={() => handleBrandThemeFieldChange({ buttonStyle: option.value })}
                         className={cn(
                           'min-h-10 flex-1 rounded-xl px-3 text-xs font-black transition',
                           brandTheme.buttonStyle === option.value ? 'bg-white text-primary shadow-sm' : 'text-slate-500',
@@ -677,7 +660,7 @@ export default function AppearanceTab() {
                       <button
                         key={option.value}
                         type="button"
-                        onClick={() => updateBrandTheme({ menuStyle: option.value })}
+                        onClick={() => handleBrandThemeFieldChange({ menuStyle: option.value })}
                         className={cn(
                           'min-h-10 flex-1 rounded-xl px-3 text-xs font-black transition',
                           brandTheme.menuStyle === option.value ? 'bg-white text-primary shadow-sm' : 'text-slate-500',
