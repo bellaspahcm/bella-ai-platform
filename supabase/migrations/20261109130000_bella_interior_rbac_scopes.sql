@@ -609,7 +609,10 @@ BEGIN
     'customerName',CASE WHEN public.interior_has_permission('interior:customer:read',v_tenant,p.id,p.branch_id) THEN p.customer_name ELSE NULL END,
     'estimatedBudget',CASE WHEN public.interior_has_permission('interior:finance:read',v_tenant,p.id,p.branch_id)
       OR public.interior_has_permission('interior:contract:read',v_tenant,p.id,p.branch_id) THEN p.estimated_budget ELSE NULL END,
-    'targetCompletionDate',p.target_completion_date,'leadArchitectName',p.lead_architect_name
+    'targetCompletionDate',p.target_completion_date,
+    'leadArchitectName',p.lead_architect_name,
+    'projectType',p.project_type,
+    'siteAddress',p.site_address
   ) ORDER BY p.created_at DESC),'[]'::jsonb)
   INTO v_result
   FROM public.interior_projects p
