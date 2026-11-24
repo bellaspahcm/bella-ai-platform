@@ -40,6 +40,7 @@ import {
 import type {
   PortfolioOverviewResponse,
   PortfolioProjectItem,
+  ScheduleHealth,
 } from '@/products/bella-interior/domain/portfolio-overview.types';
 import InteriorUserBar from '@/components/interior/InteriorUserBar';
 
@@ -249,6 +250,24 @@ const PROJECT_TYPES: Record<string, string> = {
   commercial_office: 'Văn phòng / Trụ sở',
   hospitality: 'Khách sạn / Showroom',
 };
+
+function inferCustomerSegment(name: string, projectType?: string): string {
+  const lower = (name || '').toLowerCase();
+  if (lower.includes('sky villa')) return 'Sky Villa cao cấp';
+  if (lower.includes('penthouse')) return 'Căn hộ Penthouse';
+  if (lower.includes('duplex')) return 'Căn hộ Duplex';
+  if (lower.includes('biệt thự') || lower.includes('villa')) return 'Biệt thự cao cấp';
+  if (lower.includes('shophouse')) return 'Nhà phố thương mại (Shophouse)';
+  if (lower.includes('nhà phố') || lower.includes('townhouse')) return 'Nhà phố liền kề';
+  if (lower.includes('căn hộ') || lower.includes('apartment') || lower.includes('chủ hộ')) return 'Căn hộ cao cấp';
+  if (lower.includes('office') || lower.includes('văn phòng') || lower.includes('tower')) return 'Văn phòng làm việc';
+  if (projectType === 'villa') return 'Biệt thự cao cấp';
+  if (projectType === 'dinh_thu') return 'Dinh thự sang trọng';
+  if (projectType === 'penthouse') return 'Căn hộ Penthouse';
+  if (projectType === 'duplex') return 'Căn hộ Duplex';
+  if (projectType === 'residential') return 'Nhà ở dân dụng';
+  return 'Công trình cao cấp';
+}
 
 interface CrmCustomerOption {
   id: string;
@@ -535,51 +554,249 @@ export default function ProjectsPage() {
             const pDate = typeof p.targetCompletionDate === 'string' ? p.targetCompletionDate : '';
             const pArch = typeof p.leadArchitectName === 'string' ? p.leadArchitectName : '';
             const pStatus = typeof p.status === 'string' ? p.status : 'design';
+            const pType = typeof p.projectType === 'string' ? p.projectType : '';
 
             const fallback = INITIAL_PORTFOLIO.projects.find((df) => df.id === pId || df.code === pCode);
-            const stage: PortfolioProjectItem['stage'] =
-              pStatus === 'production' || pStatus === 'installation' || pStatus === 'handover' || pStatus === 'design'
-                ? pStatus
-                : fallback?.stage || 'design';
-            const stageLabel =
-              stage === 'production'
-                ? 'Sản xuất'
-                : stage === 'installation'
-                  ? 'Lắp đặt'
-                  : stage === 'handover'
-                    ? 'Bàn giao'
-                    : 'Thiết kế';
+
+            // 1. Phân loại phân khúc khách hàng
+            const customerSegment = inferCustomerSegment(pName, pType || fallback?.customerSegment);
+
+            // 2. Giai đoạn & Tiến độ theo trạng thái thực tế
+            let stage: PortfolioProjectItem['stage'] = 'design';
+            let stageLabel = 'Thiết kế';
+            let stageBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800';
+            let progressPercent = 35;
+            let nextAction = 'Lên concept & hồ sơ 3D';
+
+            switch (pStatus) {
+              case 'lead':
+              case 'inquiry':
+                stage = 'design';
+                stageLabel = 'Tiếp nhận';
+                stageBadgeClass = 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+                progressPercent = 10;
+                nextAction = 'Liên hệ khảo sát nhu cầu';
+                break;
+              case 'survey':
+                stage = 'design';
+                stageLabel = 'Khảo sát';
+                stageBadgeClass = 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800';
+                progressPercent = 20;
+                nextAction = 'Đo vẽ hiện trạng mặt bằng';
+                break;
+              case 'design':
+                stage = 'design';
+                stageLabel = 'Thiết kế 3D';
+                stageBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800';
+                progressPercent = 35;
+                nextAction = 'Hoàn thiện bản vẽ 3D';
+                break;
+              case 'quotation':
+                stage = 'design';
+                stageLabel = 'Lập BOQ';
+                stageBadgeClass = 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-800';
+                progressPercent = 45;
+                nextAction = 'Bóc tách BOQ & báo giá';
+                break;
+              case 'negotiating':
+                stage = 'design';
+                stageLabel = 'Đàm phán';
+                stageBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800';
+                progressPercent = 50;
+                nextAction = 'Thương thảo hợp đồng thi công';
+                break;
+              case 'approved':
+                stage = 'design';
+                stageLabel = 'Đã duyệt';
+                stageBadgeClass = 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/50 dark:text-teal-300 dark:border-teal-800';
+                progressPercent = 60;
+                nextAction = 'Ký kết & tạm ứng sản xuất';
+                break;
+              case 'production':
+                stage = 'production';
+                stageLabel = 'Xưởng sản xuất';
+                stageBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800';
+                progressPercent = 70;
+                nextAction = 'Gia công nội thất tại xưởng';
+                break;
+              case 'in_progress':
+              case 'active':
+                stage = 'installation';
+                stageLabel = pStatus === 'in_progress' ? 'Đang thi công' : 'Lắp đặt tại công trình';
+                stageBadgeClass = 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800';
+                progressPercent = 75;
+                nextAction = 'Thi công fitout công trình';
+                break;
+              case 'installation':
+                stage = 'installation';
+                stageLabel = 'Lắp đặt';
+                stageBadgeClass = 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800';
+                progressPercent = 85;
+                nextAction = 'Lắp đặt đồ gỗ & hoàn thiện';
+                break;
+              case 'handover':
+                stage = 'handover';
+                stageLabel = 'Bàn giao';
+                stageBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800';
+                progressPercent = 95;
+                nextAction = 'Nghiệm thu hồ sơ bàn giao';
+                break;
+              case 'warranty':
+                stage = 'handover';
+                stageLabel = 'Bảo hành';
+                stageBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800';
+                progressPercent = 100;
+                nextAction = 'Bảo dưỡng định kỳ';
+                break;
+              case 'completed':
+                stage = 'handover';
+                stageLabel = 'Hoàn thành';
+                stageBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800';
+                progressPercent = 100;
+                nextAction = 'Đã bàn giao công trình';
+                break;
+              case 'cancelled':
+                stage = 'design';
+                stageLabel = 'Đã hủy';
+                stageBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-800';
+                progressPercent = 0;
+                nextAction = 'Hồ sơ đã hủy';
+                break;
+              default:
+                if (fallback) {
+                  stage = fallback.stage;
+                  stageLabel = fallback.stageLabel;
+                  stageBadgeClass = fallback.stageBadgeClass;
+                  progressPercent = fallback.progressPercent;
+                  nextAction = fallback.nextAction;
+                }
+            }
+
+            // 3. Tính toán hạn hoàn thành và số ngày thực tế
+            let deadlineDateFormatted = '31/12/2026';
+            let daysRemaining = 30;
+            let daysRemainingLabel = 'Còn 30 ngày';
+            let isDeadlineUrgent = false;
+            let daysRemainingClass = 'text-slate-600 dark:text-slate-400';
+            let scheduleStatus: ScheduleHealth = 'on_track';
+            let scheduleStatusLabel = 'Đúng tiến độ';
+            let scheduleStatusClass = 'text-blue-600 dark:text-blue-400';
+
+            if (pDate) {
+              const target = new Date(pDate);
+              if (!isNaN(target.getTime())) {
+                const d = String(target.getDate()).padStart(2, '0');
+                const m = String(target.getMonth() + 1).padStart(2, '0');
+                const y = target.getFullYear();
+                deadlineDateFormatted = `${d}/${m}/${y}`;
+
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const targetDay = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+                daysRemaining = Math.round((targetDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+                if (pStatus === 'completed' || pStatus === 'handover' || pStatus === 'warranty') {
+                  daysRemainingLabel = 'Đã bàn giao';
+                  daysRemainingClass = 'text-emerald-600 dark:text-emerald-400 font-medium';
+                  scheduleStatus = 'ahead';
+                  scheduleStatusLabel = 'Đã hoàn thành';
+                  scheduleStatusClass = 'text-emerald-600 dark:text-emerald-400';
+                  isDeadlineUrgent = false;
+                } else if (pStatus === 'cancelled') {
+                  daysRemainingLabel = 'Đã hủy';
+                  daysRemainingClass = 'text-slate-400';
+                  scheduleStatus = 'delayed';
+                  scheduleStatusLabel = 'Dự án dừng';
+                  scheduleStatusClass = 'text-slate-400';
+                  isDeadlineUrgent = false;
+                } else if (daysRemaining < 0) {
+                  daysRemainingLabel = `Trễ ${Math.abs(daysRemaining)} ngày`;
+                  isDeadlineUrgent = true;
+                  daysRemainingClass = 'text-rose-600 dark:text-rose-400 font-semibold';
+                  scheduleStatus = 'delayed';
+                  scheduleStatusLabel = 'Chậm tiến độ';
+                  scheduleStatusClass = 'text-rose-600 dark:text-rose-400 font-semibold';
+                } else if (daysRemaining === 0) {
+                  daysRemainingLabel = 'Hạn hôm nay';
+                  isDeadlineUrgent = true;
+                  daysRemainingClass = 'text-amber-600 dark:text-amber-400 font-semibold';
+                  scheduleStatus = 'delayed';
+                  scheduleStatusLabel = 'Hạn chót';
+                  scheduleStatusClass = 'text-amber-600 dark:text-amber-400 font-semibold';
+                } else if (daysRemaining <= 15) {
+                  daysRemainingLabel = `Còn ${daysRemaining} ngày`;
+                  isDeadlineUrgent = true;
+                  daysRemainingClass = 'text-amber-600 dark:text-amber-400 font-medium';
+                  scheduleStatus = 'on_track';
+                  scheduleStatusLabel = 'Gấp - Cần chú ý';
+                  scheduleStatusClass = 'text-amber-600 dark:text-amber-400 font-medium';
+                } else {
+                  daysRemainingLabel = `Còn ${daysRemaining} ngày`;
+                  isDeadlineUrgent = false;
+                  daysRemainingClass = 'text-slate-600 dark:text-slate-400';
+                  scheduleStatus = 'on_track';
+                  scheduleStatusLabel = 'Đúng tiến độ';
+                  scheduleStatusClass = 'text-blue-600 dark:text-blue-400';
+                }
+              }
+            }
+
             return {
               id: pId || fallback?.id || `proj-${idx + 1}`,
               name: pName || fallback?.name || `Dự án ${pCode}`,
               code: pCode || fallback?.code || `INT-2024-${String(idx + 1).padStart(3, '0')}`,
               customerName: pCustomer || fallback?.customerName || 'Khách hàng',
-              customerSegment: fallback?.customerSegment || 'Biệt thự cao cấp',
+              customerSegment,
               leadArchitect: pArch || fallback?.leadArchitect || 'KTS. Lê Hoàng Sơn',
               leadArchitectAvatar: fallback?.leadArchitectAvatar || 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/team/staff-female-1.jpg',
               stage,
               stageLabel,
-              stageBadgeClass: fallback?.stageBadgeClass || 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800',
-              progressPercent: fallback?.progressPercent || 65,
-              scheduleStatus: fallback?.scheduleStatus || 'on_track',
-              scheduleStatusLabel: fallback?.scheduleStatusLabel || 'Đúng tiến độ',
-              scheduleStatusClass: fallback?.scheduleStatusClass || 'text-blue-600 dark:text-blue-400',
-              deadlineDate: pDate || fallback?.deadlineDate || '31/12/2026',
-              daysRemaining: fallback?.daysRemaining || 30,
-              daysRemainingLabel: fallback?.daysRemainingLabel || 'Còn 30 ngày',
-              isDeadlineUrgent: fallback?.isDeadlineUrgent || false,
-              daysRemainingClass: fallback?.daysRemainingClass || 'text-slate-600 dark:text-slate-400',
+              stageBadgeClass,
+              progressPercent,
+              scheduleStatus,
+              scheduleStatusLabel,
+              scheduleStatusClass,
+              deadlineDate: deadlineDateFormatted,
+              daysRemaining,
+              daysRemainingLabel,
+              isDeadlineUrgent,
+              daysRemainingClass,
               contractValue: pBudget || fallback?.contractValue || 0,
               contractValueFormatted: (pBudget || fallback?.contractValue || 0).toLocaleString('vi-VN') + ' đ',
               grossMarginPercent: fallback?.grossMarginPercent || 40.0,
               grossMarginFormatted: (fallback?.grossMarginPercent || 40.0) + '%',
-              nextAction: fallback?.nextAction || 'Kiểm tra tiến độ',
+              nextAction,
               imageUrl: fallback?.imageUrl || 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
             };
           });
+
+          // Cập nhật thống kê KPI động theo số liệu thực tế
+          const total = mappedProjects.length;
+          const inProgressCount = mappedProjects.filter(
+            (p) => !['Bảo hành', 'Hoàn thành', 'Đã hủy'].includes(p.stageLabel)
+          ).length;
+          const delayedCount = mappedProjects.filter(
+            (p) => p.scheduleStatus === 'delayed' && p.daysRemaining < 0
+          ).length;
+
           setData((prev) => ({
             ...prev,
             projects: mappedProjects.length > 0 ? mappedProjects : prev.projects,
+            kpis: {
+              ...prev.kpis,
+              totalProjects: {
+                ...prev.kpis.totalProjects,
+                value: total,
+              },
+              inProgress: {
+                ...prev.kpis.inProgress,
+                value: inProgressCount,
+              },
+              delayedRisk: {
+                ...prev.kpis.delayedRisk,
+                value: delayedCount,
+              },
+            },
           }));
         }
       })
@@ -877,23 +1094,16 @@ export default function ProjectsPage() {
                   >
                     {/* Cột 1: Dự án */}
                     <td className="py-3.5 px-4 font-semibold text-slate-900 dark:text-white whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={project.imageUrl}
-                          alt={project.name}
-                          className="w-11 h-11 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700 flex-shrink-0"
-                        />
-                        <div>
-                          <Link
-                            href={`/dashboard/interior/projects/${project.id}`}
-                            className="font-bold text-slate-900 dark:text-white hover:text-amber-600 dark:hover:text-amber-400 leading-tight transition-colors whitespace-nowrap"
-                          >
-                            {project.name}
-                          </Link>
-                          <p className="text-[11px] text-slate-400 font-mono mt-0.5 whitespace-nowrap">
-                            {project.code}
-                          </p>
-                        </div>
+                      <div>
+                        <Link
+                          href={`/dashboard/interior/projects/${project.id}`}
+                          className="font-bold text-slate-900 dark:text-white hover:text-amber-600 dark:hover:text-amber-400 leading-tight transition-colors whitespace-nowrap block"
+                        >
+                          {project.name}
+                        </Link>
+                        <p className="text-[11px] text-slate-400 font-mono mt-0.5 whitespace-nowrap">
+                          {project.code}
+                        </p>
                       </div>
                     </td>
 
