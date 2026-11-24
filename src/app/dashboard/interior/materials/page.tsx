@@ -16,8 +16,9 @@
  * @module src/app/dashboard/interior/materials/page
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import InteriorUserBar from '@/components/interior/InteriorUserBar';
 import {
   Layers,
   Lock,
@@ -43,6 +44,7 @@ import {
   FileText,
   AlertCircle,
   RotateCcw,
+  Building,
 } from 'lucide-react';
 
 // ——— Types & Data Contracts ———
@@ -248,11 +250,51 @@ interface MaterialsApiResponse {
   revisionVersion?: number | null;
 }
 
+interface InteriorProjectItem {
+  id: string;
+  code: string;
+  name: string;
+  status?: string;
+  customer_name?: string | null;
+  client_name?: string | null;
+  site_address?: string | null;
+  estimated_budget?: number | string | null;
+}
+
 export default function InteriorMaterialsPage() {
   const [selectedCategory, setSelectedCategory] = useState<MaterialCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeView, setActiveView] = useState<'cards' | 'table'>('cards');
   const [activeModalItem, setActiveModalItem] = useState<MaterialItem | null>(null);
+
+  // Project selection & switcher dropdown state
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('proj-villa-sunrise');
+  const [projectOptions, setProjectOptions] = useState<InteriorProjectItem[]>([
+    {
+      id: 'proj-villa-sunrise',
+      code: 'INT-2024-001',
+      name: 'Villa Sunrise Renovation',
+      customer_name: 'SunCasa Group',
+      status: 'in_progress',
+    },
+    {
+      id: 'proj-penthouse-diamond',
+      code: 'INT-2024-002',
+      name: 'Penthouse Diamond Island Luxury',
+      customer_name: 'Trần Gia Hưng',
+      status: 'design',
+    },
+    {
+      id: 'proj-shophouse-sala',
+      code: 'INT-2024-003',
+      name: 'Shophouse Sala Saroma Office',
+      customer_name: 'TechCorp Holdings',
+      status: 'approved',
+    },
+  ]);
+  const [showProjectDropdown, setShowProjectDropdown] = useState<boolean>(false);
+  const [projectSearchQuery, setProjectSearchQuery] = useState<string>('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Modals for adding & importing
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
@@ -297,13 +339,81 @@ export default function InteriorMaterialsPage() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Fetch real material data from DB on mount
+  // Load real projects from API
+  useEffect(() => {
+    let isMounted = true;
+    async function loadProjects() {
+      try {
+        const res = await fetch('/api/interior/projects', { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          const items = Array.isArray(json.data?.projects) ? (json.data.projects as InteriorProjectItem[]) : [];
+          if (isMounted && items.length > 0) {
+            setProjectOptions(items);
+          }
+        }
+      } catch {
+        // keep fallback
+      }
+    }
+    loadProjects();
+    return () => { isMounted = false; };
+  }, []);
+
+  // Click outside to close project dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowProjectDropdown(false);
+      }
+    }
+    if (showProjectDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showProjectDropdown]);
+
+  // Filter projects by search
+  const filteredProjects = useMemo(() => {
+    if (!projectSearchQuery.trim()) return projectOptions;
+    const q = projectSearchQuery.toLowerCase();
+    return projectOptions.filter(
+      (p) =>
+        p.name?.toLowerCase().includes(q) ||
+        p.code?.toLowerCase().includes(q) ||
+        (p.customer_name && p.customer_name.toLowerCase().includes(q))
+    );
+  }, [projectOptions, projectSearchQuery]);
+
+  // Current selected project object
+  const currentProject = useMemo(() => {
+    return projectOptions.find((p) => p.id === selectedProjectId) || projectOptions[0] || {
+      id: 'proj-villa-sunrise',
+      code: 'INT-2024-001',
+      name: 'Villa Sunrise Renovation',
+      customer_name: 'SunCasa Group',
+    };
+  }, [projectOptions, selectedProjectId]);
+
+  const handleSelectProject = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    setShowProjectDropdown(false);
+    const proj = projectOptions.find((p) => p.id === projectId);
+    showToast(`Đã chuyển sang dự án: ${proj?.name || projectId}`, 'info');
+  };
+
+  // Fetch real material data from DB whenever selectedProjectId changes
   useEffect(() => {
     let isMounted = true;
     async function fetchMaterials() {
       setIsLoadingMaterials(true);
       try {
-        const res = await fetch('/api/interior/materials', { cache: 'no-store' });
+        const url = selectedProjectId
+          ? `/api/interior/materials?projectId=${encodeURIComponent(selectedProjectId)}`
+          : '/api/interior/materials';
+        const res = await fetch(url, { cache: 'no-store' });
         if (res.ok) {
           const json: MaterialsApiResponse = await res.json();
           if (isMounted && json.success && json.materials.length > 0) {
@@ -324,7 +434,7 @@ export default function InteriorMaterialsPage() {
     }
     fetchMaterials();
     return () => { isMounted = false; };
-  }, []);
+  }, [selectedProjectId]);
 
   // Category labels helper
   const getCategoryLabel = (cat: MaterialCategory): string => {
@@ -592,93 +702,196 @@ export default function InteriorMaterialsPage() {
         </div>
       )}
 
-      {/* ─── Breadcrumb & Context Header ─── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
-            <Link href="/dashboard/interior/projects" className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
-              Dự án
-            </Link>
-            <span>&rsaquo;</span>
-            <span className="text-slate-900 dark:text-white font-bold">
-              Villa Sunrise Renovation (INT-2024-001)
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-              Bảng Chỉ Định Vật Liệu &amp; Mẫu Thực Tế (Spec Lock)
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800">
-              Đang thực hiện
-            </span>
+      {/* ─── Top Level: Breadcrumbs & Project Switcher Dropdown & User Bar ─── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-800">
+        {/* Left: Breadcrumbs + Interactive Project Switcher Dropdown */}
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <Link
+            href="/dashboard/interior/projects"
+            className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+          >
+            Dự án
+          </Link>
+          <span className="text-slate-300 dark:text-slate-700">&rsaquo;</span>
+
+          {/* Project Switcher Dropdown Component */}
+          <div className="relative inline-block" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setShowProjectDropdown((prev) => !prev)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-900 dark:text-white border border-slate-200/90 dark:border-slate-800 shadow-2xs transition-all cursor-pointer group"
+              title="Nhấn để đổi sang dự án khác"
+            >
+              <Building className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span className="font-bold text-slate-900 dark:text-white truncate max-w-[200px] sm:max-w-[320px]">
+                {currentProject.name}
+              </span>
+              <span className="text-[11px] font-mono text-slate-400 font-normal">
+                ({currentProject.code})
+              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform duration-200 ${
+                  showProjectDropdown ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+
+            {/* Dropdown Menu */}
+            {showProjectDropdown && (
+              <div className="absolute top-full left-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-1">
+                <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800">
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Tìm kiếm dự án..."
+                      value={projectSearchQuery}
+                      onChange={(e) => setProjectSearchQuery(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-hidden focus:ring-1 focus:ring-emerald-600"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div className="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 p-1">
+                  {filteredProjects.map((p) => {
+                    const isCurrent = p.id === selectedProjectId;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => handleSelectProject(p.id)}
+                        className={`w-full text-left px-3 py-2.5 rounded-xl transition-colors flex items-center justify-between gap-2 cursor-pointer ${
+                          isCurrent
+                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 font-bold'
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs truncate font-semibold text-slate-900 dark:text-white">
+                            {p.name}
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-0.5 truncate">
+                            {p.code} • {p.customer_name || 'Khách hàng'}
+                          </p>
+                        </div>
+                        {isCurrent && (
+                          <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Spec Lock status / Toggle */}
+        {/* Right side: Top user profile & notifications */}
+        <div className="flex items-center gap-3">
+          <InteriorUserBar />
+        </div>
+      </div>
+
+      {/* ─── Second Level: Page Title + Executive Action Toolbar ─── */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2">
+        {/* Title & Status Badges */}
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+            Bảng Chỉ Định Vật Liệu &amp; Mẫu Thực Tế (Spec Lock)
+          </h1>
+
+          {/* Spec Lock Toggle Pill */}
           <button
             type="button"
             onClick={() => {
               setIsUnlocked(!isUnlocked);
               showToast(
                 !isUnlocked
-                  ? 'Đã mở khóa chế độ Soạn thảo (Draft Revision). Hiện bạn có thể thêm vật tư hoặc import Excel.'
+                  ? 'Đã mở khóa chế độ Soạn thảo (Draft Revision).'
                   : 'Đã khóa Spec R1.0 Active (Bất biến).',
                 'info'
               );
             }}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all border cursor-pointer ${
               isUnlocked
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20'
-                : 'bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20'
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20'
+                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20'
             }`}
-            title="Nhấn để chuyển đổi giữa Khóa Spec và Mở khóa Soạn thảo"
+            title="Nhấn để chuyển đổi giữa Khóa Spec và Chế độ Soạn thảo"
           >
-            {isUnlocked ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+            {isUnlocked ? <Unlock className="w-3.5 h-3.5 text-amber-600" /> : <Lock className="w-3.5 h-3.5 text-emerald-600" />}
             <span>{isUnlocked ? 'Đang Soạn Thảo (Draft R1.1)' : 'Spec Lock R1.0 Active'}</span>
           </button>
 
-          {/* Button: + Thêm Vật Tư */}
-          <button
-            type="button"
-            onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-semibold shadow-xs hover:shadow transition-all cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>+ Thêm Vật Tư</span>
-          </button>
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+            Đang thực hiện
+          </span>
+        </div>
 
-          {/* Button: 📥 Nhập từ Excel */}
+        {/* Action Controls: Harmonized, Non-wrapping, Professional Buttons */}
+        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
+          {/* Segmented View Mode Switcher */}
+          <div className="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setActiveView('cards')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                activeView === 'cards'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs font-bold'
+                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Thẻ Mẫu</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('table')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                activeView === 'table'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs font-bold'
+                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Dạng Bảng</span>
+            </button>
+          </div>
+
+          {/* Button: Nhập Excel */}
           <button
             type="button"
             onClick={() => setShowImportModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-2xs transition-all text-slate-700 dark:text-slate-200"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200/90 dark:border-slate-800 shadow-2xs transition-all cursor-pointer"
+            title="Nhập danh mục hàng loạt từ bảng tính Excel"
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
-            <span>📥 Nhập từ Excel</span>
+            <span>Nhập Excel</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveView(activeView === 'cards' ? 'table' : 'cards')}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-2xs transition-all"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
-            <span>{activeView === 'cards' ? 'Xem Dạng Bảng' : 'Xem Dạng Thẻ Mẫu'}</span>
-          </button>
-
+          {/* Button: Xuất PDF */}
           <button
             type="button"
             onClick={() => {
-              if (typeof window !== 'undefined') {
-                window.print();
-              }
+              if (typeof window !== 'undefined') window.print();
             }}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold shadow-2xs hover:shadow transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200/90 dark:border-slate-800 shadow-2xs transition-all cursor-pointer"
+            title="Xuất hồ sơ Spec kỹ thuật PDF"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-slate-500" />
             <span>Xuất PDF</span>
+          </button>
+
+          {/* Primary CTA: + Thêm Vật Tư */}
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0f4c3a] hover:bg-[#0c3c2e] text-white text-xs font-bold shadow-xs hover:shadow transition-all cursor-pointer"
+            title="Khai báo vật tư chỉ định mới"
+          >
+            <Plus className="w-4 h-4 shrink-0" />
+            <span>Thêm Vật Tư</span>
           </button>
         </div>
       </div>
