@@ -39,6 +39,9 @@ export interface ComputeFinancialTruthInput {
   contractNumber?: string;
   signedDate?: string;
   contractStatusLabel?: string;
+  contractStatusBadgeClass?: string;
+  contractStatusSubtext?: string;
+  contractStatusIconBgClass?: string;
   unallocatedCollected?: number;
 }
 
@@ -233,8 +236,11 @@ export class InteriorContractAnalyticsService {
       milestones,
       clientName = 'Sheikh Al-Maktoum Office',
       contractNumber = 'CON-DUBAI-001',
-      signedDate = '2024-02-06',
+      signedDate,
       contractStatusLabel = 'Đang hiệu lực',
+      contractStatusBadgeClass = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800',
+      contractStatusSubtext = 'Căn cứ xuất lệnh sản xuất',
+      contractStatusIconBgClass = 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400',
       unallocatedCollected = 0,
     } = input;
 
@@ -265,6 +271,10 @@ export class InteriorContractAnalyticsService {
 
     const progressInteger = Math.round(paymentProgressPercent);
 
+    const signedDateSubtext = signedDate
+      ? `Ngày ký: ${signedDate}`
+      : 'Chưa ký kết (Bản nháp)';
+
     const kpis: ContractOverviewKPIs = {
       contractAndClient: {
         formattedValue: contractNumber,
@@ -277,7 +287,7 @@ export class InteriorContractAnalyticsService {
         rawValue: contractValue,
         formattedValue: this.formatVND(contractValue),
         label: 'Tổng giá trị hợp đồng',
-        subtext: `Ngày ký: ${signedDate}`,
+        subtext: signedDateSubtext,
         iconName: 'Coins',
         iconBgClass: 'bg-purple-50 text-purple-600 dark:bg-purple-950/50 dark:text-purple-400',
       },
@@ -306,12 +316,11 @@ export class InteriorContractAnalyticsService {
       contractStatus: {
         formattedValue: contractStatusLabel,
         badgeLabel: contractStatusLabel,
-        badgeClass:
-          'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800',
+        badgeClass: contractStatusBadgeClass,
         label: 'Trạng thái hợp đồng',
-        subtext: 'Căn cứ xuất lệnh sản xuất',
+        subtext: contractStatusSubtext,
         iconName: 'ShieldCheck',
-        iconBgClass: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400',
+        iconBgClass: contractStatusIconBgClass,
       },
     };
 
@@ -1436,7 +1445,9 @@ export class InteriorContractAnalyticsService {
       dueDate: m.dueDate ?? '',
       dueDateFormatted: m.dueDate
         ? new Date(m.dueDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
-        : 'Chưa xác định',
+        : m.triggerCondition && m.triggerCondition.trim() !== ''
+        ? m.triggerCondition
+        : 'Theo tiến độ HĐ',
       status,
       statusLabel,
       statusBadgeVariant,
@@ -1453,6 +1464,7 @@ export class InteriorContractAnalyticsService {
   public static buildResponseFromDBContract(
     contract: InteriorContract,
     projectCode?: string,
+    projectName?: string,
   ): ContractOverviewResponse {
     const contractValue = contract.baselineContractValue;
 
@@ -1460,20 +1472,70 @@ export class InteriorContractAnalyticsService {
       this.mapDomainMilestoneToTableItem(m, contractValue),
     );
 
+    const contractStatus = contract.status;
+    let contractStatusLabel = 'Đang hiệu lực';
+    let contractStatusBadgeClass =
+      'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800';
+    let contractStatusSubtext = 'Căn cứ xuất lệnh sản xuất';
+    let contractStatusIconBgClass =
+      'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400';
+
+    if (contractStatus === 'signed') {
+      contractStatusLabel = 'Đã ký kết';
+      contractStatusBadgeClass =
+        'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800';
+      contractStatusSubtext = 'Căn cứ xuất lệnh sản xuất';
+      contractStatusIconBgClass =
+        'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400';
+    } else if (contractStatus === 'active') {
+      contractStatusLabel = 'Đang hiệu lực';
+      contractStatusBadgeClass =
+        'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800';
+      contractStatusSubtext = 'Căn cứ xuất lệnh sản xuất';
+      contractStatusIconBgClass =
+        'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400';
+    } else if (contractStatus === 'completed') {
+      contractStatusLabel = 'Đã hoàn thành';
+      contractStatusBadgeClass =
+        'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800';
+      contractStatusSubtext = 'Đã thanh lý & chuyển bảo hành';
+      contractStatusIconBgClass =
+        'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400';
+    } else if (contractStatus === 'draft') {
+      contractStatusLabel = 'Bản nháp';
+      contractStatusBadgeClass =
+        'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800';
+      contractStatusSubtext = 'Đang soạn thảo & chờ ký kết';
+      contractStatusIconBgClass =
+        'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400';
+    } else if (contractStatus === 'in_review') {
+      contractStatusLabel = 'Đang thẩm duyệt';
+      contractStatusBadgeClass =
+        'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200 dark:border-blue-800';
+      contractStatusSubtext = 'Đang trong quy trình phê duyệt';
+      contractStatusIconBgClass =
+        'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400';
+    } else if (contractStatus === 'terminated') {
+      contractStatusLabel = 'Đã chấm dứt';
+      contractStatusBadgeClass =
+        'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800';
+      contractStatusSubtext = 'Hợp đồng đã chấm dứt hiệu lực';
+      contractStatusIconBgClass =
+        'bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400';
+    }
+
     const financialTruth = this.computeFinancialTruth({
       contractValue,
       milestones,
       clientName: contract.clientRepresentative,
       contractNumber: contract.contractNumber,
       signedDate: contract.signedDate
-        ? new Date(contract.signedDate).toLocaleDateString('vi-VN')
+        ? new Date(contract.signedDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
         : undefined,
-      contractStatusLabel:
-        contract.status === 'active' || contract.status === 'signed'
-          ? 'Đang hiệu lực'
-          : contract.status === 'completed'
-          ? 'Đã hoàn thành'
-          : 'Đã chấm dứt',
+      contractStatusLabel,
+      contractStatusBadgeClass,
+      contractStatusSubtext,
+      contractStatusIconBgClass,
     });
 
     const progressStepper = this.computeProgressStepper(
@@ -1534,13 +1596,15 @@ export class InteriorContractAnalyticsService {
         : a.status === 'rejected' ? 'danger' as const : 'warning' as const,
     }));
 
+    const resolvedProjectName = projectName ?? contract.title;
+
     return {
       hasContract: true,
       header: {
         projectId: contract.projectId,
         projectCode: projectCode ?? contract.projectId,
-        projectName: contract.title,
-        selectorLabel: `${contract.title} (${projectCode ?? contract.projectId})`,
+        projectName: resolvedProjectName,
+        selectorLabel: `${resolvedProjectName} (${projectCode ?? contract.projectId})`,
         clientName: contract.clientRepresentative,
         contractId: contract.contractNumber,
         managerName: contract.contractorRepresentative,

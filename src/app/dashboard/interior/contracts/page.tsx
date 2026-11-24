@@ -385,54 +385,111 @@ export default function InteriorContractsPage() {
     const boqRef = data?.referenceBOQValueFormatted;
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 space-y-6">
-        {/* Header bar */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-              Quản lý Báo giá, Hợp đồng &amp; Tiến độ Thu tiền
-            </h1>
-            <div className="flex items-center gap-2 mt-1 text-sm text-slate-600 dark:text-slate-400">
-              <span className="font-medium text-slate-700 dark:text-slate-300">Dự án:</span>
-              <div className="relative inline-block" ref={dropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setShowProjectDropdown((v) => !v)}
-                  className="flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors"
-                >
-                  <span>{selectedProject ? `${selectedProject.name} (${selectedProject.code})` : selectedProjectId}</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-                </button>
-                {showProjectDropdown && (
-                  <div className="absolute top-full left-0 mt-1 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 py-1 overflow-hidden">
-                    {projectOptions.map((p) => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => handleSelectProject(p.id)}
-                        className={`w-full text-left px-4 py-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-between gap-2 ${
-                          p.id === selectedProjectId ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 font-semibold' : 'text-slate-700 dark:text-slate-300'
-                        }`}
-                      >
-                        <span>{p.name} ({p.code})</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+        {/* ─── Breadcrumb & Top Utilities Bar ─── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <Link
+              href="/dashboard/interior"
+              className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1"
+            >
+              <FolderOpen className="w-3.5 h-3.5 text-slate-400" />
+            </Link>
+            <span className="text-slate-400">›</span>
+            <Link
+              href="/dashboard/interior/projects"
+              className="hover:text-slate-900 dark:hover:text-white transition-colors"
+            >
+              Dự án
+            </Link>
+            <span className="text-slate-400">›</span>
+            <span className="font-semibold text-slate-800 dark:text-slate-200">
+              Hợp đồng &amp; Thu tiền
+            </span>
           </div>
+
           <div className="flex items-center gap-3">
-            <button type="button" onClick={handleRefresh} disabled={refreshing}
-              className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-medium transition-colors shadow-sm">
-              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-              <span>Làm mới</span>
-            </button>
-            <button type="button" onClick={() => setShowNewContractModal(true)} disabled={!canOpenCommercialWorkflow(data?.workflowCommands)}
-              title="Mở quy trình báo giá, chấp thuận khách hàng và hợp đồng."
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 text-white rounded-lg text-xs font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-50">
-              <Plus className="w-4 h-4" />
-              <span>{data?.hasContract ? 'Báo giá & Duyệt' : '+ Tạo Hợp Đồng Mới'}</span>
-            </button>
+            <InteriorUserBar />
+          </div>
+        </div>
+
+        {/* ─── Main Header / Context & Action Bar ─── */}
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                  {selectedProject?.code || 'DỰ ÁN'}
+                </span>
+                <div className="relative inline-block" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setShowProjectDropdown((v) => !v)}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-all shadow-2xs"
+                  >
+                    <Building className="w-3.5 h-3.5 text-slate-500" />
+                    <span className="max-w-[280px] sm:max-w-[360px] truncate">
+                      {selectedProject ? selectedProject.name : 'Chọn dự án'}
+                    </span>
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                  </button>
+                  {showProjectDropdown && (
+                    <div className="absolute top-full left-0 mt-1.5 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 py-1.5 overflow-hidden">
+                      <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                        Chọn dự án thi công
+                      </div>
+                      <div className="max-h-64 overflow-y-auto py-1">
+                        {projectOptions.map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => handleSelectProject(p.id)}
+                            className={`w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors flex items-center justify-between gap-2 ${
+                              p.id === selectedProjectId
+                                ? 'bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-semibold'
+                                : 'text-slate-700 dark:text-slate-300'
+                            }`}
+                          >
+                            <div className="truncate">
+                              <span className="font-medium text-slate-900 dark:text-white">{p.name}</span>
+                              <span className="ml-1.5 text-[11px] text-slate-400">({p.code})</span>
+                            </div>
+                            {p.id === selectedProjectId && (
+                              <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                Quản lý Hợp đồng &amp; Tiến độ Thu tiền
+              </h1>
+            </div>
+
+            <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-center">
+              <button
+                type="button"
+                onClick={handleRefresh}
+                disabled={refreshing}
+                title="Tải lại dữ liệu"
+                className="h-10 px-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Làm mới</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowNewContractModal(true)}
+                disabled={!canOpenCommercialWorkflow(data?.workflowCommands)}
+                title="Mở quy trình báo giá, chấp thuận khách hàng và hợp đồng."
+                className="h-10 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span>+ Lập Báo giá &amp; Ký HĐ</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -550,91 +607,162 @@ export default function InteriorContractsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-6 space-y-6">
-      {/* ─── 1. TOP HEADER ──────────────────────────────────────────────────────── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Quản lý Báo giá, Hợp đồng &amp; Tiến độ Thu tiền
-          </h1>
-          {/* Interactive Project Selector */}
-          <div className="flex items-center gap-2 mt-1 text-sm text-slate-600 dark:text-slate-400">
-            <span className="font-medium text-slate-700 dark:text-slate-300">Dự án:</span>
-            <div className="relative inline-block" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setShowProjectDropdown((v) => !v)}
-                className="flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors"
-              >
-                <span>{header.selectorLabel}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-              </button>
-              {showProjectDropdown && (
-                <div className="absolute top-full left-0 mt-1 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 py-1 overflow-hidden">
-                  {projectOptions.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => handleSelectProject(p.id)}
-                      className={`w-full text-left px-4 py-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-between gap-2 ${
-                        p.id === selectedProjectId ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 font-semibold' : 'text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <span>{p.name} ({p.code})</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+      {/* ─── 1. TOP UTILITIES & BREADCRUMB ────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <Link
+            href="/dashboard/interior"
+            className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1"
+          >
+            <FolderOpen className="w-3.5 h-3.5 text-slate-400" />
+          </Link>
+          <span className="text-slate-400">›</span>
+          <Link
+            href="/dashboard/interior/projects"
+            className="hover:text-slate-900 dark:hover:text-white transition-colors"
+          >
+            Dự án
+          </Link>
+          <span className="text-slate-400">›</span>
+          <span className="font-semibold text-slate-800 dark:text-slate-200">
+            Hợp đồng &amp; Thu tiền
+          </span>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
-          <button
-            type="button"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-medium transition-colors shadow-sm"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-            <span>Làm mới</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowNewContractModal(true)}
-            disabled={!canOpenCommercialWorkflow(data.workflowCommands)}
-            title="Mở quy trình báo giá, chấp thuận khách hàng và hợp đồng."
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 text-white rounded-lg text-xs font-semibold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Plus className="w-4 h-4" />
-            <span>{data.hasContract ? 'Báo giá & Duyệt' : '+ Tạo Hợp Đồng Mới'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowReleaseModal(true)}
-            disabled={!data.workflowCommands?.releaseProductionAvailable || !data.workshopReleaseGating.isEligible}
-            title="Chưa có command backend và gate server đầy đủ để phát hành lệnh sản xuất."
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 text-white rounded-lg text-xs font-semibold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Send className="w-4 h-4" />
-            <span>Chuyển lệnh sang xưởng</span>
-          </button>
-
-          {/* Warranty Certificate Issuance — enabled after handover is client-accepted */}
-          <button
-            type="button"
-            onClick={() => void handleIssueWarrantyCertificate()}
-            disabled={issuingWarranty}
-            title={warrantyIssuedCertNumber ? `Đã phát hành: ${warrantyIssuedCertNumber}` : 'Phát hành chứng thư bảo hành chính thức (D13 — yêu cầu bàn giao đã được khách hàng chấp nhận)'}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-lg text-xs font-semibold shadow-sm transition-all"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>{warrantyIssuedCertNumber ? `CT: ${warrantyIssuedCertNumber}` : issuingWarranty ? 'Đang phát hành…' : 'Phát hành Chứng Thư BH'}</span>
-          </button>
-
-          {/* Top user bar & notifications */}
+        {/* User bar & notifications at the clean top-right */}
+        <div className="flex items-center gap-3">
           <InteriorUserBar />
+        </div>
+      </div>
+
+      {/* ─── 2. MAIN CONTEXT & ACTION HEADER ───────────────────────────────────── */}
+      <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+          {/* Left: Project Selector + Title + Metadata */}
+          <div className="space-y-2">
+            {/* Project Selector & Code Pill */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                {header.projectCode}
+              </span>
+              <div className="relative inline-block" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowProjectDropdown((v) => !v)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-all shadow-2xs"
+                >
+                  <Building className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="max-w-[280px] sm:max-w-[360px] truncate">{header.projectName}</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                </button>
+                {showProjectDropdown && (
+                  <div className="absolute top-full left-0 mt-1.5 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 py-1.5 overflow-hidden">
+                    <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                      Chọn dự án thi công
+                    </div>
+                    <div className="max-h-64 overflow-y-auto py-1">
+                      {projectOptions.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => handleSelectProject(p.id)}
+                          className={`w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors flex items-center justify-between gap-2 ${
+                            p.id === selectedProjectId
+                              ? 'bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-semibold'
+                              : 'text-slate-700 dark:text-slate-300'
+                          }`}
+                        >
+                          <div className="truncate">
+                            <span className="font-medium text-slate-900 dark:text-white">{p.name}</span>
+                            <span className="ml-1.5 text-[11px] text-slate-400">({p.code})</span>
+                          </div>
+                          {p.id === selectedProjectId && (
+                            <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Page Title & Subtitle Metadata */}
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                Quản lý Hợp đồng &amp; Tiến độ Thu tiền
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span>Hợp đồng: <strong className="text-slate-700 dark:text-slate-200">{header.contractId}</strong></span>
+                <span className="text-slate-300 dark:text-slate-700">•</span>
+                <span>Khách hàng: <strong className="text-slate-700 dark:text-slate-200">{header.clientName}</strong></span>
+                <span className="text-slate-300 dark:text-slate-700">•</span>
+                <span>Chủ trì: <strong className="text-slate-700 dark:text-slate-200">{header.managerName}</strong></span>
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Action Buttons Group */}
+          <div className="flex items-center gap-2.5 flex-wrap self-start xl:self-center">
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              title="Tải lại dữ liệu hợp đồng"
+              className="h-10 px-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Làm mới</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowNewContractModal(true)}
+              disabled={!canOpenCommercialWorkflow(data.workflowCommands)}
+              title="Mở quy trình báo giá, chấp thuận khách hàng và hợp đồng."
+              className="h-10 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{data.hasContract ? 'Báo giá & Duyệt' : '+ Tạo Hợp Đồng Mới'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowReleaseModal(true)}
+              disabled={!data.workflowCommands?.releaseProductionAvailable || !data.workshopReleaseGating.isEligible}
+              title={
+                !data.workshopReleaseGating.isEligible
+                  ? `Chưa đủ điều kiện chuyển xưởng (${data.workshopReleaseGating.criteria.filter((c) => !c.satisfied).length} điều kiện chưa đạt)`
+                  : 'Phát hành lệnh chuyển xưởng sản xuất'
+              }
+              className="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-2"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>Chuyển lệnh sang xưởng</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void handleIssueWarrantyCertificate()}
+              disabled={issuingWarranty}
+              title={
+                warrantyIssuedCertNumber
+                  ? `Đã phát hành: ${warrantyIssuedCertNumber}`
+                  : 'Phát hành chứng thư bảo hành chính thức (D13 — yêu cầu bàn giao đã được khách hàng chấp nhận)'
+              }
+              className="h-10 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-2"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>
+                {warrantyIssuedCertNumber
+                  ? `CT: ${warrantyIssuedCertNumber}`
+                  : issuingWarranty
+                  ? 'Đang phát hành…'
+                  : 'Phát hành Chứng Thư BH'}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -706,7 +834,7 @@ export default function InteriorContractsPage() {
 
         {/* KPI 5: Trạng thái hợp đồng */}
         <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+          <div className={`w-11 h-11 rounded-xl ${kpis.contractStatus.iconBgClass || 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400'} flex items-center justify-center shrink-0`}>
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div className="min-w-0">
@@ -714,7 +842,7 @@ export default function InteriorContractsPage() {
               {kpis.contractStatus.label}
             </div>
             <div className="mt-0.5">
-              <span className="inline-block px-2 py-0.5 text-xs font-bold rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+              <span className={`inline-block px-2 py-0.5 text-xs font-bold rounded-md ${kpis.contractStatus.badgeClass || 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'}`}>
                 {kpis.contractStatus.formattedValue}
               </span>
             </div>
