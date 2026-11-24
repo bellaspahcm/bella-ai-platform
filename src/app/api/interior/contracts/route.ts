@@ -307,9 +307,10 @@ export async function GET(request: Request): Promise<NextResponse> {
     addenda: [],
   };
   const baseOverview = InteriorContractAnalyticsService.buildResponseFromDBContract(
-      contract,
-      typeof data.project.code === 'string' ? data.project.code : requestedProjectId,
-    );
+    contract,
+    typeof data.project.code === 'string' ? data.project.code : requestedProjectId,
+    typeof data.project.name === 'string' ? data.project.name : undefined,
+  );
   const overview = {
     ...baseOverview,
     detailedTabs: { ...baseOverview.detailedTabs, addenda: addendaView },
