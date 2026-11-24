@@ -592,6 +592,46 @@ function InteriorDesignStudioContent() {
     };
   }, [selectedProjectId]);
 
+  // ── Load drawings/visuals/documents from DB (merges into data state) ────────
+  useEffect(() => {
+    if (!selectedProjectId) return;
+    let isMounted = true;
+
+    async function fetchDrawings() {
+      try {
+        const url = `/api/interior/design/drawings?projectId=${encodeURIComponent(selectedProjectId || '')}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!isMounted || !json.success) return;
+
+        const hasVisuals = Array.isArray(json.visuals) && json.visuals.length > 0;
+        const hasDrawings = Array.isArray(json.technicalDrawings) && json.technicalDrawings.length > 0;
+        const hasDocs = Array.isArray(json.relatedDocuments) && json.relatedDocuments.length > 0;
+
+        if (!hasVisuals && !hasDrawings && !hasDocs) return; // DB empty → keep initial seed
+
+        setData((prev) => ({
+          ...prev,
+          visuals: hasVisuals ? json.visuals : prev.visuals,
+          technicalDrawings: hasDrawings ? json.technicalDrawings : prev.technicalDrawings,
+          relatedDocuments: hasDocs ? json.relatedDocuments : prev.relatedDocuments,
+        }));
+
+        // Set primary visual
+        if (hasVisuals) {
+          const primary = json.visuals.find((v: { isPrimary?: boolean }) => v.isPrimary) || json.visuals[0];
+          if (primary?.id) setSelectedVisualId(primary.id);
+        }
+      } catch {
+        // Retain initial seed data
+      }
+    }
+
+    fetchDrawings();
+    return () => { isMounted = false; };
+  }, [selectedProjectId]);
+
   // Project navigation handlers
   const handleSelectProject = (projectId: string) => {
     setSelectedProjectId(projectId);
