@@ -135,11 +135,11 @@ export default function InteriorContractsPage() {
         const body = await response.json() as { success?: unknown; data?: { projects?: unknown } };
         const projects = body?.success && Array.isArray(body.data?.projects)
           ? body.data.projects.filter((project: unknown): project is InteriorProjectOption => {
-              if (!project || typeof project !== 'object') return false;
-              const candidate = project as Partial<InteriorProjectOption>;
-              return typeof candidate.id === 'string' && typeof candidate.code === 'string'
-                && typeof candidate.name === 'string' && typeof candidate.status === 'string';
-            })
+            if (!project || typeof project !== 'object') return false;
+            const candidate = project as Partial<InteriorProjectOption>;
+            return typeof candidate.id === 'string' && typeof candidate.code === 'string'
+              && typeof candidate.name === 'string' && typeof candidate.status === 'string';
+          })
           : [];
         if (!active) return;
         setProjectOptions(projects);
@@ -443,11 +443,10 @@ export default function InteriorContractsPage() {
                             key={p.id}
                             type="button"
                             onClick={() => handleSelectProject(p.id)}
-                            className={`w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors flex items-center justify-between gap-2 ${
-                              p.id === selectedProjectId
+                            className={`w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors flex items-center justify-between gap-2 ${p.id === selectedProjectId
                                 ? 'bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-semibold'
                                 : 'text-slate-700 dark:text-slate-300'
-                            }`}
+                              }`}
                           >
                             <div className="truncate">
                               <span className="font-medium text-slate-900 dark:text-white">{p.name}</span>
@@ -667,11 +666,10 @@ export default function InteriorContractsPage() {
                           key={p.id}
                           type="button"
                           onClick={() => handleSelectProject(p.id)}
-                          className={`w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors flex items-center justify-between gap-2 ${
-                            p.id === selectedProjectId
+                          className={`w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors flex items-center justify-between gap-2 ${p.id === selectedProjectId
                               ? 'bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-semibold'
                               : 'text-slate-700 dark:text-slate-300'
-                          }`}
+                            }`}
                         >
                           <div className="truncate">
                             <span className="font-medium text-slate-900 dark:text-white">{p.name}</span>
@@ -758,8 +756,8 @@ export default function InteriorContractsPage() {
                 {warrantyIssuedCertNumber
                   ? `CT: ${warrantyIssuedCertNumber}`
                   : issuingWarranty
-                  ? 'Đang phát hành…'
-                  : 'Phát hành Chứng Thư BH'}
+                    ? 'Đang phát hành…'
+                    : 'Phát hành Chứng Thư BH'}
               </span>
             </button>
           </div>
@@ -1140,11 +1138,10 @@ export default function InteriorContractsPage() {
             <button
               type="button"
               onClick={() => setActiveTab('info')}
-              className={`pb-3 border-b-2 transition-colors flex items-center gap-1.5 shrink-0 ${
-                activeTab === 'info'
+              className={`pb-3 border-b-2 transition-colors flex items-center gap-1.5 shrink-0 ${activeTab === 'info'
                   ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
                   : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
+                }`}
             >
               <FileCheck className="w-3.5 h-3.5" />
               <span>Thông tin hợp đồng</span>
@@ -1153,11 +1150,10 @@ export default function InteriorContractsPage() {
             <button
               type="button"
               onClick={() => setActiveTab('addenda')}
-              className={`pb-3 border-b-2 transition-colors flex items-center gap-1.5 shrink-0 ${
-                activeTab === 'addenda'
+              className={`pb-3 border-b-2 transition-colors flex items-center gap-1.5 shrink-0 ${activeTab === 'addenda'
                   ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
                   : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
+                }`}
             >
               <FileText className="w-3.5 h-3.5" />
               <span>Phụ lục &amp; Tài liệu</span>
@@ -1169,11 +1165,10 @@ export default function InteriorContractsPage() {
             <button
               type="button"
               onClick={() => setActiveTab('audit')}
-              className={`pb-3 border-b-2 transition-colors flex items-center gap-1.5 shrink-0 ${
-                activeTab === 'audit'
+              className={`pb-3 border-b-2 transition-colors flex items-center gap-1.5 shrink-0 ${activeTab === 'audit'
                   ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
                   : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
+                }`}
             >
               <Clock className="w-3.5 h-3.5" />
               <span>Lịch sử hoạt động</span>
@@ -1182,11 +1177,10 @@ export default function InteriorContractsPage() {
             <button
               type="button"
               onClick={() => setActiveTab('analysis')}
-              className={`pb-3 border-b-2 transition-colors flex items-center gap-1.5 shrink-0 ${
-                activeTab === 'analysis'
+              className={`pb-3 border-b-2 transition-colors flex items-center gap-1.5 shrink-0 ${activeTab === 'analysis'
                   ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
                   : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
+                }`}
             >
               <BarChart3 className="w-3.5 h-3.5" />
               <span>Phân tích hiệu quả</span>
@@ -1372,16 +1366,22 @@ export default function InteriorContractsPage() {
           </h3>
 
           <div className="mt-4 flex items-center gap-4">
-            <div className="relative w-24 h-16 rounded-lg overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
-              <Image
-                src={projectSummary.imageUrl}
-                alt={projectSummary.imageAlt}
-                fill
-                sizes="96px"
-                className="object-cover"
-                unoptimized
-              />
-            </div>
+            {projectSummary.imageUrl ? (
+              <div className="relative w-24 h-16 rounded-lg overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
+                <Image
+                  src={projectSummary.imageUrl}
+                  alt={projectSummary.imageAlt}
+                  fill
+                  sizes="96px"
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
+            ) : (
+              <div className="w-24 h-16 rounded-lg shrink-0 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400">
+                <Building className="w-6 h-6" />
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <div className="text-xs font-medium text-slate-700 dark:text-slate-300">
                 Tiến độ dự án
