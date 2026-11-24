@@ -839,9 +839,19 @@ export function Sidebar() {
         </div>
         <div className="flex items-center gap-2">
           {isBellaInteriorShell ? (
-            <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-amber-600 to-amber-900 flex items-center justify-center text-white font-black text-xs shadow-xs beauty-erp-logo-mark">
-              B
-            </div>
+            tenantBrand.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={tenantBrand.logoUrl}
+                alt={tenantBrand.displayName || 'Bella Interior'}
+                className="w-7 h-7 object-contain rounded-xl shadow-xs"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-amber-600 to-amber-900 flex items-center justify-center text-white font-black text-xs shadow-xs beauty-erp-logo-mark">
+                {tenantBrand.monogram || tenantBrand.displayName?.charAt(0)?.toUpperCase() || 'B'}
+              </div>
+            )
           ) : (
             <TenantBrandLogo
               displayName={tenantBrand.displayName}
@@ -855,7 +865,9 @@ export function Sidebar() {
             "max-w-[9rem] truncate font-sans font-extrabold text-lg text-slate-900 dark:text-white leading-none mt-0.5",
             isBeautyErpFamily && "beauty-erp-brand-script"
           )}>
-            {isBellaInteriorShell ? 'Bella Interior' : tenantBrand.displayName.toLowerCase().endsWith('headquarter')
+            {isBellaInteriorShell
+              ? (tenantBrand.displayName || 'Bella Interior')
+              : tenantBrand.displayName.toLowerCase().endsWith('headquarter')
               ? tenantBrand.displayName.slice(0, -11).trim()
               : tenantBrand.displayName}
           </span>
@@ -939,16 +951,26 @@ export function Sidebar() {
             <Link href="/dashboard/interior" onClick={handleNavigation} className="flex flex-col items-center group">
               <div className="relative mb-2">
                 <div className="absolute inset-0 bg-amber-500/20 dark:bg-amber-400/15 blur-2xl rounded-full scale-75 group-hover:scale-110 transition-transform duration-500" />
-                <div className="w-16 h-16 rounded-[1.75rem] bg-gradient-to-br from-amber-600 via-amber-700 to-amber-900 border border-amber-500/40 flex items-center justify-center text-white shadow-md text-2xl font-black relative z-10 group-hover:rotate-3 transition-transform duration-500 beauty-erp-logo-mark beauty-erp-logo-mark-large">
-                  B
-                </div>
+                {tenantBrand.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={tenantBrand.logoUrl}
+                    alt={tenantBrand.displayName || 'Bella Interior'}
+                    className="w-16 h-16 rounded-[1.75rem] object-contain relative z-10 group-hover:rotate-3 transition-transform duration-500 shadow-md"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-[1.75rem] bg-gradient-to-br from-amber-600 via-amber-700 to-amber-900 border border-amber-500/40 flex items-center justify-center text-white shadow-md text-2xl font-black relative z-10 group-hover:rotate-3 transition-transform duration-500 beauty-erp-logo-mark beauty-erp-logo-mark-large">
+                    {tenantBrand.monogram || tenantBrand.displayName?.charAt(0)?.toUpperCase() || 'B'}
+                  </div>
+                )}
               </div>
               <div className="text-center w-full px-2">
                 <h2 className="text-base font-extrabold tracking-tight uppercase font-sans text-slate-900 dark:text-white beauty-erp-brand-script leading-tight">
-                  Bella Interior
+                  {tenantBrand.displayName || 'Bella Interior'}
                 </h2>
                 <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 block mt-0.5">
-                  Project Management Suite
+                  {tenantBrand.subtitle || 'Project Management Suite'}
                 </span>
               </div>
             </Link>
