@@ -1012,7 +1012,7 @@ function InteriorDesignStudioContent() {
             <div className="max-w-2xl relative z-10 space-y-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs font-bold">
                 <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                <span>Không gian Thiết kế & Hồ sơ Kỹ thuật</span>
+                <span>Không gian Thiết kế &amp; Hồ sơ Kỹ thuật</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
                 Design Studio — Danh mục Công trình
@@ -1223,8 +1223,8 @@ function InteriorDesignStudioContent() {
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">
                     <tr>
-                      <th className="py-3 px-4">Dự án & Mã</th>
-                      <th className="py-3 px-4">Khách hàng & Địa điểm</th>
+                      <th className="py-3 px-4">Dự án &amp; Mã</th>
+                      <th className="py-3 px-4">Khách hàng &amp; Địa điểm</th>
                       <th className="py-3 px-4">Trạng thái thiết kế</th>
                       <th className="py-3 px-4">KTS Chủ trì</th>
                       <th className="py-3 px-4">Dự toán</th>
