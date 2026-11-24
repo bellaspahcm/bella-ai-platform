@@ -496,13 +496,17 @@ function InteriorDesignStudioContent() {
    * nếu là đường dẫn giả (local path chưa upload) thì hiển thị toast hướng dẫn.
    */
   const handleOpenFile = (fileUrl: string, label: string) => {
-    const isRealUrl = fileUrl.startsWith('http://') || fileUrl.startsWith('https://');
+    const isRealUrl =
+      fileUrl.startsWith('http://') ||
+      fileUrl.startsWith('https://') ||
+      fileUrl.startsWith('/drawings/') ||
+      fileUrl.startsWith('/docs/');
     if (isRealUrl) {
       window.open(fileUrl, '_blank', 'noopener,noreferrer');
     } else {
       setToastType('info');
       setToastMessage(
-        `"${label}" chưa có tệp trên cloud. Dùng nút "+ Tải lên" để upload tệp lên Cloudflare R2.`,
+        `"${label}" chưa có tệp trên hệ thống. Dùng nút "+ Tải lên" để upload tệp lên hệ thống lưu trữ.`,
       );
       setTimeout(() => { setToastMessage(null); setToastType('success'); }, 5000);
     }
@@ -1863,6 +1867,7 @@ function InteriorDesignStudioContent() {
                           {dwg.downloadUrl && (
                             <a
                               href={dwg.downloadUrl}
+                              download={dwg.drawingCode ? `${dwg.drawingCode}.dwg` : true}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-colors shadow-2xs"
@@ -2951,6 +2956,7 @@ function InteriorDesignStudioContent() {
                 {selectedDrawingForView.downloadUrl && (
                   <a
                     href={selectedDrawingForView.downloadUrl}
+                    download={selectedDrawingForView.drawingCode ? `${selectedDrawingForView.drawingCode}.dwg` : true}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-colors shadow-sm"
