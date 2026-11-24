@@ -16,13 +16,14 @@
  * @module src/app/dashboard/interior/boq/page
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import InteriorUserBar from '@/components/interior/InteriorUserBar';
 import {
   Home,
   Search,
   Bell,
+  Building,
   ChevronDown,
   SlidersHorizontal,
   History,
@@ -404,11 +405,64 @@ const INITIAL_BOQ_OVERVIEW: BOQOverviewResponse = {
   versionNumber: 1,
 };
 
+export interface InteriorProjectItem {
+  id: string;
+  code: string;
+  name: string;
+  status?: string;
+  customer_name?: string | null;
+  client_name?: string | null;
+  site_address?: string | null;
+  estimated_budget?: number | string | null;
+}
+
+const INITIAL_PROJECT_OPTIONS: InteriorProjectItem[] = [
+  {
+    id: 'proj-villa-sunrise',
+    code: 'INT-2024-001',
+    name: 'Villa Sunrise Renovation',
+    customer_name: 'SunCasa Group',
+    status: 'in_progress',
+    site_address: 'Quận 7, TP.HCM',
+  },
+  {
+    id: 'proj-penthouse-riverpark',
+    code: 'INT-2024-002',
+    name: 'Penthouse Riverpark Premier',
+    customer_name: 'Trần Gia Hưng',
+    status: 'approved',
+    site_address: 'Quận 2, TP.HCM',
+  },
+  {
+    id: 'proj-shophouse-marina',
+    code: 'INT-2024-003',
+    name: 'Shophouse Marina Central',
+    customer_name: 'Boutique Coffee Co.',
+    status: 'in_progress',
+    site_address: 'Bình Thạnh, TP.HCM',
+  },
+  {
+    id: 'proj-ecogreen-duplex',
+    code: 'INT-2024-004',
+    name: 'EcoGreen Duplex Residence',
+    customer_name: 'Lê Hoài Nam',
+    status: 'design',
+    site_address: 'Quận 7, TP.HCM',
+  },
+];
+
 export default function InteriorBOQPage() {
   const [data, setData] = useState<BOQOverviewResponse>(INITIAL_BOQ_OVERVIEW);
   const [currentTab, setCurrentTab] = useState<'boq' | 'bom'>('boq');
   const [selectedItems, setSelectedItems] = useState<Record<string, boolean>>({});
   const [selectedDrawerItem, setSelectedDrawerItem] = useState<BOQLineItem | null>(null);
+
+  // Project selection & switcher dropdown state
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('proj-villa-sunrise');
+  const [projectOptions, setProjectOptions] = useState<InteriorProjectItem[]>(INITIAL_PROJECT_OPTIONS);
+  const [showProjectDropdown, setShowProjectDropdown] = useState<boolean>(false);
+  const [projectSearchQuery, setProjectSearchQuery] = useState<string>('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Modals
   const [showCompareModal, setShowCompareModal] = useState<boolean>(false);
@@ -446,6 +500,100 @@ export default function InteriorBOQPage() {
     setTimeout(() => setToastMessage(null), 3800);
   };
 
+  // Read projectId from URL query param if present
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const pId = params.get('projectId');
+      if (pId) setSelectedProjectId(pId);
+    }
+  }, []);
+
+  // Load real projects from API
+  useEffect(() => {
+    let isMounted = true;
+    async function loadProjects() {
+      try {
+        const res = await fetch('/api/interior/projects', { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          const items = Array.isArray(json.data?.projects) ? (json.data.projects as InteriorProjectItem[]) : [];
+          if (isMounted && items.length > 0) {
+            setProjectOptions(items);
+          }
+        }
+      } catch {
+        // keep fallback
+      }
+    }
+    loadProjects();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Click outside to close project dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowProjectDropdown(false);
+      }
+    }
+    if (showProjectDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showProjectDropdown]);
+
+  // Filter projects by search
+  const filteredProjects = useMemo(() => {
+    if (!projectSearchQuery.trim()) return projectOptions;
+    const q = projectSearchQuery.toLowerCase();
+    return projectOptions.filter(
+      (p) =>
+        p.name?.toLowerCase().includes(q) ||
+        p.code?.toLowerCase().includes(q) ||
+        (p.customer_name && p.customer_name.toLowerCase().includes(q))
+    );
+  }, [projectOptions, projectSearchQuery]);
+
+  const currentProject = useMemo(() => {
+    const found = projectOptions.find((p) => p.id === selectedProjectId);
+    if (found) return found;
+    return {
+      id: data.project.id || 'proj-villa-sunrise',
+      code: data.project.code || 'INT-2024-001',
+      name: data.project.name || 'Villa Sunrise Renovation',
+      customer_name: data.project.clientName || 'SunCasa Group',
+      site_address: data.project.location || 'Quận 7, TP.HCM',
+    };
+  }, [projectOptions, selectedProjectId, data.project]);
+
+  const handleSelectProject = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    setShowProjectDropdown(false);
+    const proj = projectOptions.find((p) => p.id === projectId);
+    if (proj) {
+      setData((prev) => ({
+        ...prev,
+        project: {
+          ...prev.project,
+          id: proj.id,
+          code: proj.code,
+          name: proj.name,
+          clientName: proj.customer_name || proj.client_name || prev.project.clientName,
+          location: proj.site_address || prev.project.location,
+        },
+      }));
+      showNotification(`Đã chuyển sang dự án: ${proj.name} (${proj.code})`, 'success');
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set('projectId', projectId);
+    window.history.pushState(null, '', url.toString());
+  };
+
   const executeBOQAction = async (payload: unknown, successMsg?: string) => {
     setIsSubmitting(true);
     try {
@@ -455,10 +603,15 @@ export default function InteriorBOQPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
+      const requestBody = {
+        ...((payload && typeof payload === 'object') ? payload : {}),
+        projectId: selectedProjectId,
+      };
+
       const res = await fetch('/api/interior/boq', {
         method: 'POST',
         headers,
-        body: JSON.stringify(payload),
+        body: JSON.stringify(requestBody),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
@@ -676,7 +829,9 @@ export default function InteriorBOQPage() {
 
     // 1. Restore from localStorage on mount so user immediately sees saved changes on refresh
     try {
-      const cached = localStorage.getItem(BOQ_STORAGE_KEY);
+      const cached =
+        localStorage.getItem(`${BOQ_STORAGE_KEY}_${selectedProjectId}`) ||
+        (selectedProjectId === 'proj-villa-sunrise' ? localStorage.getItem(BOQ_STORAGE_KEY) : null);
       if (cached) {
         const parsed = JSON.parse(cached);
         if (parsed && typeof parsed === 'object') {
@@ -702,7 +857,11 @@ export default function InteriorBOQPage() {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const res = await fetch('/api/interior/boq', { headers });
+        const url = selectedProjectId
+          ? `/api/interior/boq?projectId=${encodeURIComponent(selectedProjectId)}`
+          : '/api/interior/boq';
+
+        const res = await fetch(url, { headers, cache: 'no-store' });
         if (res.ok) {
           const json = await res.json();
           if (isMounted && json) {
@@ -716,10 +875,16 @@ export default function InteriorBOQPage() {
                 };
                 setData(normalized);
                 try {
-                  localStorage.setItem(BOQ_STORAGE_KEY, JSON.stringify(normalized));
+                  localStorage.setItem(`${BOQ_STORAGE_KEY}_${selectedProjectId}`, JSON.stringify(normalized));
                 } catch {
                   // ignore
                 }
+              } else if (incoming.project) {
+                setData((prev) => ({
+                  ...prev,
+                  project: incoming.project,
+                  ...(incoming.kpis ? { kpis: incoming.kpis } : {}),
+                }));
               }
             }
           }
@@ -734,7 +899,7 @@ export default function InteriorBOQPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [selectedProjectId]);
 
   const handleToggleCheck = (id: string) => {
     setSelectedItems((prev) => ({
@@ -767,25 +932,94 @@ export default function InteriorBOQPage() {
 
       {/* ─── Top Header: Breadcrumbs &amp; Search / User Bar ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+        {/* Breadcrumb + Interactive Project Switcher Dropdown */}
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
           <Link
             href="/dashboard/interior"
             className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1"
           >
             <Home className="w-3.5 h-3.5 text-slate-400" />
           </Link>
-          <span className="text-slate-400">›</span>
+          <span className="text-slate-300 dark:text-slate-700">&rsaquo;</span>
           <Link
             href="/dashboard/interior/projects"
-            className="hover:text-slate-900 dark:hover:text-white transition-colors"
+            className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
           >
             Dự án
           </Link>
-          <span className="text-slate-400">›</span>
-          <span className="font-semibold text-slate-800 dark:text-slate-200">
-            {data.project.name} ({data.project.code})
-          </span>
+          <span className="text-slate-300 dark:text-slate-700">&rsaquo;</span>
+
+          {/* Project Switcher Dropdown Component */}
+          <div className="relative inline-block" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setShowProjectDropdown((prev) => !prev)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-900 dark:text-white border border-slate-200/90 dark:border-slate-800 shadow-2xs transition-all cursor-pointer group"
+              title="Nhấn để đổi sang dự án khác"
+            >
+              <Building className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span className="font-bold text-slate-900 dark:text-white truncate max-w-[200px] sm:max-w-[320px]">
+                {currentProject.name}
+              </span>
+              <span className="text-[11px] font-mono text-slate-400 font-normal">
+                ({currentProject.code})
+              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform duration-200 ${
+                  showProjectDropdown ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+
+            {/* Dropdown Menu */}
+            {showProjectDropdown && (
+              <div className="absolute top-full left-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-1">
+                <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800">
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Tìm kiếm dự án..."
+                      value={projectSearchQuery}
+                      onChange={(e) => setProjectSearchQuery(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-hidden focus:ring-1 focus:ring-emerald-600"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div className="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 p-1">
+                  {filteredProjects.map((p) => {
+                    const isCurrent = p.id === selectedProjectId;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => handleSelectProject(p.id)}
+                        className={`w-full text-left px-3 py-2.5 rounded-xl transition-colors flex items-center justify-between gap-2 cursor-pointer ${
+                          isCurrent
+                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 font-bold'
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs truncate font-semibold text-slate-900 dark:text-white">
+                            {p.name}
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-0.5 truncate">
+                            {p.code} • {p.customer_name || 'Khách hàng'}
+                          </p>
+                        </div>
+                        {isCurrent && (
+                          <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Search, Notifications &amp; User */}
@@ -1037,13 +1271,13 @@ export default function InteriorBOQPage() {
           Tổng quan
         </Link>
         <Link
-          href="/dashboard/interior/design"
+          href={`/dashboard/interior/design?projectId=${encodeURIComponent(selectedProjectId)}`}
           className="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white whitespace-nowrap transition-colors"
         >
           Thiết kế
         </Link>
         <Link
-          href="/dashboard/interior/materials"
+          href={`/dashboard/interior/materials?projectId=${encodeURIComponent(selectedProjectId)}`}
           className="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white whitespace-nowrap transition-colors"
         >
           Vật liệu
@@ -1055,19 +1289,19 @@ export default function InteriorBOQPage() {
           BOQ &amp; BOM
         </button>
         <Link
-          href="/dashboard/interior/production"
+          href={`/dashboard/interior/production?projectId=${encodeURIComponent(selectedProjectId)}`}
           className="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white whitespace-nowrap transition-colors"
         >
           Sản xuất
         </Link>
         <Link
-          href="/dashboard/interior/installation"
+          href={`/dashboard/interior/installation?projectId=${encodeURIComponent(selectedProjectId)}`}
           className="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white whitespace-nowrap transition-colors"
         >
           Thi công
         </Link>
         <Link
-          href="/dashboard/interior/reports"
+          href={`/dashboard/interior/reports?projectId=${encodeURIComponent(selectedProjectId)}`}
           className="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white whitespace-nowrap transition-colors"
         >
           Báo cáo
