@@ -449,6 +449,24 @@ function InteriorDesignStudioContent() {
   // Lock toggling state
   const [isTogglingLock, setIsTogglingLock] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<'success' | 'info' | 'warning'>('success');
+
+  /**
+   * Smart file opener — nếu URL là đường dẫn thực (R2 / https) thì mở tab mới,
+   * nếu là đường dẫn giả (local path chưa upload) thì hiển thị toast hướng dẫn.
+   */
+  const handleOpenFile = (fileUrl: string, label: string) => {
+    const isRealUrl = fileUrl.startsWith('http://') || fileUrl.startsWith('https://');
+    if (isRealUrl) {
+      window.open(fileUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      setToastType('info');
+      setToastMessage(
+        `"${label}" chưa có tệp trên cloud. Dùng nút "+ Tải lên" để upload tệp lên Cloudflare R2.`,
+      );
+      setTimeout(() => { setToastMessage(null); setToastType('success'); }, 5000);
+    }
+  };
 
   // Load projects list
   useEffect(() => {
@@ -908,13 +926,21 @@ function InteriorDesignStudioContent() {
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 dark:bg-slate-950 dark:text-slate-100 p-4 sm:p-6 lg:p-8 space-y-5">
       {/* ─── Toast Feedback ─── */}
       {toastMessage && (
-        <div className="fixed top-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900 text-white shadow-xl border border-slate-700 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className={`fixed top-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-xl border text-xs font-semibold animate-in fade-in slide-in-from-top-2 max-w-sm ${
+          toastType === 'info'
+            ? 'bg-blue-900 text-white border-blue-700'
+            : 'bg-slate-900 text-white border-slate-700'
+        }`}>
+          {toastType === 'info' ? (
+            <Eye className="w-4 h-4 text-blue-300 shrink-0" />
+          ) : (
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          )}
           <span>{toastMessage}</span>
           <button
             type="button"
-            onClick={() => setToastMessage(null)}
-            className="ml-2 text-slate-400 hover:text-white"
+            onClick={() => { setToastMessage(null); setToastType('success'); }}
+            className="ml-2 text-slate-400 hover:text-white shrink-0"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -1652,6 +1678,14 @@ function InteriorDesignStudioContent() {
                 {/* Subtle gradient vignette */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
 
+                {/* Fullscreen hint — visible on hover */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                  <div className="flex items-center gap-2 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg">
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>Click để xem toàn màn hình</span>
+                  </div>
+                </div>
+
                 {/* Bottom Overlay Label */}
                 <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-xs">
                   <div className="flex items-center gap-2">
@@ -1775,11 +1809,15 @@ function InteriorDesignStudioContent() {
                     </span>
                     <button
                       type="button"
-                      onClick={() => window.open(dwg.fileUrl, '_blank')}
-                      className="p-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-900"
-                      title="Xem / Tải về tệp"
+                      onClick={() => handleOpenFile(dwg.fileUrl, dwg.title)}
+                      className="p-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:border-slate-400 transition-colors"
+                      title={
+                        dwg.fileUrl.startsWith('http')
+                          ? 'Xem / Tải về tệp'
+                          : 'Chưa có tệp — cần tải lên trước'
+                      }
                     >
-                      <Eye className="w-3.5 h-3.5" />
+                      <Eye className={`w-3.5 h-3.5 ${!dwg.fileUrl.startsWith('http') ? 'opacity-40' : ''}`} />
                     </button>
                   </div>
                 </div>
@@ -1840,11 +1878,15 @@ function InteriorDesignStudioContent() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => window.open(doc.fileUrl, '_blank')}
-                    className="p-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-900"
-                    title="Xem / Tải về tài liệu"
+                    onClick={() => handleOpenFile(doc.fileUrl, doc.title)}
+                    className="p-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:border-slate-400 transition-colors"
+                    title={
+                      doc.fileUrl.startsWith('http')
+                        ? 'Xem / Tải về tài liệu'
+                        : 'Chưa có tệp — cần tải lên trước'
+                    }
                   >
-                    <Eye className="w-3.5 h-3.5" />
+                    <Eye className={`w-3.5 h-3.5 ${!doc.fileUrl.startsWith('http') ? 'opacity-40' : ''}`} />
                   </button>
                 </div>
               ))}
