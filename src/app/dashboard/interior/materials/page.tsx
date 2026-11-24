@@ -16,7 +16,7 @@
  * @module src/app/dashboard/interior/materials/page
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Layers,
@@ -210,7 +210,7 @@ const INITIAL_MATERIALS: MaterialItem[] = [
     name: 'Sơn Nước Kháng Khuẩn Better Living Air Clean',
     brand: 'Dulux',
     category: 'finishes',
-    categoryLabel: 'Sơn &amp; Hoàn thiện',
+    categoryLabel: 'Sơn & Hoàn thiện',
     specDetails: 'Công nghệ than tre hoạt tính lọc không khí, chống nấm mốc tối ưu, bề mặt bóng mờ sang trọng',
     roomArea: 'Toàn bộ tường nội thất căn biệt thự',
     status: 'locked',
@@ -221,10 +221,24 @@ const INITIAL_MATERIALS: MaterialItem[] = [
     standard: 'Green Label Singapore, hàm lượng VOC siêu thấp',
     origin: 'AkzoNobel Việt Nam',
     approvedDate: '06/11/2026',
-    approvedBy: 'KTS. Hoàng Long &amp; Trần Thị Mai',
+    approvedBy: 'KTS. Hoàng Long & Trần Thị Mai',
     sampleStatus: 'Đã test thẻ màu mẫu thực tế trên tường mẫu',
   },
 ];
+
+// ─── API response shape ─────────────────────────────────────────────────────
+
+interface MaterialsApiResponse {
+  success: boolean;
+  materials: MaterialItem[];
+  totalCount: number;
+  approvedCount: number;
+  domesticCount: number;
+  importCount: number;
+  approvedBy?: string | null;
+  approvedAt?: string | null;
+  revisionVersion?: number | null;
+}
 
 export default function InteriorMaterialsPage() {
   const [selectedCategory, setSelectedCategory] = useState<MaterialCategory>('all');
@@ -232,19 +246,56 @@ export default function InteriorMaterialsPage() {
   const [activeView, setActiveView] = useState<'cards' | 'table'>('cards');
   const [activeModalItem, setActiveModalItem] = useState<MaterialItem | null>(null);
 
+  // Live data — starts with static seed, replaced by DB data once fetched
+  const [materials, setMaterials] = useState<MaterialItem[]>(INITIAL_MATERIALS);
+  const [kpiTotalCount, setKpiTotalCount] = useState<number>(28);
+  const [kpiApprovedCount, setKpiApprovedCount] = useState<number>(28);
+  const [kpiDomesticCount, setKpiDomesticCount] = useState<number>(21);
+  const [kpiImportCount, setKpiImportCount] = useState<number>(7);
+  const [specLockApprovedBy, setSpecLockApprovedBy] = useState<string>('Trần Thị Mai & Hoàng Long');
+  const [isLoadingMaterials, setIsLoadingMaterials] = useState<boolean>(false);
+
+  // Fetch real material data from DB on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchMaterials() {
+      setIsLoadingMaterials(true);
+      try {
+        const res = await fetch('/api/interior/materials', { cache: 'no-store' });
+        if (res.ok) {
+          const json: MaterialsApiResponse = await res.json();
+          if (isMounted && json.success && json.materials.length > 0) {
+            setMaterials(json.materials);
+            setKpiTotalCount(json.totalCount);
+            setKpiApprovedCount(json.approvedCount);
+            setKpiDomesticCount(json.domesticCount);
+            setKpiImportCount(json.importCount);
+            if (json.approvedBy) setSpecLockApprovedBy(json.approvedBy);
+          }
+        }
+      } catch {
+        // Retain INITIAL_MATERIALS as fallback
+      } finally {
+        if (isMounted) setIsLoadingMaterials(false);
+      }
+    }
+    fetchMaterials();
+    return () => { isMounted = false; };
+  }, []);
+
   // Sub-tabs matching the official lifecycle sub-navigation
   const subTabs = [
     { key: 'overview', label: 'Tổng quan', href: '/dashboard/interior/projects', isActive: false },
     { key: 'design', label: 'Thiết kế', href: '/dashboard/interior/design', isActive: false },
     { key: 'materials', label: 'Vật liệu', href: '/dashboard/interior/materials', isActive: true },
-    { key: 'boq', label: 'BOQ &amp; Dự toán', href: '/dashboard/interior/boq', isActive: false },
+    { key: 'boq', label: 'BOQ & Dự toán', href: '/dashboard/interior/boq', isActive: false },
     { key: 'production', label: 'Sản xuất', href: '/dashboard/interior/production', isActive: false },
     { key: 'installation', label: 'Thi công', href: '/dashboard/interior/installation', isActive: false },
     { key: 'reports', label: 'Báo cáo', href: '/dashboard/interior/reports', isActive: false },
   ];
 
   const filteredMaterials = useMemo(() => {
-    return INITIAL_MATERIALS.filter((mat) => {
+    return materials.filter((mat) => {
       const matchCategory = selectedCategory === 'all' || mat.category === selectedCategory;
       const q = searchQuery.toLowerCase().trim();
       const matchSearch =
@@ -255,7 +306,7 @@ export default function InteriorMaterialsPage() {
         mat.roomArea.toLowerCase().includes(q);
       return matchCategory && matchSearch;
     });
-  }, [selectedCategory, searchQuery]);
+  }, [materials, selectedCategory, searchQuery]);
 
   return (
     <div className="flex-1 space-y-6 p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
@@ -345,14 +396,14 @@ export default function InteriorMaterialsPage() {
               </span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-              Toàn bộ 28 hạng mục vật liệu chính đã được KTS trưởng và Chủ đầu tư ký duyệt mẫu thực tế vào ngày 06/11/2026. Mọi thay đổi chủng loại vật tư đều phải thông qua thủ tục Addendum hợp đồng.
+              Toàn bộ {kpiTotalCount} hạng mục vật liệu chính đã được KTS trưởng và Chủ đầu tư ký duyệt mẫu thực tế. Mọi thay đổi chủng loại vật tư đều phải thông qua thủ tục Addendum hợp đồng.
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0 text-xs">
           <div className="text-right">
             <span className="text-slate-400 block text-[11px]">Người duyệt mẫu</span>
-            <span className="font-bold text-slate-800 dark:text-slate-200">Trần Thị Mai &amp; Hoàng Long</span>
+            <span className="font-bold text-slate-800 dark:text-slate-200">{specLockApprovedBy}</span>
           </div>
         </div>
       </div>
@@ -364,7 +415,7 @@ export default function InteriorMaterialsPage() {
             Tổng Danh Mục Vật Tư
           </span>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-slate-900 dark:text-white">28</span>
+            <span className="text-2xl font-black text-slate-900 dark:text-white">{isLoadingMaterials ? '—' : kpiTotalCount}</span>
             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full">
               Đầy đủ 100%
             </span>
@@ -377,7 +428,7 @@ export default function InteriorMaterialsPage() {
             Đã Ký Bảng Mẫu Thực Tế
           </span>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">28 / 28</span>
+            <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{isLoadingMaterials ? '—' : `${kpiApprovedCount} / ${kpiTotalCount}`}</span>
             <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           </div>
           <span className="text-[11px] text-slate-400 block mt-1.5">Lưu trữ tại phòng Sample Board xưởng</span>
@@ -388,8 +439,10 @@ export default function InteriorMaterialsPage() {
             Nguồn Cung Nội Địa
           </span>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-slate-900 dark:text-white">75%</span>
-            <span className="text-xs font-semibold text-slate-500">21 danh mục</span>
+            <span className="text-2xl font-black text-slate-900 dark:text-white">
+              {isLoadingMaterials ? '—' : (kpiTotalCount > 0 ? `${Math.round((kpiDomesticCount / kpiTotalCount) * 100)}%` : '0%')}
+            </span>
+            <span className="text-xs font-semibold text-slate-500">{isLoadingMaterials ? '' : `${kpiDomesticCount} danh mục`}</span>
           </div>
           <span className="text-[11px] text-slate-400 block mt-1.5">An Cường, Vicostone, Dulux</span>
         </div>
@@ -399,8 +452,10 @@ export default function InteriorMaterialsPage() {
             Hàng Nhập Khẩu Chỉ Định
           </span>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-amber-600 dark:text-amber-400">25%</span>
-            <span className="text-xs font-semibold text-slate-500">7 danh mục</span>
+            <span className="text-2xl font-black text-amber-600 dark:text-amber-400">
+              {isLoadingMaterials ? '—' : (kpiTotalCount > 0 ? `${Math.round((kpiImportCount / kpiTotalCount) * 100)}%` : '0%')}
+            </span>
+            <span className="text-xs font-semibold text-slate-500">{isLoadingMaterials ? '' : `${kpiImportCount} danh mục`}</span>
           </div>
           <span className="text-[11px] text-slate-400 block mt-1.5">Gỗ Óc Chó FAS, Hafele, Blum, Bosch</span>
         </div>
@@ -422,7 +477,7 @@ export default function InteriorMaterialsPage() {
           </div>
 
           <span className="text-xs text-slate-500 dark:text-slate-400 self-end sm:self-center font-medium">
-            Hiển thị <strong>{filteredMaterials.length}</strong> / {INITIAL_MATERIALS.length} vật tư
+            Hiển thị <strong>{filteredMaterials.length}</strong> / {materials.length} vật tư
           </span>
         </div>
 
@@ -430,8 +485,8 @@ export default function InteriorMaterialsPage() {
         <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold">
           {[
             { key: 'all', label: 'Tất cả chủng loại' },
-            { key: 'wood', label: 'Gỗ &amp; Bề mặt' },
-            { key: 'stone', label: 'Đá &amp; Bề mặt' },
+            { key: 'wood', label: 'Gỗ & Bề mặt' },
+            { key: 'stone', label: 'Đá & Bề mặt' },
             { key: 'hardware', label: 'Kim khí & Phụ kiện' },
             { key: 'appliances', label: 'Thiết bị bếp' },
             { key: 'lighting', label: 'Chiếu sáng' },
