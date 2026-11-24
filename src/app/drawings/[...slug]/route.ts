@@ -53,36 +53,47 @@ export async function GET(
   const resolvedParams = await context.params;
   const slug = resolvedParams?.slug || [];
   const rawFilename = slug[slug.length - 1] || 'drawing.dwg';
-  const filename = decodeURIComponent(rawFilename);
+  // Sanitize filename to prevent path traversal
+  const cleanFilename = path.basename(decodeURIComponent(rawFilename)).replace(/[^a-zA-Z0-9._\-\s]/g, '');
+  const isPdf = cleanFilename.toLowerCase().endsWith('.pdf');
 
-  // 1. Check if file physically exists in public/drawings
-  const filePath = path.join(process.cwd(), 'public', 'drawings', filename);
-  if (fs.existsSync(filePath)) {
-    const stat = fs.statSync(filePath);
-    if (stat.isFile()) {
-      const fileBuffer = fs.readFileSync(filePath);
-      const isPdf = filename.toLowerCase().endsWith('.pdf');
-      return new NextResponse(bufferToReadableStream(fileBuffer), {
-        status: 200,
-        headers: {
-          'Content-Type': isPdf ? 'application/pdf' : 'application/x-autocad',
-          'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
-          'Content-Length': String(fileBuffer.length),
-          'Cache-Control': 'public, max-age=3600',
-        },
-      });
+  // 1. Search against actual files on disk without passing untrusted input to path.join
+  const DRAWINGS_DIR = path.join(process.cwd(), 'public', 'drawings');
+  let fileBuffer: Buffer | null = null;
+
+  try {
+    if (fs.existsSync(DRAWINGS_DIR)) {
+      const existingFiles = fs.readdirSync(DRAWINGS_DIR);
+      const matched = existingFiles.find((f) => f.toLowerCase() === cleanFilename.toLowerCase());
+      if (matched) {
+        const safeFilePath = path.join(DRAWINGS_DIR, matched);
+        fileBuffer = fs.readFileSync(safeFilePath);
+      }
     }
+  } catch {
+    fileBuffer = null;
+  }
+
+  if (fileBuffer) {
+    return new NextResponse(bufferToReadableStream(fileBuffer), {
+      status: 200,
+      headers: {
+        'Content-Type': isPdf ? 'application/pdf' : 'application/x-autocad',
+        'Content-Disposition': `attachment; filename="${encodeURIComponent(cleanFilename)}"`,
+        'Content-Length': String(fileBuffer.length),
+        'Cache-Control': 'public, max-age=3600',
+      },
+    });
   }
 
   // 2. Dynamic generator — user never sees 404 for missing CAD files
-  const isPdf = filename.toLowerCase().endsWith('.pdf');
-  const { stream, size } = isPdf ? createPdfStream(filename) : createDwgStream(filename);
+  const { stream, size } = isPdf ? createPdfStream(cleanFilename) : createDwgStream(cleanFilename);
 
   return new NextResponse(stream, {
     status: 200,
     headers: {
       'Content-Type': isPdf ? 'application/pdf' : 'application/x-autocad',
-      'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+      'Content-Disposition': `attachment; filename="${encodeURIComponent(cleanFilename)}"`,
       'Content-Length': String(size),
       'Cache-Control': 'public, max-age=3600',
     },
