@@ -236,11 +236,8 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
           title="Chuyển đổi góc nhìn vai trò (RBAC Simulator)"
         >
           <Eye className={`w-3.5 h-3.5 ${simulatedRole ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`} />
-          <span className="hidden md:inline font-bold">
+          <span className="font-bold text-xs whitespace-nowrap">
             {simulatedRole ? `Góc nhìn: ${getInteriorRoleDisplayName(simulatedRole)}` : 'Góc nhìn vai trò'}
-          </span>
-          <span className="md:hidden font-bold">
-            {simulatedRole ? getInteriorRoleDisplayName(simulatedRole).split(' ')[0] : 'Vai trò'}
           </span>
           <ChevronDown className={`w-3 h-3 transition-transform ${isRoleSwitcherOpen ? 'rotate-180' : ''}`} />
         </button>

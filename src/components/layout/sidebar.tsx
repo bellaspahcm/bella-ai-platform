@@ -82,6 +82,7 @@ import ThemeToggle from '@/components/common/ThemeToggle';
 import { TenantBrandLogo } from '@/components/common/TenantBrandLogo';
 import AdminNotificationBell from '@/components/common/AdminNotificationBell';
 import { BeautyRuntimeBranchSelector } from '@/components/layout/BeautyRuntimeBranchSelector';
+import { InteriorRoleSelector } from '@/components/interior/InteriorRoleSelector';
 import type { CurrentUser } from '@/types/domain';
 import {
   isSidebarItemAllowed,
@@ -1068,6 +1069,7 @@ export function Sidebar() {
         </div>
 
         <BeautyRuntimeBranchSelector enabled={isBeautySpaShell && user?.role?.toLowerCase() !== 'customer'} />
+        <InteriorRoleSelector enabled={isBellaInteriorShell} />
 
         {/* ── Nav (scrollable) ── */}
         <nav className={cn(
