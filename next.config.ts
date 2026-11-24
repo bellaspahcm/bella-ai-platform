@@ -85,6 +85,7 @@ const nextConfig: NextConfig = {
   // Tree-shake heavy barrel imports. lucide-react / date-fns / recharts are
   // already optimized by default in Next 16; framer-motion is not, so add it.
   experimental: {
+    agentUpgrade: 'security',
     optimizePackageImports: ['framer-motion'],
     // Allow a full 10 MiB file as multipart or base64 JSON; the route applies
     // separate request limits before parsing either representation.
