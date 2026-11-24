@@ -14,6 +14,7 @@ import {
   TrendingDown,
   MoreHorizontal,
   ChevronRight,
+  ChevronLeft,
   Play,
   AlertTriangle,
   Coins,
@@ -283,6 +284,15 @@ export default function ProjectsPage() {
   const [filterStage, setFilterStage] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+
+  // Tự động quay về trang 1 khi lọc hoặc tìm kiếm hoặc đổi số lượng dòng/trang
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStage, searchQuery, pageSize]);
 
   // Project Creation Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -815,6 +825,28 @@ export default function ProjectsPage() {
     return matchesFilter && matchesSearch;
   });
 
+  const totalItems = filteredProjects.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+  const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
+
+  const getPageNumbers = (current: number, total: number): (number | string)[] => {
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    const pages: (number | string)[] = [];
+    if (current <= 4) {
+      pages.push(1, 2, 3, 4, 5, '...', total);
+    } else if (current >= total - 3) {
+      pages.push(1, '...', total - 4, total - 3, total - 2, total - 1, total);
+    } else {
+      pages.push(1, '...', current - 1, current, current + 1, '...', total);
+    }
+    return pages;
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
       {/* ─── 00. TOP HEADER ──────────────────────────────────────────────── */}
@@ -1087,7 +1119,16 @@ export default function ProjectsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                {filteredProjects.map((project: PortfolioProjectItem) => (
+                {paginatedProjects.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="py-12 text-center text-slate-400">
+                      <FolderKanban className="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
+                      <p className="font-medium text-slate-600 dark:text-slate-400">Không tìm thấy dự án nào phù hợp</p>
+                      <p className="text-xs text-slate-400 mt-1">Thử thay đổi bộ lọc giai đoạn hoặc từ khóa tìm kiếm</p>
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedProjects.map((project: PortfolioProjectItem) => (
                   <tr
                     key={project.id}
                     className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
@@ -1199,85 +1240,172 @@ export default function ProjectsPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>
         ) : (
           <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredProjects.map((project: PortfolioProjectItem) => (
-              <div
-                key={project.id}
-                className="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-3 flex flex-col justify-between"
-              >
-                <div className="space-y-3">
-                  <div className="relative h-40 w-full rounded-xl overflow-hidden bg-slate-100">
-                    <img
-                      src={project.imageUrl}
-                      alt={project.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-2.5 right-2.5">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold shadow-xs ${project.stageBadgeClass}`}>
-                        {project.stageLabel}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="text-[11px] font-mono font-bold text-slate-400">{project.code}</div>
-                    <h3 className="font-bold text-sm text-slate-900 dark:text-white leading-snug">
-                      {project.name}
-                    </h3>
-                    <div className="text-xs text-slate-500 mt-1">
-                      Chủ đầu tư: <strong className="text-slate-700 dark:text-slate-300">{project.customerName}</strong>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">KTS chủ trì:</span>
-                      <span className="font-medium text-slate-800 dark:text-slate-200">{project.leadArchitect}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Giá trị hợp đồng:</span>
-                      <span className="font-bold font-mono text-slate-900 dark:text-white">{project.contractValueFormatted}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Biên lợi nhuận:</span>
-                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">{project.grossMarginFormatted}</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-xs text-slate-500 mb-1">
-                      <span>Tiến độ thực tế</span>
-                      <span className="font-bold text-slate-800 dark:text-slate-200">{project.progressPercent}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-amber-600 h-full rounded-full transition-all"
-                        style={{ width: `${project.progressPercent}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                  <div className="text-[11px] text-slate-400 truncate max-w-[160px]">
-                    Hạn: {project.deadlineDate}
-                  </div>
-                  <Link
-                    href={`/dashboard/interior/projects/${project.id}`}
-                    className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-2xs transition-colors inline-flex items-center gap-1"
-                  >
-                    Xem chi tiết <ChevronRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
+            {paginatedProjects.length === 0 ? (
+              <div className="col-span-full py-12 text-center text-slate-400">
+                <FolderKanban className="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
+                <p className="font-medium text-slate-600 dark:text-slate-400">Không tìm thấy dự án nào phù hợp</p>
+                <p className="text-xs text-slate-400 mt-1">Thử thay đổi bộ lọc giai đoạn hoặc từ khóa tìm kiếm</p>
               </div>
-            ))}
+            ) : (
+              paginatedProjects.map((project: PortfolioProjectItem) => (
+                <div
+                  key={project.id}
+                  className="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-3 flex flex-col justify-between"
+                >
+                  <div className="space-y-3">
+                    <div className="relative h-40 w-full rounded-xl overflow-hidden bg-slate-100">
+                      <img
+                        src={project.imageUrl}
+                        alt={project.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-2.5 right-2.5">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold shadow-xs ${project.stageBadgeClass}`}>
+                          {project.stageLabel}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-[11px] font-mono font-bold text-slate-400">{project.code}</div>
+                      <h3 className="font-bold text-sm text-slate-900 dark:text-white leading-snug">
+                        {project.name}
+                      </h3>
+                      <div className="text-xs text-slate-500 mt-1">
+                        Chủ đầu tư: <strong className="text-slate-700 dark:text-slate-300">{project.customerName}</strong>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">KTS chủ trì:</span>
+                        <span className="font-medium text-slate-800 dark:text-slate-200">{project.leadArchitect}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Giá trị hợp đồng:</span>
+                        <span className="font-bold font-mono text-slate-900 dark:text-white">{project.contractValueFormatted}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Biên lợi nhuận:</span>
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">{project.grossMarginFormatted}</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-xs text-slate-500 mb-1">
+                        <span>Tiến độ thực tế</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">{project.progressPercent}%</span>
+                      </div>
+                      <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div
+                          className="bg-amber-600 h-full rounded-full transition-all"
+                          style={{ width: `${project.progressPercent}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div className="text-[11px] text-slate-400 truncate max-w-[160px]">
+                      Hạn: {project.deadlineDate}
+                    </div>
+                    <Link
+                      href={`/dashboard/interior/projects/${project.id}`}
+                      className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-2xs transition-colors inline-flex items-center gap-1"
+                    >
+                      Xem chi tiết <ChevronRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
+
+        {/* Thanh điều hướng phân trang (Pagination Toolbar) */}
+        <div className="px-4 py-3.5 sm:px-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+            <span>
+              Hiển thị <strong className="font-semibold text-slate-800 dark:text-slate-200">{totalItems === 0 ? 0 : startIndex + 1}</strong> – <strong className="font-semibold text-slate-800 dark:text-slate-200">{endIndex}</strong> trên tổng số <strong className="font-semibold text-slate-800 dark:text-slate-200">{totalItems}</strong> dự án
+            </span>
+            <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
+            <div className="flex items-center gap-1.5">
+              <label htmlFor="pageSizeSelect" className="text-slate-500 text-xs">Mỗi trang:</label>
+              <select
+                id="pageSizeSelect"
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-200 font-medium focus:outline-hidden focus:ring-2 focus:ring-amber-500 cursor-pointer"
+              >
+                <option value={10}>10 dự án</option>
+                <option value={20}>20 dự án</option>
+                <option value={50}>50 dự án</option>
+              </select>
+            </div>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1 text-xs">
+              {/* Nút Previous */}
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={safeCurrentPage === 1}
+                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title="Trang trước"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              {/* Danh sách trang */}
+              {getPageNumbers(safeCurrentPage, totalPages).map((p, idx) => {
+                if (p === '...') {
+                  return (
+                    <span key={`ellipsis-${idx}`} className="px-2 py-1 text-slate-400 select-none">
+                      ...
+                    </span>
+                  );
+                }
+                const pageNum = Number(p);
+                const isActive = pageNum === safeCurrentPage;
+                return (
+                  <button
+                    key={`page-${pageNum}`}
+                    type="button"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`min-w-[32px] h-8 px-2 rounded-lg font-medium text-xs transition-colors cursor-pointer ${
+                      isActive
+                        ? 'bg-amber-600 text-white font-bold shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              {/* Nút Next */}
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={safeCurrentPage >= totalPages}
+                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title="Trang kế tiếp"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
       </div>
 
