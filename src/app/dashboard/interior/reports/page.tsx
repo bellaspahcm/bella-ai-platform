@@ -66,8 +66,14 @@ export default function InteriorReportsAnalyticsPage() {
       try {
         const queryParams = new URLSearchParams({ period: selectedPeriod });
         if (selectedProjectId) queryParams.set('projectId', selectedProjectId);
+        const url = `/api/interior/reports/analytics?${queryParams.toString()}`;
 
-        const res = await fetch(`/api/interior/reports/analytics?${queryParams.toString()}`, { cache: 'no-store' });
+        // Retry once on 401 (session cookie race condition during token refresh)
+        let res = await fetch(url, { cache: 'no-store' });
+        if (res.status === 401) {
+          await new Promise((r) => setTimeout(r, 800));
+          res = await fetch(url, { cache: 'no-store' });
+        }
         if (!res.ok) {
           throw new Error(`API returned HTTP ${res.status}`);
         }
