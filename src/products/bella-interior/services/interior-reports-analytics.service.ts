@@ -1,3 +1,5 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database.types';
 import {
   ReportsOverviewResponse,
   ReportKpis,
@@ -22,19 +24,40 @@ export class InteriorReportsAnalyticsService {
   public static async getReportsOverview(
     tenantId: string = 'tenant-bella-interior-001',
     projectId?: string,
-    period?: string
+    period?: string,
+    supabaseClient?: SupabaseClient<Database>
   ): Promise<ReportsOverviewResponse> {
     const activeProjectId = projectId || 'INT-2024-001';
     const activePeriod = period || 'Tháng 10/2026';
 
-    // 1. Projects metadata
-    const availableProjects = [
+    // 1. Projects metadata — load from DB if supabase available, else fallback to mock
+    const hardcodedProjects = [
       { id: 'INT-2024-001', code: 'INT-2024-001', name: 'The Horizon Residence' },
       { id: 'INT-2024-002', code: 'INT-2024-002', name: 'Villa Ciputra Giai Đoạn 2' },
       { id: 'INT-2024-003', code: 'INT-2024-003', name: 'Dubai Luxury Villa Fitout' },
       { id: 'INT-2024-004', code: 'INT-2024-004', name: 'Penthouse Metropolis Liễu Giai' },
       { id: 'INT-2024-005', code: 'INT-2024-005', name: 'Villa Harmony' },
     ];
+
+    let availableProjects = hardcodedProjects;
+
+    if (supabaseClient) {
+      try {
+        const { data: rawProjects } = await supabaseClient
+          .from('interior_projects')
+          .select('id, code, name')
+          .order('created_at', { ascending: false });
+        if (Array.isArray(rawProjects) && rawProjects.length > 0) {
+          availableProjects = rawProjects.map((p) => ({
+            id: p.id,
+            code: p.code ?? p.id.slice(0, 8),
+            name: p.name,
+          }));
+        }
+      } catch {
+        // fall through to hardcoded
+      }
+    }
 
     const currentProject = availableProjects.find((p) => p.id === activeProjectId) || availableProjects[0];
 

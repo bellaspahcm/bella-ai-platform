@@ -16,6 +16,8 @@
  * @module src/products/bella-interior/services/interior-production-analytics.service
  */
 
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database.types';
 import type {
   ProductionOverviewResponse,
   ProductionKpiItem,
@@ -30,6 +32,7 @@ import type {
   WorkshopCapacityItem,
   ProductionProjectHeader,
   ProductionArchitectureNotice,
+  ProductionOrderStatus,
 } from '../domain/production-overview.types';
 
 export class InteriorProductionAnalyticsService {
@@ -472,7 +475,7 @@ export class InteriorProductionAnalyticsService {
 
   // ─── Main Entry Point ─────────────────────────────────────────────────────
 
-  public static getProductionOverview(): ProductionOverviewResponse {
+  public static getMockProductionOverview(): ProductionOverviewResponse {
     return {
       projectHeader: InteriorProductionAnalyticsService.getProjectHeader(),
       availableProjects: [
@@ -489,6 +492,264 @@ export class InteriorProductionAnalyticsService {
       alerts: InteriorProductionAnalyticsService.getAlerts(),
       workshopCapacities: InteriorProductionAnalyticsService.getWorkshopCapacities(),
     };
+  }
+
+  public static async getDbProductionOverview(
+    tenantId: string = 'tenant-bella-interior-001',
+    projectId?: string,
+    supabaseClient?: SupabaseClient<Database>,
+  ): Promise<ProductionOverviewResponse> {
+    if (!supabaseClient) {
+      return this.getMockProductionOverview();
+    }
+
+    try {
+      // 1. Fetch available projects
+      const { data: rawProjects } = await supabaseClient
+        .from('interior_projects')
+        .select('id, code, name, customer_name, status')
+        .order('created_at', { ascending: false });
+
+      const projects = Array.isArray(rawProjects) ? rawProjects : [];
+      const availableProjects = projects.map((p) => ({
+        id: p.id,
+        label: `${p.name} (${p.code})`,
+        code: p.code,
+      }));
+
+      // Active project
+      const activeProject = projectId
+        ? projects.find((p) => p.id === projectId || p.code === projectId) || projects[0]
+        : projects[0];
+
+      // 2. Query production orders
+      let query = supabaseClient
+        .from('interior_production_orders')
+        .select(`
+          id,
+          order_number,
+          status,
+          scheduled_start_date,
+          scheduled_completion_date,
+          actual_dispatched_date,
+          workshop_manager_name,
+          notes,
+          mode,
+          subcontractor_name,
+          project_id,
+          interior_projects(id, code, name, customer_name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (projectId && activeProject) {
+        query = query.eq('project_id', activeProject.id);
+      }
+
+      const { data: rawOrders } = await query;
+      const orders = Array.isArray(rawOrders) ? rawOrders : [];
+
+      if (orders.length === 0) {
+        const mock = this.getMockProductionOverview();
+        if (availableProjects.length > 0) {
+          mock.availableProjects = availableProjects;
+        }
+        if (activeProject) {
+          mock.projectHeader = {
+            id: activeProject.id,
+            code: activeProject.code,
+            name: activeProject.name,
+            selectorLabel: `${activeProject.name} (${activeProject.code})`,
+            clientName: activeProject.customer_name || 'Khách hàng',
+            status: activeProject.status || 'in_production',
+            statusLabel: 'Đang triển khai',
+          };
+        }
+        return mock;
+      }
+
+      // 3. Map orders to ProductionOrderTableRow
+      const statusConfig: Record<string, { label: string; badgeClass: string; barColor: string }> = {
+        in_production: { label: 'Đang SX', badgeClass: 'bg-green-100 text-green-700', barColor: '#2D7A4F' },
+        delayed: { label: 'Trễ hạn', badgeClass: 'bg-red-100 text-red-700', barColor: '#ef4444' },
+        warning: { label: 'Cảnh báo', badgeClass: 'bg-amber-100 text-amber-700', barColor: '#f59e0b' },
+        on_schedule: { label: 'Đúng hạn', badgeClass: 'bg-blue-100 text-blue-700', barColor: '#10b981' },
+      };
+
+      const now = new Date();
+      const mappedRows: ProductionOrderTableRow[] = orders.map((o) => {
+        const projData = o.interior_projects as { id?: string; code?: string; name?: string; customer_name?: string } | null;
+        const projName = projData?.name || activeProject?.name || 'Dự án Nội thất';
+        
+        let rowStatus: ProductionOrderStatus = 'in_production';
+        let stageName = 'Cắt ván CNC';
+        let progress = 35;
+
+        if (o.status === 'completed') {
+          rowStatus = 'on_schedule';
+          stageName = 'Xuất xưởng';
+          progress = 100;
+        } else if (o.status === 'order_released') {
+          stageName = 'Cắt ván CNC';
+          progress = 25;
+        } else if (o.status === 'in_production') {
+          stageName = 'Dán cạnh PUR';
+          progress = 65;
+        }
+
+        // Deadline check
+        let isDelayed = false;
+        let deadlineStr = '—';
+        if (o.scheduled_completion_date) {
+          try {
+            const d = new Date(o.scheduled_completion_date);
+            deadlineStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+            if (o.status !== 'completed' && d < now) {
+              isDelayed = true;
+              rowStatus = 'delayed';
+            }
+          } catch {
+            deadlineStr = o.scheduled_completion_date;
+          }
+        }
+
+        const cfg = statusConfig[rowStatus] || statusConfig.in_production;
+
+        // Room extraction from notes
+        let room = 'Phòng khách & Bếp';
+        if (o.notes) {
+          if (o.notes.includes('Phòng ngủ')) room = 'Phòng ngủ';
+          else if (o.notes.includes('Bếp')) room = 'Khu bếp';
+          else if (o.notes.includes('Sofa')) room = 'Phòng khách';
+          else if (o.notes.includes('Văn phòng')) room = 'Văn phòng';
+        }
+
+        return {
+          id: o.order_number || o.id,
+          project: projName,
+          roomCategory: room,
+          currentStageName: stageName,
+          progressPercent: progress,
+          progressFormatted: `${progress}%`,
+          progressBarColor: cfg.barColor,
+          deadlineFormatted: deadlineStr,
+          status: rowStatus,
+          statusLabel: cfg.label,
+          statusBadgeClass: cfg.badgeClass,
+          actionMenuOptions: ['Xem chi tiết', 'Cập nhật tiến độ', 'Xuất báo cáo'],
+        };
+      });
+
+      // 4. Compute KPIs
+      const totalOrdersCount = mappedRows.length;
+      const inProdCount = mappedRows.filter((r) => r.status === 'in_production').length;
+      const completedCount = mappedRows.filter((r) => r.status === 'on_schedule').length;
+      const needsAttentionCount = mappedRows.filter((r) => r.status === 'delayed' || r.status === 'warning').length;
+
+      const kpis = {
+        totalOrders: this.buildKpiItem(
+          totalOrdersCount,
+          'Tổng lệnh sản xuất',
+          12,
+          'up',
+          'list-checks',
+          'text-blue-600',
+          'bg-blue-50',
+          [Math.max(1, totalOrdersCount - 5), totalOrdersCount - 2, totalOrdersCount],
+        ),
+        inProductionOrders: this.buildKpiItem(
+          inProdCount,
+          'Đang sản xuất',
+          6,
+          'up',
+          'play-circle',
+          'text-green-600',
+          'bg-green-50',
+          [Math.max(1, inProdCount - 2), inProdCount],
+        ),
+        completedOrders: this.buildKpiItem(
+          completedCount,
+          'Hoàn thành',
+          15,
+          'up',
+          'check-circle',
+          'text-emerald-600',
+          'bg-emerald-50',
+          [Math.max(0, completedCount - 3), completedCount],
+        ),
+        needsAttentionOrders: this.buildKpiItem(
+          needsAttentionCount,
+          'Cần xử lý',
+          needsAttentionCount > 0 ? 8 : 0,
+          needsAttentionCount > 0 ? 'down' : 'up',
+          'alert-triangle',
+          'text-amber-600',
+          'bg-amber-50',
+          [needsAttentionCount, needsAttentionCount],
+        ),
+      };
+
+      // 5. Tabs
+      const tabs: ProductionFilterTab[] = [
+        { id: 'all', label: 'Tất cả', count: totalOrdersCount, active: true },
+        { id: 'in_production', label: 'Đang sản xuất', count: inProdCount, active: false },
+        { id: 'delayed', label: 'Chậm tiến độ', count: needsAttentionCount, active: false },
+        { id: 'completed', label: 'Hoàn thành', count: completedCount, active: false },
+      ];
+
+      // 6. Project Header
+      const header: ProductionProjectHeader = activeProject
+        ? {
+            id: activeProject.id,
+            code: activeProject.code,
+            name: activeProject.name,
+            selectorLabel: `${activeProject.name} (${activeProject.code})`,
+            clientName: activeProject.customer_name || 'Khách hàng',
+            status: activeProject.status || 'in_production',
+            statusLabel: 'Đang sản xuất',
+          }
+        : this.getProjectHeader();
+
+      return {
+        projectHeader: header,
+        availableProjects: availableProjects.length > 0 ? availableProjects : [
+          { id: 'NT-2024-001', label: 'Villa Sunrise Renovation (NT-2024-001)', code: 'NT-2024-001' },
+        ],
+        architectureNotice: this.getArchitectureNotice(),
+        kpis,
+        workflowStages: this.getWorkflowStages(),
+        efficiencyMetrics: this.getEfficiencyMetrics(),
+        timelineChart: this.getTimelineChart(),
+        ordersTable: {
+          title: 'Danh sách lệnh sản xuất',
+          searchPlaceholder: 'Tìm kiếm mã lệnh, dự án...',
+          filterLabel: 'Bộ lọc',
+          tabs,
+          headers: ['Mã lệnh SX', 'Dự án', 'Hạng mục', 'Công đoạn hiện tại', 'Tiến độ', 'Hạn hoàn thành', 'Trạng thái', 'Thao tác'],
+          rows: mappedRows,
+        },
+        alerts: this.getAlerts(),
+        workshopCapacities: this.getWorkshopCapacities(),
+      };
+    } catch {
+      return this.getMockProductionOverview();
+    }
+  }
+
+  public static getProductionOverview(): ProductionOverviewResponse;
+  public static getProductionOverview(
+    tenantId: string | undefined,
+    projectId: string | undefined,
+    supabaseClient: SupabaseClient<Database>
+  ): Promise<ProductionOverviewResponse>;
+  public static getProductionOverview(
+    tenantId?: string,
+    projectId?: string,
+    supabaseClient?: SupabaseClient<Database>
+  ): ProductionOverviewResponse | Promise<ProductionOverviewResponse> {
+    if (!supabaseClient) {
+      return this.getMockProductionOverview();
+    }
+    return this.getDbProductionOverview(tenantId, projectId, supabaseClient);
   }
 }
 

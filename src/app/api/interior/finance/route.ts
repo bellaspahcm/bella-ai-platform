@@ -14,7 +14,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     periodParam === '6_months' || periodParam === '1_year' ? periodParam : '3_months';
 
   try {
-    const overview = InteriorFinanceAnalyticsService.getFinanceOverview(quarter, period);
+    const overview = await InteriorFinanceAnalyticsService.getFinanceOverview(quarter, period, ctx.tenantId, ctx.supabase);
     return NextResponse.json(
       {
         success: true,

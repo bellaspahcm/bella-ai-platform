@@ -12,24 +12,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const projectIdParam = request.nextUrl.searchParams.get('projectId');
   const period = request.nextUrl.searchParams.get('period') || undefined;
 
-  const projectResult = await resolveTenantProject(ctx.supabase, ctx.tenantId, projectIdParam);
-
-  if (!projectResult.ok && projectResult.error === 'AMBIGUOUS_PROJECT_SELECTION') {
-    return NextResponse.json({
-      success: false,
-      error: projectResult.error,
-      message: projectResult.message,
-      availableProjects: projectResult.availableProjects,
-    }, { status: 400 });
+  // Reports is an aggregate dashboard — projectId is optional.
+  // Only resolve project if explicitly requested; never block on AMBIGUOUS_PROJECT_SELECTION.
+  let effectiveProjectId: string | undefined;
+  if (projectIdParam) {
+    const projectResult = await resolveTenantProject(ctx.supabase, ctx.tenantId, projectIdParam);
+    effectiveProjectId = projectResult.ok ? projectResult.projectId : undefined;
   }
-
-  const effectiveProjectId = projectResult.ok ? projectResult.projectId : undefined;
-
   try {
     const overview = await InteriorReportsAnalyticsService.getReportsOverview(
       ctx.tenantId,
       effectiveProjectId,
-      period
+      period,
+      ctx.supabase
     );
     return NextResponse.json(
       {

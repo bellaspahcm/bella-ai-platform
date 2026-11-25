@@ -229,9 +229,10 @@ export default function InteriorQCHandoverPage() {
   }, []);
 
   // ─── 2. Fetch Base Analytics Overview (for layout & metadata) ───────────────
-  const fetchAnalytics = useCallback(async () => {
+  const fetchAnalytics = useCallback(async (projectId?: string) => {
     try {
-      const res = await fetch('/api/interior/qc-handover/analytics', { cache: 'no-store' });
+      const q = projectId ? `?projectId=${encodeURIComponent(projectId)}` : '';
+      const res = await fetch(`/api/interior/qc-handover/analytics${q}`, { cache: 'no-store' });
       if (res.ok) {
         const json = (await res.json()) as { success: boolean; data: { overview: QCHandoverOverviewResponse } };
         if (json.success && json.data?.overview) {
@@ -270,14 +271,14 @@ export default function InteriorQCHandoverPage() {
 
   useEffect(() => {
     void fetchProjects();
-    void fetchAnalytics();
-  }, [fetchProjects, fetchAnalytics]);
+  }, [fetchProjects]);
 
   useEffect(() => {
+    void fetchAnalytics(selectedProjectId || undefined);
     if (selectedProjectId) {
       void fetchPunchList(selectedProjectId);
     }
-  }, [selectedProjectId, fetchPunchList]);
+  }, [selectedProjectId, fetchAnalytics, fetchPunchList]);
 
   // ─── Punch List State Transitions (Open → In Progress → Rectified → Verified) ─
 
