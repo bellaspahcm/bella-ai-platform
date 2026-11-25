@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
+import type { InteriorQueryClient, RawInteriorProject } from '../domain/interior-query.types';
 import {
   ReportsOverviewResponse,
   ReportKpis,
@@ -25,7 +26,7 @@ export class InteriorReportsAnalyticsService {
     tenantId: string = 'tenant-bella-interior-001',
     projectId?: string,
     period?: string,
-    supabaseClient?: SupabaseClient<Database>
+    supabaseClient?: unknown
   ): Promise<ReportsOverviewResponse> {
     const activeProjectId = projectId || 'INT-2024-001';
     const activePeriod = period || 'Tháng 10/2026';
@@ -43,8 +44,9 @@ export class InteriorReportsAnalyticsService {
 
     if (supabaseClient) {
       try {
-        const { data: rawProjects } = await supabaseClient
-          .from('interior_projects')
+        const client = supabaseClient as unknown as InteriorQueryClient;
+        const { data: rawProjects } = await client
+          .from<RawInteriorProject>('interior_projects')
           .select('id, code, name')
           .order('created_at', { ascending: false });
         if (Array.isArray(rawProjects) && rawProjects.length > 0) {

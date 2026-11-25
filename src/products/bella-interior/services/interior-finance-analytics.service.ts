@@ -15,6 +15,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
 import type {
+  InteriorQueryClient,
+  RawInteriorProject,
+  RawInteriorContract,
+  RawInteriorPaymentMilestone,
+} from '../domain/interior-query.types';
+import type {
   FinanceOverviewResponse,
   ProjectPLItem,
   FinancialPerformanceBar,
@@ -34,6 +40,23 @@ import type {
   ExecutiveDecisionRecommendation,
   ExecutiveRiskRadar,
 } from '../domain/finance-overview.types';
+
+export interface RawFinanceProjectItem {
+  id: string;
+  projectName: string;
+  clientName: string;
+  contractRevenue: number;
+  cogs: number;
+  cashCollected: number;
+  completionPercent: number;
+  recognizedRevenue: number;
+  budgetCost: number;
+  forecastFinalMargin: number;
+  riskAlert?: {
+    label: string;
+    severity: 'normal' | 'warning' | 'danger';
+  };
+}
 
 export class InteriorFinanceAnalyticsService {
   /**
@@ -81,7 +104,7 @@ export class InteriorFinanceAnalyticsService {
   /**
    * Base Raw Project Portfolio Data with Phase 1 Financial Truth fields
    */
-  private static getRawProjects() {
+  private static getRawProjects(): RawFinanceProjectItem[] {
     return [
       {
         id: 'P-001',
@@ -182,17 +205,18 @@ export class InteriorFinanceAnalyticsService {
     quarter = 'Quý 4/2026',
     period: '3_months' | '6_months' | '1_year' = '3_months',
     tenantId: string = 'tenant-bella-interior-001',
-    supabaseClient?: SupabaseClient<Database>,
+    supabaseClient?: unknown,
   ): Promise<FinanceOverviewResponse> {
     if (!supabaseClient) {
       return this.getMockFinanceOverview(quarter, period);
     }
 
     try {
+      const client = supabaseClient as unknown as InteriorQueryClient;
       const [projRes, contractRes, milestoneRes] = await Promise.all([
-        supabaseClient.from('interior_projects').select('id, code, name, customer_name, estimated_budget, status').order('created_at', { ascending: false }),
-        supabaseClient.from('interior_contracts').select('id, project_id, contract_number, title, baseline_contract_value, current_contract_value, status, signed_date'),
-        supabaseClient.from('interior_payment_milestones').select('id, contract_id, amount, status, collected_amount, paid_at, due_date'),
+        client.from<RawInteriorProject>('interior_projects').select('id, code, name, customer_name, estimated_budget, status').order('created_at', { ascending: false }),
+        client.from<RawInteriorContract>('interior_contracts').select('id, project_id, contract_number, title, baseline_contract_value, current_contract_value, status, signed_date'),
+        client.from<RawInteriorPaymentMilestone>('interior_payment_milestones').select('id, contract_id, amount, status, collected_amount, paid_at, due_date'),
       ]);
 
       const projects = Array.isArray(projRes.data) ? projRes.data : [];
@@ -203,7 +227,7 @@ export class InteriorFinanceAnalyticsService {
         return this.getMockFinanceOverview(quarter, period);
       }
 
-      const rawProjects = projects.slice(0, 10).map((p) => {
+      const rawProjects: RawFinanceProjectItem[] = projects.slice(0, 10).map((p) => {
         const projContracts = contracts.filter((c) => c.project_id === p.id);
         const contractRev = projContracts.reduce((sum, c) => sum + (Number(c.current_contract_value) || Number(c.baseline_contract_value) || 0), 0) || (Number(p.estimated_budget) || 750_000_000);
 
@@ -233,7 +257,7 @@ export class InteriorFinanceAnalyticsService {
           forecastFinalMargin: forecastMargin,
           riskAlert: {
             label: p.status === 'delayed' ? 'Chậm tiến độ vật tư 3 ngày' : 'Tiến độ dòng tiền bình thường',
-            severity: (p.status === 'delayed' ? 'warning' : 'normal') as 'warning' | 'normal',
+            severity: (p.status === 'delayed' ? 'warning' : 'normal') as 'normal' | 'warning' | 'danger',
           },
         };
       });
@@ -268,7 +292,7 @@ export class InteriorFinanceAnalyticsService {
   }
 
   private static computeOverviewFromProjects(
-    rawProjects: ReturnType<typeof InteriorFinanceAnalyticsService.getRawProjects>,
+    rawProjects: RawFinanceProjectItem[],
     baseline: QuarterBaselineProof,
     quarter: string,
     period: '3_months' | '6_months' | '1_year'
