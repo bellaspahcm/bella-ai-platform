@@ -443,6 +443,7 @@ function buildOverview(
         badgeBgClass: style.badgeBgClass,
         badgeBorderClass: style.badgeBorderClass,
         textColorClass: style.textColorClass,
+        notes: r.notes ?? null,
       };
     });
 

@@ -50,6 +50,7 @@ import {
   Mail,
   FolderKanban,
   Sparkles,
+  FileText,
 } from 'lucide-react';
 import InteriorUserBar from '@/components/interior/InteriorUserBar';
 
@@ -1904,6 +1905,21 @@ export default function SchedulePage() {
                   <div className="mt-1 font-bold text-slate-800 dark:text-slate-200">
                     {data.timeSlots.find((s) => s.slotId === selectedTask.timeSlotId)?.timeRange || '08:00 - 10:00'}
                   </div>
+                </div>
+              </div>
+
+              {/* Ghi chú / Yêu cầu kỹ thuật */}
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-[10px] font-semibold">
+                  <FileText className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Ghi chú / Yêu cầu kỹ thuật</span>
+                </div>
+                <div className="mt-1.5 text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
+                  {selectedTask.notes && selectedTask.notes.trim() ? (
+                    selectedTask.notes
+                  ) : (
+                    <span className="italic text-slate-400 dark:text-slate-500">Chưa có ghi chú hoặc yêu cầu kỹ thuật đính kèm.</span>
+                  )}
                 </div>
               </div>
             </div>
