@@ -52,6 +52,7 @@ export interface ScheduledCalendarEvent {
   readonly badgeBgClass: string;
   readonly badgeBorderClass: string;
   readonly textColorClass: string;
+  readonly notes?: string | null;
 }
 
 export interface ScheduleAttentionAlert {

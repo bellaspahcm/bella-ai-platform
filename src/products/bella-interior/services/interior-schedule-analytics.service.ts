@@ -73,6 +73,7 @@ export class InteriorScheduleAnalyticsService {
       badgeBgClass: 'bg-blue-50/90 dark:bg-blue-950/40',
       badgeBorderClass: 'border-l-4 border-l-blue-500 border-blue-100 dark:border-blue-800',
       textColorClass: 'text-blue-900 dark:text-blue-200',
+      notes: 'Khảo sát hiện trạng mặt bằng và đo đạc kích thước thực tế',
     },
     {
       id: 'evt-2',
@@ -86,6 +87,7 @@ export class InteriorScheduleAnalyticsService {
       badgeBgClass: 'bg-emerald-50/90 dark:bg-emerald-950/40',
       badgeBorderClass: 'border-l-4 border-l-emerald-500 border-emerald-100 dark:border-emerald-800',
       textColorClass: 'text-emerald-900 dark:text-emerald-200',
+      notes: 'Duyệt hồ sơ kỹ thuật thi công với chủ đầu tư',
     },
     {
       id: 'evt-3',
@@ -99,6 +101,7 @@ export class InteriorScheduleAnalyticsService {
       badgeBgClass: 'bg-amber-50/90 dark:bg-amber-950/40',
       badgeBorderClass: 'border-l-4 border-l-amber-500 border-amber-100 dark:border-amber-800',
       textColorClass: 'text-amber-900 dark:text-amber-200',
+      notes: 'Họp chốt phương án vật liệu hoàn thiện căn hộ',
     },
     {
       id: 'evt-4',
@@ -112,6 +115,7 @@ export class InteriorScheduleAnalyticsService {
       badgeBgClass: 'bg-purple-50/90 dark:bg-purple-950/40',
       badgeBorderClass: 'border-l-4 border-l-purple-500 border-purple-100 dark:border-purple-800',
       textColorClass: 'text-purple-900 dark:text-purple-200',
+      notes: 'Kiểm tra chất lượng mộc và lớp sơn lót tại xưởng',
     },
     {
       id: 'evt-5',
@@ -125,6 +129,7 @@ export class InteriorScheduleAnalyticsService {
       badgeBgClass: 'bg-teal-50/90 dark:bg-teal-950/40',
       badgeBorderClass: 'border-l-4 border-l-teal-500 border-teal-100 dark:border-teal-800',
       textColorClass: 'text-teal-900 dark:text-teal-200',
+      notes: 'Lắp đặt hệ tủ bếp và nghiệm thu sơ bộ mặt đá',
     },
     {
       id: 'evt-6',
@@ -138,6 +143,7 @@ export class InteriorScheduleAnalyticsService {
       badgeBgClass: 'bg-sky-50/90 dark:bg-sky-950/40',
       badgeBorderClass: 'border-l-4 border-l-sky-500 border-sky-100 dark:border-sky-800',
       textColorClass: 'text-sky-900 dark:text-sky-200',
+      notes: 'Nghiệm thu bàn giao hoàn thiện và ký biên bản',
     },
   ];
 
@@ -471,6 +477,7 @@ export class InteriorScheduleAnalyticsService {
       badgeBgClass,
       badgeBorderClass,
       textColorClass,
+      notes: input.notes || null,
     };
 
     if (!this.tenantCustomTasks.has(tenantId)) {
