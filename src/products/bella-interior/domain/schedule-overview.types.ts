@@ -48,6 +48,7 @@ export interface ScheduledCalendarEvent {
   readonly timeSlotId: string;
   readonly category: ScheduleTaskCategory;
   readonly categoryLabel: string;
+  readonly status?: ScheduleTaskStatus;
   readonly badgeBgClass: string;
   readonly badgeBorderClass: string;
   readonly textColorClass: string;
@@ -84,14 +85,42 @@ export interface UpcomingTaskItem {
   readonly calendarEventId?: string;
 }
 
+export interface TimelineStageItem {
+  readonly stageKey: 'design' | 'workshop' | 'site' | 'handover';
+  readonly stageLabel: string;
+  readonly startDate: string;
+  readonly endDate: string;
+  readonly progressPercent: number;
+  readonly status: 'pending' | 'in_progress' | 'completed';
+  readonly colorClass: string;
+}
+
 export interface ProjectScheduleProgressItem {
   readonly id: string;
   readonly projectName: string;
+  readonly projectCode?: string;
   readonly projectThumbnail: string;
   readonly progressPercent: number;
   readonly statusLabel: string;
   readonly statusBadgeClass: string;
   readonly progressBarClass: string;
+  readonly startDate?: string;
+  readonly targetEndDate?: string;
+  readonly leadArchitect?: string;
+  readonly currentStage?: string;
+  readonly stages?: readonly TimelineStageItem[];
+}
+
+export interface ResourceStaffItem {
+  readonly id: string;
+  readonly name: string;
+  readonly roleLabel: string;
+  readonly taskCount: number;
+  readonly loadPercent: number;
+  readonly isOverloaded: boolean;
+  readonly statusLabel: string;
+  readonly isRealUser: boolean;
+  readonly email?: string;
 }
 
 export interface ScheduleActionItem {
@@ -133,5 +162,6 @@ export interface ScheduleOverviewResponse {
   readonly resourceCapacity: ResourceCapacitySummary;
   readonly upcomingTasks: readonly UpcomingTaskItem[];
   readonly projectProgress: readonly ProjectScheduleProgressItem[];
+  readonly staffResources?: readonly ResourceStaffItem[];
   readonly actionSuggestions: ScheduleActionSuggestion;
 }
