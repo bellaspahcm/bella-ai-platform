@@ -8,8 +8,15 @@ export async function GET(request: Request): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
   if (!ctx.ok) return ctx.response;
 
+  const url = new URL(request.url);
+  const requestedProjectId = url.searchParams.get('projectId') || undefined;
+
   try {
-    const overview = InteriorProductionAnalyticsService.getProductionOverview();
+    const overview = await InteriorProductionAnalyticsService.getProductionOverview(
+      ctx.tenantId,
+      requestedProjectId,
+      ctx.supabase
+    );
     return NextResponse.json({
       success: true,
       data: {

@@ -13,7 +13,7 @@
  * - Light theme: bg-[#F8FAFC], green primary #2D7A4F
  */
 
-import React, { Fragment, useState, useEffect, useCallback } from 'react';
+import React, { Fragment, useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import type { ProductionOverviewResponse } from '@/products/bella-interior/domain/production-overview.types';
 
@@ -225,14 +225,22 @@ export default function ProductionDashboardPage() {
   const [data, setData] = useState<ProductionOverviewResponse | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [showProjectDropdown, setShowProjectDropdown] = useState<boolean>(false);
+  const [projectSearchQuery, setProjectSearchQuery] = useState<string>('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (projId?: string) => {
     try {
-      const res = await fetch('/api/interior/production/analytics', { cache: 'no-store' });
+      const q = projId ? `?projectId=${encodeURIComponent(projId)}` : '';
+      const res = await fetch(`/api/interior/production/analytics${q}`, { cache: 'no-store' });
       if (res.ok) {
         const json = await res.json() as { success: boolean; data: { overview: ProductionOverviewResponse } };
         if (json.success && json.data?.overview) {
           setData(json.data.overview);
+          if (!projId && json.data.overview.projectHeader?.id) {
+            setSelectedProjectId(json.data.overview.projectHeader.id);
+          }
           return;
         }
       }
@@ -245,8 +253,23 @@ export default function ProductionDashboardPage() {
   }, []);
 
   useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
+    void fetchData(selectedProjectId || undefined);
+  }, [fetchData, selectedProjectId]);
+
+  // Click outside listener for project selector dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowProjectDropdown(false);
+      }
+    }
+    if (showProjectDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showProjectDropdown]);
 
   if (!hasLoaded) {
     return (
@@ -267,6 +290,13 @@ export default function ProductionDashboardPage() {
   }
 
   const { kpis, workflowStages, efficiencyMetrics, timelineChart, ordersTable, alerts, workshopCapacities, architectureNotice } = data;
+
+  // Filter project dropdown list
+  const filteredProjects = (data.availableProjects || []).filter((p) => {
+    const q = projectSearchQuery.toLowerCase().trim();
+    if (!q) return true;
+    return p.label.toLowerCase().includes(q) || p.code.toLowerCase().includes(q);
+  });
 
   // ─── Chart SVG dimensions (must match service constants) ────────────────
   const SVG_W = 320;
@@ -302,17 +332,75 @@ export default function ProductionDashboardPage() {
           </span>
         </div>
 
-        {/* Project selector */}
-        <div className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 cursor-pointer hover:bg-slate-50 transition-colors">
-          <span className="text-slate-500 text-xs mr-1">Dự án:</span>
-          <span className="font-medium">{data.projectHeader.selectorLabel}</span>
-          <IconChevronDown className="w-4 h-4 text-slate-400 ml-1" />
+        {/* Interactive Project Selector Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            type="button"
+            onClick={() => setShowProjectDropdown((prev) => !prev)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 transition-all shadow-2xs cursor-pointer"
+            title="Nhấp để chuyển đổi dự án sản xuất"
+          >
+            <span className="text-slate-400 font-normal">Dự án:</span>
+            <span className="font-semibold text-slate-900 max-w-[200px] truncate">
+              {data.projectHeader.selectorLabel || data.projectHeader.name}
+            </span>
+            <IconChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${showProjectDropdown ? 'rotate-180' : ''}`} />
+          </button>
+
+          {showProjectDropdown && (
+            <div className="absolute left-0 sm:right-0 sm:left-auto mt-1.5 w-80 max-w-[92vw] bg-white rounded-xl border border-slate-200 shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+              <div className="p-2 border-b border-slate-100 bg-slate-50/50">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm dự án..."
+                  value={projectSearchQuery}
+                  onChange={(e) => setProjectSearchQuery(e.target.value)}
+                  className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium"
+                  autoFocus
+                />
+              </div>
+              <div className="max-h-60 overflow-y-auto divide-y divide-slate-50 p-1">
+                {filteredProjects.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-slate-400">
+                    Không tìm thấy dự án phù hợp
+                  </div>
+                ) : (
+                  filteredProjects.map((p) => {
+                    const isSelected = p.id === selectedProjectId || p.code === data.projectHeader.code;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedProjectId(p.id);
+                          setShowProjectDropdown(false);
+                          setProjectSearchQuery('');
+                          void fetchData(p.id);
+                        }}
+                        className={`w-full text-left p-2 rounded-lg flex items-center justify-between transition-colors text-xs cursor-pointer ${
+                          isSelected
+                            ? 'bg-emerald-50 text-emerald-900 font-semibold'
+                            : 'hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        <div className="min-w-0 pr-2">
+                          <p className="truncate font-medium">{p.label}</p>
+                          <p className="text-[10px] text-slate-400 font-mono">{p.code}</p>
+                        </div>
+                        {isSelected && <IconCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Action buttons */}
         <button
-          onClick={() => void fetchData()}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+          onClick={() => void fetchData(selectedProjectId || undefined)}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
         >
           <IconRefresh className="w-4 h-4" />
           Làm mới
