@@ -444,6 +444,7 @@ function buildOverview(
         badgeBorderClass: style.badgeBorderClass,
         textColorClass: style.textColorClass,
         notes: r.notes ?? null,
+        priority: (r.priority === 'urgent' ? 'urgent' : 'normal') as 'normal' | 'urgent',
       };
     });
 
@@ -456,6 +457,20 @@ function buildOverview(
       subtitle: 'Cần xử lý ngay',
       actionLabel: 'Quá hạn',
       actionClass: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300',
+      severity: 'critical' as const,
+    });
+  }
+
+  const urgentPendingTasks = rows.filter((r) => r.priority === 'urgent' && r.status !== 'completed');
+  if (urgentPendingTasks.length > 0) {
+    attentionAlerts.push({
+      id: 'alt-urgent-tasks',
+      title: `${urgentPendingTasks.length} công việc khẩn cấp`,
+      subtitle: urgentPendingTasks.length === 1 && urgentPendingTasks[0].title
+        ? `"${urgentPendingTasks[0].title}" cần ưu tiên thực hiện`
+        : 'Cần xử lý ưu tiên trong ngày',
+      actionLabel: 'Khẩn cấp',
+      actionClass: 'bg-rose-100 text-rose-700 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 animate-pulse',
       severity: 'critical' as const,
     });
   }
@@ -477,6 +492,7 @@ function buildOverview(
         categoryClass: `bg-blue-50 text-blue-700 border-blue-200`,
         assigneeAvatar: '',
         calendarEventId: r.id,
+        priority: (r.priority === 'urgent' ? 'urgent' : 'normal') as 'normal' | 'urgent',
       };
     });
 

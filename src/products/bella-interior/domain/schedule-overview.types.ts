@@ -53,6 +53,7 @@ export interface ScheduledCalendarEvent {
   readonly badgeBorderClass: string;
   readonly textColorClass: string;
   readonly notes?: string | null;
+  readonly priority?: 'normal' | 'urgent';
 }
 
 export interface ScheduleAttentionAlert {
@@ -82,6 +83,7 @@ export interface UpcomingTaskItem {
   readonly categoryLabel: string;
   readonly categoryClass: string;
   readonly assigneeAvatar: string;
+  readonly priority?: 'normal' | 'urgent';
   /** Links this upcoming task to its ScheduledCalendarEvent id (optional) */
   readonly calendarEventId?: string;
 }

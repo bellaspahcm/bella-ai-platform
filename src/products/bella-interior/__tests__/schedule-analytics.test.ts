@@ -97,6 +97,7 @@ describe('InteriorScheduleAnalyticsService', () => {
         timeSlotId: 'slot-2',
         category: 'design',
         notes: 'Kiểm tra hiện trạng tường và hệ thống cấp thoát nước',
+        priority: 'urgent',
       });
 
       expect(newTask.id).toMatch(/^evt-custom-/);
@@ -104,6 +105,7 @@ describe('InteriorScheduleAnalyticsService', () => {
       expect(newTask.projectName).toBe('Villa Ciputra');
       expect(newTask.categoryLabel).toBe('Thiết kế');
       expect(newTask.notes).toBe('Kiểm tra hiện trạng tường và hệ thống cấp thoát nước');
+      expect(newTask.priority).toBe('urgent');
 
       // Check updated overview (Source of Truth)
       const updated = InteriorScheduleAnalyticsService.getScheduleOverview(DYNAMIC_TENANT);
@@ -113,6 +115,7 @@ describe('InteriorScheduleAnalyticsService', () => {
       const foundTask = updated.calendarEvents.find((e) => e.id === newTask.id);
       expect(foundTask).toBeDefined();
       expect(foundTask?.notes).toBe('Kiểm tra hiện trạng tường và hệ thống cấp thoát nước');
+      expect(foundTask?.priority).toBe('urgent');
     });
 
     it('enforces validation when creating scheduled tasks', () => {
