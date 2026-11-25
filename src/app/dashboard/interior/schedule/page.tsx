@@ -982,7 +982,7 @@ export default function SchedulePage() {
                     <thead>
                       <tr className="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400">
                         <th className="py-2.5 px-3 font-bold text-[11px] w-52 border-r border-slate-100 dark:border-slate-800">
-                          Dự án & Người phụ trách
+                          Dự án &amp; Người phụ trách
                         </th>
                         {data.days.map((day) => (
                           <th
