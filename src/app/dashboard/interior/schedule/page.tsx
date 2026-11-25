@@ -46,6 +46,10 @@ import {
   Check,
   Building,
   User,
+  RotateCcw,
+  Mail,
+  FolderKanban,
+  Sparkles,
 } from 'lucide-react';
 import InteriorUserBar from '@/components/interior/InteriorUserBar';
 
@@ -146,6 +150,7 @@ export default function SchedulePage() {
   const [data, setData] = useState<ScheduleOverviewResponse>(INITIAL_SCHEDULE_OVERVIEW);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'week' | 'month' | 'timeline' | 'resource'>('week');
+  const [timelineViewMode, setTimelineViewMode] = useState<'daily' | 'stages'>('daily');
   const [weekOffset, setWeekOffset] = useState<number>(0);
 
   // Modal State: Create Task
@@ -306,10 +311,70 @@ export default function SchedulePage() {
     }
   };
 
-  // Mark task completed
-  const handleCompleteTask = async () => {
+  // Mark task completed or reopen
+  const handleToggleTaskStatus = async (targetStatus?: 'completed' | 'in_progress') => {
     if (!selectedTask) return;
     setIsDetailActionLoading(true);
+
+    const isCurrentCompleted = selectedTask.status === 'completed';
+    const nextStatus: 'completed' | 'in_progress' =
+      targetStatus || (isCurrentCompleted ? 'in_progress' : 'completed');
+
+    // Optimistic UI update immediately
+    const updatedEvents = data.calendarEvents.map((evt) =>
+      evt.id === selectedTask.id
+        ? {
+            ...evt,
+            status: nextStatus,
+            badgeBgClass:
+              nextStatus === 'completed'
+                ? 'bg-emerald-50/95 dark:bg-emerald-950/50'
+                : evt.category === 'workshop'
+                ? 'bg-purple-50/90 dark:bg-purple-950/40'
+                : evt.category === 'site'
+                ? 'bg-sky-50/90 dark:bg-sky-950/40'
+                : evt.category === 'handover'
+                ? 'bg-teal-50/90 dark:bg-teal-950/40'
+                : 'bg-blue-50/90 dark:bg-blue-950/40',
+            badgeBorderClass:
+              nextStatus === 'completed'
+                ? 'border-l-4 border-l-emerald-500 border-emerald-200 dark:border-emerald-800'
+                : evt.category === 'workshop'
+                ? 'border-l-4 border-l-purple-500 border-purple-100 dark:border-purple-800'
+                : evt.category === 'site'
+                ? 'border-l-4 border-l-sky-500 border-sky-100 dark:border-sky-800'
+                : evt.category === 'handover'
+                ? 'border-l-4 border-l-teal-500 border-teal-100 dark:border-teal-800'
+                : 'border-l-4 border-l-blue-500 border-blue-100 dark:border-blue-800',
+            textColorClass:
+              nextStatus === 'completed'
+                ? 'text-emerald-900 dark:text-emerald-200'
+                : evt.category === 'workshop'
+                ? 'text-purple-900 dark:text-purple-200'
+                : evt.category === 'site'
+                ? 'text-sky-900 dark:text-sky-200'
+                : evt.category === 'handover'
+                ? 'text-teal-900 dark:text-teal-200'
+                : 'text-blue-900 dark:text-blue-200',
+          }
+        : evt,
+    );
+
+    setSelectedTask((prev) => (prev ? { ...prev, status: nextStatus } : null));
+    setDataAndPersist({
+      ...data,
+      calendarEvents: updatedEvents,
+      kpis: {
+        ...data.kpis,
+        completedTasks: {
+          ...data.kpis.completedTasks,
+          value:
+            nextStatus === 'completed'
+              ? data.kpis.completedTasks.value + 1
+              : Math.max(0, data.kpis.completedTasks.value - 1),
+        },
+      },
+    });
 
     try {
       const token = await getAuthToken();
@@ -319,17 +384,21 @@ export default function SchedulePage() {
       const res = await fetch('/api/interior/schedule', {
         method: 'PATCH',
         headers,
-        body: JSON.stringify({ taskId: selectedTask.id }),
+        body: JSON.stringify({ taskId: selectedTask.id, status: nextStatus }),
       });
 
       if (res.ok) {
-        const resJson = await res.json() as { success: boolean; data?: { overview?: ScheduleOverviewResponse } };
+        const resJson = (await res.json()) as { success: boolean; data?: { overview?: ScheduleOverviewResponse } };
         if (resJson.success && resJson.data?.overview?.kpis) {
           setDataAndPersist(resJson.data.overview);
         }
       }
 
-      setToastMessage(`✅ Đã cập nhật hoàn thành công việc "${selectedTask.title}"!`);
+      setToastMessage(
+        nextStatus === 'completed'
+          ? `✅ Đã hoàn thành công việc "${selectedTask.title}"!`
+          : `🔄 Đã mở lại công việc "${selectedTask.title}"!`,
+      );
       setSelectedTask(null);
     } catch {
       setToastMessage('❌ Không thể cập nhật trạng thái');
@@ -743,25 +812,45 @@ export default function SchedulePage() {
                             className="py-1 px-1.5 border-r border-slate-100 dark:border-slate-800 last:border-r-0 align-top relative group hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
                           >
                             <div className="space-y-1">
-                              {eventsInSlot.map((eventInSlot) => (
-                                <button
-                                  key={eventInSlot.id}
-                                  type="button"
-                                  onClick={() => setSelectedTask(eventInSlot)}
-                                  className={`w-full text-left p-2 rounded-lg border text-[11px] font-medium leading-snug shadow-2xs ${eventInSlot.badgeBgClass} ${eventInSlot.badgeBorderClass} ${eventInSlot.textColorClass} transition-transform hover:scale-[1.02] cursor-pointer block`}
-                                >
-                                  <div className="flex items-center gap-1 font-bold">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-current inline-block shrink-0" />
-                                    <span className="truncate">{eventInSlot.title}</span>
-                                  </div>
-                                  <div className="text-[10px] opacity-90 truncate mt-0.5 font-semibold">
-                                    {eventInSlot.projectName}
-                                  </div>
-                                  <div className="text-[9px] opacity-75 truncate mt-0.5 font-mono">
-                                    ({eventInSlot.assignee})
-                                  </div>
-                                </button>
-                              ))}
+                              {eventsInSlot.map((eventInSlot) => {
+                                const isCompleted = eventInSlot.status === 'completed';
+                                return (
+                                  <button
+                                    key={eventInSlot.id}
+                                    type="button"
+                                    onClick={() => setSelectedTask(eventInSlot)}
+                                    className={`w-full text-left p-2 rounded-lg border text-[11px] font-medium leading-snug shadow-2xs ${
+                                      isCompleted
+                                        ? 'bg-emerald-50/95 dark:bg-emerald-950/50 border-l-4 border-l-emerald-500 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200'
+                                        : `${eventInSlot.badgeBgClass} ${eventInSlot.badgeBorderClass} ${eventInSlot.textColorClass}`
+                                    } transition-transform hover:scale-[1.02] cursor-pointer block`}
+                                  >
+                                    <div className="flex items-center justify-between gap-1 font-bold">
+                                      <div className="flex items-center gap-1 min-w-0">
+                                        {isCompleted ? (
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                        ) : (
+                                          <span className="w-1.5 h-1.5 rounded-full bg-current inline-block shrink-0" />
+                                        )}
+                                        <span className={`truncate ${isCompleted ? 'line-through opacity-80' : ''}`}>
+                                          {eventInSlot.title}
+                                        </span>
+                                      </div>
+                                      {isCompleted && (
+                                        <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-200/80 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 font-extrabold shrink-0">
+                                          Xong
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-[10px] opacity-90 truncate mt-0.5 font-semibold">
+                                      {eventInSlot.projectName}
+                                    </div>
+                                    <div className="text-[9px] opacity-75 truncate mt-0.5 font-mono">
+                                      ({eventInSlot.assignee})
+                                    </div>
+                                  </button>
+                                );
+                              })}
 
                               {/* Hover + Quick Add Button in Empty or Populated Cell */}
                               {eventsInSlot.length === 0 && (
@@ -835,72 +924,351 @@ export default function SchedulePage() {
             </div>
           )}
 
-          {/* ─── TAB 3: TIMELINE (GANTT) VIEW ─── */}
+          {/* ─── TAB 3: TIMELINE (GANTT TRACKER) ─── */}
           {activeTab === 'timeline' && (
             <div className="p-4 flex-1 space-y-4">
-              <div className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                Tiến độ thực hiện theo giai đoạn dự án (Gantt Tracker)
-              </div>
-              <div className="space-y-3">
-                {data.projectProgress.map((proj) => (
-                  <div key={proj.id} className="p-3 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/40 space-y-2">
-                    <div className="flex items-center justify-between text-xs font-semibold">
-                      <span className="text-slate-900 dark:text-white font-bold">
-                        {proj.projectName}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${proj.statusBadgeClass}`}>
-                        {proj.statusLabel} ({proj.progressPercent}%)
-                      </span>
-                    </div>
-                    <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${proj.progressBarClass}`}
-                        style={{ width: `${proj.progressPercent}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                      <span>Bắt đầu: 01/10/2026</span>
-                      <span>Dự kiến: 30/11/2026</span>
-                    </div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <GanttChartSquare className="w-4 h-4 text-blue-600" />
+                    Tiến độ thực hiện theo giai đoạn dự án (Gantt Tracker)
                   </div>
-                ))}
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Theo dõi tiến độ theo 4 giai đoạn chuẩn (Thiết kế → Sản xuất → Lắp đặt → Nghiệm thu) hoặc theo lịch làm việc chi tiết hàng ngày
+                  </p>
+                </div>
+
+                {/* Sub-view switcher */}
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                  <button
+                    type="button"
+                    onClick={() => setTimelineViewMode('daily')}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      timelineViewMode === 'daily'
+                        ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-300 shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    📅 Theo Ngày (Tuần này)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTimelineViewMode('stages')}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      timelineViewMode === 'stages'
+                        ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-300 shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    📊 4 Giai đoạn Dự án
+                  </button>
+                </div>
               </div>
+
+              {/* View 1: Timeline Theo Ngày (Daily View - Ma trận 7 ngày theo Dự án) */}
+              {timelineViewMode === 'daily' && (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-left text-xs min-w-[900px]">
+                    <thead>
+                      <tr className="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400">
+                        <th className="py-2.5 px-3 font-bold text-[11px] w-52 border-r border-slate-100 dark:border-slate-800">
+                          Dự án & Người phụ trách
+                        </th>
+                        {data.days.map((day) => (
+                          <th
+                            key={day.fullDate}
+                            className={`py-2 px-2 text-center border-r border-slate-100 dark:border-slate-800 last:border-r-0 min-w-[110px] ${
+                              day.isToday ? 'bg-orange-50/50 dark:bg-orange-950/20' : ''
+                            }`}
+                          >
+                            <div className="font-bold text-slate-900 dark:text-white text-xs">
+                              {day.dayOfWeek}
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                              {day.dateFormatted}
+                            </div>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {data.projectProgress.map((proj) => {
+                        // Find events for this project
+                        const projectEvents = data.calendarEvents.filter(
+                          (e) =>
+                            e.projectName.toLowerCase().includes(proj.projectName.toLowerCase()) ||
+                            proj.projectName.toLowerCase().includes(e.projectName.toLowerCase()),
+                        );
+
+                        return (
+                          <tr key={proj.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-850/30 transition-colors">
+                            <td className="py-2.5 px-3 border-r border-slate-100 dark:border-slate-800 align-top">
+                              <div className="font-bold text-slate-900 dark:text-white text-xs truncate max-w-[190px]">
+                                {proj.projectName}
+                              </div>
+                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                                {proj.projectCode || proj.leadArchitect || 'KTS. Trưởng'}
+                              </div>
+                              <div className="mt-1">
+                                <span className={`inline-block px-1.5 py-0.2 rounded text-[9px] font-bold border ${proj.statusBadgeClass}`}>
+                                  {proj.statusLabel}
+                                </span>
+                              </div>
+                            </td>
+
+                            {data.days.map((day, dayIdx) => {
+                              const dayEvents = projectEvents.filter((e) => e.dayIndex === dayIdx);
+                              return (
+                                <td
+                                  key={day.fullDate}
+                                  className={`py-2 px-1.5 border-r border-slate-100 dark:border-slate-800 last:border-r-0 align-top ${
+                                    day.isToday ? 'bg-orange-50/20 dark:bg-orange-950/10' : ''
+                                  }`}
+                                >
+                                  {dayEvents.length > 0 ? (
+                                    <div className="space-y-1">
+                                      {dayEvents.map((e) => {
+                                        const isComp = e.status === 'completed';
+                                        return (
+                                          <button
+                                            key={e.id}
+                                            type="button"
+                                            onClick={() => setSelectedTask(e)}
+                                            className={`w-full text-left p-1.5 rounded-lg border text-[10px] font-medium leading-snug cursor-pointer transition-transform hover:scale-[1.02] ${
+                                              isComp
+                                                ? 'bg-emerald-50/90 border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                                : `${e.badgeBgClass} ${e.badgeBorderClass} ${e.textColorClass}`
+                                            }`}
+                                          >
+                                            <div className="flex items-center gap-1 font-bold">
+                                              {isComp && <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600 shrink-0" />}
+                                              <span className={`truncate ${isComp ? 'line-through' : ''}`}>{e.title}</span>
+                                            </div>
+                                            <div className="text-[9px] opacity-75 truncate font-mono">
+                                              {e.assignee}
+                                            </div>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  ) : (
+                                    <div className="h-10 flex items-center justify-center text-slate-300 dark:text-slate-700 text-[10px]">
+                                      —
+                                    </div>
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* View 2: Timeline Theo 4 Giai đoạn Dự án (Stages Gantt) */}
+              {timelineViewMode === 'stages' && (
+                <div className="space-y-4">
+                  {data.projectProgress.map((proj) => (
+                    <div
+                      key={proj.id}
+                      className="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-3"
+                    >
+                      {/* Project Header */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-slate-900 dark:text-white">
+                              {proj.projectName}
+                            </span>
+                            {proj.projectCode && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-mono">
+                                {proj.projectCode}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-slate-500 mt-0.5">
+                            Chủ nhiệm: <span className="font-semibold text-slate-700 dark:text-slate-300">{proj.leadArchitect || 'KTS. Nguyễn Kiến Trúc'}</span> • Giai đoạn: <span className="font-semibold text-blue-600 dark:text-blue-400">{proj.currentStage || 'Thi công'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2.5 py-1 rounded-xl text-xs font-bold border ${proj.statusBadgeClass}`}>
+                            {proj.statusLabel} ({proj.progressPercent}%)
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Overall Progress Bar */}
+                      <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${proj.progressBarClass}`}
+                          style={{ width: `${proj.progressPercent}%` }}
+                        />
+                      </div>
+
+                      {/* 4-Stage Gantt Breakdown */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 pt-2">
+                        {(proj.stages || [
+                          { stageKey: 'design', stageLabel: '1. Khảo sát & Bản vẽ 3D', startDate: 'Tuần 1 - 3', endDate: 'Đã hoàn tất', progressPercent: 100, status: 'completed', colorClass: 'bg-blue-500' },
+                          { stageKey: 'workshop', stageLabel: '2. Sản xuất gia công mộc', startDate: 'Tuần 4 - 7', endDate: 'Đang gia công', progressPercent: 75, status: 'in_progress', colorClass: 'bg-purple-500' },
+                          { stageKey: 'site', stageLabel: '3. Lắp đặt hoàn thiện', startDate: 'Tuần 8 - 10', endDate: 'Chuẩn bị mặt bằng', progressPercent: 20, status: 'pending', colorClass: 'bg-sky-500' },
+                          { stageKey: 'handover', stageLabel: '4. Nghiệm thu & Bàn giao', startDate: 'Tuần 11 - 12', endDate: 'Dự kiến 31/12', progressPercent: 0, status: 'pending', colorClass: 'bg-teal-500' },
+                        ]).map((stg) => (
+                          <div
+                            key={stg.stageKey}
+                            className="p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850/50 space-y-1.5"
+                          >
+                            <div className="flex items-center justify-between text-[11px] font-bold">
+                              <span className="text-slate-800 dark:text-slate-200 truncate">
+                                {stg.stageLabel}
+                              </span>
+                              <span className="text-slate-500 font-mono text-[10px]">
+                                {stg.progressPercent}%
+                              </span>
+                            </div>
+                            <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${
+                                  stg.status === 'completed'
+                                    ? 'bg-emerald-500'
+                                    : stg.status === 'in_progress'
+                                    ? stg.colorClass
+                                    : 'bg-slate-300 dark:bg-slate-600'
+                                }`}
+                                style={{ width: `${stg.progressPercent}%` }}
+                              />
+                            </div>
+                            <div className="flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                              <span>{stg.startDate}</span>
+                              <span className="truncate">{stg.endDate}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex justify-between text-[10px] text-slate-500 font-mono pt-1 border-t border-slate-100 dark:border-slate-800/80">
+                        <span>Bắt đầu: {proj.startDate || '01/10/2026'}</span>
+                        <span>Mục tiêu hoàn thành: {proj.targetEndDate || '31/12/2026'}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {/* ─── TAB 4: RESOURCE VIEW ─── */}
           {activeTab === 'resource' && (
             <div className="p-4 flex-1 space-y-4">
-              <div className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                Bảng phân bổ tải công việc nhân sự (Resource Allocation Matrix)
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Users className="w-4 h-4 text-blue-600" />
+                    Bảng phân bổ tải công việc nhân sự (Resource Allocation Matrix)
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Phân tích tải công việc thực tế dựa trên các task được điều phối trong tuần, phân biệt tài khoản nhân sự công ty và đội thợ xưởng
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 text-[10px] font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Tối ưu (&lt; 90%)
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 text-[10px] font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                    Quá tải (&gt;= 90%)
+                  </span>
+                </div>
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {CANONICAL_ASSIGNEES.map((staff, idx) => {
-                  const loadPercent = [80, 60, 95, 75, 50, 85, 70, 40][idx] || 70;
-                  const isOverloaded = loadPercent >= 90;
+                {(data.staffResources || [
+                  { id: '1', name: 'KTS. Hoàng Long', roleLabel: 'Kiến trúc sư trưởng', taskCount: 2, loadPercent: 65, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: true },
+                  { id: '2', name: 'KTS. Lê Hoàng', roleLabel: 'KTS Bản vẽ triển khai', taskCount: 1, loadPercent: 50, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: true },
+                  { id: '3', name: 'PM. Mai', roleLabel: 'Quản lý dự án (PM)', taskCount: 3, loadPercent: 90, isOverloaded: true, statusLabel: 'Quá tải', isRealUser: true },
+                  { id: '4', name: 'QĐ. Tuấn', roleLabel: 'Quản đốc sản xuất xưởng', taskCount: 2, loadPercent: 70, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: false },
+                  { id: '5', name: 'PM. Hùng', roleLabel: 'Giám sát kỹ thuật & Nghiệm thu', taskCount: 1, loadPercent: 45, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: true },
+                  { id: '6', name: 'Đội 1', roleLabel: 'Đội thi công & Lắp đặt công trình', taskCount: 3, loadPercent: 85, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: false },
+                  { id: '7', name: 'Đội 2', roleLabel: 'Đội hoàn thiện sơn bả & thạch cao', taskCount: 2, loadPercent: 65, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: false },
+                  { id: '8', name: 'Đội 3', roleLabel: 'Đội điện nước MEP & phụ kiện', taskCount: 1, loadPercent: 40, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: false },
+                ]).map((staff) => {
                   return (
-                    <div key={staff} className="p-3 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-850/50 flex items-center justify-between gap-3 shadow-2xs">
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                          {staff}
+                    <div
+                      key={staff.id}
+                      className="p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-2.5 transition-all hover:border-slate-300 dark:hover:border-slate-700"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-2.5 min-w-0">
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+                            staff.isRealUser
+                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
+                              : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                          }`}>
+                            {staff.isRealUser ? <User className="w-4 h-4" /> : <Building className="w-4 h-4" />}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                {staff.name}
+                              </span>
+                              {staff.isRealUser ? (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300">
+                                  <Mail className="w-2.5 h-2.5" />
+                                  Tài khoản công ty
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                                  Đội thợ xưởng
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                              {staff.roleLabel}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">
-                          Tải công việc: <span className="font-semibold text-slate-700 dark:text-slate-300">{loadPercent}%</span>
+
+                        <span
+                          className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border shrink-0 ${
+                            staff.isOverloaded
+                              ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:text-rose-300'
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300'
+                          }`}
+                        >
+                          {staff.statusLabel}
+                        </span>
+                      </div>
+
+                      {/* Workload Progress & Task Count */}
+                      <div>
+                        <div className="flex items-center justify-between text-[11px] mb-1">
+                          <span className="text-slate-500 font-medium">
+                            {staff.taskCount > 0 ? (
+                              <span className="font-bold text-blue-600 dark:text-blue-400">{staff.taskCount} việc tuần này</span>
+                            ) : (
+                              <span>Sẵn sàng nhận việc</span>
+                            )}
+                          </span>
+                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                            Tải: {staff.loadPercent}%
+                          </span>
                         </div>
-                        <div className="w-28 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mt-1.5 overflow-hidden">
+                        <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${isOverloaded ? 'bg-rose-500' : 'bg-emerald-500'}`}
-                            style={{ width: `${loadPercent}%` }}
+                            className={`h-full rounded-full transition-all duration-300 ${
+                              staff.isOverloaded
+                                ? 'bg-rose-500'
+                                : staff.loadPercent >= 70
+                                ? 'bg-amber-500'
+                                : 'bg-emerald-500'
+                            }`}
+                            style={{ width: `${staff.loadPercent}%` }}
                           />
                         </div>
                       </div>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold border shrink-0 ${
-                        isOverloaded
-                          ? 'bg-rose-50 text-rose-700 border-rose-200'
-                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      }`}>
-                        {isOverloaded ? 'Quá tải' : 'Bình thường'}
-                      </span>
                     </div>
                   );
                 })}
@@ -1463,10 +1831,21 @@ export default function SchedulePage() {
             {/* Header */}
             <div className="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${selectedTask.badgeBgClass} ${selectedTask.textColorClass}`}>
                     {selectedTask.categoryLabel}
                   </span>
+                  {selectedTask.status === 'completed' ? (
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold border bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                      Đã hoàn thành
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold border bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                      Đang thực hiện
+                    </span>
+                  )}
                   <span className="text-[10px] font-mono text-slate-400">
                     ID: {selectedTask.id}
                   </span>
@@ -1549,15 +1928,35 @@ export default function SchedulePage() {
                 >
                   Đóng
                 </button>
-                <button
-                  type="button"
-                  onClick={handleCompleteTask}
-                  disabled={isDetailActionLoading}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-60"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Đánh dấu hoàn thành
-                </button>
+
+                {selectedTask.status === 'completed' ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleTaskStatus('in_progress')}
+                      disabled={isDetailActionLoading}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-200 text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-60"
+                      title="Mở lại công việc sang trạng thái đang thực hiện"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Mở lại việc
+                    </button>
+                    <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-xs cursor-default">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Đã hoàn thành
+                    </div>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleToggleTaskStatus('completed')}
+                    disabled={isDetailActionLoading}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-60"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Đánh dấu hoàn thành
+                  </button>
+                )}
               </div>
             </div>
           </div>
