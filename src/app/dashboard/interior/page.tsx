@@ -707,6 +707,13 @@ export default function InteriorDashboardPage() {
                 };
 
                 const cfg = stageTasks[proj.status] || stageTasks.design;
+                const stageLinks: Record<string, string> = {
+                  design: `/dashboard/interior/design?projectId=${proj.id}`,
+                  production: `/dashboard/interior/production?projectId=${proj.id}`,
+                  installation: `/dashboard/interior/installation?projectId=${proj.id}`,
+                  handover: `/dashboard/interior/qc-handover?projectId=${proj.id}`,
+                };
+                const actionHref = stageLinks[proj.status] || `/dashboard/interior/design?projectId=${proj.id}`;
 
                 return (
                   <div
@@ -734,7 +741,7 @@ export default function InteriorDashboardPage() {
                           </p>
                         </div>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                          {cfg.task}
+                          {proj.nextAction || cfg.task}
                         </p>
                       </div>
                     </div>
@@ -743,17 +750,14 @@ export default function InteriorDashboardPage() {
                       <span className={`text-xs ${cfg.timeClass}`}>
                         {cfg.due}
                       </span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedWorkspaceProject(proj);
-                        }}
+                      <Link
+                        href={actionHref}
+                        onClick={(e) => e.stopPropagation()}
                         className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-                        title="Mở chi tiết dự án"
+                        title={`Chuyển đến phân hệ ${cfg.tag}`}
                       >
                         <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 );
