@@ -76,7 +76,7 @@ export default function InteriorReportsAnalyticsPage() {
         }
         // Still 401 after retry → session truly expired, redirect to login
         if (res.status === 401) {
-          window.location.href = '/auth/login?redirectTo=/dashboard/interior/reports';
+          window.location.href = '/login?redirectTo=/dashboard/interior/reports';
           return;
         }
         if (!res.ok) {
