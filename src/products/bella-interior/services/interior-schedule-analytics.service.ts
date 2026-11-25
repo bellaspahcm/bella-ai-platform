@@ -75,6 +75,27 @@ export class InteriorScheduleAnalyticsService {
       textColorClass: 'text-blue-900 dark:text-blue-200',
       notes: 'Khảo sát hiện trạng mặt bằng và đo đạc kích thước thực tế',
       priority: 'normal',
+      createdAt: '2026-11-01T08:00:00Z',
+      createdByName: 'KTS. Nguyễn Kiến Trúc',
+      startedAt: '2026-11-03T08:00:00Z',
+      startedByName: 'KTS. Hoàng Long',
+      executionDuration: '2 ngày 0 giờ',
+      statusHistory: [
+        {
+          action: 'created',
+          toStatus: 'pending',
+          timestamp: '2026-11-01T08:00:00Z',
+          actorName: 'KTS. Nguyễn Kiến Trúc',
+          note: 'Khởi tạo công việc khảo sát thực tế',
+        },
+        {
+          action: 'started',
+          toStatus: 'in_progress',
+          timestamp: '2026-11-03T08:00:00Z',
+          actorName: 'KTS. Hoàng Long',
+          note: 'Bắt đầu đo đạc hiện trạng công trình',
+        },
+      ],
     },
     {
       id: 'evt-2',
@@ -471,6 +492,7 @@ export class InteriorScheduleAnalyticsService {
         break;
     }
 
+    const nowIso = new Date().toISOString();
     const newTask: ScheduledCalendarEvent = {
       id: `evt-custom-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       title: input.title.trim(),
@@ -485,6 +507,22 @@ export class InteriorScheduleAnalyticsService {
       textColorClass,
       notes: input.notes || null,
       priority: input.priority === 'urgent' ? 'urgent' : 'normal',
+      createdAt: nowIso,
+      createdByName: 'Quản lý dự án',
+      startedAt: null,
+      startedByName: null,
+      completedAt: null,
+      completedByName: null,
+      executionDuration: null,
+      statusHistory: [
+        {
+          action: 'created',
+          toStatus: 'pending',
+          timestamp: nowIso,
+          actorName: 'Quản lý dự án',
+          note: 'Khởi tạo công việc và điều phối nhân sự',
+        },
+      ],
     };
 
     if (!this.tenantCustomTasks.has(tenantId)) {

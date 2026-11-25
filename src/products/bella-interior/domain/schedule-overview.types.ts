@@ -39,6 +39,16 @@ export interface CalendarDayColumn {
   readonly isToday: boolean;
 }
 
+export interface TaskStatusHistoryEntry {
+  readonly action: 'created' | 'started' | 'completed' | 'reopened' | 'updated';
+  readonly fromStatus?: string | null;
+  readonly toStatus: string;
+  readonly timestamp: string;
+  readonly actorId?: string | null;
+  readonly actorName?: string | null;
+  readonly note?: string | null;
+}
+
 export interface ScheduledCalendarEvent {
   readonly id: string;
   readonly title: string;
@@ -54,6 +64,14 @@ export interface ScheduledCalendarEvent {
   readonly textColorClass: string;
   readonly notes?: string | null;
   readonly priority?: 'normal' | 'urgent';
+  readonly createdAt?: string | null;
+  readonly createdByName?: string | null;
+  readonly startedAt?: string | null;
+  readonly startedByName?: string | null;
+  readonly completedAt?: string | null;
+  readonly completedByName?: string | null;
+  readonly executionDuration?: string | null;
+  readonly statusHistory?: readonly TaskStatusHistoryEntry[];
 }
 
 export interface ScheduleAttentionAlert {

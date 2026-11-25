@@ -51,6 +51,9 @@ import {
   FolderKanban,
   Sparkles,
   FileText,
+  History,
+  UserCheck,
+  Timer,
 } from 'lucide-react';
 import InteriorUserBar from '@/components/interior/InteriorUserBar';
 
@@ -146,6 +149,23 @@ const CANONICAL_ASSIGNEES = [
   'Đội 2 (Thi công)',
   'Đội 3 (Hoàn thiện)',
 ];
+
+// Helper to format ISO timestamp for audit log
+function formatTimestamp(isoStr?: string | null): string {
+  if (!isoStr) return '—';
+  try {
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return isoStr;
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${hours}:${minutes} ngày ${day}/${month}/${year}`;
+  } catch {
+    return isoStr;
+  }
+}
 
 export default function SchedulePage() {
   const [data, setData] = useState<ScheduleOverviewResponse>(INITIAL_SCHEDULE_OVERVIEW);
@@ -1976,6 +1996,110 @@ export default function SchedulePage() {
                     <span className="italic text-slate-400 dark:text-slate-500">Chưa có ghi chú hoặc yêu cầu kỹ thuật đính kèm.</span>
                   )}
                 </div>
+              </div>
+
+              {/* Dấu vết thời gian & Hiệu suất thực hiện (Audit Trail & Performance) */}
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+                    <History className="w-3.5 h-3.5 text-indigo-500" />
+                    <span>Dấu vết thời gian &amp; Lịch sử phê duyệt</span>
+                  </div>
+                  {selectedTask.executionDuration && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                      <Timer className="w-3 h-3 text-indigo-500" />
+                      Lead time: {selectedTask.executionDuration}
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* Khởi tạo */}
+                  <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                    <div className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                      <User className="w-3 h-3 text-blue-500" />
+                      <span>Người khởi tạo</span>
+                    </div>
+                    <div className="mt-0.5 font-bold text-xs text-slate-800 dark:text-slate-200">
+                      {selectedTask.createdByName || 'Quản lý dự án'}
+                    </div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
+                      <Clock className="w-2.5 h-2.5 text-slate-400" />
+                      {formatTimestamp(selectedTask.createdAt)}
+                    </div>
+                  </div>
+
+                  {/* Phê duyệt / Hoàn thành */}
+                  <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                    <div className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                      <UserCheck className="w-3 h-3 text-emerald-500" />
+                      <span>Người duyệt hoàn thành</span>
+                    </div>
+                    <div className="mt-0.5 font-bold text-xs text-slate-800 dark:text-slate-200">
+                      {selectedTask.status === 'completed'
+                        ? selectedTask.completedByName || 'Quản lý dự án'
+                        : '— (Chờ duyệt)'}
+                    </div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
+                      <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" />
+                      {selectedTask.completedAt ? formatTimestamp(selectedTask.completedAt) : 'Chưa hoàn thành'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Nhật ký chuyển bước (Activity Timeline) */}
+                {selectedTask.statusHistory && selectedTask.statusHistory.length > 0 && (
+                  <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800">
+                    <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-2">
+                      Nhật ký chuyển bước &amp; Xử lý:
+                    </div>
+                    <div className="space-y-2">
+                      {selectedTask.statusHistory.map((h, hIdx) => (
+                        <div key={hIdx} className="flex items-start gap-2 text-[11px] leading-tight">
+                          <span
+                            className={`inline-block w-1.5 h-1.5 rounded-full mt-1 shrink-0 ${
+                              h.action === 'completed'
+                                ? 'bg-emerald-500'
+                                : h.action === 'started'
+                                ? 'bg-blue-500'
+                                : h.action === 'reopened'
+                                ? 'bg-amber-500'
+                                : 'bg-indigo-500'
+                            }`}
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                                {h.actorName || 'Quản lý dự án'}{' '}
+                                <span className="font-normal text-slate-500 dark:text-slate-400">
+                                  (
+                                  {h.action === 'created'
+                                    ? 'Khởi tạo'
+                                    : h.action === 'completed'
+                                    ? 'Duyệt hoàn thành'
+                                    : h.action === 'started'
+                                    ? 'Bắt đầu'
+                                    : h.action === 'reopened'
+                                    ? 'Mở lại'
+                                    : 'Cập nhật'}
+                                  )
+                                </span>
+                              </span>
+                              <span className="text-[10px] text-slate-400">
+                                {formatTimestamp(h.timestamp)}
+                              </span>
+                            </div>
+                            {h.note && (
+                              <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                {h.note}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
