@@ -19,6 +19,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
 import type {
+  InteriorQueryClient,
+  RawInteriorProject,
+  RawInteriorProductionOrder,
+} from '../domain/interior-query.types';
+import type {
   ProductionOverviewResponse,
   ProductionKpiItem,
   ProductionWorkflowStage,
@@ -497,24 +502,25 @@ export class InteriorProductionAnalyticsService {
   public static async getDbProductionOverview(
     tenantId: string = 'tenant-bella-interior-001',
     projectId?: string,
-    supabaseClient?: SupabaseClient<Database>,
+    supabaseClient?: unknown,
   ): Promise<ProductionOverviewResponse> {
     if (!supabaseClient) {
       return this.getMockProductionOverview();
     }
 
     try {
+      const client = supabaseClient as unknown as InteriorQueryClient;
       // 1. Fetch available projects
-      const { data: rawProjects } = await supabaseClient
-        .from('interior_projects')
+      const { data: rawProjects } = await client
+        .from<RawInteriorProject>('interior_projects')
         .select('id, code, name, customer_name, status')
         .order('created_at', { ascending: false });
 
       const projects = Array.isArray(rawProjects) ? rawProjects : [];
       const availableProjects = projects.map((p) => ({
         id: p.id,
-        label: `${p.name} (${p.code})`,
-        code: p.code,
+        label: `${p.name} (${p.code ?? p.id.slice(0, 8)})`,
+        code: p.code ?? p.id.slice(0, 8),
       }));
 
       // Active project
@@ -523,8 +529,8 @@ export class InteriorProductionAnalyticsService {
         : projects[0];
 
       // 2. Query production orders
-      let query = supabaseClient
-        .from('interior_production_orders')
+      let query = client
+        .from<RawInteriorProductionOrder>('interior_production_orders')
         .select(`
           id,
           order_number,
@@ -536,8 +542,7 @@ export class InteriorProductionAnalyticsService {
           notes,
           mode,
           subcontractor_name,
-          project_id,
-          interior_projects(id, code, name, customer_name)
+          project_id
         `)
         .order('created_at', { ascending: false });
 
@@ -556,9 +561,9 @@ export class InteriorProductionAnalyticsService {
         if (activeProject) {
           mock.projectHeader = {
             id: activeProject.id,
-            code: activeProject.code,
+            code: activeProject.code || activeProject.id.slice(0, 8),
             name: activeProject.name,
-            selectorLabel: `${activeProject.name} (${activeProject.code})`,
+            selectorLabel: `${activeProject.name} (${activeProject.code || activeProject.id.slice(0, 8)})`,
             clientName: activeProject.customer_name || 'Khách hàng',
             status: activeProject.status || 'in_production',
             statusLabel: 'Đang triển khai',
@@ -700,9 +705,9 @@ export class InteriorProductionAnalyticsService {
       const header: ProductionProjectHeader = activeProject
         ? {
             id: activeProject.id,
-            code: activeProject.code,
+            code: activeProject.code || activeProject.id.slice(0, 8),
             name: activeProject.name,
-            selectorLabel: `${activeProject.name} (${activeProject.code})`,
+            selectorLabel: `${activeProject.name} (${activeProject.code || activeProject.id.slice(0, 8)})`,
             clientName: activeProject.customer_name || 'Khách hàng',
             status: activeProject.status || 'in_production',
             statusLabel: 'Đang sản xuất',

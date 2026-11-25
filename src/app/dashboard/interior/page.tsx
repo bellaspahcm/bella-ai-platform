@@ -273,6 +273,8 @@ export default function InteriorDashboardPage() {
   const [projects, setProjects] = useState<MockProject[]>(INITIAL_PROJECTS);
   const [portfolioData, setPortfolioData] = useState<PortfolioOverviewResponse | null>(null);
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [projectPage, setProjectPage] = useState<number>(1);
+  const PROJECT_PAGE_SIZE = 8;
   const [selectedWorkspaceProject, setSelectedWorkspaceProject] = useState<MockProject | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<BusinessChainPeriodKey>('this_month');
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
@@ -370,6 +372,12 @@ export default function InteriorDashboardPage() {
     if (activeTab === 'handover') return p.status === 'handover';
     return true;
   });
+
+  const totalProjectPages = Math.ceil(filteredProjects.length / PROJECT_PAGE_SIZE);
+  const pagedProjects = filteredProjects.slice(
+    (projectPage - 1) * PROJECT_PAGE_SIZE,
+    projectPage * PROJECT_PAGE_SIZE
+  );
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(val);
@@ -867,7 +875,10 @@ export default function InteriorDashboardPage() {
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setProjectPage(1);
+                  }}
                   className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                     activeTab === tab.id
                       ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs font-bold'
@@ -905,27 +916,20 @@ export default function InteriorDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-              {filteredProjects.map((project) => (
+              {pagedProjects.map((project) => (
                 <tr
                   key={project.id}
                   className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
                   onClick={() => setSelectedWorkspaceProject(project)}
                 >
                   <td className="py-3.5 px-4 whitespace-nowrap">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={project.imageUrl}
-                        alt={project.name}
-                        className="w-11 h-11 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700 flex-shrink-0"
-                      />
-                      <div>
-                        <p className="font-bold text-slate-900 dark:text-white group-hover:text-amber-600 transition-colors whitespace-nowrap">
-                          {project.name}
-                        </p>
-                        <p className="text-[11px] text-slate-400 font-mono mt-0.5 whitespace-nowrap">
-                          {project.code}
-                        </p>
-                      </div>
+                    <div>
+                      <p className="font-bold text-slate-900 dark:text-white group-hover:text-amber-600 transition-colors whitespace-nowrap">
+                        {project.name}
+                      </p>
+                      <p className="text-[11px] text-slate-400 font-mono mt-0.5 whitespace-nowrap">
+                        {project.code}
+                      </p>
                     </div>
                   </td>
                   <td className="py-3.5 px-4 whitespace-nowrap">
@@ -984,6 +988,47 @@ export default function InteriorDashboardPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalProjectPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <p className="text-xs text-slate-500">
+              Hiển thị <span className="font-semibold text-slate-700 dark:text-slate-300">{pagedProjects.length}</span> trên <span className="font-semibold text-slate-700 dark:text-slate-300">{filteredProjects.length}</span> dự án · Trang <span className="font-semibold text-slate-700 dark:text-slate-300">{projectPage}</span>/{totalProjectPages}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setProjectPage((p) => Math.max(1, p - 1))}
+                disabled={projectPage === 1}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                ← Trước
+              </button>
+              {Array.from({ length: totalProjectPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setProjectPage(page)}
+                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
+                    page === projectPage
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setProjectPage((p) => Math.min(totalProjectPages, p + 1))}
+                disabled={projectPage === totalProjectPages}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Sau →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ─── 05. TÀI CHÍNH &amp; CẢNH BÁO + BANNER PROMO ──────────────────── */}

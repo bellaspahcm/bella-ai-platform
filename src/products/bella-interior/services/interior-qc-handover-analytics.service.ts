@@ -12,6 +12,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
 import type {
+  InteriorQueryClient,
+  RawInteriorProject,
+  RawInteriorPunchListItem,
+} from '../domain/interior-query.types';
+import type {
   QCHandoverOverviewResponse,
   QCHandoverProjectHeader,
   HandoverGateDossier,
@@ -315,24 +320,25 @@ export class InteriorQCHandoverAnalyticsService {
   public static async getDbQCHandoverOverview(
     tenantId: string = 'tenant-bella-interior-001',
     projectId?: string,
-    supabaseClient?: SupabaseClient<Database>,
+    supabaseClient?: unknown,
   ): Promise<QCHandoverOverviewResponse> {
     if (!supabaseClient) {
       return this.getMockQCHandoverOverview();
     }
 
     try {
+      const client = supabaseClient as unknown as InteriorQueryClient;
       // 1. Fetch available projects
-      const { data: rawProjects } = await supabaseClient
-        .from('interior_projects')
+      const { data: rawProjects } = await client
+        .from<RawInteriorProject>('interior_projects')
         .select('id, code, name, customer_name, site_address, target_completion_date, status')
         .order('created_at', { ascending: false });
 
       const projects = Array.isArray(rawProjects) ? rawProjects : [];
       const availableProjects = projects.map((p) => ({
         id: p.id,
-        label: `${p.name} (${p.code})`,
-        code: p.code,
+        label: `${p.name} (${p.code ?? p.id.slice(0, 8)})`,
+        code: p.code ?? p.id.slice(0, 8),
       }));
 
       const activeProject = projectId
@@ -340,8 +346,8 @@ export class InteriorQCHandoverAnalyticsService {
         : projects[0];
 
       // 2. Fetch punch list items
-      let query = supabaseClient
-        .from('interior_qc_punch_list_items')
+      let query = client
+        .from<RawInteriorPunchListItem>('interior_qc_punch_list_items')
         .select(`
           id,
           room_zone_name,
@@ -356,8 +362,7 @@ export class InteriorQCHandoverAnalyticsService {
           verified_by,
           verified_at,
           created_at,
-          project_id,
-          interior_projects(id, code, name)
+          project_id
         `)
         .order('created_at', { ascending: false });
 
@@ -376,7 +381,7 @@ export class InteriorQCHandoverAnalyticsService {
         if (activeProject) {
           mock.projectHeader = {
             id: activeProject.id,
-            code: activeProject.code,
+            code: activeProject.code || activeProject.id.slice(0, 8),
             name: activeProject.name,
             selectorLabel: activeProject.name,
             location: activeProject.site_address || 'Quận 7, TP. Hồ Chí Minh',
@@ -568,7 +573,7 @@ export class InteriorQCHandoverAnalyticsService {
 
       // 7. Project Header & Info
       const projName = activeProject ? activeProject.name : 'The Horizon Residence';
-      const projCode = activeProject ? activeProject.code : 'INT-2024-001';
+      const projCode = (activeProject && (activeProject.code || activeProject.id.slice(0, 8))) || 'INT-2024-001';
       const projLoc = (activeProject && activeProject.site_address) ? activeProject.site_address : 'Quận 7, TP. Hồ Chí Minh';
 
       return {
