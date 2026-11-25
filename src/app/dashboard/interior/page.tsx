@@ -669,56 +669,97 @@ export default function InteriorDashboardPage() {
                   </div>
                 );
               })
-            ) : (
-              URGENT_ITEMS.map((item) => {
-                const matchedProject = projects.find((p) => p.id === item.projectId || p.code === item.projectId);
+            ) : projects.length > 0 ? (
+              projects.slice(0, 3).map((proj) => {
+                const stageTasks: Record<string, { tag: string; tagClass: string; task: string; due: string; timeClass: string; iconType: 'file' | 'wrench' | 'check' }> = {
+                  design: {
+                    tag: 'Thiết kế',
+                    tagClass: 'bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-900',
+                    task: 'Phê duyệt hồ sơ thiết kế kỹ thuật thi công',
+                    due: 'Hôm nay',
+                    timeClass: 'text-rose-600 dark:text-rose-400 font-semibold',
+                    iconType: 'file',
+                  },
+                  production: {
+                    tag: 'Sản xuất',
+                    tagClass: 'bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-900',
+                    task: 'Kiểm tra tiến độ xưởng & KCS hoàn thiện',
+                    due: '2 ngày',
+                    timeClass: 'text-amber-600 dark:text-amber-400 font-semibold',
+                    iconType: 'wrench',
+                  },
+                  installation: {
+                    tag: 'Lắp đặt',
+                    tagClass: 'bg-indigo-100 text-indigo-800 border border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-900',
+                    task: 'Kiểm tra hiện trường & đối soát kích thước',
+                    due: '3 ngày',
+                    timeClass: 'text-indigo-600 dark:text-indigo-400 font-semibold',
+                    iconType: 'wrench',
+                  },
+                  handover: {
+                    tag: 'Nghiệm thu',
+                    tagClass: 'bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-900',
+                    task: 'Biên bản nghiệm thu bàn giao & bảo hành',
+                    due: 'Theo lịch',
+                    timeClass: 'text-emerald-600 dark:text-emerald-400 font-semibold',
+                    iconType: 'check',
+                  },
+                };
+
+                const cfg = stageTasks[proj.status] || stageTasks.design;
+
                 return (
                   <div
-                    key={item.id}
-                    onClick={() => {
-                      if (matchedProject) {
-                        setSelectedWorkspaceProject(matchedProject);
-                      }
-                    }}
+                    key={proj.id}
+                    onClick={() => setSelectedWorkspaceProject(proj)}
                     className="p-3.5 rounded-2xl bg-slate-50/70 hover:bg-slate-100/80 dark:bg-slate-800/40 dark:hover:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-3 transition-all group cursor-pointer"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <img
-                        src={matchedProject?.imageUrl || item.imageUrl}
-                        alt={item.projectName}
-                        className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-1 ring-slate-200 dark:ring-slate-700"
-                      />
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
+                        {cfg.iconType === 'file' ? (
+                          <FileText className="w-5 h-5 text-blue-500" />
+                        ) : cfg.iconType === 'wrench' ? (
+                          <Wrench className="w-5 h-5 text-amber-500" />
+                        ) : (
+                          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                        )}
+                      </div>
                       <div className="min-w-0 space-y-0.5">
                         <div className="flex items-center gap-2">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${item.tagClass}`}>
-                            {item.tag}
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${cfg.tagClass}`}>
+                            {cfg.tag}
                           </span>
                           <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                            {matchedProject?.name || item.projectName}
+                            {proj.name}
                           </p>
                         </div>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                          {item.taskTitle}
+                          {cfg.task}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0 text-right">
-                      <span className={`text-xs ${item.timeClass}`}>
-                        {item.dueTime}
+                      <span className={`text-xs ${cfg.timeClass}`}>
+                        {cfg.due}
                       </span>
-                      <Link
-                        href={item.actionHref}
-                        onClick={(e) => e.stopPropagation()}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedWorkspaceProject(proj);
+                        }}
                         className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                         title="Mở chi tiết dự án"
                       >
                         <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                      </Link>
+                      </button>
                     </div>
                   </div>
                 );
               })
+            ) : (
+              <p className="text-xs text-slate-400 text-center py-4">Không có việc khẩn cấp cần xử lý</p>
             )}
           </div>
         </div>
@@ -1140,11 +1181,9 @@ export default function InteriorDashboardPage() {
             {/* Drawer Header */}
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-900/50">
               <div className="flex items-center gap-3">
-                <img
-                  src={selectedWorkspaceProject.imageUrl}
-                  alt={selectedWorkspaceProject.name}
-                  className="w-12 h-12 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700"
-                />
+                <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center shrink-0">
+                  <FolderKanban className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                </div>
                 <div>
                   <h3 className="font-bold text-base text-slate-900 dark:text-white">
                     {selectedWorkspaceProject.name}
