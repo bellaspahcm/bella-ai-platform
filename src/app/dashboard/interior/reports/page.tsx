@@ -74,6 +74,11 @@ export default function InteriorReportsAnalyticsPage() {
           await new Promise((r) => setTimeout(r, 800));
           res = await fetch(url, { cache: 'no-store' });
         }
+        // Still 401 after retry → session truly expired, redirect to login
+        if (res.status === 401) {
+          window.location.href = '/auth/login?redirectTo=/dashboard/interior/reports';
+          return;
+        }
         if (!res.ok) {
           throw new Error(`API returned HTTP ${res.status}`);
         }
