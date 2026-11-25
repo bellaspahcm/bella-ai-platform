@@ -13,6 +13,7 @@ import type {
   ProjectScheduleProgressItem,
   TimelineStageItem,
   ResourceStaffItem,
+  TaskStatusHistoryEntry,
 } from '@/products/bella-interior/domain/schedule-overview.types';
 
 export const dynamic = 'force-dynamic';
@@ -361,6 +362,36 @@ interface ScheduleEventRow {
   priority: string;
   scheduled_week_start: string;
   notes: string | null;
+  created_at?: string | null;
+  created_by_name?: string | null;
+  started_at?: string | null;
+  started_by_name?: string | null;
+  completed_at?: string | null;
+  completed_by_name?: string | null;
+  status_history?: unknown[] | null;
+}
+
+// ── Lead time / Execution duration calculator ─────────────────────────────
+function computeExecutionDuration(
+  startIso?: string | null,
+  endIso?: string | null,
+): string | null {
+  if (!startIso) return null;
+  const startTime = new Date(startIso).getTime();
+  const endTime = endIso ? new Date(endIso).getTime() : Date.now();
+  if (isNaN(startTime) || isNaN(endTime) || endTime < startTime) return null;
+
+  const diffMinutes = Math.floor((endTime - startTime) / (1000 * 60));
+  if (diffMinutes < 1) return '< 1 phút';
+  if (diffMinutes < 60) return `${diffMinutes} phút`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  const remMinutes = diffMinutes % 60;
+  if (diffHours < 24) {
+    return remMinutes > 0 ? `${diffHours} giờ ${remMinutes} phút` : `${diffHours} giờ`;
+  }
+  const diffDays = Math.floor(diffHours / 24);
+  const remHours = diffHours % 24;
+  return remHours > 0 ? `${diffDays} ngày ${remHours} giờ` : `${diffDays} ngày`;
 }
 
 // ── Build week days array for a given week-start date ────────────────────
@@ -445,6 +476,16 @@ function buildOverview(
         textColorClass: style.textColorClass,
         notes: r.notes ?? null,
         priority: (r.priority === 'urgent' ? 'urgent' : 'normal') as 'normal' | 'urgent',
+        createdAt: r.created_at ?? null,
+        createdByName: r.created_by_name || 'Quản lý dự án',
+        startedAt: r.started_at ?? null,
+        startedByName: r.started_by_name || null,
+        completedAt: r.completed_at ?? null,
+        completedByName: r.completed_by_name || null,
+        executionDuration: computeExecutionDuration(r.started_at || r.created_at, r.completed_at),
+        statusHistory: Array.isArray(r.status_history)
+          ? (r.status_history as unknown as TaskStatusHistoryEntry[])
+          : [],
       };
     });
 
@@ -600,7 +641,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const { data, error } = await db
       .from('interior_scheduled_events')
-      .select('id, project_name, title, category, status, assignee_name, day_index, time_slot_id, priority, scheduled_week_start, notes')
+      .select('id, project_name, title, category, status, assignee_name, day_index, time_slot_id, priority, scheduled_week_start, notes, created_at, created_by_name, started_at, started_by_name, completed_at, completed_by_name, status_history')
       .eq('tenant_id', ctx.tenantId)
       .neq('status', 'cancelled')
       .gte('scheduled_week_start', weekStartStr)
@@ -696,6 +737,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     : 0;
 
   try {
+    const now = new Date().toISOString();
+    const actorName = ctx.actor.full_name || ctx.actor.email || 'Quản lý dự án';
+    const initialHistory: TaskStatusHistoryEntry[] = [
+      {
+        action: 'created',
+        fromStatus: null,
+        toStatus: 'pending',
+        timestamp: now,
+        actorId: ctx.actor.id,
+        actorName,
+        note: 'Khởi tạo công việc và điều phối nhân sự',
+      },
+    ];
+
     const { error: insertError } = await db
       .from('interior_scheduled_events')
       .insert({
@@ -711,6 +766,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         scheduled_week_start: weekStartStr,
         notes: payload.notes ?? null,
         created_by_id: ctx.actor.id,
+        created_by_name: actorName,
+        status_history: initialHistory,
       });
 
     if (insertError) {
@@ -725,7 +782,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const [{ data: rows }, { data: projectData }, { data: userRoleData }] = await Promise.all([
       db
         .from('interior_scheduled_events')
-        .select('id, project_name, title, category, status, assignee_name, day_index, time_slot_id, priority, scheduled_week_start, notes')
+        .select('id, project_name, title, category, status, assignee_name, day_index, time_slot_id, priority, scheduled_week_start, notes, created_at, created_by_name, started_at, started_by_name, completed_at, completed_by_name, status_history')
         .eq('tenant_id', ctx.tenantId)
         .neq('status', 'cancelled')
         .eq('scheduled_week_start', weekStartStr)
@@ -787,7 +844,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     // Verify ownership (tenant isolation)
     const { data: existing } = await db
       .from('interior_scheduled_events')
-      .select('id, status, scheduled_week_start, tenant_id')
+      .select('id, status, scheduled_week_start, tenant_id, created_at, started_at, completed_at, status_history')
       .eq('id', taskId)
       .eq('tenant_id', ctx.tenantId)
       .single();
@@ -801,9 +858,82 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     const currentStatus = (existing as Record<string, unknown>).status;
     const targetStatus = requestedStatus || (currentStatus === 'completed' ? 'in_progress' : 'completed');
 
+    const now = new Date().toISOString();
+    const actorName = ctx.actor.full_name || ctx.actor.email || 'Quản lý dự án';
+    const prevHistory: TaskStatusHistoryEntry[] = Array.isArray(existing.status_history)
+      ? (existing.status_history as unknown as TaskStatusHistoryEntry[])
+      : [];
+
+    const updatePayload: Record<string, unknown> = {
+      status: targetStatus,
+      updated_at: now,
+    };
+
+    if (targetStatus === 'completed') {
+      updatePayload.completed_at = now;
+      updatePayload.completed_by_id = ctx.actor.id;
+      updatePayload.completed_by_name = actorName;
+      if (!existing.started_at) {
+        updatePayload.started_at = existing.created_at || now;
+      }
+      const newEntry: TaskStatusHistoryEntry = {
+        action: 'completed',
+        fromStatus: currentStatus as string,
+        toStatus: 'completed',
+        timestamp: now,
+        actorId: ctx.actor.id,
+        actorName,
+        note: 'Duyệt hoàn thành công việc và ghi nhận kết quả',
+      };
+      updatePayload.status_history = [...prevHistory, newEntry];
+    } else if (targetStatus === 'in_progress') {
+      if (currentStatus === 'completed') {
+        updatePayload.completed_at = null;
+        updatePayload.completed_by_id = null;
+        updatePayload.completed_by_name = '';
+        const newEntry: TaskStatusHistoryEntry = {
+          action: 'reopened',
+          fromStatus: 'completed',
+          toStatus: 'in_progress',
+          timestamp: now,
+          actorId: ctx.actor.id,
+          actorName,
+          note: 'Mở lại công việc để tiếp tục xử lý hoặc kiểm tra bổ sung',
+        };
+        updatePayload.status_history = [...prevHistory, newEntry];
+      } else {
+        if (!existing.started_at) {
+          updatePayload.started_at = now;
+          updatePayload.started_by_id = ctx.actor.id;
+          updatePayload.started_by_name = actorName;
+        }
+        const newEntry: TaskStatusHistoryEntry = {
+          action: 'started',
+          fromStatus: currentStatus as string,
+          toStatus: 'in_progress',
+          timestamp: now,
+          actorId: ctx.actor.id,
+          actorName,
+          note: 'Bắt đầu triển khai thực hiện công việc',
+        };
+        updatePayload.status_history = [...prevHistory, newEntry];
+      }
+    } else {
+      const newEntry: TaskStatusHistoryEntry = {
+        action: 'updated',
+        fromStatus: currentStatus as string,
+        toStatus: targetStatus,
+        timestamp: now,
+        actorId: ctx.actor.id,
+        actorName,
+        note: `Chuyển trạng thái sang ${targetStatus}`,
+      };
+      updatePayload.status_history = [...prevHistory, newEntry];
+    }
+
     const { error: updateError } = await db
       .from('interior_scheduled_events')
-      .update({ status: targetStatus, updated_at: new Date().toISOString() })
+      .update(updatePayload)
       .eq('id', taskId)
       .eq('tenant_id', ctx.tenantId);
 
@@ -820,7 +950,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     const [{ data: rows }, { data: projectData }, { data: userRoleData }] = await Promise.all([
       db
         .from('interior_scheduled_events')
-        .select('id, project_name, title, category, status, assignee_name, day_index, time_slot_id, priority, scheduled_week_start, notes')
+        .select('id, project_name, title, category, status, assignee_name, day_index, time_slot_id, priority, scheduled_week_start, notes, created_at, created_by_name, started_at, started_by_name, completed_at, completed_by_name, status_history')
         .eq('tenant_id', ctx.tenantId)
         .neq('status', 'cancelled')
         .eq('scheduled_week_start', weekStartStr)
@@ -899,7 +1029,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     const [{ data: rows }, { data: projectData }, { data: userRoleData }] = await Promise.all([
       db
         .from('interior_scheduled_events')
-        .select('id, project_name, title, category, status, assignee_name, day_index, time_slot_id, priority, scheduled_week_start, notes')
+        .select('id, project_name, title, category, status, assignee_name, day_index, time_slot_id, priority, scheduled_week_start, notes, created_at, created_by_name, started_at, started_by_name, completed_at, completed_by_name, status_history')
         .eq('tenant_id', ctx.tenantId)
         .neq('status', 'cancelled')
         .eq('scheduled_week_start', weekStartStr)

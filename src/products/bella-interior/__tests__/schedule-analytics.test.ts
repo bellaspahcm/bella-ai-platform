@@ -106,6 +106,11 @@ describe('InteriorScheduleAnalyticsService', () => {
       expect(newTask.categoryLabel).toBe('Thiết kế');
       expect(newTask.notes).toBe('Kiểm tra hiện trạng tường và hệ thống cấp thoát nước');
       expect(newTask.priority).toBe('urgent');
+      expect(newTask.createdAt).toBeDefined();
+      expect(newTask.createdByName).toBe('Quản lý dự án');
+      expect(newTask.statusHistory).toBeDefined();
+      expect(newTask.statusHistory?.length).toBeGreaterThan(0);
+      expect(newTask.statusHistory?.[0].action).toBe('created');
 
       // Check updated overview (Source of Truth)
       const updated = InteriorScheduleAnalyticsService.getScheduleOverview(DYNAMIC_TENANT);
