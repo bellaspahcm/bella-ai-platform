@@ -261,6 +261,32 @@ interface InteriorProjectItem {
   estimated_budget?: number | string | null;
 }
 
+// Local cache helpers to guarantee zero data loss on F5 refresh
+const getStorageKey = (projId: string) => `bella_materials_cache_${projId || 'default'}`;
+
+const loadCachedMaterials = (projId: string): MaterialItem[] | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(getStorageKey(projId));
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed as MaterialItem[];
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+};
+
+const saveCachedMaterials = (projId: string, items: MaterialItem[]) => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(getStorageKey(projId), JSON.stringify(items));
+  } catch {
+    // ignore
+  }
+};
+
 export default function InteriorMaterialsPage() {
   const [selectedCategory, setSelectedCategory] = useState<MaterialCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -323,15 +349,39 @@ export default function InteriorMaterialsPage() {
   // State for Excel / CSV import text
   const [importText, setImportText] = useState<string>('');
 
-  // Live data — starts with static seed, replaced by DB data once fetched
+  // Live data — initialized with local cache or fallback seed
   const [materials, setMaterials] = useState<MaterialItem[]>(INITIAL_MATERIALS);
-  const [kpiTotalCount, setKpiTotalCount] = useState<number>(28);
-  const [kpiApprovedCount, setKpiApprovedCount] = useState<number>(28);
-  const [kpiDomesticCount, setKpiDomesticCount] = useState<number>(21);
-  const [kpiImportCount, setKpiImportCount] = useState<number>(7);
   const [specLockApprovedBy, setSpecLockApprovedBy] = useState<string>('Trần Thị Mai & Hoàng Long');
   const [isLoadingMaterials, setIsLoadingMaterials] = useState<boolean>(false);
   const [revisionId, setRevisionId] = useState<string | null>(null);
+
+  // Fully dynamic KPI metrics calculated directly from the live materials list
+  const kpiStats = useMemo(() => {
+    const total = materials.length;
+    const approved = materials.filter(
+      (m) =>
+        m.status === 'locked' ||
+        m.status === 'in_stock' ||
+        m.status === 'approved' ||
+        m.sampleStatus?.includes('ký') ||
+        m.sampleStatus?.includes('đạt') ||
+        m.sampleStatus?.includes('duyệt')
+    ).length;
+    const domestic = materials.filter((m) =>
+      ['An Cường', 'Đồng Tâm', 'Vicostone', 'Dulux', 'Inchem', 'Việt Nam'].some(
+        (b) => m.brand.includes(b) || m.origin.includes(b)
+      )
+    ).length;
+    const imported = Math.max(0, total - domestic);
+    return {
+      total,
+      approved,
+      domestic,
+      imported,
+      domesticPercent: total > 0 ? Math.round((domestic / total) * 100) : 0,
+      importedPercent: total > 0 ? Math.round((imported / total) * 100) : 0,
+    };
+  }, [materials]);
 
   const showToast = (msg: string, type: 'success' | 'info' | 'error' = 'success') => {
     setToastMessage(msg);
@@ -350,6 +400,14 @@ export default function InteriorMaterialsPage() {
           const items = Array.isArray(json.data?.projects) ? (json.data.projects as InteriorProjectItem[]) : [];
           if (isMounted && items.length > 0) {
             setProjectOptions(items);
+            // Auto sync to real project UUID if mock id is active
+            setSelectedProjectId((prev) => {
+              if (prev === 'proj-villa-sunrise') {
+                const vs = items.find((p) => p.code === 'INT-2024-001' || p.name.includes('Villa Sunrise')) || items[0];
+                return vs ? vs.id : prev;
+              }
+              return prev;
+            });
           }
         }
       } catch {
@@ -404,11 +462,17 @@ export default function InteriorMaterialsPage() {
     showToast(`Đã chuyển sang dự án: ${proj?.name || projectId}`, 'info');
   };
 
-  // Fetch real material data from DB whenever selectedProjectId changes
+  // Fetch real material data from DB whenever selectedProjectId changes, merged with local cache
   useEffect(() => {
     let isMounted = true;
     async function fetchMaterials() {
       setIsLoadingMaterials(true);
+      // Read local storage cache first for instant F5 restoration
+      const cached = loadCachedMaterials(selectedProjectId);
+      if (cached && cached.length > 0 && isMounted) {
+        setMaterials(cached);
+      }
+
       try {
         const url = selectedProjectId
           ? `/api/interior/materials?projectId=${encodeURIComponent(selectedProjectId)}`
@@ -416,18 +480,44 @@ export default function InteriorMaterialsPage() {
         const res = await fetch(url, { cache: 'no-store' });
         if (res.ok) {
           const json: MaterialsApiResponse = await res.json();
-          if (isMounted && json.success && json.materials.length > 0) {
-            setMaterials(json.materials);
-            setKpiTotalCount(json.totalCount);
-            setKpiApprovedCount(json.approvedCount);
-            setKpiDomesticCount(json.domesticCount);
-            setKpiImportCount(json.importCount);
-            if (json.approvedBy) setSpecLockApprovedBy(json.approvedBy);
+          if (isMounted && json.success) {
             if (json.revisionId) setRevisionId(json.revisionId);
+            if (json.approvedBy) setSpecLockApprovedBy(json.approvedBy);
+
+            if (json.materials && json.materials.length > 0) {
+              setMaterials((prev) => {
+                const serverMap = new Map(json.materials.map((m) => [m.code, m]));
+                // Keep local user overrides (e.g. newly confirmed sample or custom item)
+                const merged: MaterialItem[] = json.materials.map((serverItem) => {
+                  const localMatch = prev.find((p) => p.code === serverItem.code || p.id === serverItem.id);
+                  if (localMatch && (localMatch.status === 'in_stock' || localMatch.sampleStatus.includes('đạt'))) {
+                    return {
+                      ...serverItem,
+                      status: localMatch.status,
+                      statusLabel: localMatch.statusLabel,
+                      statusBadgeClass: localMatch.statusBadgeClass,
+                      sampleStatus: localMatch.sampleStatus,
+                    };
+                  }
+                  return serverItem;
+                });
+                // Include any locally added custom items not yet present in server response
+                for (const item of prev) {
+                  if (!serverMap.has(item.code) && !merged.some((m) => m.code === item.code)) {
+                    merged.unshift(item);
+                  }
+                }
+                saveCachedMaterials(selectedProjectId, merged);
+                return merged;
+              });
+            } else if (!cached || cached.length === 0) {
+              setMaterials(INITIAL_MATERIALS);
+              saveCachedMaterials(selectedProjectId, INITIAL_MATERIALS);
+            }
           }
         }
       } catch {
-        // Retain INITIAL_MATERIALS as fallback
+        // Retain cached or INITIAL_MATERIALS as fallback
       } finally {
         if (isMounted) setIsLoadingMaterials(false);
       }
@@ -489,15 +579,12 @@ export default function InteriorMaterialsPage() {
       sampleStatus: formItem.approvedForUse ? 'Đã ký mẫu thực tế' : 'Đang trình duyệt',
     };
 
-    // Optimistic UI update
-    setMaterials((prev) => [newItem, ...prev]);
-    setKpiTotalCount((prev) => prev + 1);
-    if (formItem.approvedForUse) setKpiApprovedCount((prev) => prev + 1);
-    if (isDomestic) {
-      setKpiDomesticCount((prev) => prev + 1);
-    } else {
-      setKpiImportCount((prev) => prev + 1);
-    }
+    // Optimistic UI update and persistent local backup
+    setMaterials((prev) => {
+      const updated = [newItem, ...prev];
+      saveCachedMaterials(selectedProjectId, updated);
+      return updated;
+    });
 
     try {
       // Persist to server API
@@ -505,6 +592,7 @@ export default function InteriorMaterialsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          projectId: selectedProjectId,
           revisionId,
           itemCategory: categoryLabel,
           brand: newItem.brand,
@@ -518,10 +606,10 @@ export default function InteriorMaterialsPage() {
       if (res.ok) {
         showToast(`Đã thêm vật tư "${newItem.name}" và đồng bộ CSDL thành công!`, 'success');
       } else {
-        showToast(`Đã lưu cục bộ vật tư "${newItem.name}".`, 'info');
+        showToast(`Đã lưu cục bộ vật tư "${newItem.name}" (F5 không mất dữ liệu).`, 'success');
       }
     } catch {
-      showToast(`Đã lưu cục bộ vật tư "${newItem.name}".`, 'info');
+      showToast(`Đã lưu cục bộ vật tư "${newItem.name}" (F5 không mất dữ liệu).`, 'info');
     } finally {
       setIsSubmitting(false);
       setShowAddModal(false);
@@ -601,10 +689,12 @@ export default function InteriorMaterialsPage() {
         return;
       }
 
-      // Add to state
-      setMaterials((prev) => [...parsedItems, ...prev]);
-      setKpiTotalCount((prev) => prev + parsedItems.length);
-      setKpiApprovedCount((prev) => prev + parsedItems.length);
+      // Add to state and persistent cache
+      setMaterials((prev) => {
+        const updated = [...parsedItems, ...prev];
+        saveCachedMaterials(selectedProjectId, updated);
+        return updated;
+      });
 
       // Post to API
       try {
@@ -612,6 +702,7 @@ export default function InteriorMaterialsPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            projectId: selectedProjectId,
             revisionId,
             items: parsedItems.map((item) => ({
               itemCategory: item.categoryLabel,
@@ -658,23 +749,45 @@ export default function InteriorMaterialsPage() {
     showToast('Đã tải file mẫu bảng tính (Excel/CSV)', 'success');
   };
 
-  const handleConfirmSample = (item: MaterialItem) => {
-    setMaterials((prev) =>
-      prev.map((m) =>
+  const handleConfirmSample = async (item: MaterialItem) => {
+    setMaterials((prev) => {
+      const updated = prev.map((m) =>
         m.id === item.id || m.code === item.code
           ? {
               ...m,
-              status: 'in_stock',
+              status: 'in_stock' as const,
               statusLabel: 'Đã nhập xưởng',
+              statusBadgeClass:
+                'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800',
               sampleStatus: 'Hàng mẫu đạt kiểm định xưởng',
               approvedBy: m.approvedBy && m.approvedBy !== 'Chưa ký' ? m.approvedBy : 'KTS. Trưởng (Thiết kế)',
               approvedDate: new Date().toLocaleDateString('vi-VN'),
             }
           : m
-      )
-    );
+      );
+      saveCachedMaterials(selectedProjectId, updated);
+      return updated;
+    });
+
     showToast(`Đã xác nhận đạt mẫu kiểm định xưởng cho vật tư "${item.name}" (${item.code})!`, 'success');
     setActiveModalItem(null);
+
+    // Sync to backend DB
+    try {
+      await fetch('/api/interior/materials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'confirm_sample',
+          code: item.code,
+          id: item.id,
+          projectId: selectedProjectId,
+          sampleStatus: 'Hàng mẫu đạt kiểm định xưởng',
+        }),
+      });
+    } catch {
+      // Local cache already preserved
+    }
   };
 
   // Sub-tabs matching the official lifecycle sub-navigation
@@ -948,7 +1061,7 @@ export default function InteriorMaterialsPage() {
               </span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-              Toàn bộ {kpiTotalCount} hạng mục vật liệu chính đã được KTS trưởng và Chủ đầu tư ký duyệt mẫu thực tế. Mọi thay đổi chủng loại vật tư đều phải thông qua thủ tục Addendum hợp đồng.
+              Toàn bộ {kpiStats.total} hạng mục vật liệu chính đã được KTS trưởng và Chủ đầu tư ký duyệt mẫu thực tế. Mọi thay đổi chủng loại vật tư đều phải thông qua thủ tục Addendum hợp đồng.
             </p>
           </div>
         </div>
@@ -967,7 +1080,7 @@ export default function InteriorMaterialsPage() {
             Tổng Danh Mục Vật Tư
           </span>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-slate-900 dark:text-white">{isLoadingMaterials ? '—' : kpiTotalCount}</span>
+            <span className="text-2xl font-black text-slate-900 dark:text-white">{isLoadingMaterials ? '—' : kpiStats.total}</span>
             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full">
               Đầy đủ 100%
             </span>
@@ -980,7 +1093,7 @@ export default function InteriorMaterialsPage() {
             Đã Ký Bảng Mẫu Thực Tế
           </span>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{isLoadingMaterials ? '—' : `${kpiApprovedCount} / ${kpiTotalCount}`}</span>
+            <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{isLoadingMaterials ? '—' : `${kpiStats.approved} / ${kpiStats.total}`}</span>
             <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           </div>
           <span className="text-[11px] text-slate-400 block mt-1.5">Lưu trữ tại phòng Sample Board xưởng</span>
@@ -992,9 +1105,9 @@ export default function InteriorMaterialsPage() {
           </span>
           <div className="flex items-baseline justify-between">
             <span className="text-2xl font-black text-slate-900 dark:text-white">
-              {isLoadingMaterials ? '—' : (kpiTotalCount > 0 ? `${Math.round((kpiDomesticCount / kpiTotalCount) * 100)}%` : '0%')}
+              {isLoadingMaterials ? '—' : `${kpiStats.domesticPercent}%`}
             </span>
-            <span className="text-xs font-semibold text-slate-500">{isLoadingMaterials ? '' : `${kpiDomesticCount} danh mục`}</span>
+            <span className="text-xs font-semibold text-slate-500">{isLoadingMaterials ? '' : `${kpiStats.domestic} danh mục`}</span>
           </div>
           <span className="text-[11px] text-slate-400 block mt-1.5">An Cường, Vicostone, Dulux</span>
         </div>
@@ -1005,9 +1118,9 @@ export default function InteriorMaterialsPage() {
           </span>
           <div className="flex items-baseline justify-between">
             <span className="text-2xl font-black text-amber-600 dark:text-amber-400">
-              {isLoadingMaterials ? '—' : (kpiTotalCount > 0 ? `${Math.round((kpiImportCount / kpiTotalCount) * 100)}%` : '0%')}
+              {isLoadingMaterials ? '—' : `${kpiStats.importedPercent}%`}
             </span>
-            <span className="text-xs font-semibold text-slate-500">{isLoadingMaterials ? '' : `${kpiImportCount} danh mục`}</span>
+            <span className="text-xs font-semibold text-slate-500">{isLoadingMaterials ? '' : `${kpiStats.imported} danh mục`}</span>
           </div>
           <span className="text-[11px] text-slate-400 block mt-1.5">Gỗ Óc Chó FAS, Hafele, Blum, Bosch</span>
         </div>
