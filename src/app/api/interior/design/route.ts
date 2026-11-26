@@ -14,6 +14,7 @@ export const dynamic = 'force-dynamic';
 interface GenericDynamicTable {
   select: (cols?: string) => GenericDynamicQuery;
   insert: (values: Record<string, unknown>) => GenericDynamicInsertQuery;
+  update: (values: Record<string, unknown>) => GenericDynamicQuery;
 }
 
 interface GenericDynamicQuery {
@@ -22,6 +23,10 @@ interface GenericDynamicQuery {
   limit: (count: number) => GenericDynamicQuery;
   maybeSingle: () => Promise<{ data: Record<string, unknown> | null; error: unknown }>;
   single: () => Promise<{ data: Record<string, unknown> | null; error: unknown }>;
+  then: <TResult1 = { data: unknown; error: unknown }, TResult2 = never>(
+    onfulfilled?: ((value: { data: unknown; error: unknown }) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
+  ) => Promise<TResult1 | TResult2>;
 }
 
 interface GenericDynamicInsertQuery {
@@ -168,15 +173,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             // retain fallback
           }
         }
-        const approver = String(
-          latestRev.approvedBy ??
-          latestRev.approved_by ??
-          latestRev.clientSignoffName ??
-          latestRev.client_signoff_name ??
-          projectRow?.customer_name ??
-          overview.versionLock?.approvedBy ??
-          'Trần Thị Mai'
-        );
+        const isUuid = (val: unknown): boolean =>
+          typeof val === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+
+        let approver = 'Trần Thị Mai';
+        const rawSignoff = latestRev.clientSignoffName ?? latestRev.client_signoff_name;
+        const rawApprovedBy = latestRev.approvedBy ?? latestRev.approved_by;
+        const customerName = projectRow?.customer_name;
+
+        if (rawSignoff && typeof rawSignoff === 'string' && !isUuid(rawSignoff)) {
+          approver = rawSignoff;
+        } else if (rawApprovedBy && typeof rawApprovedBy === 'string' && !isUuid(rawApprovedBy)) {
+          approver = rawApprovedBy;
+        } else if (customerName && typeof customerName === 'string') {
+          approver = customerName;
+        } else if (isUuid(rawApprovedBy)) {
+          approver = 'KTS. Trưởng (Thiết kế)';
+        } else {
+          approver = overview.versionLock?.approvedBy || 'Trần Thị Mai';
+        }
         const desc = String(
           latestRev.changeSummary ??
           latestRev.change_summary ??
@@ -406,6 +421,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (action === 'toggle_lock') {
       const versionId = typeof payload.versionId === 'string' ? payload.versionId : 'rev-r1-0';
       const versionLock = await InteriorDesignAnalyticsService.toggleDesignLock(ctx.tenantId, versionId);
+
+      // If versionId is a UUID in the database, persist lock state to interior_design_revisions
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(versionId);
+      if (isUuid) {
+        try {
+          const revTable = getDynamicTable(ctx.supabase, 'interior_design_revisions');
+          await revTable
+            .update({
+              status: versionLock.isLocked ? 'approved' : 'review',
+            })
+            .eq('tenant_id', ctx.tenantId)
+            .eq('id', versionId);
+        } catch {
+          // best-effort persistence
+        }
+      }
+
       return NextResponse.json({
         success: true,
         data: { versionLock },

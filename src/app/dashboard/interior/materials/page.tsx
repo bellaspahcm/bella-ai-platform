@@ -658,6 +658,25 @@ export default function InteriorMaterialsPage() {
     showToast('Đã tải file mẫu bảng tính (Excel/CSV)', 'success');
   };
 
+  const handleConfirmSample = (item: MaterialItem) => {
+    setMaterials((prev) =>
+      prev.map((m) =>
+        m.id === item.id || m.code === item.code
+          ? {
+              ...m,
+              status: 'in_stock',
+              statusLabel: 'Đã nhập xưởng',
+              sampleStatus: 'Hàng mẫu đạt kiểm định xưởng',
+              approvedBy: m.approvedBy && m.approvedBy !== 'Chưa ký' ? m.approvedBy : 'KTS. Trưởng (Thiết kế)',
+              approvedDate: new Date().toLocaleDateString('vi-VN'),
+            }
+          : m
+      )
+    );
+    showToast(`Đã xác nhận đạt mẫu kiểm định xưởng cho vật tư "${item.name}" (${item.code})!`, 'success');
+    setActiveModalItem(null);
+  };
+
   // Sub-tabs matching the official lifecycle sub-navigation
   const subTabs = [
     { key: 'overview', label: 'Tổng quan', href: '/dashboard/interior/projects', isActive: false },
@@ -1255,8 +1274,8 @@ export default function InteriorMaterialsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setActiveModalItem(null)}
-                className="px-4 py-2 rounded-xl bg-[#0f4c3a] text-white text-xs font-semibold hover:bg-[#0c3c2e]"
+                onClick={() => handleConfirmSample(activeModalItem)}
+                className="px-4 py-2 rounded-xl bg-[#0f4c3a] text-white text-xs font-semibold hover:bg-[#0c3c2e] transition-colors cursor-pointer"
               >
                 Xác Nhận Đạt Mẫu
               </button>
