@@ -18,21 +18,37 @@ interface MaterialSpecRow {
   created_at: string;
 }
 
-interface DynamicQuery {
-  eq: (col: string, val: unknown) => DynamicQuery;
-  order: (col: string, opts?: { ascending?: boolean }) => DynamicQuery;
-  then: <T>(
-    onfulfilled?: ((value: { data: unknown; error: unknown }) => T | PromiseLike<T>) | null
-  ) => Promise<T>;
+interface GenericDynamicQuery {
+  eq: (col: string, val: unknown) => GenericDynamicQuery;
+  order: (col: string, opts?: { ascending?: boolean }) => GenericDynamicQuery;
+  limit: (count: number) => GenericDynamicQuery;
+  or: (filters: string) => GenericDynamicQuery;
+  maybeSingle: () => Promise<{ data: Record<string, unknown> | null; error: unknown }>;
+  single: () => Promise<{ data: Record<string, unknown> | null; error: unknown }>;
+  then: <TResult1 = { data: unknown; error: unknown }, TResult2 = never>(
+    onfulfilled?: ((value: { data: unknown; error: unknown }) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
+  ) => Promise<TResult1 | TResult2>;
 }
 
-interface DynamicTable {
-  select: (cols: string) => DynamicQuery;
-  insert: (row: Record<string, unknown>) => { select: (cols: string) => { single: () => Promise<{ data: unknown; error: unknown }> } };
+interface GenericDynamicInsertQuery {
+  select: (cols?: string) => {
+    single: () => Promise<{ data: Record<string, unknown> | null; error: unknown }>;
+  };
+  then: <TResult1 = { data: unknown; error: unknown }, TResult2 = never>(
+    onfulfilled?: ((value: { data: unknown; error: unknown }) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
+  ) => Promise<TResult1 | TResult2>;
 }
 
-function getDynamicTable(supabase: unknown, table: string): DynamicTable {
-  return (supabase as { from: (t: string) => DynamicTable }).from(table);
+interface GenericDynamicTable {
+  select: (cols?: string) => GenericDynamicQuery;
+  insert: (values: Record<string, unknown> | Array<Record<string, unknown>>) => GenericDynamicInsertQuery;
+  update: (values: Record<string, unknown>) => GenericDynamicQuery;
+}
+
+function getDynamicTable(supabase: unknown, tableName: string): GenericDynamicTable {
+  return (supabase as { from: (table: string) => GenericDynamicTable }).from(tableName);
 }
 
 // ─── Category mapping ────────────────────────────────────────────────────────
@@ -114,40 +130,39 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   // Graceful fallback: find project by code/name or pick first tenant project
   if (!effectiveProjectId) {
-    type SimpleProj = { id: string; code: string; name: string };
-    const projTable = ctx.supabase.from('interior_projects');
+    const projTable = getDynamicTable(ctx.supabase, 'interior_projects');
     
     if (projectIdParam) {
-      const { data: matched } = await projTable
+      const matched = await projTable
         .select('id, code, name')
         .eq('tenant_id', ctx.tenantId)
         .or(`code.eq.${projectIdParam},code.ilike.%${projectIdParam}%,name.ilike.%${projectIdParam}%`)
         .limit(1)
         .maybeSingle();
-      if (matched) {
-        effectiveProjectId = (matched as SimpleProj).id;
+      if (matched.data && typeof matched.data['id'] === 'string') {
+        effectiveProjectId = matched.data['id'];
       }
     }
 
     if (!effectiveProjectId) {
       // Try INT-2024-001 (Villa Sunrise)
-      const { data: vsProj } = await projTable
+      const vsProj = await projTable
         .select('id, code, name')
         .eq('tenant_id', ctx.tenantId)
         .eq('code', 'INT-2024-001')
         .limit(1)
         .maybeSingle();
-      if (vsProj) {
-        effectiveProjectId = (vsProj as SimpleProj).id;
+      if (vsProj.data && typeof vsProj.data['id'] === 'string') {
+        effectiveProjectId = vsProj.data['id'];
       } else {
-        const { data: anyProj } = await projTable
+        const anyProj = await projTable
           .select('id, code, name')
           .eq('tenant_id', ctx.tenantId)
           .order('created_at', { ascending: true })
           .limit(1)
           .maybeSingle();
-        if (anyProj) {
-          effectiveProjectId = (anyProj as SimpleProj).id;
+        if (anyProj.data && typeof anyProj.data['id'] === 'string') {
+          effectiveProjectId = anyProj.data['id'];
         }
       }
     }
@@ -291,8 +306,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     try {
-      let query = ctx.supabase
-        .from('interior_design_material_specs')
+      const matSpecsTable = getDynamicTable(ctx.supabase, 'interior_design_material_specs');
+      let query = matSpecsTable
         .update({
           approved_for_use: true,
           spec_description: b['sampleStatus'] ? `[${b['sampleStatus']}] Đạt chuẩn kiểm định xưởng` : undefined,
@@ -339,15 +354,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     if (!effectiveProjectId) {
-      type SimpleProj = { id: string };
-      const { data: defaultProj } = await ctx.supabase
-        .from('interior_projects')
+      const projTable = getDynamicTable(ctx.supabase, 'interior_projects');
+      const defaultProj = await projTable
         .select('id')
         .eq('tenant_id', ctx.tenantId)
         .order('created_at', { ascending: true })
         .limit(1)
         .maybeSingle();
-      if (defaultProj) effectiveProjectId = (defaultProj as SimpleProj).id;
+      if (defaultProj.data && typeof defaultProj.data['id'] === 'string') {
+        effectiveProjectId = defaultProj.data['id'];
+      }
     }
 
     if (effectiveProjectId) {
@@ -366,8 +382,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         targetRevisionId = latestRev.id;
       } else {
         // Create baseline revision if none exists
-        const { data: createdRev } = await ctx.supabase
-          .from('interior_design_revisions')
+        const createdRev = await revTable
           .insert({
             tenant_id: ctx.tenantId,
             project_id: effectiveProjectId,
@@ -381,8 +396,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           })
           .select('id')
           .single();
-        if (createdRev) {
-          targetRevisionId = (createdRev as { id: string }).id;
+        if (createdRev.data && typeof createdRev.data['id'] === 'string') {
+          targetRevisionId = createdRev.data['id'];
         }
       }
     }
