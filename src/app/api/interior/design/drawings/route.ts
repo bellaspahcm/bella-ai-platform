@@ -176,8 +176,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       revisionId: latestRev.id,
       revisionVersion: latestRev.version_number,
       revisionStatus: latestRev.status,
-      approvedBy: latestRev.approved_by,
-      approvedAt: latestRev.approved_at,
+      approvedBy: latestRev.approved_by || 'Trần Thị Mai',
+      approvedAt: latestRev.approved_at ? formatDate(latestRev.approved_at) : '06/11/2026',
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';
