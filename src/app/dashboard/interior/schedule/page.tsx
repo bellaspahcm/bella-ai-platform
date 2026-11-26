@@ -464,6 +464,16 @@ export default function SchedulePage() {
     return data.weekRangeLabel || '...';
   };
 
+  const handleGoToToday = () => {
+    setWeekOffset(0);
+    void fetchSchedule(0);
+    const today = new Date();
+    const dayStr = String(today.getDate()).padStart(2, '0');
+    const monthStr = String(today.getMonth() + 1).padStart(2, '0');
+    const yearStr = today.getFullYear();
+    setToastMessage(`📅 Đã chuyển về tuần hiện tại (Hôm nay: ${dayStr}/${monthStr}/${yearStr})`);
+  };
+
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 dark:bg-slate-950 dark:text-slate-100 p-4 sm:p-6 lg:p-8 space-y-6">
       {/* ─── Toast Notification Banner ─── */}
@@ -775,7 +785,7 @@ export default function SchedulePage() {
 
               <button
                 type="button"
-                onClick={() => setWeekOffset(0)}
+                onClick={handleGoToToday}
                 className="px-3 py-1 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
               >
                 Hôm nay
@@ -801,12 +811,21 @@ export default function SchedulePage() {
                     {data.days.map((day) => (
                       <th
                         key={day.fullDate}
-                        className="py-2 px-2 text-center border-r border-slate-100 dark:border-slate-800 last:border-r-0 whitespace-nowrap min-w-[120px]"
+                        className={`py-2 px-2 text-center border-r border-slate-100 dark:border-slate-800 last:border-r-0 whitespace-nowrap min-w-[120px] transition-colors ${
+                          day.isToday ? 'bg-orange-50/70 dark:bg-orange-950/30 ring-1 ring-inset ring-orange-400/40' : ''
+                        }`}
                       >
-                        <div className="font-bold text-slate-900 dark:text-white text-xs whitespace-nowrap">
-                          {day.dayOfWeek}
+                        <div className="flex items-center justify-center gap-1">
+                          <span className={`font-bold text-xs whitespace-nowrap ${day.isToday ? 'text-orange-600 dark:text-orange-400 font-extrabold' : 'text-slate-900 dark:text-white'}`}>
+                            {day.dayOfWeek}
+                          </span>
+                          {day.isToday && (
+                            <span className="text-[9px] px-1 py-0.2 rounded-md bg-orange-500 text-white font-extrabold tracking-tight">
+                              Hôm nay
+                            </span>
+                          )}
                         </div>
-                        <div className="text-[10px] text-slate-400 font-mono mt-0.5 whitespace-nowrap">
+                        <div className={`text-[10px] font-mono mt-0.5 whitespace-nowrap ${day.isToday ? 'text-orange-500 font-bold' : 'text-slate-400'}`}>
                           {day.dateFormatted}
                         </div>
                       </th>
@@ -830,7 +849,9 @@ export default function SchedulePage() {
                         return (
                           <td
                             key={day.fullDate}
-                            className="py-1 px-1.5 border-r border-slate-100 dark:border-slate-800 last:border-r-0 align-top relative group hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
+                            className={`py-1 px-1.5 border-r border-slate-100 dark:border-slate-800 last:border-r-0 align-top relative group hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors ${
+                              day.isToday ? 'bg-orange-50/25 dark:bg-orange-950/10' : ''
+                            }`}
                           >
                             <div className="space-y-1">
                               {eventsInSlot.map((eventInSlot) => {
@@ -919,8 +940,9 @@ export default function SchedulePage() {
               <div className="grid grid-cols-7 gap-2 flex-1">
                 {Array.from({ length: 30 }).map((_, idx) => {
                   const dayNum = idx + 1;
-                  const isCurrent = dayNum === 3;
-                  const hasTasks = [3, 4, 5, 6, 7, 9, 12, 15, 20].includes(dayNum);
+                  const todayDayNum = new Date().getDate();
+                  const isCurrent = dayNum === todayDayNum;
+                  const hasTasks = [3, 4, 5, 6, 7, 9, 12, 15, 20, 24, 25, 26].includes(dayNum);
                   return (
                     <div
                       key={dayNum}
@@ -930,7 +952,7 @@ export default function SchedulePage() {
                       }}
                       className={`min-h-[64px] p-2 rounded-xl border text-xs cursor-pointer transition-all ${
                         isCurrent
-                          ? 'border-orange-500 bg-orange-50/30 dark:bg-orange-950/20 text-orange-700 dark:text-orange-300 font-bold'
+                          ? 'border-orange-500 bg-orange-50/40 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 font-bold ring-1 ring-orange-400/50'
                           : 'border-slate-200/70 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-300'
                       }`}
                     >
@@ -1230,14 +1252,14 @@ export default function SchedulePage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {(data.staffResources || [
-                  { id: '1', name: 'KTS. Hoàng Long', roleLabel: 'Kiến trúc sư trưởng', taskCount: 2, loadPercent: 65, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: true },
-                  { id: '2', name: 'KTS. Lê Hoàng', roleLabel: 'KTS Bản vẽ triển khai', taskCount: 1, loadPercent: 50, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: true },
-                  { id: '3', name: 'PM. Mai', roleLabel: 'Quản lý dự án (PM)', taskCount: 3, loadPercent: 90, isOverloaded: true, statusLabel: 'Quá tải', isRealUser: true },
-                  { id: '4', name: 'QĐ. Tuấn', roleLabel: 'Quản đốc sản xuất xưởng', taskCount: 2, loadPercent: 70, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: false },
-                  { id: '5', name: 'PM. Hùng', roleLabel: 'Giám sát kỹ thuật & Nghiệm thu', taskCount: 1, loadPercent: 45, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: true },
-                  { id: '6', name: 'Đội 1', roleLabel: 'Đội thi công & Lắp đặt công trình', taskCount: 3, loadPercent: 85, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: false },
-                  { id: '7', name: 'Đội 2', roleLabel: 'Đội hoàn thiện sơn bả & thạch cao', taskCount: 2, loadPercent: 65, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: false },
-                  { id: '8', name: 'Đội 3', roleLabel: 'Đội điện nước MEP & phụ kiện', taskCount: 1, loadPercent: 40, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: false },
+                  { id: '1', name: 'KTS. Hoàng Long', roleLabel: 'Kiến trúc sư trưởng', taskCount: 2, loadPercent: 50, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: true },
+                  { id: '2', name: 'KTS. Lê Hoàng', roleLabel: 'KTS Bản vẽ triển khai', taskCount: 1, loadPercent: 25, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: true },
+                  { id: '3', name: 'PM. Mai', roleLabel: 'Quản lý dự án (PM)', taskCount: 3, loadPercent: 75, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: true },
+                  { id: '4', name: 'QĐ. Tuấn', roleLabel: 'Quản đốc sản xuất xưởng', taskCount: 2, loadPercent: 50, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: false },
+                  { id: '5', name: 'PM. Hùng', roleLabel: 'Giám sát kỹ thuật & Nghiệm thu', taskCount: 1, loadPercent: 25, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: true },
+                  { id: '6', name: 'Đội 1', roleLabel: 'Đội thi công & Lắp đặt công trình', taskCount: 3, loadPercent: 75, isOverloaded: false, statusLabel: 'Bình thường', isRealUser: false },
+                  { id: '7', name: 'Đội 2', roleLabel: 'Đội hoàn thiện sơn bả & thạch cao', taskCount: 0, loadPercent: 0, isOverloaded: false, statusLabel: 'Sẵn sàng', isRealUser: false },
+                  { id: '8', name: 'Đội 3', roleLabel: 'Đội điện nước MEP & phụ kiện', taskCount: 0, loadPercent: 0, isOverloaded: false, statusLabel: 'Sẵn sàng', isRealUser: false },
                 ]).map((staff) => {
                   return (
                     <div

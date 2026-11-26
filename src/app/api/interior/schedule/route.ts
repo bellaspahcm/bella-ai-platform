@@ -326,11 +326,10 @@ function buildStaffResources(
     );
     const taskCount = assignedTasks.length;
 
-    // Load percent calculation: default baseline + dynamic task weight
-    const defaultBaseline = [65, 50, 75, 70, 45, 80, 60, 40][idx % 8] || 50;
-    const loadPercent = taskCount > 0 ? Math.min(100, Math.max(35, taskCount * 30)) : defaultBaseline;
+    // Load percent calculation based on real weekly task capacity (4 tasks = 100% capacity)
+    const loadPercent = taskCount > 0 ? Math.min(100, taskCount * 25) : 0;
     const isOverloaded = loadPercent >= 90;
-    const statusLabel = isOverloaded ? 'Quá tải' : 'Bình thường';
+    const statusLabel = taskCount === 0 ? 'Sẵn sàng' : isOverloaded ? 'Quá tải' : 'Bình thường';
 
     result.push({
       id: `staff-${idx + 1}`,
