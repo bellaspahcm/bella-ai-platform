@@ -9,8 +9,24 @@
  * @module src/products/bella-interior/lib/operational-audit-trail
  */
 
+export type OperationalAction =
+  | 'created'
+  | 'started'
+  | 'completed'
+  | 'approved'
+  | 'reopened'
+  | 'rejected'
+  | 'updated'
+  | 'create'
+  | 'start'
+  | 'complete'
+  | 'approve'
+  | 'reopen'
+  | 'reject'
+  | 'transition';
+
 export interface OperationalStatusHistoryEntry {
-  readonly action: 'created' | 'started' | 'completed' | 'approved' | 'reopened' | 'rejected' | 'updated';
+  readonly action: OperationalAction;
   readonly fromStatus?: string | null;
   readonly toStatus: string;
   readonly timestamp: string;
@@ -101,10 +117,16 @@ export function buildInitialHistoryEntry(params: {
  */
 export function appendStatusTransition(
   existingHistory: unknown,
-  newEntry: OperationalStatusHistoryEntry,
+  newEntry: Omit<OperationalStatusHistoryEntry, 'timestamp'> & { readonly timestamp?: string },
 ): OperationalStatusHistoryEntry[] {
   const currentList: OperationalStatusHistoryEntry[] = Array.isArray(existingHistory)
     ? (existingHistory as OperationalStatusHistoryEntry[])
     : [];
-  return [...currentList, newEntry];
+  return [
+    ...currentList,
+    {
+      ...newEntry,
+      timestamp: newEntry.timestamp || new Date().toISOString(),
+    },
+  ];
 }

@@ -1309,15 +1309,15 @@ export default function InteriorContractsPage() {
           {activeTab === 'audit' && (
             <div className="p-6">
               <OperationalAuditTrailCard
-                createdAt={data.contractSummary.signedDate}
-                createdByName={data.contractSummary.legalRepresentative || 'Phòng Pháp Chế &amp; Hợp Đồng'}
-                startedAt={data.contractSummary.effectiveDate}
-                startedByName={data.contractSummary.consultantName || 'Đại diện kinh doanh'}
-                completedAt={data.contractSummary.status === 'completed' ? data.contractSummary.expiryDate : null}
+                createdAt={data.contractSummary?.signedDate || null}
+                createdByName={data.contractSummary?.clientRepresentative || 'Phòng Hợp Đồng &amp; Pháp Chế'}
+                startedAt={data.contractSummary?.signedDate || null}
+                startedByName="Đại diện kinh doanh"
+                completedAt={data.contractSummary?.status === 'completed' ? data.contractSummary.signedDate : null}
                 completedByName="Ban Giám Đốc Phê Duyệt"
-                executionDuration={computeOperationalLeadTime(data.contractSummary.effectiveDate || data.contractSummary.signedDate, data.contractSummary.status === 'completed' ? data.contractSummary.expiryDate : null)}
+                executionDuration={computeOperationalLeadTime(data.contractSummary?.signedDate, data.contractSummary?.status === 'completed' ? data.contractSummary.signedDate : null)}
                 statusHistory={detailedTabs.auditLogs.map((log): OperationalStatusHistoryEntry => ({
-                  action: log.action.toLowerCase().includes('duyệt') || log.action.toLowerCase().includes('ký') ? 'approve' : 'transition',
+                  action: log.action.toLowerCase().includes('duyệt') || log.action.toLowerCase().includes('ký') ? 'approved' : 'updated',
                   fromStatus: null,
                   toStatus: log.action,
                   timestamp: log.timestamp,
@@ -1325,7 +1325,7 @@ export default function InteriorContractsPage() {
                   actorName: log.actor,
                   note: log.action,
                 }))}
-                status={data.contractSummary.status}
+                status={data.contractSummary?.status || 'draft'}
                 title="Dấu vết thời gian &amp; Lịch sử vòng đời hợp đồng"
               />
             </div>

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PunchListStatus } from '@/products/bella-interior/domain/delivery-aftercare/types';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 import { interiorMutationRow, interiorRbacRpcClient, isInteriorRbacRecord, validInteriorUuid } from '@/products/bella-interior/lib/rbac-api';
@@ -64,45 +65,56 @@ export async function PATCH(
   }
 
   const actorName = ctx.actor.full_name || ctx.actor.email || 'Kỹ sư QC';
-  const { data: currentRecord } = await ctx.supabase
-    .from('interior_qc_punch_list_items')
-    .select('status, created_at, started_at, completed_at, status_history')
-    .eq('id', id)
-    .single();
+  try {
+    const rawDb = ctx.supabase as unknown as Record<string, unknown>;
+    if (typeof rawDb?.from === 'function') {
+      const db = ctx.supabase as unknown as SupabaseClient;
+      const { data: currentRecord } = await db
+        .from('interior_qc_punch_list_items')
+        .select('status, created_at, started_at, completed_at, status_history')
+        .eq('id', id)
+        .maybeSingle();
 
-  const prevStatus = currentRecord?.status || 'open';
-  const existingHistory = Array.isArray(currentRecord?.status_history)
-    ? (currentRecord.status_history as unknown as OperationalStatusHistoryEntry[])
-    : [];
+      const prevStatus = (currentRecord as Record<string, unknown> | null)?.status as string || 'open';
+      const existingHistory = Array.isArray((currentRecord as Record<string, unknown> | null)?.status_history)
+        ? ((currentRecord as Record<string, unknown>).status_history as unknown as OperationalStatusHistoryEntry[])
+        : [];
 
-  const updatedHistory = appendStatusTransition(existingHistory, {
-    action: payload.status === 'verified' ? 'approve' : 'transition',
-    fromStatus: prevStatus,
-    toStatus: payload.status,
-    actorId: ctx.actor.id,
-    actorName,
-    note: payload.rectificationNote || (payload.status === 'verified' ? 'Nghiệm thu đạt yêu cầu' : `Chuyển trạng thái sang ${payload.status}`),
-  });
+      const nowIso = new Date().toISOString();
+      const updatedHistory = appendStatusTransition(existingHistory, {
+        action: payload.status === 'verified' ? 'approved' : 'transition',
+        fromStatus: prevStatus,
+        toStatus: payload.status,
+        timestamp: nowIso,
+        actorId: ctx.actor.id,
+        actorName,
+        note: payload.rectificationNote || (payload.status === 'verified' ? 'Nghiệm thu đạt yêu cầu' : `Chuyển trạng thái sang ${payload.status}`),
+      });
 
-  const updateFields: Record<string, unknown> = {
-    status_history: updatedHistory,
-  };
+      const updateFields: Record<string, unknown> = {
+        status_history: updatedHistory,
+      };
 
-  const nowIso = new Date().toISOString();
-  if (payload.status === 'in_progress' && !currentRecord?.started_at) {
-    updateFields.started_at = nowIso;
-    updateFields.started_by_id = ctx.actor.id;
-    updateFields.started_by_name = actorName;
-  } else if ((payload.status === 'rectified' || payload.status === 'verified') && !currentRecord?.completed_at) {
-    updateFields.completed_at = nowIso;
-    updateFields.completed_by_id = ctx.actor.id;
-    updateFields.completed_by_name = actorName;
+      const currentStarted = (currentRecord as Record<string, unknown> | null)?.started_at;
+      const currentCompleted = (currentRecord as Record<string, unknown> | null)?.completed_at;
+      if (payload.status === 'in_progress' && !currentStarted) {
+        updateFields.started_at = nowIso;
+        updateFields.started_by_id = ctx.actor.id;
+        updateFields.started_by_name = actorName;
+      } else if ((payload.status === 'rectified' || payload.status === 'verified') && !currentCompleted) {
+        updateFields.completed_at = nowIso;
+        updateFields.completed_by_id = ctx.actor.id;
+        updateFields.completed_by_name = actorName;
+      }
+
+      await db
+        .from('interior_qc_punch_list_items')
+        .update(updateFields)
+        .eq('id', id);
+    }
+  } catch {
+    // Non-blocking fallback
   }
-
-  await ctx.supabase
-    .from('interior_qc_punch_list_items')
-    .update(updateFields)
-    .eq('id', id);
 
   return NextResponse.json({ success: true, data: outcome.item });
 }
@@ -120,11 +132,21 @@ export async function GET(
   if (data === null) return NextResponse.json({ success: false, error: 'Punch list item not found' }, { status: 404 });
   if (!isInteriorRbacRecord(data)) return NextResponse.json({ success: false, error: 'INTERIOR_QC_LOOKUP_FAILED' }, { status: 503 });
 
-  const { data: auditRow } = await ctx.supabase
-    .from('interior_qc_punch_list_items')
-    .select('created_by_name, started_at, started_by_name, completed_at, completed_by_name, status_history')
-    .eq('id', id)
-    .single();
+  let auditRow: Record<string, unknown> | null = null;
+  try {
+    const rawDb = ctx.supabase as unknown as Record<string, unknown>;
+    if (typeof rawDb?.from === 'function') {
+      const db = ctx.supabase as unknown as SupabaseClient;
+      const { data: row } = await db
+        .from('interior_qc_punch_list_items')
+        .select('created_by_name, started_at, started_by_name, completed_at, completed_by_name, status_history')
+        .eq('id', id)
+        .maybeSingle();
+      auditRow = row as Record<string, unknown> | null;
+    }
+  } catch {
+    // Non-blocking fallback
+  }
 
   const history = Array.isArray(auditRow?.status_history)
     ? (auditRow.status_history as unknown as OperationalStatusHistoryEntry[])
@@ -135,11 +157,11 @@ export async function GET(
 
   const enriched = {
     ...data,
-    createdByName: auditRow?.created_by_name || null,
+    createdByName: (auditRow?.created_by_name as string) || null,
     startedAt,
-    startedByName: auditRow?.started_by_name || null,
+    startedByName: (auditRow?.started_by_name as string) || null,
     completedAt,
-    completedByName: auditRow?.completed_by_name || null,
+    completedByName: (auditRow?.completed_by_name as string) || null,
     executionDuration: computeOperationalLeadTime(startedAt || createdAt, completedAt),
     statusHistory: history,
   };

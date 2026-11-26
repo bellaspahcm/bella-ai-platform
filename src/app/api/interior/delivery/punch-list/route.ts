@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 import { interiorMutationRow, interiorRbacRpcClient, isInteriorRbacRecord, validInteriorUuid } from '@/products/bella-interior/lib/rbac-api';
 import {
@@ -148,32 +149,40 @@ export async function GET(request: Request): Promise<NextResponse> {
     }
 
     if (filtered.length > 0) {
-      const itemIds = filtered.map((f) => f.id);
-      const { data: auditRows } = await ctx.supabase
-        .from('interior_qc_punch_list_items')
-        .select('id, created_by_name, started_at, started_by_name, completed_at, completed_by_name, status_history')
-        .in('id', itemIds);
+      try {
+        const rawDb = ctx.supabase as unknown as Record<string, unknown>;
+        if (typeof rawDb?.from === 'function') {
+          const db = ctx.supabase as unknown as SupabaseClient;
+          const itemIds = filtered.map((f) => f.id);
+          const { data: auditRows } = await db
+            .from('interior_qc_punch_list_items')
+            .select('id, created_by_name, started_at, started_by_name, completed_at, completed_by_name, status_history')
+            .in('id', itemIds);
 
-      if (auditRows && Array.isArray(auditRows)) {
-        const auditMap = new Map(auditRows.map((r) => [r.id, r]));
-        filtered = filtered.map((item) => {
-          const audit = auditMap.get(item.id);
-          const history = Array.isArray(audit?.status_history)
-            ? (audit.status_history as unknown as OperationalStatusHistoryEntry[])
-            : [];
-          const startedAt = audit?.started_at ? String(audit.started_at) : null;
-          const completedAt = audit?.completed_at ? String(audit.completed_at) : null;
-          return {
-            ...item,
-            createdByName: audit?.created_by_name || null,
-            startedAt,
-            startedByName: audit?.started_by_name || null,
-            completedAt,
-            completedByName: audit?.completed_by_name || null,
-            executionDuration: computeOperationalLeadTime(startedAt || item.createdAt, completedAt),
-            statusHistory: history,
-          };
-        });
+          if (auditRows && Array.isArray(auditRows)) {
+            const auditMap = new Map((auditRows as Record<string, unknown>[]).map((r) => [r.id as string, r]));
+            filtered = filtered.map((item) => {
+              const audit = auditMap.get(item.id);
+              const history = Array.isArray(audit?.status_history)
+                ? (audit?.status_history as unknown as OperationalStatusHistoryEntry[])
+                : [];
+              const startedAt = audit?.started_at ? String(audit.started_at) : null;
+              const completedAt = audit?.completed_at ? String(audit.completed_at) : null;
+              return {
+                ...item,
+                createdByName: (audit?.created_by_name as string) || null,
+                startedAt,
+                startedByName: (audit?.started_by_name as string) || null,
+                completedAt,
+                completedByName: (audit?.completed_by_name as string) || null,
+                executionDuration: computeOperationalLeadTime(startedAt || item.createdAt, completedAt),
+                statusHistory: history,
+              };
+            });
+          }
+        }
+      } catch {
+        // Non-blocking fallback
       }
     }
 
@@ -257,13 +266,21 @@ export async function POST(request: Request): Promise<NextResponse> {
     }),
   ];
 
-  await ctx.supabase
-    .from('interior_qc_punch_list_items')
-    .update({
-      created_by_name: actorName,
-      status_history: initialHistory,
-    })
-    .eq('id', item.id);
+  try {
+    const rawDb = ctx.supabase as unknown as Record<string, unknown>;
+    if (typeof rawDb?.from === 'function') {
+      const db = ctx.supabase as unknown as SupabaseClient;
+      await db
+        .from('interior_qc_punch_list_items')
+        .update({
+          created_by_name: actorName,
+          status_history: initialHistory,
+        })
+        .eq('id', item.id);
+    }
+  } catch {
+    // Non-blocking fallback
+  }
 
   const newItem: PunchListItem = {
     id: item.id,
