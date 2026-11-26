@@ -926,6 +926,7 @@ export function Sidebar() {
               onClick={handleNavigation}
               className="shrink-0 rounded-lg p-2 text-foreground transition-colors hover:bg-muted"
             ><Megaphone className="h-4 w-4" /></Link>
+              : isBellaInteriorShell ? null
               : <AdminNotificationBell position="bottom" className="shrink-0" />
           )}
         </div>
@@ -1306,6 +1307,7 @@ export function Sidebar() {
                    onClick={handleNavigation}
                    className="preschool-profile-action shrink-0 rounded-lg p-1.5 transition-colors"
                  ><Megaphone className="h-3.5 w-3.5" /></Link>
+                   : isBellaInteriorShell ? null
                    : <AdminNotificationBell position="top" className={cn("shrink-0", isBellaEducationShell ? "preschool-profile-notifications" : "scale-90")} />
                )}
 
