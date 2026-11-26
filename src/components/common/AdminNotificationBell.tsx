@@ -289,6 +289,7 @@ export default function AdminNotificationBell({ position = 'bottom', className }
         ref={buttonRef}
         onClick={handleBellToggle}
         aria-label="Thông báo hệ thống"
+        title="Cảnh báo hệ thống & bảo mật toàn sàn"
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all active:scale-95 relative z-10 ${
