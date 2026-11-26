@@ -1141,11 +1141,12 @@ export default function SchedulePage() {
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {data.projectProgress.map((proj) => {
                         // Find events for this project
-                        const projectEvents = data.calendarEvents.filter(
-                          (e) =>
-                            e.projectName.toLowerCase().includes(proj.projectName.toLowerCase()) ||
-                            proj.projectName.toLowerCase().includes(e.projectName.toLowerCase()),
-                        );
+                        const projectEvents = data.calendarEvents.filter((e) => {
+                          const eName = e.projectName?.trim().toLowerCase();
+                          const pName = proj.projectName?.trim().toLowerCase();
+                          if (!eName || !pName) return false;
+                          return eName === pName || eName.includes(pName) || pName.includes(eName);
+                        });
 
                         return (
                           <tr key={proj.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-850/30 transition-colors">
@@ -1156,10 +1157,15 @@ export default function SchedulePage() {
                               <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                                 {proj.projectCode || proj.leadArchitect || 'KTS. Trưởng'}
                               </div>
-                              <div className="mt-1">
+                              <div className="mt-1 flex items-center gap-1.5 flex-wrap">
                                 <span className={`inline-block px-1.5 py-0.2 rounded text-[9px] font-bold border ${proj.statusBadgeClass}`}>
                                   {proj.statusLabel}
                                 </span>
+                                {projectEvents.length > 0 && (
+                                  <span className="inline-block px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                    {projectEvents.length} việc tuần này
+                                  </span>
+                                )}
                               </div>
                             </td>
 
