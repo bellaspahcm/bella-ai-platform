@@ -1611,7 +1611,9 @@ function InteriorDesignStudioContent() {
             <div>
               <div className="text-[10px] font-medium text-slate-400">Người duyệt</div>
               <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                {data.versionLock?.approvedBy || data.project?.clientName || 'Trần Thị Mai'}
+                {/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.versionLock?.approvedBy || '')
+                  ? (data.project?.clientName || 'KTS. Trưởng (Thiết kế)')
+                  : (data.versionLock?.approvedBy || data.project?.clientName || 'Trần Thị Mai')}
               </div>
             </div>
           </div>
