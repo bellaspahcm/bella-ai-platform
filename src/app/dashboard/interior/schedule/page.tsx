@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase-client';
 
 const supabase = createClient();
@@ -192,6 +192,27 @@ export default function SchedulePage() {
   // Modal State: Task Details
   const [selectedTask, setSelectedTask] = useState<ScheduledCalendarEvent | null>(null);
   const [isDetailActionLoading, setIsDetailActionLoading] = useState(false);
+
+  // Modal State: Attention Alerts Task List
+  const [attentionModalFilter, setAttentionModalFilter] = useState<'all' | 'overdue' | 'urgent' | null>(null);
+
+  // Filtered tasks for Attention Alerts Modal
+  const attentionFilteredTasks = useMemo(() => {
+    if (!data?.calendarEvents) return [];
+    const todayCol = data.days.findIndex((d) => d.isToday);
+
+    return data.calendarEvents.filter((ev) => {
+      const isOverdue =
+        ev.status === 'overdue' ||
+        (todayCol !== -1 && ev.dayIndex < todayCol && ev.status !== 'completed');
+      const isUrgent = ev.priority === 'urgent' && ev.status !== 'completed';
+
+      if (attentionModalFilter === 'overdue') return isOverdue;
+      if (attentionModalFilter === 'urgent') return isUrgent;
+      if (attentionModalFilter === 'all') return isOverdue || isUrgent || ev.status !== 'completed';
+      return false;
+    });
+  }, [data?.calendarEvents, data?.days, attentionModalFilter]);
 
   // Toast feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -938,40 +959,114 @@ export default function SchedulePage() {
                 <span>Chủ nhật</span>
               </div>
               <div className="grid grid-cols-7 gap-2 flex-1">
-                {Array.from({ length: 30 }).map((_, idx) => {
-                  const dayNum = idx + 1;
-                  const todayDayNum = new Date().getDate();
-                  const isCurrent = dayNum === todayDayNum;
-                  const hasTasks = [3, 4, 5, 6, 7, 9, 12, 15, 20, 24, 25, 26].includes(dayNum);
-                  return (
-                    <div
-                      key={dayNum}
-                      onClick={() => {
-                        setFormDayIndex((dayNum % 7));
-                        setIsCreateModalOpen(true);
-                      }}
-                      className={`min-h-[64px] p-2 rounded-xl border text-xs cursor-pointer transition-all ${
-                        isCurrent
-                          ? 'border-orange-500 bg-orange-50/40 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 font-bold ring-1 ring-orange-400/50'
-                          : 'border-slate-200/70 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>{dayNum}</span>
-                        {isCurrent && (
-                          <span className="text-[9px] px-1 py-0.2 rounded bg-orange-500 text-white font-bold">
-                            Hôm nay
-                          </span>
-                        )}
-                      </div>
-                      {hasTasks && (
-                        <div className="mt-1 text-[10px] font-semibold text-blue-600 dark:text-blue-400 truncate">
-                          • {dayNum === 3 ? `${data.calendarEvents.length} việc` : '2 việc'}
+                {(() => {
+                  const today = new Date();
+                  const currentYear = today.getFullYear();
+                  const currentMonth = today.getMonth(); // 0-based
+                  const todayDateNum = today.getDate();
+
+                  // 1st of month: get day of week (0=Sun, 1=Mon, ..., 6=Sat)
+                  // Grid columns start on Monday (Thứ 2 = 0)
+                  const firstDay = new Date(currentYear, currentMonth, 1);
+                  const leadingPaddingCount = (firstDay.getDay() + 6) % 7;
+
+                  const daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                  const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+                  const totalCellsNeeded = Math.ceil((leadingPaddingCount + daysInCurrentMonth) / 7) * 7;
+                  const trailingPaddingCount = totalCellsNeeded - (leadingPaddingCount + daysInCurrentMonth);
+
+                  // Map task counts by day of month from current calendarEvents
+                  const eventsByDayNum = new Map<number, ScheduledCalendarEvent[]>();
+                  for (const ev of data.calendarEvents) {
+                    const dayCol = data.days[ev.dayIndex];
+                    if (dayCol?.fullDate) {
+                      const parts = dayCol.fullDate.split('-');
+                      if (parts.length === 3) {
+                        const evYear = parseInt(parts[0], 10);
+                        const evMonth = parseInt(parts[1], 10) - 1;
+                        const evDay = parseInt(parts[2], 10);
+                        if (evYear === currentYear && evMonth === currentMonth) {
+                          const list = eventsByDayNum.get(evDay) || [];
+                          list.push(ev);
+                          eventsByDayNum.set(evDay, list);
+                        }
+                      }
+                    }
+                  }
+
+                  const elements: React.ReactNode[] = [];
+
+                  // 1. Previous month padding cells (muted)
+                  for (let p = 0; p < leadingPaddingCount; p++) {
+                    const prevDayNum = daysInPrevMonth - leadingPaddingCount + p + 1;
+                    elements.push(
+                      <div
+                        key={`prev-${p}`}
+                        className="min-h-[64px] p-2 rounded-xl border border-dashed border-slate-200/50 dark:border-slate-800/50 bg-slate-50/40 dark:bg-slate-900/30 text-xs text-slate-300 dark:text-slate-600 select-none cursor-default"
+                      >
+                        <span>{prevDayNum}</span>
+                      </div>,
+                    );
+                  }
+
+                  // 2. Current month active cells
+                  for (let d = 1; d <= daysInCurrentMonth; d++) {
+                    const isCurrent = d === todayDateNum;
+                    const dayEvents = eventsByDayNum.get(d) || [];
+                    const taskCount = dayEvents.length;
+
+                    elements.push(
+                      <div
+                        key={`curr-${d}`}
+                        onClick={() => {
+                          const matchedDayIndex = data.days.findIndex((col) => {
+                            const p = col.fullDate.split('-');
+                            return p.length === 3 && parseInt(p[2], 10) === d;
+                          });
+                          if (matchedDayIndex !== -1) {
+                            setFormDayIndex(matchedDayIndex);
+                          }
+                          setIsCreateModalOpen(true);
+                        }}
+                        className={`min-h-[64px] p-2 rounded-xl border text-xs cursor-pointer transition-all ${
+                          isCurrent
+                            ? 'border-orange-500 bg-orange-50/40 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 font-bold ring-1 ring-orange-400/50 shadow-xs'
+                            : 'border-slate-200/70 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{d}</span>
+                          {isCurrent && (
+                            <span className="text-[9px] px-1 py-0.2 rounded bg-orange-500 text-white font-bold">
+                              Hôm nay
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                        {taskCount > 0 && (
+                          <div className="mt-1 text-[10px] font-semibold text-blue-600 dark:text-blue-400 truncate">
+                            • {taskCount} việc
+                          </div>
+                        )}
+                      </div>,
+                    );
+                  }
+
+                  // 3. Next month trailing padding cells (muted)
+                  for (let t = 0; t < trailingPaddingCount; t++) {
+                    const nextDayNum = t + 1;
+                    elements.push(
+                      <div
+                        key={`next-${t}`}
+                        className="min-h-[64px] p-2 rounded-xl border border-dashed border-slate-200/50 dark:border-slate-800/50 bg-slate-50/40 dark:bg-slate-900/30 text-xs text-slate-300 dark:text-slate-600 select-none cursor-default"
+                      >
+                        <span>{nextDayNum}</span>
+                      </div>,
+                    );
+                  }
+
+                  return elements;
+                })()}
               </div>
             </div>
           )}
@@ -1357,7 +1452,7 @@ export default function SchedulePage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setToastMessage('📌 Đang lọc các công việc cần xử lý khẩn cấp')}
+                  onClick={() => setAttentionModalFilter('all')}
                   className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 transition-colors cursor-pointer"
                 >
                   Xem tất cả →
@@ -1365,39 +1460,44 @@ export default function SchedulePage() {
               </div>
 
               <div className="mt-3 space-y-2.5">
-                {data.attentionAlerts.map((alert) => (
-                  <div
-                    key={alert.id}
-                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-start justify-between gap-2"
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className="mt-0.5 shrink-0">
-                        {alert.severity === 'critical' && (
-                          <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
-                        )}
-                        {alert.severity === 'warning' && (
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                        )}
-                        {alert.severity === 'info' && (
-                          <Info className="w-3.5 h-3.5 text-blue-500" />
-                        )}
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
-                          {alert.title}
-                        </div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
-                          {alert.subtitle}
-                        </div>
-                      </div>
-                    </div>
-                    <span
-                      className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border shrink-0 ${alert.actionClass}`}
+                {data.attentionAlerts.map((alert) => {
+                  const filterMode = alert.id.includes('overdue') ? 'overdue' : 'urgent';
+                  return (
+                    <button
+                      key={alert.id}
+                      type="button"
+                      onClick={() => setAttentionModalFilter(filterMode)}
+                      className="w-full text-left p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-slate-100 dark:border-slate-800 flex items-start justify-between gap-2 transition-all cursor-pointer group"
                     >
-                      {alert.actionLabel}
-                    </span>
-                  </div>
-                ))}
+                      <div className="flex items-start gap-2">
+                        <div className="mt-0.5 shrink-0">
+                          {alert.severity === 'critical' && (
+                            <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+                          )}
+                          {alert.severity === 'warning' && (
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                          )}
+                          {alert.severity === 'info' && (
+                            <Info className="w-3.5 h-3.5 text-blue-500" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            {alert.title}
+                          </div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            {alert.subtitle}
+                          </div>
+                        </div>
+                      </div>
+                      <span
+                        className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border shrink-0 ${alert.actionClass}`}
+                      >
+                        {alert.actionLabel}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -2175,6 +2275,149 @@ export default function SchedulePage() {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL 3: DANH SÁCH CÔNG VIỆC CẦN CHÚ Ý & KHẨN CẤP ─── */}
+      {attentionModalFilter && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 animate-in fade-in zoom-in-95 duration-200 text-slate-900 dark:text-slate-100">
+            {/* Header */}
+            <div className="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 border border-rose-200 dark:border-rose-900">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Công việc cần chú ý &amp; Điều phối khẩn
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Các đầu việc quá hạn hoặc ưu tiên cao cần giám sát xử lý
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAttentionModalFilter(null)}
+                className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-1.5 pt-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setAttentionModalFilter('all')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  attentionModalFilter === 'all'
+                    ? 'bg-blue-900 text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                Tất cả
+              </button>
+              <button
+                type="button"
+                onClick={() => setAttentionModalFilter('overdue')}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  attentionModalFilter === 'overdue'
+                    ? 'bg-rose-600 text-white shadow-2xs'
+                    : 'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40'
+                }`}
+              >
+                <AlertCircle className="w-3.5 h-3.5" />
+                Quá hạn ({data.kpis.overdueTasks.value})
+              </button>
+              <button
+                type="button"
+                onClick={() => setAttentionModalFilter('urgent')}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  attentionModalFilter === 'urgent'
+                    ? 'bg-rose-600 text-white shadow-2xs'
+                    : 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40'
+                }`}
+              >
+                🔥 Khẩn cấp (
+                {data.calendarEvents.filter((e) => e.priority === 'urgent' && e.status !== 'completed').length}
+                )
+              </button>
+            </div>
+
+            {/* Task List */}
+            <div className="py-3 max-h-[380px] overflow-y-auto space-y-2.5">
+              {attentionFilteredTasks.length === 0 ? (
+                <div className="p-8 text-center text-slate-400 dark:text-slate-500">
+                  <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-500/80 mb-2" />
+                  <p className="text-xs font-medium">Không có công việc nào trong danh mục này.</p>
+                </div>
+              ) : (
+                attentionFilteredTasks.map((t) => (
+                  <div
+                    key={t.id}
+                    className="p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  >
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-xs text-slate-900 dark:text-white truncate">
+                          {t.title}
+                        </span>
+                        {t.priority === 'urgent' && (
+                          <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500 text-white animate-pulse">
+                            🔥 Khẩn cấp
+                          </span>
+                        )}
+                        <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-semibold border ${t.badgeBgClass} ${t.textColorClass}`}>
+                          {t.categoryLabel}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
+                        <span className="flex items-center gap-1 truncate">
+                          <Building className="w-3 h-3 text-slate-400" />
+                          {t.projectName}
+                        </span>
+                        <span className="flex items-center gap-1 shrink-0">
+                          <User className="w-3 h-3 text-slate-400" />
+                          {t.assignee}
+                        </span>
+                        <span className="flex items-center gap-1 shrink-0">
+                          <Clock className="w-3 h-3 text-slate-400" />
+                          {data.days[t.dayIndex]?.dayOfWeek || 'Lịch tuần'} ({data.days[t.dayIndex]?.dateFormatted})
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedTask(t);
+                        setAttentionModalFilter(null);
+                      }}
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-2xs transition-all cursor-pointer shrink-0"
+                    >
+                      Xử lý việc →
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+              <span className="text-[11px] text-slate-400">
+                Hiển thị {attentionFilteredTasks.length} công việc
+              </span>
+              <button
+                type="button"
+                onClick={() => setAttentionModalFilter(null)}
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Đóng
+              </button>
             </div>
           </div>
         </div>
