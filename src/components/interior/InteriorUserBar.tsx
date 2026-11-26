@@ -80,6 +80,8 @@ const DEFAULT_NOTIFICATIONS: NotificationItem[] = [
   },
 ];
 
+const INTERIOR_READ_NOTIFICATIONS_STORAGE_KEY = 'bella_interior_read_notifications_v1';
+
 interface InteriorUserBarProps {
   className?: string;
   align?: 'left' | 'right';
@@ -163,14 +165,64 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
   // Unread notifications count
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
+  // Hydrate read notification IDs from localStorage on mount (preserves read status across F5)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(INTERIOR_READ_NOTIFICATIONS_STORAGE_KEY);
+      if (stored) {
+        const readIds: string[] = JSON.parse(stored);
+        if (Array.isArray(readIds) && readIds.length > 0) {
+          const readSet = new Set(readIds);
+          setNotifications((prev) =>
+            prev.map((n) => ({
+              ...n,
+              isRead: readSet.has(n.id),
+            }))
+          );
+        }
+      }
+    } catch {
+      // Ignore localStorage read errors
+    }
+  }, []);
+
   const handleMarkAllAsRead = useCallback(() => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setNotifications((prev) => {
+      const allRead = prev.map((n) => ({ ...n, isRead: true }));
+      try {
+        const allIds = allRead.map((n) => n.id);
+        localStorage.setItem(INTERIOR_READ_NOTIFICATIONS_STORAGE_KEY, JSON.stringify(allIds));
+      } catch {
+        // Ignore localStorage write errors
+      }
+      return allRead;
+    });
+  }, []);
+
+  const handleResetNotifications = useCallback(() => {
+    try {
+      localStorage.removeItem(INTERIOR_READ_NOTIFICATIONS_STORAGE_KEY);
+    } catch {
+      // Ignore localStorage errors
+    }
+    setNotifications(DEFAULT_NOTIFICATIONS);
   }, []);
 
   const handleNotificationClick = (id: string, href: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
-    );
+    setNotifications((prev) => {
+      const updated = prev.map((n) => (n.id === id ? { ...n, isRead: true } : n));
+      try {
+        const stored = localStorage.getItem(INTERIOR_READ_NOTIFICATIONS_STORAGE_KEY);
+        const readIds: string[] = stored ? JSON.parse(stored) : [];
+        if (!readIds.includes(id)) {
+          readIds.push(id);
+          localStorage.setItem(INTERIOR_READ_NOTIFICATIONS_STORAGE_KEY, JSON.stringify(readIds));
+        }
+      } catch {
+        // Ignore localStorage write errors
+      }
+      return updated;
+    });
     setIsNotifOpen(false);
     router.push(href);
   };
@@ -375,7 +427,7 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
                 )}
               </div>
 
-              {unreadCount > 0 && (
+              {unreadCount > 0 ? (
                 <button
                   type="button"
                   onClick={handleMarkAllAsRead}
@@ -383,6 +435,16 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
                 >
                   <CheckCheck className="w-3.5 h-3.5" />
                   Đánh dấu đã đọc
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResetNotifications}
+                  className="text-[11px] font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer"
+                  title="Đặt lại trạng thái chưa đọc để kiểm tra"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Đặt lại chưa đọc
                 </button>
               )}
             </div>
