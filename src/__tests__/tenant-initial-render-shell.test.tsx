@@ -110,6 +110,13 @@ describe('authenticated shell and sidebar first render', () => {
     expect(screen.queryByTestId('session-alert-bell')).not.toBeInTheDocument();
   });
 
+  it('does not mount generic Spa session alerts in Bella Interior shell', async () => {
+    mockPathname = '/dashboard/interior/design';
+    render(<UserProvider><DashboardAuthorizedShell><div>Interior Design Page</div></DashboardAuthorizedShell></UserProvider>);
+    expect(await screen.findByText('Interior Design Page')).toBeInTheDocument();
+    expect(screen.queryByTestId('session-alert-bell')).not.toBeInTheDocument();
+  });
+
   it('opens the exact communication page with fresh identity/presentation instead of operational settings', async () => {
     mockPathname = '/dashboard/education/communication';
     render(<DashboardLayout><div>Bulletin Page</div></DashboardLayout>);
