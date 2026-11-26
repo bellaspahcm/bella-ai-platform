@@ -146,6 +146,37 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ success: false, error: 'INTERIOR_PROJECT_CREATE_DENIED', reason }, { status });
   }
   const now = new Date().toISOString();
+  const creatorName = ctx.actor.full_name || ctx.actor.email || 'Quản lý dự án';
+  const initialHistory = [
+    {
+      action: 'created',
+      fromStatus: null,
+      toStatus: 'design',
+      timestamp: now,
+      actorId: ctx.actor.id,
+      actorName: creatorName,
+      note: 'Khởi tạo hồ sơ dự án mới',
+    },
+  ];
+
+  try {
+    const db = ctx.supabase as unknown as {
+      from: (tbl: string) => {
+        update: (payload: Record<string, unknown>) => {
+          eq: (col: string, val: string) => Promise<unknown>;
+        };
+      };
+    };
+    await db
+      .from('interior_projects')
+      .update({
+        created_by_name: creatorName,
+        status_history: initialHistory,
+      })
+      .eq('id', outcome.project_id);
+  } catch {
+    // Non-blocking audit attachment
+  }
 
   const newProject = {
     id: outcome.project_id,

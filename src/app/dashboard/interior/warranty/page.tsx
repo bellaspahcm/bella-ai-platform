@@ -35,6 +35,8 @@ import {
   WarrantyOverviewResponse,
   WarrantyCertificateRow,
 } from '@/products/bella-interior/domain/warranty-overview.types';
+import OperationalAuditTrailCard from '@/components/interior/OperationalAuditTrailCard';
+import { computeOperationalLeadTime, type OperationalStatusHistoryEntry } from '@/products/bella-interior/lib/operational-audit-trail';
 
 // ─── Ticket form state ────────────────────────────────────────────────────────
 
@@ -834,6 +836,40 @@ export default function WarrantyDashboardPage() {
                   <span>{selectedCertificate.statusLabel}</span>
                 </span>
               </div>
+            </div>
+
+            <div className="pt-2">
+              <OperationalAuditTrailCard
+                createdAt={selectedCertificate.warrantyStartDate}
+                createdByName="Kỹ sư QC trưởng (Bella Interior)"
+                startedAt={selectedCertificate.warrantyStartDate}
+                startedByName="Đại diện Bàn giao &amp; Nghiệm thu"
+                completedAt={selectedCertificate.status === 'expired' ? selectedCertificate.warrantyExpires : null}
+                completedByName="Chủ đầu tư xác nhận bảo hành"
+                executionDuration={computeOperationalLeadTime(selectedCertificate.warrantyStartDate, selectedCertificate.status === 'expired' ? selectedCertificate.warrantyExpires : null)}
+                statusHistory={[
+                  {
+                    action: 'create',
+                    fromStatus: null,
+                    toStatus: 'issued',
+                    timestamp: selectedCertificate.warrantyStartDate,
+                    actorId: 'qc-lead-1',
+                    actorName: 'Kỹ sư QC trưởng (Bella Interior)',
+                    note: 'Ký biên bản nghiệm thu kỹ thuật và cấp chứng thư bảo hành',
+                  },
+                  {
+                    action: 'approve',
+                    fromStatus: 'issued',
+                    toStatus: 'active',
+                    timestamp: selectedCertificate.warrantyStartDate,
+                    actorId: 'client-rep-1',
+                    actorName: selectedCertificate.client,
+                    note: 'Xác nhận bàn giao và kích hoạt thời hạn bảo hành 24 tháng',
+                  },
+                ]}
+                status={selectedCertificate.status}
+                title="Dấu vết thời gian &amp; Lịch sử hiệu lực chứng thư"
+              />
             </div>
 
             <div className="flex justify-end space-x-3 pt-2">

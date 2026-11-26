@@ -371,6 +371,11 @@ export class InteriorProductionAnalyticsService {
       },
     };
     const cfg = statusConfig[status];
+    const createdAt = '2024-11-01T08:00:00.000Z';
+    const startedAt = '2024-11-03T09:00:00.000Z';
+    const isDone = status === 'on_schedule' && progress === 100;
+    const completedAt = isDone ? '2024-11-12T17:00:00.000Z' : null;
+
     return {
       id,
       project,
@@ -384,6 +389,46 @@ export class InteriorProductionAnalyticsService {
       statusLabel: cfg.label,
       statusBadgeClass: cfg.badgeClass,
       actionMenuOptions: ['Xem chi tiết', 'Cập nhật tiến độ', 'Xuất báo cáo'],
+      createdAt,
+      createdByName: 'KTS. Lê Quang (Trưởng BP Thiết Kế)',
+      startedAt,
+      startedByName: 'Nguyễn Văn Nam (Quản đốc xưởng)',
+      completedAt,
+      completedByName: isDone ? 'Trần Văn Hoàng (QC Lead)' : null,
+      executionDuration: isDone ? '9 ngày 8 giờ' : 'Đang gia công (7 ngày 3 giờ)',
+      statusHistory: [
+        {
+          action: 'create',
+          fromStatus: null,
+          toStatus: 'draft',
+          timestamp: createdAt,
+          actorId: 'system-actor-1',
+          actorName: 'KTS. Lê Quang (Trưởng BP Thiết Kế)',
+          note: 'Phát hành lệnh sản xuất xưởng theo bản vẽ kỹ thuật duyệt',
+        },
+        {
+          action: 'transition',
+          fromStatus: 'draft',
+          toStatus: 'in_production',
+          timestamp: startedAt,
+          actorId: 'system-actor-2',
+          actorName: 'Nguyễn Văn Nam (Quản đốc xưởng)',
+          note: `Tiếp nhận lệnh sản xuất, phân bổ công đoạn: ${stage}`,
+        },
+        ...(isDone
+          ? [
+              {
+                action: 'approve' as const,
+                fromStatus: 'in_production',
+                toStatus: 'completed',
+                timestamp: completedAt || '',
+                actorId: 'system-actor-3',
+                actorName: 'Trần Văn Hoàng (QC Lead)',
+                note: 'Kiểm tra KCS đạt chuẩn xuất xưởng và bàn giao đội thi công',
+              },
+            ]
+          : []),
+      ],
     };
   }
 

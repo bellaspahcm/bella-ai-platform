@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 import { interiorMutationRow, interiorRbacRpcClient, isInteriorRbacRecord, validInteriorUuid } from '@/products/bella-interior/lib/rbac-api';
+import {
+  buildInitialHistoryEntry,
+  computeOperationalLeadTime,
+  type OperationalStatusHistoryEntry,
+} from '@/products/bella-interior/lib/operational-audit-trail';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,6 +44,13 @@ export interface PunchListItem {
   photoUrl: string | null;
   createdAt: string;
   updatedAt: string;
+  createdByName?: string | null;
+  startedAt?: string | null;
+  startedByName?: string | null;
+  completedAt?: string | null;
+  completedByName?: string | null;
+  executionDuration?: string | null;
+  statusHistory?: readonly OperationalStatusHistoryEntry[];
 }
 
 interface CreatePunchListBody {
@@ -134,6 +147,45 @@ export async function GET(request: Request): Promise<NextResponse> {
     if (status) {
       filtered = filtered.filter((i) => i.status === status);
     }
+
+    if (filtered.length > 0) {
+      try {
+        const rawDb = ctx.supabase as unknown as Record<string, unknown>;
+        if (typeof rawDb?.from === 'function') {
+          const db = ctx.supabase as unknown as SupabaseClient;
+          const itemIds = filtered.map((f) => f.id);
+          const { data: auditRows } = await db
+            .from('interior_qc_punch_list_items')
+            .select('id, created_by_name, started_at, started_by_name, completed_at, completed_by_name, status_history')
+            .in('id', itemIds);
+
+          if (auditRows && Array.isArray(auditRows)) {
+            const auditMap = new Map((auditRows as Record<string, unknown>[]).map((r) => [r.id as string, r]));
+            filtered = filtered.map((item) => {
+              const audit = auditMap.get(item.id);
+              const history = Array.isArray(audit?.status_history)
+                ? (audit?.status_history as unknown as OperationalStatusHistoryEntry[])
+                : [];
+              const startedAt = audit?.started_at ? String(audit.started_at) : null;
+              const completedAt = audit?.completed_at ? String(audit.completed_at) : null;
+              return {
+                ...item,
+                createdByName: (audit?.created_by_name as string) || null,
+                startedAt,
+                startedByName: (audit?.started_by_name as string) || null,
+                completedAt,
+                completedByName: (audit?.completed_by_name as string) || null,
+                executionDuration: computeOperationalLeadTime(startedAt || item.createdAt, completedAt),
+                statusHistory: history,
+              };
+            });
+          }
+        }
+      } catch {
+        // Non-blocking fallback
+      }
+    }
+
     return NextResponse.json({ success: true, data: filtered });
   } catch {
     return NextResponse.json({ success: false, error: 'INTERIOR_QC_READ_FAILED' }, { status: 503 });
@@ -203,6 +255,33 @@ export async function POST(request: Request): Promise<NextResponse> {
     || typeof item.createdAt !== 'string') {
     return NextResponse.json({ success: false, error: 'INTERIOR_QC_ITEM_CREATE_FAILED' }, { status: 503 });
   }
+
+  const actorName = ctx.actor.full_name || ctx.actor.email || 'Giám sát QC';
+  const initialHistory = [
+    buildInitialHistoryEntry({
+      toStatus: 'open',
+      actorId: ctx.actor.id,
+      actorName,
+      note: 'Khởi tạo hạng mục Punch List kiểm tra chất lượng',
+    }),
+  ];
+
+  try {
+    const rawDb = ctx.supabase as unknown as Record<string, unknown>;
+    if (typeof rawDb?.from === 'function') {
+      const db = ctx.supabase as unknown as SupabaseClient;
+      await db
+        .from('interior_qc_punch_list_items')
+        .update({
+          created_by_name: actorName,
+          status_history: initialHistory,
+        })
+        .eq('id', item.id);
+    }
+  } catch {
+    // Non-blocking fallback
+  }
+
   const newItem: PunchListItem = {
     id: item.id,
     tenantId: item.tenantId,
@@ -217,6 +296,8 @@ export async function POST(request: Request): Promise<NextResponse> {
     photoUrl: null,
     createdAt: item.createdAt,
     updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : item.createdAt,
+    createdByName: actorName,
+    statusHistory: initialHistory,
   };
   return NextResponse.json({ success: true, data: newItem }, { status: 201 });
 }

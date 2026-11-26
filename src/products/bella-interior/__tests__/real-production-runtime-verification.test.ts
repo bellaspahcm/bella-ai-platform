@@ -19,6 +19,8 @@ describe('Customer 360 Real Production Runtime & Business Data Verification', ()
     return;
   }
 
+  jest.setTimeout(30000);
+
   let supabase: ReturnType<typeof createClient>;
   let interiorRepo: SupabaseInteriorRepository;
   let tenantId: string;

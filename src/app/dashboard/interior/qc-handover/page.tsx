@@ -27,6 +27,7 @@ import type {
 } from '@/products/bella-interior/domain/qc-handover-overview.types';
 import type { PunchListItem, PunchListStatus } from '@/app/api/interior/delivery/punch-list/route';
 import AcceptanceSessionModal from './acceptance-session-modal';
+import OperationalAuditTrailCard from '@/components/interior/OperationalAuditTrailCard';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -162,6 +163,14 @@ function IconPen({ className }: { className?: string }) {
   );
 }
 
+function IconHistory({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
 // ─── Main Page Component ──────────────────────────────────────────────────────
 
 export default function InteriorQCHandoverPage() {
@@ -183,6 +192,7 @@ export default function InteriorQCHandoverPage() {
   const [showInternalSessionsModal, setShowInternalSessionsModal] = useState<boolean>(false);
   const [showCustomerHandoverModal, setShowCustomerHandoverModal] = useState<boolean>(false);
   const [rectifyingItem, setRectifyingItem] = useState<PunchListItem | null>(null);
+  const [selectedAuditItem, setSelectedAuditItem] = useState<PunchListItem | null>(null);
   const [rectificationInput, setRectificationInput] = useState('');
 
   // Form states for new punch item
@@ -646,7 +656,7 @@ export default function InteriorQCHandoverPage() {
               }`}
             >
               <IconCheckCircle className="w-3.5 h-3.5" />
-              <span>{isHandoverBlocked ? 'Xem Điều Kiện Bàn Giao' : 'Tiến Hành Nghiệm Thu & Ký Số'}</span>
+              <span>{isHandoverBlocked ? 'Xem Điều Kiện Bàn Giao' : 'Tiến Hành Nghiệm Thu &amp; Ký Số'}</span>
             </button>
             <Link
               href="/dashboard/interior/warranty"
@@ -795,8 +805,9 @@ export default function InteriorQCHandoverPage() {
                     <th className="px-3.5 py-3 whitespace-nowrap">Hạng mục</th>
                     <th className="px-3.5 py-3 whitespace-nowrap">Mô tả khiếm khuyết</th>
                     <th className="px-3.5 py-3 whitespace-nowrap">Mức độ</th>
-                    <th className="px-3.5 py-3 whitespace-nowrap">Phụ trách</th>
+                    <th className="px-3.5 py-3 whitespace-nowrap">Khởi tạo &amp; Phụ trách</th>
                     <th className="px-3.5 py-3 whitespace-nowrap">Hạn xử lý</th>
+                    <th className="px-3.5 py-3 whitespace-nowrap">Dấu vết &amp; Lead Time</th>
                     <th className="px-3.5 py-3 whitespace-nowrap">Trạng thái</th>
                     <th className="px-3.5 py-3 whitespace-nowrap text-right">Thao tác chuyển trạng thái</th>
                   </tr>
@@ -852,11 +863,22 @@ export default function InteriorQCHandoverPage() {
                             {item.severity.toUpperCase()}
                           </span>
                         </td>
-                        <td className="px-3.5 py-3 text-slate-800 whitespace-nowrap">
-                          {item.assignedFixer || 'Chưa phân công'}
+                        <td className="px-3.5 py-3 whitespace-nowrap text-xs">
+                          <div className="font-semibold text-slate-800">{item.assignedFixer || 'Chưa phân công'}</div>
+                          <div className="text-[10px] text-slate-400">Tạo: {item.createdByName || 'Giám sát QC'}</div>
                         </td>
                         <td className="px-3.5 py-3 font-mono text-slate-600 whitespace-nowrap">
                           {item.deadline || item.createdAt.slice(0, 10)}
+                        </td>
+                        <td className="px-3.5 py-3 whitespace-nowrap text-xs">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedAuditItem(item)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-semibold border border-indigo-200 transition-colors cursor-pointer"
+                          >
+                            <IconHistory className="w-3.5 h-3.5 text-indigo-600" />
+                            <span>{item.executionDuration ? item.executionDuration : 'Chi tiết'}</span>
+                          </button>
                         </td>
                         <td className="px-3.5 py-3 whitespace-nowrap">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${statusBadgeClass}`}>
@@ -1123,6 +1145,21 @@ export default function InteriorQCHandoverPage() {
                 <p className="font-medium text-slate-900 mt-0.5">{rectifyingItem.description}</p>
               </div>
 
+              <div className="pt-1">
+                <OperationalAuditTrailCard
+                  createdAt={rectifyingItem.createdAt}
+                  createdByName={rectifyingItem.createdByName}
+                  startedAt={rectifyingItem.startedAt}
+                  startedByName={rectifyingItem.startedByName}
+                  completedAt={rectifyingItem.completedAt}
+                  completedByName={rectifyingItem.completedByName}
+                  executionDuration={rectifyingItem.executionDuration}
+                  statusHistory={rectifyingItem.statusHistory}
+                  status={rectifyingItem.status}
+                  title="Dấu vết thời gian xử lý khiếm khuyết"
+                />
+              </div>
+
               <div>
                 <label className="block text-slate-600 font-semibold mb-1">Nội dung đã khắc phục</label>
                 <textarea
@@ -1278,6 +1315,54 @@ export default function InteriorQCHandoverPage() {
             if (selectedProjectId) void fetchPunchList(selectedProjectId);
           }}
         />
+      )}
+
+      {/* ═══ 12. MODAL: DẤU VẾT THỜI GIAN & LỊCH SỬ PHÊ DUYỆT PUNCH LIST ═══ */}
+      {selectedAuditItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">
+                  Dấu Vết Lịch Sử &amp; Hiệu Suất Khiếm Khuyết QC
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Mã mục: #{selectedAuditItem.id.slice(0, 8)} — {selectedAuditItem.description}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedAuditItem(null)}
+                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <IconX className="w-5 h-5" />
+              </button>
+            </div>
+
+            <OperationalAuditTrailCard
+              createdAt={selectedAuditItem.createdAt}
+              createdByName={selectedAuditItem.createdByName}
+              startedAt={selectedAuditItem.startedAt}
+              startedByName={selectedAuditItem.startedByName}
+              completedAt={selectedAuditItem.completedAt}
+              completedByName={selectedAuditItem.completedByName}
+              executionDuration={selectedAuditItem.executionDuration}
+              statusHistory={selectedAuditItem.statusHistory}
+              status={selectedAuditItem.status}
+              title="Dấu vết thời gian &amp; Lịch sử vòng đời lỗi QC"
+            />
+
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedAuditItem(null)}
+                className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold cursor-pointer"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
