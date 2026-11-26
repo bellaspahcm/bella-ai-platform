@@ -22,7 +22,10 @@ import {
   Wrench,
   AlertCircle,
   ExternalLink,
+  History,
 } from 'lucide-react';
+import OperationalAuditTrailCard from '@/components/interior/OperationalAuditTrailCard';
+import type { OperationalStatusHistoryEntry } from '@/products/bella-interior/lib/operational-audit-trail';
 
 interface ProjectDetail {
   id: string;
@@ -36,6 +39,14 @@ interface ProjectDetail {
   estimatedBudget: number | null;
   targetCompletionDate: string;
   leadArchitectName: string;
+  createdAt?: string | null;
+  createdByName?: string | null;
+  startedAt?: string | null;
+  startedByName?: string | null;
+  completedAt?: string | null;
+  completedByName?: string | null;
+  executionDuration?: string | null;
+  statusHistory?: readonly OperationalStatusHistoryEntry[];
   rooms: Array<{
     id: string;
     code: string;
@@ -68,7 +79,7 @@ export default function ProjectDetailPage({
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'materials' | 'timeline' | 'handover'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'materials' | 'timeline' | 'handover' | 'audit'>('overview');
 
   const fetchProjectDetail = useCallback(async () => {
     setLoading(true);
@@ -306,6 +317,17 @@ export default function ProjectDetailPage({
         >
           Nghiệm Thu &amp; Bảo Hành
         </button>
+        <button
+          onClick={() => setActiveTab('audit')}
+          className={`pb-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
+            activeTab === 'audit'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
+          }`}
+        >
+          <History className="w-4 h-4" />
+          <span>Dấu Vết Lịch Sử &amp; Hiệu Suất</span>
+        </button>
       </div>
 
       {/* ── Tab Content ── */}
@@ -496,6 +518,21 @@ export default function ProjectDetailPage({
             </div>
           </div>
         </div>
+      )}
+
+      {activeTab === 'audit' && (
+        <OperationalAuditTrailCard
+          createdAt={project.createdAt}
+          createdByName={project.createdByName}
+          startedAt={project.startedAt}
+          startedByName={project.startedByName}
+          completedAt={project.completedAt}
+          completedByName={project.completedByName}
+          executionDuration={project.executionDuration}
+          statusHistory={project.statusHistory}
+          status={project.status}
+          title="Dấu vết thời gian &amp; Lịch sử vòng đời dự án"
+        />
       )}
     </div>
   );

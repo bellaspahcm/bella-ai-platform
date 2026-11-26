@@ -9,6 +9,8 @@
  * @module src/products/bella-interior/domain/production-overview.types
  */
 
+import type { OperationalStatusHistoryEntry } from '../lib/operational-audit-trail';
+
 export interface ProductionProjectHeader {
   id: string;
   code: string;
@@ -115,6 +117,14 @@ export interface ProductionOrderTableRow {
   statusLabel: string;
   statusBadgeClass: string;
   actionMenuOptions: string[];
+  createdAt?: string | null;
+  createdByName?: string | null;
+  startedAt?: string | null;
+  startedByName?: string | null;
+  completedAt?: string | null;
+  completedByName?: string | null;
+  executionDuration?: string | null;
+  statusHistory?: readonly OperationalStatusHistoryEntry[];
 }
 
 export interface ProductionFilterTab {

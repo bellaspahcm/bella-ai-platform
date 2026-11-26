@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { toast } from 'sonner';
 import CommercialWorkflowModal from './commercial-workflow-modal';
 import InteriorUserBar from '@/components/interior/InteriorUserBar';
+import OperationalAuditTrailCard from '@/components/interior/OperationalAuditTrailCard';
+import { computeOperationalLeadTime, type OperationalStatusHistoryEntry } from '@/products/bella-interior/lib/operational-audit-trail';
 import {
   Handshake,
   Coins,
@@ -724,7 +726,7 @@ export default function InteriorContractsPage() {
               className="h-10 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              <span>{data.hasContract ? 'Báo giá & Duyệt' : '+ Tạo Hợp Đồng Mới'}</span>
+              <span>{data.hasContract ? 'Báo giá &amp; Duyệt' : '+ Tạo Hợp Đồng Mới'}</span>
             </button>
 
             <button
@@ -1303,24 +1305,29 @@ export default function InteriorContractsPage() {
             </div>
           )}
 
-          {/* Tab 3: Lịch sử hoạt động */}
+          {/* Tab 3: Lịch sử hoạt động & Dấu vết phê duyệt */}
           {activeTab === 'audit' && (
             <div className="p-6">
-              <div className="space-y-4 text-xs">
-                {detailedTabs.auditLogs.map((log) => (
-                  <div key={log.id} className="flex items-start gap-3">
-                    <div className="w-2 h-2 rounded-full bg-emerald-600 mt-1.5 shrink-0" />
-                    <div>
-                      <p className="font-semibold text-slate-900 dark:text-white">{log.action}</p>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
-                        <span>{log.actor}</span>
-                        <span>•</span>
-                        <span>{log.timestamp}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <OperationalAuditTrailCard
+                createdAt={data.contractSummary.signedDate}
+                createdByName={data.contractSummary.legalRepresentative || 'Phòng Pháp Chế &amp; Hợp Đồng'}
+                startedAt={data.contractSummary.effectiveDate}
+                startedByName={data.contractSummary.consultantName || 'Đại diện kinh doanh'}
+                completedAt={data.contractSummary.status === 'completed' ? data.contractSummary.expiryDate : null}
+                completedByName="Ban Giám Đốc Phê Duyệt"
+                executionDuration={computeOperationalLeadTime(data.contractSummary.effectiveDate || data.contractSummary.signedDate, data.contractSummary.status === 'completed' ? data.contractSummary.expiryDate : null)}
+                statusHistory={detailedTabs.auditLogs.map((log): OperationalStatusHistoryEntry => ({
+                  action: log.action.toLowerCase().includes('duyệt') || log.action.toLowerCase().includes('ký') ? 'approve' : 'transition',
+                  fromStatus: null,
+                  toStatus: log.action,
+                  timestamp: log.timestamp,
+                  actorId: log.id,
+                  actorName: log.actor,
+                  note: log.action,
+                }))}
+                status={data.contractSummary.status}
+                title="Dấu vết thời gian &amp; Lịch sử vòng đời hợp đồng"
+              />
             </div>
           )}
 

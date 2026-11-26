@@ -22,6 +22,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useEvidenceDeletions } from '@/products/bella-interior/lib/use-evidence-deletions';
+import OperationalAuditTrailCard from '@/components/interior/OperationalAuditTrailCard';
+import { computeOperationalLeadTime } from '@/products/bella-interior/lib/operational-audit-trail';
 import type {
   InstallationOverviewResponse,
   RoomInstallationCard,
@@ -104,6 +106,14 @@ function IconPlus({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+  );
+}
+
+function IconHistory({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
 }
@@ -217,7 +227,7 @@ function IconX({ className }: { className?: string }) {
 export default function InteriorInstallationPage() {
   const [data, setData] = useState<InstallationOverviewResponse | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'rooms' | 'diaries'>('rooms');
+  const [activeTab, setActiveTab] = useState<'rooms' | 'diaries' | 'audit'>('rooms');
 
   // Real Project State
   const [projects, setProjects] = useState<ProjectOption[]>([]);
@@ -629,6 +639,18 @@ export default function InteriorInstallationPage() {
             {siteDiaries.length}
           </span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('audit')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+            activeTab === 'audit'
+              ? 'bg-[#064e3b] text-white shadow-xs'
+              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+          }`}
+        >
+          <IconHistory className="w-4 h-4 text-emerald-400" />
+          <span>Dấu Vết Lịch Sử &amp; Hiệu Suất</span>
+        </button>
       </div>
 
       {/* ═══ 3. MAIN CONTENT: TABS ═══════════════════════════════════════════ */}
@@ -969,7 +991,7 @@ export default function InteriorInstallationPage() {
             ))}
           </div>
         </>
-      ) : (
+      ) : activeTab === 'diaries' ? (
         /* ═══ SITE DIARY VIEW TAB ══════════════════════════════════════════ */
         <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-5">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -1138,6 +1160,41 @@ export default function InteriorInstallationPage() {
               ))}
             </ul>
           )}
+        </div>
+      ) : (
+        /* ═══ AUDIT TRAIL VIEW TAB ══════════════════════════════════════════ */
+        <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+          <OperationalAuditTrailCard
+            createdAt={data?.projectHeader ? '2024-11-01T08:00:00.000Z' : null}
+            createdByName="Kỹ sư Trưởng dự án"
+            startedAt={realPlan?.scheduledStartDate || '2024-11-05T08:00:00.000Z'}
+            startedByName={realPlan?.siteSupervisorName || 'Chỉ huy trưởng công trình'}
+            completedAt={null}
+            completedByName="— (Đang thi công hiện trường)"
+            executionDuration={computeOperationalLeadTime(realPlan?.scheduledStartDate || '2024-11-05T08:00:00.000Z', null)}
+            statusHistory={[
+              {
+                action: 'create',
+                fromStatus: null,
+                toStatus: 'draft',
+                timestamp: '2024-11-01T08:00:00.000Z',
+                actorId: 'pm-1',
+                actorName: 'Kỹ sư Trưởng dự án',
+                note: 'Lập kế hoạch lắp đặt hiện trường &amp; phân chia khu vực thi công',
+              },
+              {
+                action: 'transition',
+                fromStatus: 'draft',
+                toStatus: 'in_progress',
+                timestamp: realPlan?.scheduledStartDate || '2024-11-05T08:00:00.000Z',
+                actorId: 'site-sup-1',
+                actorName: realPlan?.siteSupervisorName || 'Chỉ huy trưởng công trình',
+                note: 'Tiếp nhận mặt bằng bàn giao thô và triển khai đội thợ lắp đặt',
+              },
+            ]}
+            status="in_progress"
+            title="Dấu vết thời gian &amp; Lịch sử thi công hiện trường"
+          />
         </div>
       )}
 
