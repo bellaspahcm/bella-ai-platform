@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase-client';
 
 const supabase = createClient();
@@ -197,22 +197,18 @@ export default function SchedulePage() {
   const [attentionModalFilter, setAttentionModalFilter] = useState<'all' | 'overdue' | 'urgent' | null>(null);
 
   // Filtered tasks for Attention Alerts Modal
-  const attentionFilteredTasks = useMemo(() => {
-    if (!data?.calendarEvents) return [];
-    const todayCol = data.days.findIndex((d) => d.isToday);
+  const todayCol = data?.days ? data.days.findIndex((d) => d.isToday) : -1;
+  const attentionFilteredTasks = (data?.calendarEvents ?? []).filter((ev) => {
+    const isOverdue =
+      ev.status === 'overdue' ||
+      (todayCol !== -1 && ev.dayIndex < todayCol && ev.status !== 'completed');
+    const isUrgent = ev.priority === 'urgent' && ev.status !== 'completed';
 
-    return data.calendarEvents.filter((ev) => {
-      const isOverdue =
-        ev.status === 'overdue' ||
-        (todayCol !== -1 && ev.dayIndex < todayCol && ev.status !== 'completed');
-      const isUrgent = ev.priority === 'urgent' && ev.status !== 'completed';
-
-      if (attentionModalFilter === 'overdue') return isOverdue;
-      if (attentionModalFilter === 'urgent') return isUrgent;
-      if (attentionModalFilter === 'all') return isOverdue || isUrgent || ev.status !== 'completed';
-      return false;
-    });
-  }, [data?.calendarEvents, data?.days, attentionModalFilter]);
+    if (attentionModalFilter === 'overdue') return isOverdue;
+    if (attentionModalFilter === 'urgent') return isUrgent;
+    if (attentionModalFilter === 'all') return isOverdue || isUrgent || ev.status !== 'completed';
+    return false;
+  });
 
   // Toast feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
