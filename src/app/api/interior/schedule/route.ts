@@ -13,6 +13,7 @@ import type {
   ProjectScheduleProgressItem,
   TimelineStageItem,
   ResourceStaffItem,
+  ScheduleActionItem,
   TaskStatusHistoryEntry,
 } from '@/products/bella-interior/domain/schedule-overview.types';
 
@@ -105,8 +106,51 @@ interface UserRoleInfo {
 }
 
 // ── Build Project Schedule Progress with 4 Detailed Stages (Gantt) ─────────
-function buildProjectProgress(projects: ProjectRow[], _weekStart: Date): ProjectScheduleProgressItem[] {
-  if (!projects || projects.length === 0) {
+function buildProjectProgress(
+  projects: ProjectRow[],
+  rows: ScheduleEventRow[] = [],
+  _weekStart: Date = new Date(),
+): ProjectScheduleProgressItem[] {
+  // Combine projects from DB and any project names appearing in scheduled events
+  const projectList: ProjectRow[] = [...(projects || [])];
+
+  // Distinct scheduled project names in the active week
+  const scheduledProjectNames = Array.from(
+    new Set(rows.map((r) => r.project_name?.trim()).filter((n): n is string => Boolean(n))),
+  );
+
+  scheduledProjectNames.forEach((name) => {
+    const existing = projectList.find(
+      (p) =>
+        p.name.toLowerCase() === name.toLowerCase() ||
+        p.name.toLowerCase().includes(name.toLowerCase()) ||
+        name.toLowerCase().includes(p.name.toLowerCase()),
+    );
+    if (!existing) {
+      projectList.unshift({
+        id: `sched-prj-${name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`,
+        name,
+        code: `PRJ-${name.substring(0, 3).toUpperCase()}-2026`,
+        status: 'in_progress',
+        lead_architect_name: rows.find((r) => r.project_name === name)?.assignee_name || 'KTS. Trưởng',
+      });
+    }
+  });
+
+  // Sort so that projects with active tasks this week come first
+  projectList.sort((a, b) => {
+    const hasA = scheduledProjectNames.some(
+      (n) => a.name.toLowerCase().includes(n.toLowerCase()) || n.toLowerCase().includes(a.name.toLowerCase()),
+    );
+    const hasB = scheduledProjectNames.some(
+      (n) => b.name.toLowerCase().includes(n.toLowerCase()) || n.toLowerCase().includes(b.name.toLowerCase()),
+    );
+    if (hasA && !hasB) return -1;
+    if (!hasA && hasB) return 1;
+    return 0;
+  });
+
+  if (projectList.length === 0) {
     return [
       {
         id: 'fallback-prj-1',
@@ -131,7 +175,7 @@ function buildProjectProgress(projects: ProjectRow[], _weekStart: Date): Project
     ];
   }
 
-  return projects.map((p) => {
+  return projectList.map((p) => {
     let progressPercent = 50;
     let statusLabel = 'Đang triển khai';
     let statusBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300';
@@ -326,11 +370,10 @@ function buildStaffResources(
     );
     const taskCount = assignedTasks.length;
 
-    // Load percent calculation: default baseline + dynamic task weight
-    const defaultBaseline = [65, 50, 75, 70, 45, 80, 60, 40][idx % 8] || 50;
-    const loadPercent = taskCount > 0 ? Math.min(100, Math.max(35, taskCount * 30)) : defaultBaseline;
+    // Load percent calculation based on real weekly task capacity (4 tasks = 100% capacity)
+    const loadPercent = taskCount > 0 ? Math.min(100, taskCount * 25) : 0;
     const isOverloaded = loadPercent >= 90;
-    const statusLabel = isOverloaded ? 'Quá tải' : 'Bình thường';
+    const statusLabel = taskCount === 0 ? 'Sẵn sàng' : isOverloaded ? 'Quá tải' : 'Bình thường';
 
     result.push({
       id: `staff-${idx + 1}`,
@@ -537,8 +580,87 @@ function buildOverview(
       };
     });
 
-  const projectProgress = buildProjectProgress(projectRows, weekStart);
+  const projectProgress = buildProjectProgress(projectRows, rows, weekStart);
   const staffResources = buildStaffResources(rows, userRoleRows);
+
+  const overloadedStaffCount = staffResources.filter((s) => s.isOverloaded).length;
+  const workingStaffCount = staffResources.filter((s) => s.taskCount > 0 && !s.isOverloaded).length;
+  const availableStaffCount = staffResources.filter((s) => s.taskCount === 0).length;
+  const unassignedTasksCount = rows.filter((r) => !r.assignee_name || r.assignee_name.trim() === '').length;
+  const totalStaff = staffResources.length;
+  const readinessPercentage = totalStaff > 0
+    ? Math.round(((totalStaff - overloadedStaffCount) / totalStaff) * 100)
+    : 100;
+
+  // Build actionable suggestions based on real operational events
+  const actions: ScheduleActionItem[] = [];
+
+  // 1. Overdue tasks
+  const overdueRows = rows.filter((r) => r.status === 'overdue');
+  if (overdueRows.length > 0) {
+    const firstOverdue = overdueRows[0];
+    actions.push({
+      id: 'act-overdue',
+      text: `Ưu tiên xử lý ${overdueRows.length} công việc quá hạn: "${firstOverdue.title}" (${firstOverdue.project_name})`,
+      actionLabel: 'Xử lý ngay',
+      actionType: 'open_task',
+      targetId: firstOverdue.id,
+      badgeColorClass: 'text-rose-600 bg-rose-50 hover:bg-rose-100 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300',
+    });
+  }
+
+  // 2. Urgent pending tasks
+  const urgentRows = rows.filter((r) => r.priority === 'urgent' && r.status !== 'completed' && r.status !== 'overdue');
+  if (urgentRows.length > 0) {
+    const firstUrgent = urgentRows[0];
+    actions.push({
+      id: 'act-urgent',
+      text: `Xử lý ưu tiên ${urgentRows.length} công việc khẩn cấp: "${firstUrgent.title}" (${firstUrgent.project_name})`,
+      actionLabel: 'Chi tiết việc',
+      actionType: 'open_task',
+      targetId: firstUrgent.id,
+      badgeColorClass: 'text-amber-600 bg-amber-50 hover:bg-amber-100 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300',
+    });
+  }
+
+  // 3. Overloaded staff
+  const overloadedStaffList = staffResources.filter((s) => s.isOverloaded);
+  if (overloadedStaffList.length > 0) {
+    const staffNames = overloadedStaffList.map((s) => `${s.name} (${s.taskCount} việc / ${s.loadPercent}%)`).join(', ');
+    actions.push({
+      id: 'act-overloaded',
+      text: `Cân đối tải nhân sự: ${staffNames} đang quá tải`,
+      actionLabel: 'Xem tải nhân sự',
+      actionType: 'switch_tab',
+      targetId: 'resource',
+      badgeColorClass: 'text-purple-600 bg-purple-50 hover:bg-purple-100 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300',
+    });
+  }
+
+  // 4. In-progress tasks
+  const inProgRows = rows.filter((r) => r.status === 'in_progress');
+  if (inProgRows.length > 0 && actions.length < 4) {
+    const firstProg = inProgRows[0];
+    actions.push({
+      id: 'act-in-progress',
+      text: `Theo dõi tiến độ: "${firstProg.title}" đang thực hiện (${firstProg.assignee_name})`,
+      actionLabel: 'Kiểm tra',
+      actionType: 'open_task',
+      targetId: firstProg.id,
+      badgeColorClass: 'text-blue-600 bg-blue-50 hover:bg-blue-100 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300',
+    });
+  }
+
+  if (actions.length === 0) {
+    actions.push({
+      id: 'act-all-good',
+      text: 'Tất cả công việc tuần này đang tiến hành đúng tiến độ',
+      actionLabel: 'Xem lịch tuần',
+      actionType: 'switch_tab',
+      targetId: 'week',
+      badgeColorClass: 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300',
+    });
+  }
 
   return {
     success: true,
@@ -575,22 +697,20 @@ function buildOverview(
     calendarEvents,
     attentionAlerts,
     resourceCapacity: {
-      readinessPercentage: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+      readinessPercentage,
       readinessLabel: 'Sẵn sàng làm việc',
-      workingCount: inProgressTasks,
-      availableCount: rows.filter((r) => r.status === 'pending').length,
-      overloadedCount: 0,
-      unassignedCount: rows.filter((r) => !r.assignee_name).length,
+      workingCount: workingStaffCount,
+      availableCount: availableStaffCount,
+      overloadedCount: overloadedStaffCount,
+      unassignedCount: unassignedTasksCount,
     },
     upcomingTasks: upcoming,
     projectProgress,
     staffResources,
     actionSuggestions: {
       title: 'Gợi ý hành động',
-      items:
-        overdueCount > 0
-          ? [`Ưu tiên xử lý ${overdueCount} công việc quá hạn`]
-          : ['Tất cả công việc đang tiến hành đúng tiến độ'],
+      items: actions.map((a) => a.text),
+      actions,
     },
   };
 }
