@@ -13,6 +13,7 @@ import {
   History,
   Layers,
   Package,
+  Pencil,
   Plus,
   RefreshCw,
   Search,
@@ -30,18 +31,20 @@ import { BUSINESS_RULES } from '@bella/shared';
 import { PremiumSelect } from '@/components/ui/PremiumSelect';
 import { usePageRefresh } from '@/hooks/usePageRefresh';
 import { cn } from '@/lib/utils';
-import type {
-  PeriodInventoryMovementLogRow,
-  PeriodInventoryMovementRow,
+import {
+  calculateWeightedAverageUnitPrice,
+  type PeriodInventoryMovementLogRow,
+  type PeriodInventoryMovementRow,
 } from '@/lib/business-rules/inventory';
 import {
   addInventoryItem,
   consumeInventory,
   getInventoryPeriodMovementReport,
+  restockItem,
+  updateInventoryItem,
 } from '@/services/inventory-actions';
 import { InventoryCreateRequestModal } from './components/InventoryCreateRequestModal';
 import { InventoryReconciliationPanel } from './components/InventoryReconciliationPanel';
-import { InventoryRestockModal } from './components/InventoryRestockModal';
 import { useInventoryPageState } from './hooks/useInventoryPageState';
 import type { ActiveInventoryTab, InventoryItem, NewInventoryItem } from './types';
 
@@ -265,7 +268,6 @@ export function InteriorInventoryView() {
     lowCount,
     handleSaveReconciliation,
     updateReconRow,
-    handleRestock,
     handleAddItem,
     addToCart,
     removeFromCart,
@@ -295,6 +297,32 @@ export function InteriorInventoryView() {
   const [dispatchProjectId, setDispatchProjectId] = useState<string>('');
   const [dispatchNote, setDispatchNote] = useState<string>('');
   const [dispatching, setDispatching] = useState(false);
+
+  // Restock with batch unit price (Weighted Average Cost)
+  const [restockBatchPrice, setRestockBatchPrice] = useState<number>(0);
+  const [restockNotes, setRestockNotes] = useState<string>('');
+  const [restocking, setRestocking] = useState<boolean>(false);
+
+  // Edit SKU / Master item info modal
+  const [editTarget, setEditTarget] = useState<InventoryItem | null>(null);
+  const [editForm, setEditForm] = useState<{
+    name: string;
+    sku: string;
+    unit: string;
+    category: string;
+    min_stock_level: number;
+    price_per_unit: number;
+    notes: string;
+  }>({
+    name: '',
+    sku: '',
+    unit: 'Tấm',
+    category: INTERIOR_MATERIAL_CATEGORIES[0],
+    min_stock_level: 10,
+    price_per_unit: 0,
+    notes: '',
+  });
+  const [savingEdit, setSavingEdit] = useState<boolean>(false);
 
   const loadPeriodReport = useCallback(async () => {
     setLoadingMovement(true);
@@ -558,6 +586,43 @@ export function InteriorInventoryView() {
     if (!rawItem) return;
     setRestockTarget(rawItem);
     setRestockAmt(10);
+    setRestockBatchPrice(Number(rawItem.price_per_unit || 0));
+    setRestockNotes('');
+  };
+
+  const handleOpenEdit = (itemId: string) => {
+    const rawItem = itemById.get(itemId);
+    if (!rawItem) return;
+    setEditTarget(rawItem);
+    setEditForm({
+      name: rawItem.name,
+      sku: rawItem.sku || '',
+      unit: rawItem.unit,
+      category: rawItem.category || INTERIOR_MATERIAL_CATEGORIES[0],
+      min_stock_level: Number(rawItem.min_stock_level || 0),
+      price_per_unit: Number(rawItem.price_per_unit || 0),
+      notes: rawItem.notes || '',
+    });
+  };
+
+  const handleSubmitEdit = async () => {
+    if (!editTarget) return;
+    setSavingEdit(true);
+    try {
+      const res = await updateInventoryItem(editTarget.id, editForm);
+      if (!res.success) {
+        toast.error(res.error || 'Không thể cập nhật thông tin vật tư.');
+        return;
+      }
+      toast.success(`Đã cập nhật mã vật tư "${editForm.sku || editForm.name}".`);
+      setEditTarget(null);
+      await refreshAll();
+    } catch (err) {
+      console.error('[InteriorInventoryView.handleSubmitEdit]', err);
+      toast.error('Lỗi cập nhật vật tư.');
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   const handleSubmitDispatch = async () => {
@@ -602,8 +667,32 @@ export function InteriorInventoryView() {
   };
 
   const handleRestockAndReload = async () => {
-    await handleRestock();
-    await loadPeriodReport();
+    if (!restockTarget) return;
+    if (!Number.isFinite(restockAmt) || restockAmt <= 0) {
+      toast.error('Vui lòng nhập số lượng nhập kho lớn hơn 0.');
+      return;
+    }
+    setRestocking(true);
+    try {
+      const res = await restockItem(
+        restockTarget.id,
+        restockAmt,
+        restockNotes.trim() || `Nhập kho xưởng (Đơn giá: ${formatVnd(restockBatchPrice)})`,
+        restockBatchPrice
+      );
+      if (!res.success) {
+        toast.error(res.error || 'Không thể nhập kho vật tư.');
+        return;
+      }
+      toast.success(`Đã nhập ${restockAmt} ${restockTarget.unit} và cập nhật đơn giá bình quân gia quyền.`);
+      setRestockTarget(null);
+      await refreshAll();
+    } catch (err) {
+      console.error('[InteriorInventoryView.restock]', err);
+      toast.error('Lỗi nhập kho.');
+    } finally {
+      setRestocking(false);
+    }
   };
 
   const handleAddItemAndReload = async () => {
@@ -1064,6 +1153,14 @@ export function InteriorInventoryView() {
                                   >
                                     <ArrowUpRight className="h-3 w-3" /> Xuất
                                   </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEdit(row.id)}
+                                    title="Chỉnh sửa Mã SP (SKU) & Đơn giá"
+                                    className="inline-flex items-center justify-center rounded-xl bg-slate-100 p-1.5 text-slate-500 transition-all hover:bg-primary/15 hover:text-primary dark:bg-[#2A2724] dark:text-[#CDBCAB]"
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </button>
                                 </div>
                               </td>
                             </tr>
@@ -1371,15 +1468,263 @@ export function InteriorInventoryView() {
         </div>
       </div>
 
-      {/* ── MODAL: NHẬP KHO (RESTOCK) ── */}
-      <InventoryRestockModal
-        target={restockTarget}
-        restockAmt={restockAmt}
-        submitting={submitting}
-        setRestockAmt={setRestockAmt}
-        onClose={() => setRestockTarget(null)}
-        onSubmit={handleRestockAndReload}
-      />
+      {/* ── MODAL: NHẬP KHO THEO LÔ & TÍNH BÌNH QUÂN GIA QUYỀN ── */}
+      {restockTarget && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
+          <div
+            onClick={() => setRestockTarget(null)}
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+          />
+          <div className="relative z-10 max-h-[92vh] w-full max-w-md overflow-y-auto rounded-[2rem] bg-white p-6 shadow-2xl dark:bg-[#1C1B19] sm:p-8">
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="flex items-center gap-2 text-lg font-black text-slate-900 dark:text-[#EFE9E1]">
+                  <ArrowDownLeft className="h-5 w-5 text-emerald-600" /> Nhập Kho Vật Tư
+                </h3>
+                <p className="mt-1 text-xs font-semibold text-slate-500">
+                  [{restockTarget.sku || 'N/A'}] {restockTarget.name}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRestockTarget(null)}
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#2A2724]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-2xl bg-slate-50 p-3.5 text-xs dark:bg-[#11100F]">
+                <div className="flex justify-between">
+                  <span className="font-semibold text-slate-500">Tồn hiện tại:</span>
+                  <span className="font-black text-slate-800 dark:text-[#EFE9E1]">
+                    {restockTarget.stock_level.toLocaleString('vi-VN')} {restockTarget.unit}
+                  </span>
+                </div>
+                <div className="mt-1 flex justify-between">
+                  <span className="font-semibold text-slate-500">Giá BQGQ hiện tại:</span>
+                  <span className="font-mono font-black text-slate-800 dark:text-[#EFE9E1]">
+                    {formatVnd(Number(restockTarget.price_per_unit || 0))} / {restockTarget.unit}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Số lượng nhập ({restockTarget.unit}) *
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={restockAmt}
+                    onChange={(e) => setRestockAmt(Number(e.target.value))}
+                    className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 dark:bg-[#11100F] dark:text-[#EFE9E1]"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Đơn giá nhập lô này (VND)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={restockBatchPrice}
+                    onChange={(e) => setRestockBatchPrice(Number(e.target.value))}
+                    className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 dark:bg-[#11100F] dark:text-[#EFE9E1]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  Nhà cung cấp / Số phiếu nhập (PO)
+                </label>
+                <input
+                  type="text"
+                  placeholder="VD: Nhập từ Gỗ An Cường — PO-202611-08"
+                  value={restockNotes}
+                  onChange={(e) => setRestockNotes(e.target.value)}
+                  className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 dark:bg-[#11100F] dark:text-[#EFE9E1]"
+                />
+              </div>
+
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3.5 text-xs dark:border-emerald-500/30 dark:bg-emerald-500/10">
+                <p className="font-bold text-emerald-800 dark:text-emerald-300">
+                  Đơn giá Bình quân gia quyền sau nhập:{' '}
+                  <span className="font-mono font-black">
+                    {formatVnd(
+                      calculateWeightedAverageUnitPrice({
+                        currentStock: restockTarget.stock_level,
+                        currentUnitPrice: Number(restockTarget.price_per_unit || 0),
+                        importQty: Math.max(0, restockAmt),
+                        importUnitPrice: Math.max(0, restockBatchPrice),
+                      })
+                    )}
+                    /{restockTarget.unit}
+                  </span>
+                </p>
+                <p className="mt-1 text-[11px] font-medium text-emerald-700/80 dark:text-emerald-300/80">
+                  Giữ nguyên giá trị đầu kỳ và các phiếu xuất trước đó; chỉ ghi nhận lô nhập mới theo đúng đơn giá hóa đơn và tính lại giá vốn BQGQ.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => setRestockTarget(null)}
+                className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleRestockAndReload}
+                disabled={restocking}
+                className="flex-[2] flex items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-lg transition-all hover:bg-primary-hover active:scale-95 disabled:opacity-50"
+              >
+                {restocking ? <RefreshCw className="h-4 w-4 animate-spin" /> : <ArrowDownLeft className="h-4 w-4" />}
+                Xác nhận Nhập Kho
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: CHỈNH SỬA MÃ SẢN PHẨM (SKU) & THÔNG TIN VẬT TƯ ── */}
+      {editTarget && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
+          <div
+            onClick={() => setEditTarget(null)}
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+          />
+          <div className="relative z-10 max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-[2rem] bg-white p-6 shadow-2xl dark:bg-[#1C1B19] sm:p-8">
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="flex items-center gap-2 text-lg font-black text-slate-900 dark:text-[#EFE9E1]">
+                  <Pencil className="h-4 w-4 text-primary" /> Chỉnh Sửa Mã Vật Tư &amp; Đơn Giá
+                </h3>
+                <p className="mt-1 text-xs font-medium text-slate-400">
+                  Cập nhật thông tin danh mục sản phẩm ({editTarget.stock_level} {editTarget.unit} đang tồn).
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditTarget(null)}
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#2A2724]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  Tên vật tư &amp; Quy cách *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                  className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 dark:bg-[#11100F] dark:text-[#EFE9E1]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Mã sản phẩm (SKU)
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.sku}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, sku: e.target.value }))}
+                    className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 dark:bg-[#11100F] dark:text-[#EFE9E1]"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Nhóm vật tư Nội thất
+                  </label>
+                  <PremiumSelect
+                    value={editForm.category}
+                    onChange={(val) => setEditForm((prev) => ({ ...prev, category: val }))}
+                    options={INTERIOR_MATERIAL_CATEGORIES.map((cat) => ({ value: cat, label: cat }))}
+                    buttonClassName="min-h-11 w-full rounded-2xl border-transparent bg-slate-50 px-4 text-xs font-bold text-slate-800 dark:bg-[#11100F] dark:text-[#EFE9E1]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Đơn vị tính *
+                  </label>
+                  <PremiumSelect
+                    value={editForm.unit}
+                    onChange={(val) => setEditForm((prev) => ({ ...prev, unit: val }))}
+                    options={INTERIOR_UNITS.map((u) => ({ value: u, label: u }))}
+                    buttonClassName="min-h-11 w-full rounded-2xl border-transparent bg-slate-50 px-4 text-xs font-bold text-slate-800 dark:bg-[#11100F] dark:text-[#EFE9E1]"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Tồn tối thiểu
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={editForm.min_stock_level}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, min_stock_level: Number(e.target.value) }))
+                    }
+                    className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 dark:bg-[#11100F] dark:text-[#EFE9E1]"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Đơn giá BQGQ (VND)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={editForm.price_per_unit}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, price_per_unit: Number(e.target.value) }))
+                    }
+                    className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 dark:bg-[#11100F] dark:text-[#EFE9E1]"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-3.5 text-[11px] font-medium text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+                <strong>Lưu ý kế toán:</strong> Đổi Mã SP (SKU), Tên hoặc ĐVT không làm thay đổi giá trị tồn kho. Chỉ sửa trực tiếp Đơn giá tại đây nếu nhập sai đơn giá danh mục ban đầu (sẽ tính lại giá trị tồn cuối hiện tại). Nếu nhập lô hàng mới với giá khác, hãy dùng nút <strong>Nhập</strong> để hệ thống tự tính Giá Bình quân gia quyền và giữ nguyên giá trị lịch sử các kỳ trước.
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => setEditTarget(null)}
+                className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmitEdit}
+                disabled={savingEdit}
+                className="flex-[2] flex items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-lg transition-all hover:bg-primary-hover active:scale-95 disabled:opacity-50"
+              >
+                {savingEdit ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Pencil className="h-4 w-4" />}
+                Lưu Thay Đổi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── MODAL: TẠO PHIẾU ĐỀ XUẤT MUA / CẤP VẬT TƯ ── */}
       <InventoryCreateRequestModal

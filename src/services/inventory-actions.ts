@@ -12,6 +12,7 @@ import {
   calculateOpeningStock,
   calculateRestockMovement,
   calculateRollbackStock,
+  calculateWeightedAverageUnitPrice,
   normalizePackageMaterialRows,
 } from '@/lib/business-rules/inventory';
 import { buildInventoryConsumedOutboxEvent } from '@/lib/business-rules/accounting-outbox';
@@ -53,10 +54,10 @@ export type InventorySessionReconciliationIssue = {
 
 export type InventorySessionReconciliationResult =
   | {
-      success: true;
-      issues: InventorySessionReconciliationIssue[];
-      summary: Record<InventorySessionReconciliationIssueType, number>;
-    }
+    success: true;
+    issues: InventorySessionReconciliationIssue[];
+    summary: Record<InventorySessionReconciliationIssueType, number>;
+  }
   | { success: false; error: string; issues: InventorySessionReconciliationIssue[] };
 
 function getErrorMessage(error: unknown, fallback = 'Lỗi hệ thống') {
@@ -272,7 +273,7 @@ export async function getInventoryPeriodMovementReport(dateFrom: string, dateTo:
         .order('name'),
       supabase
         .from('inventory_logs')
-        .select('id, item_id, change_amount, reason, notes, created_at')
+        .select('id, item_id, change_amount, reason, notes, created_at, accounting_metadata')
         .eq('tenant_id', tenantId)
         .gte('created_at', bufferStart.toISOString())
         .order('created_at', { ascending: false }),
@@ -854,6 +855,7 @@ export async function addInventoryItem(item: {
     }
 
     if (initialStock > 0) {
+      const openingUnitPrice = Math.max(0, Number(item.price_per_unit || 0));
       const logPayload: InventoryLogInsert = {
         item_id: data.id,
         change_amount: initialStock,
@@ -861,6 +863,11 @@ export async function addInventoryItem(item: {
         notes: 'Tồn kho ban đầu',
         created_by: userId,
         tenant_id: tenantId,
+        accounting_metadata: {
+          unit_price: openingUnitPrice,
+          total_value: initialStock * openingUnitPrice,
+          weighted_avg_after: openingUnitPrice,
+        },
       };
 
       const { error: logError } = await supabase.from('inventory_logs').insert(logPayload);
@@ -883,7 +890,79 @@ export async function addInventoryItem(item: {
   }
 }
 
-export async function restockItem(itemId: string, amount: number, notes?: string) {
+export async function updateInventoryItem(
+  itemId: string,
+  patch: {
+    name: string;
+    sku?: string;
+    unit: string;
+    min_stock_level: number;
+    price_per_unit: number;
+    category?: string;
+    notes?: string;
+  }
+) {
+  try {
+    const { supabase, tenantId } = await getSupabaseWithTenant();
+    if (!tenantId) return { success: false, error: 'Chưa đăng nhập' };
+    if (!itemId) return { success: false, error: 'Thiếu mã vật tư cần cập nhật' };
+
+    const trimmedName = patch.name.trim();
+    const trimmedUnit = patch.unit.trim();
+    if (!trimmedName || !trimmedUnit) {
+      return { success: false, error: 'Tên vật tư và đơn vị tính không được để trống' };
+    }
+
+    const minStock = Number(patch.min_stock_level);
+    const unitPrice = Number(patch.price_per_unit);
+    if (!Number.isFinite(minStock) || minStock < 0) {
+      return { success: false, error: 'Định mức tồn tối thiểu không hợp lệ' };
+    }
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+      return { success: false, error: 'Đơn giá vật tư không hợp lệ' };
+    }
+
+    const updatePayload: InventoryItemUpdate = {
+      name: trimmedName,
+      sku: patch.sku?.trim() || null,
+      unit: trimmedUnit,
+      min_stock_level: minStock,
+      price_per_unit: unitPrice,
+      category: patch.category?.trim() || null,
+      notes: patch.notes?.trim() || null,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from('inventory_items')
+      .update(updatePayload)
+      .eq('id', itemId)
+      .eq('tenant_id', tenantId)
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error('[updateInventoryItem]', error);
+      return {
+        success: false,
+        error: error ? `Không thể cập nhật vật tư: ${error.message}` : 'Không tìm thấy vật tư trong đơn vị hiện tại',
+      };
+    }
+
+    revalidatePath('/dashboard/inventory');
+    return { success: true, data };
+  } catch (e: unknown) {
+    console.error('[updateInventoryItem]', e);
+    return { success: false, error: getErrorMessage(e) };
+  }
+}
+
+export async function restockItem(
+  itemId: string,
+  amount: number,
+  notes?: string,
+  newUnitPrice?: number
+) {
   try {
     const { supabase, tenantId, userId } = await getSupabaseWithTenant();
     if (!tenantId) return { success: false, error: 'Chưa đăng nhập' };
@@ -892,9 +971,16 @@ export async function restockItem(itemId: string, amount: number, notes?: string
       return { success: false, error: 'Số lượng nhập kho không hợp lệ' };
     }
 
+    if (newUnitPrice !== undefined) {
+      const parsedPrice = Number(newUnitPrice);
+      if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+        return { success: false, error: 'Đơn giá nhập kho không hợp lệ' };
+      }
+    }
+
     const { data: item, error: fetchError } = await supabase
       .from('inventory_items')
-      .select('stock_level')
+      .select('stock_level, price_per_unit')
       .eq('id', itemId)
       .eq('tenant_id', tenantId)
       .single();
@@ -908,7 +994,20 @@ export async function restockItem(itemId: string, amount: number, notes?: string
     if ('error' in movement) return { success: false, error: movement.error };
 
     const previousStock = movement.previousStock;
-    const updatePayload: InventoryItemUpdate = { stock_level: movement.newStock };
+    const previousPrice = Number(item.price_per_unit || 0);
+    const batchUnitPrice = newUnitPrice !== undefined ? Number(newUnitPrice) : previousPrice;
+    const nextWeightedAvgPrice = calculateWeightedAverageUnitPrice({
+      currentStock: previousStock,
+      currentUnitPrice: previousPrice,
+      importQty: numericAmount,
+      importUnitPrice: batchUnitPrice,
+    });
+
+    const updatePayload: InventoryItemUpdate = {
+      stock_level: movement.newStock,
+      updated_at: new Date().toISOString(),
+      ...(newUnitPrice !== undefined ? { price_per_unit: nextWeightedAvgPrice } : {}),
+    };
 
     const { error: updateError } = await supabase
       .from('inventory_items')
@@ -924,12 +1023,21 @@ export async function restockItem(itemId: string, amount: number, notes?: string
       reason: movement.reason,
       notes: notes || 'Nhập hàng',
       created_by: userId,
-      tenant_id: tenantId
+      tenant_id: tenantId,
+      accounting_metadata: {
+        unit_price: batchUnitPrice,
+        total_value: numericAmount * batchUnitPrice,
+        weighted_avg_before: previousPrice,
+        weighted_avg_after: newUnitPrice !== undefined ? nextWeightedAvgPrice : previousPrice,
+      },
     };
 
     const { error: logError } = await supabase.from('inventory_logs').insert(logPayload);
     if (logError) {
-      const rollbackPayload: InventoryItemUpdate = { stock_level: previousStock };
+      const rollbackPayload: InventoryItemUpdate = {
+        stock_level: previousStock,
+        price_per_unit: previousPrice,
+      };
       const { error: rollbackError } = await supabase
         .from('inventory_items')
         .update(rollbackPayload)
@@ -971,7 +1079,7 @@ export async function consumeInventory(
 
     const { data: item, error: fetchError } = await supabase
       .from('inventory_items')
-      .select('name, stock_level')
+      .select('name, stock_level, price_per_unit')
       .eq('id', itemId)
       .eq('tenant_id', tenantId)
       .single();
@@ -986,6 +1094,7 @@ export async function consumeInventory(
     if ('error' in movement) return { success: false, error: movement.error };
 
     const previousStock = movement.previousStock;
+    const exportUnitPrice = Math.max(0, Number(item.price_per_unit || 0));
     const updatePayload: InventoryItemUpdate = { stock_level: movement.newStock };
 
     const { error: updateError } = await supabase
@@ -1003,7 +1112,11 @@ export async function consumeInventory(
       session_log_id: sessionLogId || null,
       notes: notes || 'Tiêu hao buổi liệu trình',
       created_by: userId,
-      tenant_id: tenantId
+      tenant_id: tenantId,
+      accounting_metadata: {
+        unit_price: exportUnitPrice,
+        total_value: numericAmount * exportUnitPrice,
+      },
     };
 
     const { error: logError } = await supabase.from('inventory_logs').insert(logPayload);

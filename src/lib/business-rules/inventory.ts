@@ -221,6 +221,7 @@ export type PeriodInventoryLogInput = {
   reason: string;
   notes?: string | null;
   created_at?: string | null;
+  accounting_metadata?: unknown;
 };
 
 export type PeriodInventoryMovementRow = {
@@ -268,6 +269,36 @@ function toVietnamIsoDate(timestamp: string | null | undefined): string | null {
   return parsed.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
 }
 
+function extractLogUnitPrice(
+  metadata: unknown,
+  fallbackPrice: number,
+): number {
+  if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+    const raw = (metadata as Record<string, unknown>).unit_price;
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return parsed;
+    }
+  }
+  return fallbackPrice;
+}
+
+export function calculateWeightedAverageUnitPrice(input: {
+  currentStock: number;
+  currentUnitPrice: number;
+  importQty: number;
+  importUnitPrice: number;
+}): number {
+  const safeOldQty = Math.max(0, asFiniteNumber(input.currentStock));
+  const safeOldPrice = Math.max(0, asFiniteNumber(input.currentUnitPrice));
+  const safeImportQty = Math.max(0, asFiniteNumber(input.importQty));
+  const safeImportPrice = Math.max(0, asFiniteNumber(input.importUnitPrice));
+  const newTotalQty = safeOldQty + safeImportQty;
+  if (newTotalQty <= 0) return safeImportPrice;
+  if (safeOldQty <= 0) return Math.round(safeImportPrice);
+  return Math.round(((safeOldQty * safeOldPrice) + (safeImportQty * safeImportPrice)) / newTotalQty);
+}
+
 export function calculatePeriodInventoryMovements(input: {
   items: PeriodInventoryItemInput[];
   logs: PeriodInventoryLogInput[];
@@ -280,9 +311,12 @@ export function calculatePeriodInventoryMovements(input: {
     itemById.set(item.id, item);
   }
 
-  const netAfterEnd = new Map<string, number>();
+  const netAfterEndQty = new Map<string, number>();
+  const netAfterEndValue = new Map<string, number>();
   const importQtyMap = new Map<string, number>();
+  const importValueMap = new Map<string, number>();
   const exportQtyMap = new Map<string, number>();
+  const exportValueMap = new Map<string, number>();
   const lastImportMap = new Map<string, string>();
   const lastExportMap = new Map<string, string>();
   const periodLogs: PeriodInventoryMovementLogRow[] = [];
@@ -292,29 +326,40 @@ export function calculatePeriodInventoryMovements(input: {
     const logDate = toVietnamIsoDate(log.created_at);
     if (!logDate) continue;
 
+    const item = itemById.get(log.item_id);
+    const fallbackPrice = Math.max(0, asFiniteNumber(item?.price_per_unit));
+    const unitPrice = extractLogUnitPrice(log.accounting_metadata, fallbackPrice);
+
     if (logDate > dateTo) {
-      netAfterEnd.set(log.item_id, (netAfterEnd.get(log.item_id) ?? 0) + change);
+      netAfterEndQty.set(log.item_id, (netAfterEndQty.get(log.item_id) ?? 0) + change);
+      netAfterEndValue.set(
+        log.item_id,
+        (netAfterEndValue.get(log.item_id) ?? 0) + change * unitPrice,
+      );
       continue;
     }
 
     if (logDate >= dateFrom && logDate <= dateTo) {
       const createdAt = log.created_at ?? null;
+      const absQty = Math.abs(change);
+      const txValue = absQty * unitPrice;
+
       if (change > 0) {
         importQtyMap.set(log.item_id, (importQtyMap.get(log.item_id) ?? 0) + change);
+        importValueMap.set(log.item_id, (importValueMap.get(log.item_id) ?? 0) + txValue);
         if (createdAt) {
           const prev = lastImportMap.get(log.item_id);
           if (!prev || createdAt > prev) lastImportMap.set(log.item_id, createdAt);
         }
       } else if (change < 0) {
-        exportQtyMap.set(log.item_id, (exportQtyMap.get(log.item_id) ?? 0) + Math.abs(change));
+        exportQtyMap.set(log.item_id, (exportQtyMap.get(log.item_id) ?? 0) + absQty);
+        exportValueMap.set(log.item_id, (exportValueMap.get(log.item_id) ?? 0) + txValue);
         if (createdAt) {
           const prev = lastExportMap.get(log.item_id);
           if (!prev || createdAt > prev) lastExportMap.set(log.item_id, createdAt);
         }
       }
 
-      const item = itemById.get(log.item_id);
-      const unitPrice = Math.max(0, asFiniteNumber(item?.price_per_unit));
       periodLogs.push({
         id: log.id,
         item_id: log.item_id,
@@ -322,7 +367,7 @@ export function calculatePeriodInventoryMovements(input: {
         item_name: item?.name || 'Vật tư nội thất',
         unit: item?.unit || '',
         unit_price: unitPrice,
-        total_value: Math.abs(change) * unitPrice,
+        total_value: txValue,
         change_amount: change,
         reason: log.reason,
         notes: log.notes ?? null,
@@ -337,11 +382,17 @@ export function calculatePeriodInventoryMovements(input: {
     const currentStock = asFiniteNumber(item.stock_level);
     const minStock = Math.max(0, asFiniteNumber(item.min_stock_level));
     const unitPrice = Math.max(0, asFiniteNumber(item.price_per_unit));
-    const afterDelta = netAfterEnd.get(item.id) ?? 0;
+    const afterDeltaQty = netAfterEndQty.get(item.id) ?? 0;
+    const afterDeltaValue = netAfterEndValue.get(item.id) ?? 0;
     const importQty = importQtyMap.get(item.id) ?? 0;
     const exportQty = exportQtyMap.get(item.id) ?? 0;
-    const closingQty = currentStock - afterDelta;
+    const importValue = importValueMap.get(item.id) ?? 0;
+    const exportValue = exportValueMap.get(item.id) ?? 0;
+    const closingQty = currentStock - afterDeltaQty;
     const openingQty = closingQty - importQty + exportQty;
+    const currentValue = currentStock * unitPrice;
+    const closingValue = closingQty <= 0 ? 0 : Math.max(0, currentValue - afterDeltaValue);
+    const openingValue = openingQty <= 0 ? 0 : Math.max(0, closingValue - importValue + exportValue);
 
     return {
       id: item.id,
@@ -356,10 +407,10 @@ export function calculatePeriodInventoryMovements(input: {
       import_qty: importQty,
       export_qty: exportQty,
       closing_qty: closingQty,
-      opening_value: openingQty * unitPrice,
-      import_value: importQty * unitPrice,
-      export_value: exportQty * unitPrice,
-      closing_value: closingQty * unitPrice,
+      opening_value: openingValue,
+      import_value: importValue,
+      export_value: exportValue,
+      closing_value: closingValue,
       last_import_at: lastImportMap.get(item.id) ?? null,
       last_export_at: lastExportMap.get(item.id) ?? null,
     };
