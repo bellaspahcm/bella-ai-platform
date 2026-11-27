@@ -296,6 +296,13 @@ export function requiredInteriorPermission(request: Request, body: JsonRecord | 
   if (pathname === '/api/interior/delivery/site-diary') {
     if (method === 'GET') return INTERIOR_PERMISSIONS.installationRead;
     if (method === 'POST') return INTERIOR_PERMISSIONS.installationCreate;
+    if (method === 'PATCH') return INTERIOR_PERMISSIONS.installationUpdate;
+  }
+  if (
+    (pathname === '/api/interior/delivery/site-diary/upload' || pathname === '/api/interior/upload/site-photo')
+    && method === 'POST'
+  ) {
+    return INTERIOR_PERMISSIONS.installationCreate;
   }
   if (pathname === '/api/interior/delivery/warranty') {
     if (method === 'GET') return INTERIOR_PERMISSIONS.warrantyRead;
@@ -432,6 +439,69 @@ export type InteriorContextFailure = {
 
 export type InteriorContextResult = InteriorServerContext | InteriorContextFailure;
 
+// ─── resolveInteriorActorAccess (Self-Identity Only, No Module Permission Gate) ─
+
+export type InteriorActorContext = {
+  ok: true;
+  actor: ActiveCurrentActor;
+  tenantId: string;
+  supabase: ReturnType<typeof createClient>;
+  authorization: SupabaseInteriorRoleAuthorization;
+};
+
+export type InteriorActorContextResult = InteriorActorContext | InteriorContextFailure;
+
+/**
+ * Authenticates the caller and resolves their verified tenant identity without
+ * gating on a specific feature permission. Used by self-access endpoints such
+ * as GET /api/interior/me/access.
+ */
+export async function resolveInteriorActorAccess(
+  request: Request,
+): Promise<InteriorActorContextResult> {
+  if (FORBIDDEN_HEADERS.some((name) => request.headers.has(name))) {
+    return { ok: false, response: interiorFailure('INTERIOR_ACCESS_DENIED', 403) };
+  }
+
+  const authorization = request.headers.get('authorization');
+  if (authorization !== null && !/^Bearer [^\s]+$/.test(authorization)) {
+    return { ok: false, response: interiorFailure('INTERIOR_UNAUTHENTICATED', 401) };
+  }
+
+  try {
+    const supabase = createClient();
+    const auth = authorization
+      ? await supabase.auth.getUser(authorization.slice(7))
+      : await supabase.auth.getUser();
+
+    if (auth.error || !auth.data.user) {
+      return { ok: false, response: interiorFailure('INTERIOR_UNAUTHENTICATED', 401) };
+    }
+
+    const profile = await supabase.rpc(CURRENT_ACTOR_PROFILE_RPC);
+    if (profile.error) {
+      return { ok: false, response: interiorFailure('INTERIOR_UNAVAILABLE', 503) };
+    }
+
+    const actor = reconcileCurrentActorProfile(auth.data.user.id, profile.data);
+    if (!actor?.tenant_id) {
+      return { ok: false, response: interiorFailure('INTERIOR_ACCESS_DENIED', 403) };
+    }
+
+    return {
+      ok: true,
+      actor,
+      tenantId: actor.tenant_id,
+      supabase,
+      authorization: new SupabaseInteriorRoleAuthorization(
+        supabase as unknown as SupabaseClient<Database>,
+      ),
+    };
+  } catch {
+    return { ok: false, response: interiorFailure('INTERIOR_UNAVAILABLE', 503) };
+  }
+}
+
 // ─── resolveInteriorContext ───────────────────────────────────────────────────
 
 /**
@@ -450,48 +520,12 @@ export type InteriorContextResult = InteriorServerContext | InteriorContextFailu
 export async function resolveInteriorContext(
   request: Request,
 ): Promise<InteriorContextResult> {
-  // ── 1. Block forbidden client-controlled identity headers ─────────────────
-  if (FORBIDDEN_HEADERS.some((name) => request.headers.has(name))) {
-    return { ok: false, response: interiorFailure('INTERIOR_ACCESS_DENIED', 403) };
-  }
+  const baseAccess = await resolveInteriorActorAccess(request);
+  if (!baseAccess.ok) return baseAccess;
 
-  // ── 2. Validate Authorization header format if present ────────────────────
-  const authorization = request.headers.get('authorization');
-  if (authorization !== null && !/^Bearer [^\s]+$/.test(authorization)) {
-    return { ok: false, response: interiorFailure('INTERIOR_UNAUTHENTICATED', 401) };
-  }
+  const { actor, tenantId, supabase, authorization: authorization_helper } = baseAccess;
 
   try {
-    // ── 3. Create SSR Supabase client (cookie-based) ─────────────────────────
-    const supabase = createClient();
-
-    // ── 4. Verify identity — auth.getUser(), NOT getSession() ────────────────
-    const auth = authorization
-      ? await supabase.auth.getUser(authorization.slice(7))
-      : await supabase.auth.getUser();
-
-    if (auth.error || !auth.data.user) {
-      return { ok: false, response: interiorFailure('INTERIOR_UNAUTHENTICATED', 401) };
-    }
-
-    // ── 5. Resolve tenant from DB via platform RPC — NOT from headers ─────────
-    const profile = await supabase.rpc(CURRENT_ACTOR_PROFILE_RPC);
-    if (profile.error) {
-      return { ok: false, response: interiorFailure('INTERIOR_UNAVAILABLE', 503) };
-    }
-
-    // ── 6. Cross-verify auth.id === profile.id before trusting tenantId ───────
-    const actor = reconcileCurrentActorProfile(auth.data.user.id, profile.data);
-    if (!actor?.tenant_id) {
-      return { ok: false, response: interiorFailure('INTERIOR_ACCESS_DENIED', 403) };
-    }
-    const tenantId = actor.tenant_id;
-
-    // ── 7. Build authorization helper ─────────────────────────────────────────
-    const authorization_helper = new SupabaseInteriorRoleAuthorization(
-      supabase as unknown as SupabaseClient<Database>,
-    );
-
     const scope = await requestedProjectScope(request);
     if (scope.status === 'INVALID') {
       return { ok: false, response: interiorFailure('INTERIOR_PROJECT_SCOPE_INVALID', 403) };
@@ -522,15 +556,41 @@ export async function resolveInteriorContext(
       return { ok: false, response: interiorFailure('INTERIOR_ACTION_NOT_CONFIGURED', 403) };
     }
 
-    const isProjectList = new URL(request.url).pathname.replace(/\/+$/, '') === '/api/interior/projects'
+    const normalizedPathname = new URL(request.url).pathname.replace(/\/+$/, '');
+    const isProjectList = normalizedPathname === '/api/interior/projects'
       && request.method.toUpperCase() === 'GET';
-    const isCustomerList = new URL(request.url).pathname.replace(/\/+$/, '') === '/api/interior/customers'
+    const isCustomerList = normalizedPathname === '/api/interior/customers'
       && request.method.toUpperCase() === 'GET';
-    const isScheduleCollection = new URL(request.url).pathname.replace(/\/+$/, '') === '/api/interior/schedule'
+    const isScheduleCollection = normalizedPathname === '/api/interior/schedule'
       && ['GET', 'POST', 'PATCH', 'DELETE'].includes(request.method.toUpperCase())
       && projectId === undefined;
-    const isAuditRead = new URL(request.url).pathname.replace(/\/+$/, '') === '/api/interior/rbac/audit'
+    const isAuditRead = normalizedPathname === '/api/interior/rbac/audit'
       && request.method.toUpperCase() === 'GET';
+    const isSitePhotoUpload = (
+      normalizedPathname === '/api/interior/delivery/site-diary/upload'
+      || normalizedPathname === '/api/interior/upload/site-photo'
+    ) && request.method.toUpperCase() === 'POST';
+
+    const authorizeAnyPermission = async (permissionIds: readonly string[], reasonLabel: string) => {
+      const decisions = await Promise.all(
+        permissionIds.map((perm) =>
+          authorization_helper.authorize({
+            permissionId: perm,
+            tenantId,
+            projectId,
+            branchId: scope.branchId,
+          }),
+        ),
+      );
+      if (decisions.some((item) => item.status === 'ALLOW')) {
+        return { status: 'ALLOW' as const, reason: reasonLabel };
+      }
+      if (decisions.some((item) => item.status === 'UNAVAILABLE')) {
+        return { status: 'UNAVAILABLE' as const, reason: 'RESOLVER_UNAVAILABLE' };
+      }
+      return { status: 'DENY' as const, reason: 'NO_GRANT' };
+    };
+
     const decision = isProjectList
       ? await authorization_helper.authorizeProjectList(tenantId)
       : isCustomerList
@@ -538,25 +598,23 @@ export async function resolveInteriorContext(
         : isScheduleCollection
           ? await authorization_helper.authorizeScheduleList(tenantId)
       : isAuditRead
-        ? await (async () => {
-          const decisions = await Promise.all([
-            authorization_helper.authorize({ permissionId: 'interior:audit:read', tenantId }),
-            authorization_helper.authorize({ permissionId: 'interior:audit:read_limited', tenantId }),
-          ]);
-          if (decisions.some((item) => item.status === 'ALLOW')) {
-            return { status: 'ALLOW' as const, reason: 'AUDIT_READ' };
-          }
-          if (decisions.some((item) => item.status === 'UNAVAILABLE')) {
-            return { status: 'UNAVAILABLE' as const, reason: 'RESOLVER_UNAVAILABLE' };
-          }
-          return { status: 'DENY' as const, reason: 'NO_GRANT' };
-        })()
-        : await authorization_helper.authorize({
-        permissionId,
-        tenantId,
-        projectId,
-        branchId: scope.branchId,
-      });
+        ? await authorizeAnyPermission(['interior:audit:read', 'interior:audit:read_limited'], 'AUDIT_READ')
+        : isSitePhotoUpload
+          ? await authorizeAnyPermission(
+              [
+                INTERIOR_PERMISSIONS.installationCreate,
+                INTERIOR_PERMISSIONS.installationUpdate,
+                INTERIOR_PERMISSIONS.qcCreate,
+                INTERIOR_PERMISSIONS.acceptanceEvidenceUpload,
+              ],
+              'SITE_PHOTO_UPLOAD',
+            )
+          : await authorization_helper.authorize({
+              permissionId,
+              tenantId,
+              projectId,
+              branchId: scope.branchId,
+            });
     if (decision.status === 'DENY') {
       return { ok: false, response: interiorFailure('INTERIOR_PERMISSION_DENIED', 403) };
     }

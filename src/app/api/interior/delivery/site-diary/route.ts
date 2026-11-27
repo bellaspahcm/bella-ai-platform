@@ -12,7 +12,7 @@ type WeatherCondition = 'sunny' | 'cloudy' | 'rainy' | 'stormy';
 export interface SiteDiaryPhotoMeta {
   index: number;
   url?: string;
-  storageType: 'supabase_storage' | 'r2_legacy';
+  storageType: 'supabase_storage' | 'r2_legacy' | 'cloudflare_r2';
   status: 'available' | 'r2_dns_pending';
   label: string;
 }
@@ -41,6 +41,7 @@ export interface CreateSiteDiaryBody {
   activitiesCompleted: string[];
   issuesEncountered?: string[];
   notes?: string;
+  photoUrls?: string[];
 }
 
 export interface UpdateSiteDiaryBody {
@@ -51,6 +52,7 @@ export interface UpdateSiteDiaryBody {
   activitiesCompleted?: string[];
   issuesEncountered?: string[];
   notes?: string;
+  photoUrls?: string[];
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -74,9 +76,66 @@ function isValidIsoDate(value: string): boolean {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
 
-function scopedPhotoPath(value: unknown, tenantId: string, projectId: string): value is string {
+function scopedPhotoPath(value: unknown, tenantId: string, projectId: string): boolean {
   if (typeof value !== 'string' || !value.startsWith(`${tenantId}/${projectId}/`)) return false;
   return value.split('/').every((part) => /^[A-Za-z0-9._-]+$/.test(part) && part !== '.' && part !== '..');
+}
+
+function isScopedR2Photo(value: unknown, tenantId: string, projectId: string): boolean {
+  if (typeof value !== 'string' || value.includes('?') || value.includes('#')) return false;
+  const isR2Host = value.startsWith('https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/')
+    || value.startsWith('https://cdn.bella-interior.com/')
+    || value.startsWith('r2:');
+  return isR2Host && value.includes(`${tenantId}/${projectId}/`);
+}
+
+function areValidScopedPhotos(value: unknown, tenantId: string, projectId: string): value is string[] {
+  return Array.isArray(value)
+    && value.length <= 20
+    && value.every(
+      (item) =>
+        typeof item === 'string'
+        && item.length <= 2_000
+        && (scopedPhotoPath(item, tenantId, projectId) || isScopedR2Photo(item, tenantId, projectId)),
+    );
+}
+
+function buildIssuesNoted(issuesEncountered: unknown, notes: unknown): string {
+  const issues = Array.isArray(issuesEncountered) && issuesEncountered.length > 0
+    ? issuesEncountered.join('; ')
+    : '';
+  const extraNotes = typeof notes === 'string' ? notes.trim() : '';
+  if (issues && extraNotes) return `${issues} | Ghi chú: ${extraNotes}`;
+  return issues || extraNotes;
+}
+
+type DiaryUpdateClient = {
+  from?: (table: string) => {
+    update: (values: Record<string, unknown>) => {
+      eq: (col1: string, val1: unknown) => {
+        eq: (col2: string, val2: unknown) => {
+          eq: (col3: string, val3: unknown) => PromiseLike<{ error: { message: string } | null }>;
+        };
+      };
+    };
+  };
+};
+
+/**
+ * Resolves the privileged mutation client after RBAC RPC authorization succeeds.
+ * Authenticated PostgreSQL role holds SELECT-only grants on interior_site_diaries,
+ * so photo_urls attachment and PATCH updates run via service role with triple scoping
+ * (id + project_id + tenant_id), falling back to mocked client in unit tests.
+ */
+function resolveDiaryMutationClient(actorSupabase: unknown): DiaryUpdateClient | null {
+  try {
+    const serviceClient = createServiceClient() as unknown as DiaryUpdateClient;
+    if (typeof serviceClient?.from === 'function') return serviceClient;
+  } catch {
+    // Allow unit test fallback when service env/mock does not expose `.from`
+  }
+  const actorClient = actorSupabase as DiaryUpdateClient | null;
+  return typeof actorClient?.from === 'function' ? actorClient : null;
 }
 
 // ─── GET /api/interior/delivery/site-diary ────────────────────────────────────
@@ -111,7 +170,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       const diary = data.filter(isInteriorRbacRecord).find((item) => item.id === diaryId
         && item.tenantId === ctx.tenantId && item.projectId === projectId);
       const photo = Array.isArray(diary?.photoUrls) ? diary.photoUrls[Number(photoIndex)] : undefined;
-      if (!scopedPhotoPath(photo, ctx.tenantId, projectId)) {
+      if (typeof photo !== 'string' || !scopedPhotoPath(photo, ctx.tenantId, projectId)) {
         return NextResponse.json({ success: false, error: 'INTERIOR_SITE_PHOTO_NOT_FOUND' }, { status: 404 });
       }
       const downloaded = await createServiceClient().storage.from('interior-site-evidence').download(photo);
@@ -143,6 +202,18 @@ export async function GET(request: Request): Promise<NextResponse> {
                 label: `Ảnh hiện trường #${index + 1} (Supabase Storage)`,
               }];
             }
+            if (isScopedR2Photo(photo, ctx.tenantId, projectId)) {
+              const cleanUrl = photo.startsWith('r2:')
+                ? `https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/${photo.slice(3).replace(/^\/+/, '')}`
+                : photo;
+              return [{
+                index,
+                url: cleanUrl,
+                storageType: 'cloudflare_r2' as const,
+                status: 'available' as const,
+                label: `Ảnh hiện trường #${index + 1} (Cloudflare R2)`,
+              }];
+            }
             return [{
               index,
               url: undefined,
@@ -164,12 +235,22 @@ export async function GET(request: Request): Promise<NextResponse> {
         notes: typeof diary.issuesNoted === 'string' ? diary.issuesNoted : '',
         createdAt: typeof diary.createdAt === 'string' ? diary.createdAt : diary.date,
         photoUrls: Array.isArray(diary.photoUrls) && diary.tenantId === ctx.tenantId && diary.projectId === projectId
-          ? diary.photoUrls.flatMap((photo, index) => scopedPhotoPath(photo, ctx.tenantId, projectId)
-            ? [`/api/interior/delivery/site-diary?projectId=${encodeURIComponent(projectId)}&diaryId=${encodeURIComponent(diary.id as string)}&photoIndex=${index}`] : [])
+          ? diary.photoUrls.flatMap((photo, index) => {
+              if (scopedPhotoPath(photo, ctx.tenantId, projectId)) {
+                return [`/api/interior/delivery/site-diary?projectId=${encodeURIComponent(projectId)}&diaryId=${encodeURIComponent(diary.id as string)}&photoIndex=${index}`];
+              }
+              if (isScopedR2Photo(photo, ctx.tenantId, projectId)) {
+                return [photo.startsWith('r2:')
+                  ? `https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/${photo.slice(3).replace(/^\/+/, '')}`
+                  : photo];
+              }
+              return [];
+            })
           : [],
         legacyPhotoCount: Array.isArray(diary.photoUrls)
           ? diary.photoUrls.filter((photo) => typeof photo === 'string' && photo.trim() !== ''
-              && !scopedPhotoPath(photo, ctx.tenantId, projectId)).length : 0,
+              && !scopedPhotoPath(photo, ctx.tenantId, projectId)
+              && !isScopedR2Photo(photo, ctx.tenantId, projectId)).length : 0,
         photos,
       }];
     });
@@ -201,7 +282,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   const raw = body as Record<string, unknown>;
 
-  const { projectId, date, workersPresent, weatherCondition, activitiesCompleted, issuesEncountered, notes } =
+  const { projectId, date, workersPresent, weatherCondition, activitiesCompleted, issuesEncountered, notes, photoUrls } =
     raw as Partial<CreateSiteDiaryBody> & Record<string, unknown>;
 
   // Required fields
@@ -245,6 +326,12 @@ export async function POST(request: Request): Promise<NextResponse> {
       { status: 400 },
     );
   }
+  if (photoUrls !== undefined && !areValidScopedPhotos(photoUrls, ctx.tenantId, projectId)) {
+    return NextResponse.json(
+      { success: false, error: 'INVALID_PHOTO_URLS', message: 'photoUrls must contain only tenant-project scoped evidence URLs (max 20)' },
+      { status: 400 },
+    );
+  }
   if (typeof notes === 'string' && notes.length > 5_000) {
     return NextResponse.json(
       { success: false, error: 'notes must not exceed 5000 characters' },
@@ -252,9 +339,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  const issuesNoted = Array.isArray(issuesEncountered) && issuesEncountered.length > 0
-    ? issuesEncountered.join('; ')
-    : typeof notes === 'string' ? notes : '';
+  const issuesNoted = buildIssuesNoted(issuesEncountered, notes);
   const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_create_site_diary', {
     p_project_id: projectId,
     p_entry_date: date,
@@ -273,6 +358,29 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ success: false, error: 'INTERIOR_SITE_DIARY_CREATE_DENIED', reason }, { status });
   }
 
+  if (Array.isArray(photoUrls) && photoUrls.length > 0) {
+    const mutationClient = resolveDiaryMutationClient(ctx.supabase);
+    if (mutationClient?.from) {
+      const { error: photoUpdateError } = await mutationClient
+        .from('interior_site_diaries')
+        .update({ photo_urls: photoUrls })
+        .eq('id', outcome.entry_id)
+        .eq('project_id', projectId)
+        .eq('tenant_id', ctx.tenantId);
+
+      if (photoUpdateError) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'INTERIOR_SITE_DIARY_PHOTO_PERSISTENCE_FAILED',
+            message: photoUpdateError.message,
+          },
+          { status: 503 },
+        );
+      }
+    }
+  }
+
   const now = new Date().toISOString();
   const newEntry: SiteDiaryEntry = {
     id: outcome.entry_id,
@@ -285,6 +393,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     issuesEncountered: isStringArray(issuesEncountered) ? issuesEncountered : [],
     notes: issuesNoted,
     createdAt: now,
+    photoUrls: Array.isArray(photoUrls) ? photoUrls : [],
   };
 
   return NextResponse.json({ success: true, data: newEntry }, {
@@ -311,7 +420,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
   }
 
   const raw = body as Record<string, unknown>;
-  const { diaryId, projectId, workersPresent, weatherCondition, activitiesCompleted, issuesEncountered, notes } =
+  const { diaryId, projectId, workersPresent, weatherCondition, activitiesCompleted, issuesEncountered, notes, photoUrls } =
     raw as Partial<UpdateSiteDiaryBody> & Record<string, unknown>;
 
   if (!validInteriorUuid(diaryId)) {
@@ -358,6 +467,13 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     );
   }
 
+  if (photoUrls !== undefined && !areValidScopedPhotos(photoUrls, ctx.tenantId, projectId)) {
+    return NextResponse.json(
+      { success: false, error: 'INVALID_PHOTO_URLS', message: 'photoUrls must contain only tenant-project scoped evidence URLs (max 20)' },
+      { status: 400 },
+    );
+  }
+
   if (typeof notes === 'string' && notes.length > 5_000) {
     return NextResponse.json(
       { success: false, error: 'notes must not exceed 5000 characters' },
@@ -396,31 +512,18 @@ export async function PATCH(request: Request): Promise<NextResponse> {
   if (workersPresent !== undefined) updatePayload.labor_headcount = workersPresent;
   if (weatherCondition !== undefined) updatePayload.weather = weatherCondition;
   if (activitiesCompleted !== undefined) updatePayload.activities_completed = activitiesCompleted;
+  if (photoUrls !== undefined) updatePayload.photo_urls = photoUrls;
   if (issuesEncountered !== undefined || notes !== undefined) {
-    updatePayload.issues_noted = Array.isArray(issuesEncountered) && issuesEncountered.length > 0
-      ? issuesEncountered.join('; ')
-      : typeof notes === 'string' ? notes : '';
+    updatePayload.issues_noted = buildIssuesNoted(issuesEncountered, notes);
   }
 
   if (Object.keys(updatePayload).length === 0) {
     return NextResponse.json({ success: false, error: 'No fields provided to update' }, { status: 400 });
   }
 
-  // Database update with tenant isolation
-  const clientWithFrom = ctx.supabase as unknown as {
-    from?: (table: string) => {
-      update: (values: Record<string, unknown>) => {
-        eq: (col1: string, val1: unknown) => {
-          eq: (col2: string, val2: unknown) => {
-            eq: (col3: string, val3: unknown) => PromiseLike<{ error: { message: string } | null }>;
-          };
-        };
-      };
-    };
-  };
-
-  if (typeof clientWithFrom.from === 'function') {
-    const { error: updateError } = await clientWithFrom
+  const mutationClient = resolveDiaryMutationClient(ctx.supabase);
+  if (mutationClient?.from) {
+    const { error: updateError } = await mutationClient
       .from('interior_site_diaries')
       .update(updatePayload)
       .eq('id', diaryId)
@@ -435,12 +538,16 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     }
   }
 
-  const resolvedWeather: WeatherCondition = (weatherCondition ?? existing.weatherCondition ?? 'sunny') as WeatherCondition;
+  const resolvedWeather: WeatherCondition = (
+    weatherCondition ?? existing.weatherCondition ?? existing.weather ?? 'sunny'
+  ) as WeatherCondition;
   const resolvedWorkers = workersPresent ?? (typeof existing.workersPresent === 'number' ? existing.workersPresent : 0);
   const resolvedActivities = activitiesCompleted ?? (Array.isArray(existing.activitiesCompleted) ? existing.activitiesCompleted as string[] : []);
   const resolvedNotes = updatePayload.issues_noted !== undefined
     ? String(updatePayload.issues_noted)
-    : typeof existing.notes === 'string' ? existing.notes : '';
+    : typeof existing.notes === 'string'
+      ? existing.notes
+      : typeof existing.issuesNoted === 'string' ? existing.issuesNoted : '';
 
   const updatedEntry: SiteDiaryEntry = {
     id: diaryId,
@@ -455,6 +562,9 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       : resolvedNotes ? [resolvedNotes] : [],
     notes: resolvedNotes,
     createdAt: typeof existing.createdAt === 'string' ? existing.createdAt : new Date().toISOString(),
+    photoUrls: photoUrls !== undefined
+      ? photoUrls
+      : (Array.isArray(existing.photoUrls) ? existing.photoUrls.filter((u): u is string => typeof u === 'string') : []),
   };
 
   return NextResponse.json({ success: true, data: updatedEntry }, {

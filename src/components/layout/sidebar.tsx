@@ -66,6 +66,7 @@ import {
   BookOpenCheck,
   Award,
   HardHat,
+  Smartphone,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -473,6 +474,7 @@ const bellaInteriorMenuItems: SidebarMenuItem[] = [
   { icon: Wrench, label: 'Sản xuất xưởng', href: '/dashboard/interior/production' },
   { icon: Package, label: 'Kho vật tư', href: '/dashboard/inventory' },
   { icon: Building2, label: 'Thi công lắp đặt', href: '/dashboard/interior/installation' },
+  { icon: Smartphone, label: 'Nhật ký công trình (PWA)', href: '/dashboard/interior/site-diary' },
   { icon: ShieldCheck, label: 'QC & Nghiệm thu', href: '/dashboard/interior/qc-handover' },
   { icon: Award, label: 'Bảo hành', href: '/dashboard/interior/warranty' },
   { type: 'header', label: 'QUẢN TRỊ' },
