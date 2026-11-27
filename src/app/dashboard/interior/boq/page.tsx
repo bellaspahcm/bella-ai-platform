@@ -109,7 +109,7 @@ const INITIAL_BOQ_OVERVIEW: BOQOverviewResponse = {
       rawValue: 1_250_000_000,
       formattedValue: '1,250,000,000 đ',
       label: 'Tổng giá vốn nội bộ (COGS)',
-      tooltip: 'Bao gồm chi phí nguyên vật liệu, phụ kiện, nhân công sản xuất &amp; hoàn thiện',
+      tooltip: 'Bao gồm chi phí nguyên vật liệu, phụ kiện, nhân công sản xuất & hoàn thiện',
       trendLabel: '▲ +2.5% so với dự toán',
       trendClass: 'text-emerald-600 dark:text-emerald-400',
       iconName: 'Layers',
@@ -338,7 +338,7 @@ const INITIAL_BOQ_OVERVIEW: BOQOverviewResponse = {
     {
       id: 'bom-01',
       category: 'wood',
-      categoryLabel: 'Gỗ &amp; Ván Công Nghiệp',
+      categoryLabel: 'Gỗ & Ván Công Nghiệp',
       materialCode: 'MFC-MS-440-EV',
       materialName: 'Ván MDF chống ẩm phủ Melamine An Cường',
       spec: 'Khổ 1220 x 2440 x 17 mm lõi xanh',
