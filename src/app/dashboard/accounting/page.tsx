@@ -372,7 +372,7 @@ export default function AccountingOverviewPage() {
               <FileSpreadsheet className="w-8 h-8 text-emerald-500 mb-4 group-hover:scale-105 transition-transform" />
               <div>
                 <h5 className="font-extrabold text-sm text-slate-800 dark:text-[#EFE9E1] uppercase tracking-wider">Báo Cáo TT99</h5>
-                <p className="text-2xs text-slate-400 dark:text-[#CDBCAB]/60 mt-1">Xuất Báo cáo tài chính, P&L, đối cân Excel.</p>
+                <p className="text-2xs text-slate-400 dark:text-[#CDBCAB]/60 mt-1">Xuất Báo cáo tài chính, KQHĐKD, đối cân Excel.</p>
               </div>
             </div>
           </Link>
