@@ -279,9 +279,9 @@ export default function InteriorReportsAnalyticsPage() {
 
             {showScopeDropdown && (
               <div className="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-lg z-30 py-1.5 text-xs">
-                {data.filterOptions.availableProjectFilters.map((filter) => (
+                {data.filterOptions.availableProjectFilters.map((filter, idx) => (
                   <button
-                    key={filter}
+                    key={`${filter}-${idx}`}
                     type="button"
                     onClick={() => {
                       setSelectedScope(filter);
