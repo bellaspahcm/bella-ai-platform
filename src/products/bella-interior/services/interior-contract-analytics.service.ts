@@ -1598,6 +1598,34 @@ export class InteriorContractAnalyticsService {
 
     const resolvedProjectName = projectName ?? contract.title;
 
+    const auditLogs = [
+      ...(contract.signedDate
+        ? [{
+            id: `audit-signed-${contract.id}`,
+            timestamp: new Date(contract.signedDate).toLocaleDateString('vi-VN'),
+            actor: contract.contractorRepresentative || 'Phòng Hợp Đồng',
+            action: `Ký kết hợp đồng ${contract.contractNumber} (${this.formatVND(contractValue)})`,
+            type: 'legal' as const,
+          }]
+        : []),
+      ...milestones
+        .filter((m) => m.status === 'paid')
+        .map((m) => ({
+          id: `audit-paid-${m.id}`,
+          timestamp: m.transactions[0]?.transactionDate || m.dueDateFormatted || 'Đã thanh toán',
+          actor: 'Kế toán dự án',
+          action: `Xác nhận thu đủ ${m.phaseName} (${m.collectedFormatted})`,
+          type: 'finance' as const,
+        })),
+      ...addenda.map((a) => ({
+        id: `audit-addendum-${a.id}`,
+        timestamp: a.effectiveDate,
+        actor: contract.contractorRepresentative || 'Phòng Hợp Đồng',
+        action: `Phụ lục ${a.code}: ${a.title} (${a.valueChangeFormatted}) — ${a.statusLabel}`,
+        type: 'legal' as const,
+      })),
+    ];
+
     return {
       hasContract: true,
       header: {
@@ -1631,7 +1659,7 @@ export class InteriorContractAnalyticsService {
             : `Hợp đồng số ${contract.contractNumber} — dữ liệu từ Supabase.`,
         },
         addenda,
-        auditLogs: [],
+        auditLogs,
         financialAnalysis: {
           estimatedCogs: 0,
           estimatedCogsFormatted: '0 đ',
