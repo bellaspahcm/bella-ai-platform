@@ -940,7 +940,7 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Nhật ký hiện trường, nhân sự, tiến độ & hình ảnh theo phân quyền
+                Nhật ký hiện trường, nhân sự, tiến độ &amp; hình ảnh theo phân quyền
               </p>
             </div>
           </div>
@@ -1158,7 +1158,7 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
             {/* Thời gian, Thời tiết & Hiện trạng chung */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 shadow-xs">
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                <span>📅</span> Ngày Báo Cáo, Thời Tiết & Hiện Trạng Công Trình
+                <span>📅</span> Ngày Báo Cáo, Thời Tiết &amp; Hiện Trạng Công Trình
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1389,7 +1389,7 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
             {/* Vướng mắc & Ghi chú hiện trạng */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 shadow-xs">
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                <span>⚠️</span> Vấn Đề Phát Sinh & Ghi Chú Chi Tiết
+                <span>⚠️</span> Vấn Đề Phát Sinh &amp; Ghi Chú Chi Tiết
               </h2>
               <textarea
                 rows={2}
@@ -1521,7 +1521,7 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
                   <span>Đang lưu nhật ký vào hệ thống...</span>
                 </>
               ) : (
-                <span>Gửi Báo Cáo Hiện Trạng & Lưu DB</span>
+                <span>Gửi Báo Cáo Hiện Trạng &amp; Lưu DB</span>
               )}
             </button>
           </form>
@@ -1614,7 +1614,7 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
 
                 {(diary.issuesEncountered?.length > 0 || diary.notes) && (
                   <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-xl p-2.5 text-xs text-amber-900 dark:text-amber-200">
-                    <span className="font-semibold block mb-0.5">Ghi chú & Hiện trạng:</span>
+                    <span className="font-semibold block mb-0.5">Ghi chú &amp; Hiện trạng:</span>
                     <p>{diary.issuesEncountered?.join('; ') || diary.notes}</p>
                   </div>
                 )}

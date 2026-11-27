@@ -65,12 +65,12 @@ export interface InstallationSiteDiary {
 
 export interface RealRoomItem {
   id: string;
-  roomZoneId: string;
-  roomZoneName: string;
+  roomZoneId: string | null;
+  roomZoneName: string | null;
   status: string;
-  installerTeamLeader: string;
+  installerTeamLeader: string | null;
   progressPercent: number;
-  targetInstallDate: string;
+  targetInstallDate: string | null;
   completedDate: string | null;
 }
 
@@ -771,7 +771,9 @@ export default function InteriorInstallationPage() {
                   >
                     <div className="p-4 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="font-mono text-xs font-bold text-slate-900">{room.roomZoneId.slice(0, 8)}</span>
+                        <span className="font-mono text-xs font-bold text-slate-900">
+                          {(room.roomZoneId ?? room.id ?? 'ROOM').slice(0, 8)}
+                        </span>
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                             room.status === 'completed'
@@ -784,19 +786,19 @@ export default function InteriorInstallationPage() {
                           {room.status === 'completed' ? 'Hoàn thành' : room.status === 'installing' || room.status === 'in_progress' ? 'Đang thi công' : 'Chờ lắp đặt'}
                         </span>
                       </div>
-                      <h3 className="font-bold text-slate-800 text-sm">{room.roomZoneName}</h3>
+                      <h3 className="font-bold text-slate-800 text-sm">{room.roomZoneName || 'Khu vực lắp đặt'}</h3>
                       <p className="text-[11px] text-slate-500">Đội trưởng: {room.installerTeamLeader || 'Chưa phân công'}</p>
 
                       {/* Progress */}
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-slate-500 font-medium">Tiến độ hoàn thiện</span>
-                          <span className="font-bold text-slate-800">{room.progressPercent}%</span>
+                          <span className="font-bold text-slate-800">{room.progressPercent ?? 0}%</span>
                         </div>
                         <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all bg-emerald-500"
-                            style={{ width: `${room.progressPercent}%` }}
+                            style={{ width: `${room.progressPercent ?? 0}%` }}
                           />
                         </div>
                       </div>
@@ -805,7 +807,7 @@ export default function InteriorInstallationPage() {
                       <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
                         <div className="flex items-center gap-1">
                           <IconCalendar className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Hạn: {room.targetInstallDate}</span>
+                          <span>Hạn: {room.targetInstallDate || '—'}</span>
                         </div>
                         {room.completedDate && (
                           <div className="flex items-center gap-1 text-emerald-600 font-medium">
