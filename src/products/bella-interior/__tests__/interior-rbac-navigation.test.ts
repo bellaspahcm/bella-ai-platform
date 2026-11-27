@@ -86,6 +86,7 @@ describe('Bella Interior RBAC Navigation', () => {
 
     it('permits Production Manager (Quản đốc xưởng) only workshop modules', () => {
       expect(isInteriorMenuItemAllowed('PRODUCTION_MANAGER', '/dashboard/interior/production')).toBe(true);
+      expect(isInteriorMenuItemAllowed('PRODUCTION_MANAGER', '/dashboard/inventory')).toBe(true);
       expect(isInteriorMenuItemAllowed('PRODUCTION_MANAGER', '/dashboard/interior/qc-handover')).toBe(true);
       expect(isInteriorMenuItemAllowed('PRODUCTION_MANAGER', '/dashboard/interior/design')).toBe(true);
       // Denied modules:
@@ -96,6 +97,7 @@ describe('Bella Interior RBAC Navigation', () => {
 
     it('permits Accountant (Kế toán) financial & contract modules only', () => {
       expect(isInteriorMenuItemAllowed('ACCOUNTANT', '/dashboard/interior/finance')).toBe(true);
+      expect(isInteriorMenuItemAllowed('ACCOUNTANT', '/dashboard/inventory')).toBe(true);
       expect(isInteriorMenuItemAllowed('ACCOUNTANT', '/dashboard/interior/contracts')).toBe(true);
       expect(isInteriorMenuItemAllowed('ACCOUNTANT', '/dashboard/interior/reports')).toBe(true);
       // Denied modules:

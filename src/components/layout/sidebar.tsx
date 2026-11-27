@@ -471,6 +471,7 @@ const bellaInteriorMenuItems: SidebarMenuItem[] = [
   { icon: CircleDollarSign, label: 'Thanh toán', href: '/dashboard/interior/finance' },
   { type: 'header', label: 'SẢN XUẤT & THI CÔNG' },
   { icon: Wrench, label: 'Sản xuất xưởng', href: '/dashboard/interior/production' },
+  { icon: Package, label: 'Kho vật tư', href: '/dashboard/inventory' },
   { icon: Building2, label: 'Thi công lắp đặt', href: '/dashboard/interior/installation' },
   { icon: ShieldCheck, label: 'QC & Nghiệm thu', href: '/dashboard/interior/qc-handover' },
   { icon: Award, label: 'Bảo hành', href: '/dashboard/interior/warranty' },
