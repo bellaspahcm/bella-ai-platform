@@ -581,7 +581,7 @@ export default function InteriorProjectFinancePage() {
                   <div className="border-b border-slate-200 dark:border-slate-700 w-full" />
                 </div>
 
-                {/* SVG Line Chart — fills plot area exactly */}
+                {/* SVG Line Chart — fills plot area without distorting strokes */}
                 <svg
                   className="w-full h-full overflow-visible"
                   viewBox="0 0 300 150"
@@ -593,6 +593,7 @@ export default function InteriorProjectFinancePage() {
                     fill="none"
                     stroke="#10B981"
                     strokeWidth="2.5"
+                    vectorEffect="non-scaling-stroke"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
@@ -602,23 +603,33 @@ export default function InteriorProjectFinancePage() {
                     fill="none"
                     stroke="#3B82F6"
                     strokeWidth="2.5"
+                    vectorEffect="non-scaling-stroke"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
-
-                  {/* Points */}
-                  {cashFlow.points.map((p, idx) => {
-                    const x = 30 + idx * 48;
-                    const yColl = 140 - (p.collected / 3_000_000_000) * 110;
-                    const yCost = 140 - (p.cost / 3_000_000_000) * 110;
-                    return (
-                      <g key={p.month}>
-                        <circle cx={x} cy={yColl} r="3.5" fill="#10B981" />
-                        <circle cx={x} cy={yCost} r="3.5" fill="#3B82F6" />
-                      </g>
-                    );
-                  })}
                 </svg>
+
+                {/* Geometrically true circular data points (never stretched by SVG aspect ratio) */}
+                {cashFlow.points.map((p, idx) => {
+                  const x = 30 + idx * 48;
+                  const yColl = 140 - (p.collected / 3_000_000_000) * 110;
+                  const yCost = 140 - (p.cost / 3_000_000_000) * 110;
+                  const leftPct = `${(x / 300) * 100}%`;
+                  return (
+                    <React.Fragment key={p.month}>
+                      <span
+                        title={`${p.month} — Thu tiền: ${new Intl.NumberFormat('vi-VN').format(p.collected)} đ`}
+                        style={{ left: leftPct, top: `${(yColl / 150) * 100}%` }}
+                        className="absolute -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900 shadow-2xs"
+                      />
+                      <span
+                        title={`${p.month} — Chi phí: ${new Intl.NumberFormat('vi-VN').format(p.cost)} đ`}
+                        style={{ left: leftPct, top: `${(yCost / 150) * 100}%` }}
+                        className="absolute -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-blue-500 ring-2 ring-white dark:ring-slate-900 shadow-2xs"
+                      />
+                    </React.Fragment>
+                  );
+                })}
               </div>
 
               {/* X-axis Month Labels — bottom 24px row */}
