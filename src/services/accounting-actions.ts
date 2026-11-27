@@ -40,7 +40,7 @@ export type {
 } from '../core/services/accounting/types';
 
 export {
-  getAccounts, createAccount, updateAccount,
+  getAccounts, createAccount, updateAccount, seedTT99ChartOfAccounts,
 } from '../core/services/accounting/coa';
 
 export {

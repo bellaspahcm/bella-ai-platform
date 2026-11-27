@@ -2,7 +2,7 @@
 
 import { PremiumSelect } from '@/components/ui/PremiumSelect';
 import { SkeletonTable } from '@/components/ui/SkeletonLoader';
-import { createAccount,getAccounts } from '@/services/accounting-actions';
+import { createAccount, getAccounts, seedTT99ChartOfAccounts } from '@/services/accounting-actions';
 import { AnimatePresence,motion } from 'framer-motion';
 import {
 ChevronDown,
@@ -10,6 +10,7 @@ ChevronRight,
 HelpCircle,
 PlusCircle,
 Search,
+Sparkles,
 X
 } from 'lucide-react';
 import { useCallback,useEffect,useState } from 'react';
@@ -44,6 +45,7 @@ export default function ChartOfAccountsPage() {
   // Add modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [seedingTT99, setSeedingTT99] = useState(false);
   const [newAccount, setNewAccount] = useState({
     account_code: '',
     account_name: '',
@@ -114,6 +116,25 @@ export default function ChartOfAccountsPage() {
       toast.error(getErrorMessage(err, 'Lỗi khi thêm tài khoản mới.'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSeedTT99 = async () => {
+    setSeedingTT99(true);
+    try {
+      const res = await seedTT99ChartOfAccounts();
+      if (res.success) {
+        if (res.insertedCount > 0) {
+          toast.success(`Đã nạp bổ sung ${res.insertedCount} tài khoản chuẩn TT99/2025/TT-BTC.`);
+        } else {
+          toast.info(`Hệ thống tài khoản đã có đầy đủ danh mục chuẩn TT99 (${res.totalCatalogCount} tài khoản).`);
+        }
+        await fetchCOA();
+      }
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, 'Không thể nạp hệ thống tài khoản TT99.'));
+    } finally {
+      setSeedingTT99(false);
     }
   };
 
@@ -257,13 +278,25 @@ export default function ChartOfAccountsPage() {
           />
         </div>
 
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-xs font-black uppercase tracking-widest text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-hover active:scale-95 dark:shadow-none sm:w-auto xl:shrink-0"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>Thêm tài khoản</span>
-        </button>
+        <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row xl:shrink-0">
+          <button
+            type="button"
+            onClick={handleSeedTT99}
+            disabled={seedingTT99}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-xs font-black uppercase tracking-wider text-emerald-700 transition-all hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 sm:w-auto"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>{seedingTT99 ? 'Đang nạp TT99...' : 'Nạp COA chuẩn TT99'}</span>
+          </button>
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-xs font-black uppercase tracking-widest text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-hover active:scale-95 dark:shadow-none sm:w-auto"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Thêm tài khoản</span>
+          </button>
+        </div>
       </div>
 
       {/* ── TREE VIEW LIST ── */}

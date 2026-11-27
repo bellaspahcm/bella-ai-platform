@@ -154,93 +154,21 @@ export default function AccountingReportsPage() {
     setRefreshing(true);
     try {
       if (activeTab === 'trial_balance') {
-        let data = await getTrialBalanceReport(asOfDate);
-        if (!data || data.length === 0) {
-          data = [
-            { account_id: '1', account_code: '1111', account_name: 'Tiền mặt tại quỹ (VND)', account_type: 'asset', opening_debit: 45000000, opening_credit: 0, period_debit: 125000000, period_credit: 85000000, closing_debit: 85000000, closing_credit: 0 },
-            { account_id: '2', account_code: '1121', account_name: 'Tiền gửi Ngân hàng Techcombank', account_type: 'asset', opening_debit: 120000000, opening_credit: 0, period_debit: 310000000, period_credit: 140000000, closing_debit: 290000000, closing_credit: 0 },
-            { account_id: '3', account_code: '131_BHYT', account_name: 'Phải thu BHXH Bảo hiểm y tế (80%)', account_type: 'asset', opening_debit: 15000000, opening_credit: 0, period_debit: 42500000, period_credit: 32000000, closing_debit: 25500000, closing_credit: 0 },
-            { account_id: '4', account_code: '1521', account_name: 'Kho Dược phẩm & Hóa chất LIS', account_type: 'asset', opening_debit: 35000000, opening_credit: 0, period_debit: 28000000, period_credit: 18000000, closing_debit: 45000000, closing_credit: 0 },
-            { account_id: '5', account_code: '5113', account_name: 'Doanh thu Dịch vụ Khám Y Tế & Chẩn đoán', account_type: 'revenue', opening_debit: 0, opening_credit: 0, period_debit: 0, period_credit: 477500000, closing_debit: 0, closing_credit: 477500000 },
-            { account_id: '6', account_code: '6421', account_name: 'Chi phí Lương & Thù lao Y Bác sĩ', account_type: 'expense', opening_debit: 0, opening_credit: 0, period_debit: 176500000, period_credit: 0, closing_debit: 176500000, closing_credit: 0 },
-          ];
-        }
+        const data = await getTrialBalanceReport(asOfDate);
         reportCacheRef.current.set(cacheKey, { kind: 'trial_balance', data: data || [] });
         setTrialBalance(data || []);
       } else if (activeTab === 'income_statement') {
-        let data = await getIncomeStatementReport(fromDate, toDate);
-        if (!data || !data.gross_revenue) {
-          data = {
-            gross_revenue: 477500000,
-            deductions: 0,
-            net_revenue: 477500000,
-            cost_of_goods_sold: 82000000,
-            gross_profit: 395500000,
-            financial_income: 1200000,
-            financial_expense: 0,
-            operating_expense: 176500000,
-            operating_profit: 220200000,
-            other_income: 0,
-            other_expense: 0,
-            profit_before_tax: 220200000,
-            tax_expense: 44040000,
-            net_profit: 176160000,
-          };
-        }
-        reportCacheRef.current.set(cacheKey, { kind: 'income_statement', data });
-        setIncomeStatement(data);
+        const data = await getIncomeStatementReport(fromDate, toDate);
+        reportCacheRef.current.set(cacheKey, { kind: 'income_statement', data: data ?? null });
+        setIncomeStatement(data ?? null);
       } else if (activeTab === 'balance_sheet') {
-        let data = await getBalanceSheetReport(asOfDate);
-        if (!data || !data.total_assets) {
-          data = {
-            total_assets: 445500000,
-            cash_and_equivalents: 375000000,
-            accounts_receivable: 25500000,
-            inventory: 45000000,
-            fixed_assets_cost: 0,
-            accumulated_depreciation: 0,
-            prepaid_expenses: 0,
-            total_liabilities: 18000000,
-            accounts_payable: 18000000,
-            taxes_payable: 0,
-            employee_payables: 0,
-            unearned_revenue: 0,
-            other_payables: 0,
-            total_equity: 427500000,
-            owners_capital: 250000000,
-            retained_earnings: 177500000,
-            total_equity_and_liabilities: 445500000,
-          };
-        }
-        reportCacheRef.current.set(cacheKey, { kind: 'balance_sheet', data });
-        setBalanceSheet(data);
+        const data = await getBalanceSheetReport(asOfDate);
+        reportCacheRef.current.set(cacheKey, { kind: 'balance_sheet', data: data ?? null });
+        setBalanceSheet(data ?? null);
       } else if (activeTab === 'cash_flow') {
-        let data = await getCashFlowStatementReport(fromDate, toDate);
-        if (!data || !data.closing_cash) {
-          data = {
-            opening_cash: 165000000,
-            net_change_in_cash: 210000000,
-            closing_cash: 375000000,
-            net_cash_operating: 210000000,
-            profit_before_tax: 220200000,
-            depreciation: 0,
-            change_in_receivables: 10500000,
-            change_in_inventory: 10000000,
-            change_in_payables: 10300000,
-            change_in_unearned_revenue: 0,
-            tax_paid: 0,
-            net_cash_investing: 0,
-            fixed_assets_purchased: 0,
-            fixed_assets_sold: 0,
-            net_cash_financing: 0,
-            owner_contributions: 0,
-            loans_received: 0,
-            loans_repaid: 0,
-            verification_diff: 0,
-          };
-        }
-        reportCacheRef.current.set(cacheKey, { kind: 'cash_flow', data });
-        setCashFlow(data);
+        const data = await getCashFlowStatementReport(fromDate, toDate);
+        reportCacheRef.current.set(cacheKey, { kind: 'cash_flow', data: data ?? null });
+        setCashFlow(data ?? null);
       } else if (activeTab === 'account_ledger' && selectedAccountId) {
         const data = await getAccountLedgerReport(selectedAccountId, fromDate, toDate);
         reportCacheRef.current.set(cacheKey, { kind: 'account_ledger', data: data || [] });
@@ -284,7 +212,7 @@ export default function AccountingReportsPage() {
         dateString = `${fromDate} đến ${toDate}`;
       }
 
-      if (!reportData) {
+      if (!reportData || (Array.isArray(reportData) && reportData.length === 0)) {
         toast.warning('Không có dữ liệu báo cáo để xuất.');
         return;
       }
@@ -303,7 +231,7 @@ export default function AccountingReportsPage() {
       // Force download via trigger
       const link = document.createElement('a');
       link.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64}`;
-      link.download = `Bao_Cao_Ke_Toan_${activeTab.toUpperCase()}_TT133.xlsx`;
+      link.download = `Bao_Cao_Ke_Toan_${activeTab.toUpperCase()}_TT99.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -421,7 +349,7 @@ export default function AccountingReportsPage() {
               className="flex w-full items-center justify-center gap-2 rounded-2xl border-none bg-primary px-5 py-2.5 text-3xs font-black uppercase tracking-widest text-primary-foreground shadow-md shadow-primary/20 transition-all hover:bg-primary-hover active:scale-95 sm:w-auto xl:justify-self-end"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Xuất Excel TT133</span>
+              <span>Xuất Excel TT99</span>
             </button>
           )}
         </div>
@@ -436,7 +364,7 @@ export default function AccountingReportsPage() {
              1. BẢNG CÂN ĐỐI PHÁT SINH (TRIAL BALANCE)
              ========================================== */
           <div className="space-y-6">
-            <h4 className="text-sm font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider text-center">BẢNG CÂN ĐỐI PHÁT SINH TÀI KHOẢN (TT 133/2016/TT-BTC)</h4>
+            <h4 className="text-sm font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider text-center">BẢNG CÂN ĐỐI PHÁT SINH TÀI KHOẢN (TT 99/2025/TT-BTC)</h4>
             <div className={reportTableWrapperClassName}>
               <table className={reportWideTableClassName}>
                 <colgroup>
@@ -467,7 +395,13 @@ export default function AccountingReportsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-[#3E3A35]/20 font-mono text-2xs">
-                  {trialBalance.map((row) => (
+                  {trialBalance.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="px-4 py-10 text-center font-sans text-xs italic text-slate-400">
+                        Chưa có số liệu phát sinh trong kỳ này.
+                      </td>
+                    </tr>
+                  ) : trialBalance.map((row) => (
                     <tr key={row.account_id} className="hover:bg-slate-50/40 dark:hover:bg-[#11100F]/10 transition-colors">
                       <td className={`${stickyBodyCellClassName} ${reportNumericCellClassName} px-4 py-3 font-black text-slate-800 dark:text-[#EFE9E1] border-r border-slate-100 dark:border-[#3E3A35]/20`}>{row.account_code}</td>
                       <td className={`${reportLabelCellClassName} px-4 py-3 font-sans font-semibold text-slate-600 dark:text-[#CDBCAB] border-r border-slate-100 dark:border-[#3E3A35]/20 text-xs`}>{row.account_name}</td>
@@ -502,7 +436,7 @@ export default function AccountingReportsPage() {
              2. BÁO CÁO KẾT QUẢ KINH DOANH (P&L)
              ========================================== */
           <div className="space-y-6">
-            <h4 className="text-sm font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider text-center">BÁO CÁO KẾT QUẢ HOẠT ĐỘNG KINH DOANH (TT 133/2016/TT-BTC)</h4>
+            <h4 className="text-sm font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider text-center">BÁO CÁO KẾT QUẢ HOẠT ĐỘNG KINH DOANH (TT 99/2025/TT-BTC)</h4>
             <div className={reportTableWrapperClassName}>
               <table className={reportTableClassName}>
                 <colgroup>
@@ -565,7 +499,7 @@ export default function AccountingReportsPage() {
              3. BẢNG CÂN ĐỐI KẾ TOÁN (BALANCE SHEET)
              ========================================== */
           <div className="space-y-6">
-            <h4 className="text-sm font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider text-center">BẢNG CÂN ĐỐI KẾ TOÁN (TT 133/2016/TT-BTC)</h4>
+            <h4 className="text-sm font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider text-center">BẢNG CÂN ĐỐI KẾ TOÁN (TT 99/2025/TT-BTC)</h4>
             <div className={reportTableWrapperClassName}>
               <table className={reportTableClassName}>
                 <colgroup>
@@ -641,7 +575,7 @@ export default function AccountingReportsPage() {
              ========================================== */
           <div className="space-y-6">
             <h4 className="text-sm font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider text-center">
-              BÁO CÁO LƯU CHUYỂN TIỀN TỆ — Phương pháp gián tiếp (TT 133/2016/TT-BTC)
+              BÁO CÁO LƯU CHUYỂN TIỀN TỆ — Phương pháp gián tiếp (TT 99/2025/TT-BTC)
             </h4>
             <p className="text-3xs text-slate-400 text-center -mt-3 italic">
               Kỳ báo cáo: {fromDate} → {toDate}

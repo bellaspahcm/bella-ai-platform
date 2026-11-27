@@ -137,7 +137,7 @@ export default function AccountingLayout({
                 Kế toán sổ cái
               </h1>
               <p className="text-[10px] sm:text-xs font-bold text-slate-400 dark:text-[#CDBCAB]/60 uppercase tracking-widest mt-1 whitespace-nowrap">
-                Quản trị tài chính chuẩn Thông tư 133
+                Quản trị tài chính chuẩn Thông tư 99/2025/TT-BTC
               </p>
             </div>
 

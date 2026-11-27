@@ -4,6 +4,7 @@ import { safeRevalidatePath } from '@/lib/revalidate';
 import { recordAuditLog } from '@/services/audit-actions';
 import { getCurrentUser } from '@/services/user-actions';
 import { createAccountingDataClient } from './client';
+import { TT99_FULL_COA_CATALOG } from './tt99-coa';
 import type { CreateAccountInput } from './types';
 
 /**
@@ -178,4 +179,95 @@ export async function updateAccount(id: string, input: Partial<CreateAccountInpu
 
   await safeRevalidatePath('/dashboard/accounting/chart-of-accounts');
   return { success: true, data };
+}
+
+/**
+ * Idempotently seed the full Vietnamese Circular 99/2025/TT-BTC (TT99)
+ * Chart of Accounts into `accounting_accounts` for the authenticated tenant.
+ */
+export async function seedTT99ChartOfAccounts() {
+  const user = await getCurrentUser();
+  if (!user?.tenant_id || !['admin', 'super_admin'].includes(user.role || '')) {
+    throw new Error('Unauthorized: Only branch admins can seed the TT99 Chart of Accounts.');
+  }
+  const supabase = await createAccountingDataClient();
+
+  const { data: existingRows, error: fetchError } = await supabase
+    .from('accounting_accounts')
+    .select('id, account_code')
+    .eq('tenant_id', user.tenant_id);
+
+  if (fetchError) throw fetchError;
+
+  const codeToId = new Map<string, string>();
+  for (const row of existingRows || []) {
+    codeToId.set(row.account_code, row.id);
+  }
+
+  let insertedCount = 0;
+
+  // Pass 1: Insert missing root accounts (no parent_code)
+  const missingRoots = TT99_FULL_COA_CATALOG.filter(
+    (item) => !item.parent_code && !codeToId.has(item.account_code),
+  );
+  if (missingRoots.length > 0) {
+    const { data: insertedRoots, error: rootError } = await supabase
+      .from('accounting_accounts')
+      .insert(
+        missingRoots.map((item) => ({
+          tenant_id: user.tenant_id,
+          account_code: item.account_code,
+          account_name: item.account_name,
+          account_type: item.account_type,
+          parent_id: null,
+          is_active: true,
+        })),
+      )
+      .select('id, account_code');
+    if (rootError) throw rootError;
+    for (const row of insertedRoots || []) {
+      codeToId.set(row.account_code, row.id);
+      insertedCount += 1;
+    }
+  }
+
+  // Pass 2: Insert missing child accounts with resolved parent_id
+  const missingChildren = TT99_FULL_COA_CATALOG.filter(
+    (item) => Boolean(item.parent_code) && !codeToId.has(item.account_code),
+  );
+  if (missingChildren.length > 0) {
+    const { data: insertedChildren, error: childError } = await supabase
+      .from('accounting_accounts')
+      .insert(
+        missingChildren.map((item) => ({
+          tenant_id: user.tenant_id,
+          account_code: item.account_code,
+          account_name: item.account_name,
+          account_type: item.account_type,
+          parent_id: item.parent_code ? (codeToId.get(item.parent_code) ?? null) : null,
+          is_active: true,
+        })),
+      )
+      .select('id, account_code');
+    if (childError) throw childError;
+    insertedCount += (insertedChildren || []).length;
+  }
+
+  await recordAuditLog({
+    action: 'INSERT',
+    table_name: 'accounting_accounts',
+    record_id: user.tenant_id,
+    new_data: {
+      standard_profile: 'TT99',
+      inserted_count: insertedCount,
+      total_catalog_count: TT99_FULL_COA_CATALOG.length,
+    },
+  });
+
+  await safeRevalidatePath('/dashboard/accounting/chart-of-accounts');
+  return {
+    success: true,
+    insertedCount,
+    totalCatalogCount: TT99_FULL_COA_CATALOG.length,
+  };
 }

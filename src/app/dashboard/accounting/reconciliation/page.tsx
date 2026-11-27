@@ -304,7 +304,7 @@ export default function ReconciliationPage() {
                 Hệ thống kế toán đang ở chế độ Đơn giản (Legacy Finance)
               </h5>
               <p className="text-3xs font-medium text-amber-700/80 dark:text-amber-400/70 mt-1 max-w-2xl leading-relaxed">
-                {tenantName || 'Bella Spa ERP'} hiện vận hành song song sổ sách cũ. Để kích hoạt hạch toán kép chuyên nghiệp chuẩn Thông tư 133, vui lòng click nút bên dưới để tự động đồng bộ lịch sử thu/chi/lương vào sổ cái kế toán mới và chuyển đổi chế độ.
+                {tenantName || 'Bella Spa ERP'} hiện vận hành song song sổ sách cũ. Để kích hoạt hạch toán kép chuyên nghiệp chuẩn Thông tư 99/2025/TT-BTC, vui lòng click nút bên dưới để tự động đồng bộ lịch sử thu/chi/lương vào sổ cái kế toán mới và chuyển đổi chế độ.
               </p>
             </div>
           </div>
@@ -312,7 +312,7 @@ export default function ReconciliationPage() {
             onClick={() => setShowSyncModal(true)}
             className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white text-3xs font-black uppercase tracking-widest transition-all shadow-md shrink-0 self-start md:self-auto cursor-pointer"
           >
-            Đồng bộ & Kích hoạt Kế toán Chuyên nghiệp
+            Đồng bộ và Kích hoạt Kế toán Chuyên nghiệp
           </button>
         </div>
       ) : (
@@ -320,7 +320,7 @@ export default function ReconciliationPage() {
           <div className="flex items-center gap-2 flex-1">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 animate-pulse shrink-0" />
             <span className="text-3xs font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">
-              Đã kích hoạt chế độ Kế toán Chuyên nghiệp (Thông tư 133)
+              Đã kích hoạt chế độ Kế toán Chuyên nghiệp (Thông tư 99/2025/TT-BTC)
             </span>
           </div>
           <button
@@ -567,7 +567,7 @@ export default function ReconciliationPage() {
               <ul className="list-disc pl-4 space-y-1.5">
                 <li>Quét toàn bộ dữ liệu lịch sử các khoản thu, chi và bảng lương KTV đã xác nhận.</li>
                 <li>Tự động tạo các bút toán kép hạch toán thẳng vào Sổ Nhật Ký Chung của Sổ Cái mới.</li>
-                <li>Kích hoạt chế độ <strong>Kế toán Chuyên nghiệp (Thông tư 133)</strong> cho chi nhánh này.</li>
+                <li>Kích hoạt chế độ <strong>Kế toán Chuyên nghiệp (Thông tư 99/2025/TT-BTC)</strong> cho chi nhánh này.</li>
                 <li className="text-amber-600 dark:text-amber-400 font-bold">Khóa đóng băng các màn hình Legacy Finance cũ để ngăn chặn việc nhập liệu trùng lặp.</li>
               </ul>
               <p className="text-3xs italic text-slate-400 mt-2">
