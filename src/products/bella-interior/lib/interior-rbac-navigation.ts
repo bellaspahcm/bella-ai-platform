@@ -164,6 +164,8 @@ export const INTERIOR_ROLE_ALLOWED_HREFS: Record<InteriorRoleKey, readonly strin
     '/dashboard/interior/contracts',
     '/dashboard/interior/finance',
     '/dashboard/interior/reports',
+    '/dashboard/accounting',
+    '/dashboard/accounting/reports',
   ],
   PM: [
     '/dashboard/interior',
@@ -241,6 +243,8 @@ export const INTERIOR_ROLE_ALLOWED_HREFS: Record<InteriorRoleKey, readonly strin
     '/dashboard/interior/contracts',
     '/dashboard/interior/finance',
     '/dashboard/interior/reports',
+    '/dashboard/accounting',
+    '/dashboard/accounting/reports',
   ],
   WARRANTY: [
     '/dashboard/interior',
