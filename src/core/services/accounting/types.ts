@@ -52,7 +52,7 @@ export interface SalaryReconciliationRow {
   status: 'MATCH' | 'MINOR_DIFF' | 'MAJOR_DIFF' | 'PENDING_LEGACY' | 'NO_LEGACY';
 }
 
-export type AccountingStandardProfile = 'TT133' | 'TT200';
+export type AccountingStandardProfile = 'TT133' | 'TT200' | 'TT99';
 
 export type BusinessEventType =
   | 'CUSTOMER_DEPOSIT'
