@@ -556,8 +556,9 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     const repository = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+    const outboxAdapter = new SupabaseInteriorFinanceOutboxAdapter(ctx.supabase as unknown as SupabaseClient);
     try {
-      const service = new InteriorContractLifecycleService(repository);
+      const service = new InteriorContractLifecycleService(repository, outboxAdapter);
       const transaction = await service.recordPayment({
         tenantId: ctx.tenantId,
         contractId: body.contractId,
