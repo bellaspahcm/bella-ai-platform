@@ -567,7 +567,7 @@ export class InteriorReportsAnalyticsService {
         timePeriod: activePeriod,
         availablePeriods: ['Tháng 11/2026', 'Tháng 10/2026', 'Quý 4/2026', 'Năm 2026'],
         projectFilter: projectId ? currentProject.name : 'Tất cả dự án',
-        availableProjectFilters: ['Tất cả dự án', ...availableProjects.map((p) => p.name)],
+        availableProjectFilters: Array.from(new Set(['Tất cả dự án', ...availableProjects.map((p) => p.name)])),
       },
       kpis: {
         contractValue: {
