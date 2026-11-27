@@ -312,9 +312,43 @@ export async function GET(request: Request): Promise<NextResponse> {
     typeof data.project.code === 'string' ? data.project.code : requestedProjectId,
     typeof data.project.name === 'string' ? data.project.name : undefined,
   );
+
+  // Enrich financialAnalysis with real BOQ COGS when available
+  let financialAnalysis = baseOverview.detailedTabs.financialAnalysis;
+  const hasFromMethod = typeof (ctx.supabase as unknown as { from?: unknown })?.from === 'function';
+  if (contract.boqId && hasFromMethod) {
+    try {
+      const repository = new SupabaseInteriorRepository(ctx.supabase as unknown as SupabaseClient);
+      const boq = await repository.getBOQ(ctx.tenantId, contract.boqId);
+      if (boq && Number.isFinite(boq.totalInternalCost) && boq.totalInternalCost > 0) {
+        const estimatedCogs = boq.totalInternalCost;
+        const grossProfitExpected = currentValue - estimatedCogs;
+        const grossMarginExpectedPercent = currentValue > 0
+          ? Math.round((grossProfitExpected / currentValue) * 1000) / 10
+          : 0;
+        const fmt = (v: number) => `${new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(v)} đ`;
+        financialAnalysis = {
+          ...financialAnalysis,
+          estimatedCogs,
+          estimatedCogsFormatted: fmt(estimatedCogs),
+          grossProfitExpected,
+          grossProfitExpectedFormatted: fmt(grossProfitExpected),
+          grossMarginExpectedPercent,
+          grossMarginExpectedFormatted: `${grossMarginExpectedPercent}%`,
+        };
+      }
+    } catch {
+      // Keep base financialAnalysis gracefully if BOQ lookup fails
+    }
+  }
+
   const overview = {
     ...baseOverview,
-    detailedTabs: { ...baseOverview.detailedTabs, addenda: addendaView },
+    detailedTabs: {
+      ...baseOverview.detailedTabs,
+      addenda: addendaView,
+      financialAnalysis,
+    },
     financeAccess: true,
     workflowCommands,
     commercialWorkflow,

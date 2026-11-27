@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import CommercialWorkflowModal from './commercial-workflow-modal';
+import CreateAddendumModal from './create-addendum-modal';
 import InteriorUserBar from '@/components/interior/InteriorUserBar';
 import OperationalAuditTrailCard from '@/components/interior/OperationalAuditTrailCard';
 import { computeOperationalLeadTime, type OperationalStatusHistoryEntry } from '@/products/bella-interior/lib/operational-audit-trail';
@@ -74,6 +75,7 @@ export default function InteriorContractsPage() {
   const [selectedMilestone, setSelectedMilestone] = useState<MilestoneTableItem | null>(null);
   const [showReleaseModal, setShowReleaseModal] = useState<boolean>(false);
   const [showNewContractModal, setShowNewContractModal] = useState<boolean>(false);
+  const [showAddendumModal, setShowAddendumModal] = useState<boolean>(false);
   const [showContractDocModal, setShowContractDocModal] = useState<boolean>(false);
   const [showPaymentHistoryModal, setShowPaymentHistoryModal] = useState<boolean>(false);
   const [showPaymentEntry, setShowPaymentEntry] = useState<boolean>(false);
@@ -194,6 +196,69 @@ export default function InteriorContractsPage() {
     setRefreshing(true);
     if (selectedProjectId) loadData(selectedProjectId);
     else setRefreshing(false);
+  };
+
+  const handleExportDebtReport = () => {
+    if (!data || !data.hasContract) {
+      toast.error('Chưa có dữ liệu hợp đồng để xuất báo cáo công nợ.');
+      return;
+    }
+    const escapeCsv = (val: string | number | undefined | null): string => {
+      const str = String(val ?? '');
+      return `"${str.replace(/"/g, '""')}"`;
+    };
+    const rows: string[] = [
+      ['BAO CAO CONG NO HOP DONG', data.header.contractId].map(escapeCsv).join(','),
+      ['Du an', `${data.header.projectName} (${data.header.projectCode})`].map(escapeCsv).join(','),
+      ['Khach hang', data.header.clientName].map(escapeCsv).join(','),
+      ['Tong gia tri hop dong', data.kpis.totalContractValue.formattedValue].map(escapeCsv).join(','),
+      ['Da thuc thu', data.kpis.collectedAmount.formattedValue].map(escapeCsv).join(','),
+      ['Con phai thu', data.kpis.remainingAmount.formattedValue].map(escapeCsv).join(','),
+      ['Trang thai', data.kpis.contractStatus.formattedValue].map(escapeCsv).join(','),
+      '',
+      ['Dot thanh toan', 'Ty le', 'Gia tri (VND)', 'Da thu (VND)', 'Con thieu (VND)', 'Han thanh toan', 'Trang thai', 'Hoa don VAT'].map(escapeCsv).join(','),
+      ...data.milestones.map((m) =>
+        [
+          m.phaseName,
+          m.percentageFormatted,
+          m.amount,
+          m.collectedAmount,
+          m.remainingAmount,
+          m.dueDateFormatted,
+          m.statusLabel,
+          m.invoiceNumber ? `${m.invoiceStatusLabel} (${m.invoiceNumber})` : m.invoiceStatusLabel,
+        ]
+          .map(escapeCsv)
+          .join(','),
+      ),
+    ];
+
+    const transactions = data.milestones.flatMap((m) =>
+      m.transactions.map((tx) => ({ ...tx, phaseName: m.phaseName })),
+    );
+    if (transactions.length > 0) {
+      rows.push('');
+      rows.push(['LICH SU GIAO DICH THANH TOAN', 'Dot', 'So tien (VND)', 'Phuong thuc', 'Ma tham chieu', 'Ghi chu'].map(escapeCsv).join(','));
+      for (const tx of transactions) {
+        rows.push(
+          [tx.transactionDate, tx.phaseName, tx.amount, tx.method, tx.referenceCode, tx.notes]
+            .map(escapeCsv)
+            .join(','),
+        );
+      }
+    }
+
+    const csvContent = `\uFEFF${rows.join('\r\n')}`;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `bao-cao-cong-no-${data.header.contractId}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success(`Đã xuất báo cáo công nợ (${data.header.contractId}).`);
   };
 
   const canOpenCommercialWorkflow = (commands?: ContractOverviewResponse['workflowCommands']) => Boolean(
@@ -726,7 +791,7 @@ export default function InteriorContractsPage() {
               className="h-10 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              <span>{data.hasContract ? 'Báo giá &amp; Duyệt' : '+ Tạo Hợp Đồng Mới'}</span>
+              <span>{data.hasContract ? 'Báo giá & Duyệt' : '+ Tạo Hợp Đồng Mới'}</span>
             </button>
 
             <button
@@ -734,9 +799,11 @@ export default function InteriorContractsPage() {
               onClick={() => setShowReleaseModal(true)}
               disabled={!data.workflowCommands?.releaseProductionAvailable || !data.workshopReleaseGating.isEligible}
               title={
-                !data.workshopReleaseGating.isEligible
-                  ? `Chưa đủ điều kiện chuyển xưởng (${data.workshopReleaseGating.criteria.filter((c) => !c.satisfied).length} điều kiện chưa đạt)`
-                  : 'Phát hành lệnh chuyển xưởng sản xuất'
+                !data.workflowCommands?.releaseProductionAvailable
+                  ? 'Chức năng chuyển lệnh xưởng đang chờ cấu hình mục tiêu sản xuất từ máy chủ'
+                  : !data.workshopReleaseGating.isEligible
+                    ? `Chưa đủ điều kiện chuyển xưởng (${data.workshopReleaseGating.criteria.filter((c) => !c.satisfied).length} điều kiện chưa đạt)`
+                    : 'Phát hành lệnh chuyển xưởng sản xuất'
               }
               className="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-2"
             >
@@ -1022,38 +1089,50 @@ export default function InteriorContractsPage() {
                   Cảnh báo quan trọng
                 </h3>
               </div>
-              <span className="w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                1
+              <span
+                className={`w-4 h-4 text-[10px] font-bold rounded-full flex items-center justify-center ${
+                  alerts.length > 0
+                    ? 'bg-red-500 text-white'
+                    : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                }`}
+              >
+                {alerts.length}
               </span>
             </div>
 
             <div className="mt-4 space-y-3">
-              {alerts.map((al) => (
-                <div key={al.id} className="p-3 bg-amber-50/60 dark:bg-amber-950/20 rounded-lg border border-amber-200/60 dark:border-amber-900/40">
-                  <div className="flex items-start gap-2.5">
-                    <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div className="text-xs">
-                      <p className="text-slate-800 dark:text-slate-200">
-                        <strong className="text-amber-600 dark:text-amber-400 font-bold">{al.highlightText}</strong>{' '}
-                        {al.description}
-                      </p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        {al.amountFormatted}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const target = milestones.find((m) => m.id === al.targetMilestoneId);
-                          if (target) setSelectedMilestone(target);
-                        }}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 mt-2"
-                      >
-                        <span>{al.actionText}</span>
-                      </button>
+              {alerts.length === 0 ? (
+                <div className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-dashed border-slate-200 dark:border-slate-800 text-center text-xs text-slate-500 dark:text-slate-400">
+                  Không có cảnh báo quá hạn hoặc sắp đến hạn thanh toán.
+                </div>
+              ) : (
+                alerts.map((al) => (
+                  <div key={al.id} className="p-3 bg-amber-50/60 dark:bg-amber-950/20 rounded-lg border border-amber-200/60 dark:border-amber-900/40">
+                    <div className="flex items-start gap-2.5">
+                      <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <div className="text-xs">
+                        <p className="text-slate-800 dark:text-slate-200">
+                          <strong className="text-amber-600 dark:text-amber-400 font-bold">{al.highlightText}</strong>{' '}
+                          {al.description}
+                        </p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          {al.amountFormatted}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const target = milestones.find((m) => m.id === al.targetMilestoneId);
+                            if (target) setSelectedMilestone(target);
+                          }}
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 mt-2"
+                        >
+                          <span>{al.actionText}</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
@@ -1099,8 +1178,11 @@ export default function InteriorContractsPage() {
                 type="button"
                 onClick={() => {
                   setActiveTab('addenda');
-                  const el = document.getElementById('bottom-tabs-section');
-                  el?.scrollIntoView({ behavior: 'smooth' });
+                  if (data.workflowCommands?.createAddendumAvailable) {
+                    setShowAddendumModal(true);
+                  } else {
+                    toast.error('Tài khoản hiện tại không có quyền lập phụ lục hợp đồng.');
+                  }
                 }}
                 className="w-full flex items-center gap-3 p-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-800/80 rounded-lg transition-colors group border border-transparent hover:border-emerald-200 dark:hover:border-slate-700 text-left"
               >
@@ -1115,9 +1197,7 @@ export default function InteriorContractsPage() {
 
               <button
                 type="button"
-                onClick={() => {
-                  toast.error('Chức năng xuất báo cáo chưa khả dụng; không có tệp nào được tạo.');
-                }}
+                onClick={handleExportDebtReport}
                 className="w-full flex items-center gap-3 p-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-800/80 rounded-lg transition-colors group border border-transparent hover:border-emerald-200 dark:hover:border-slate-700 text-left"
               >
                 <div className="w-7 h-7 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center shrink-0">
@@ -1259,9 +1339,16 @@ export default function InteriorContractsPage() {
                 <p className="text-xs text-slate-600 dark:text-slate-400">
                   Danh mục phụ lục lấy từ hồ sơ hợp đồng đã lưu:
                 </p>
-                <span className="rounded-md bg-slate-100 px-2.5 py-1.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                  Danh sách chỉ đọc
-                </span>
+                {data.workflowCommands?.createAddendumAvailable && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddendumModal(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
+                  >
+                    <FilePlus className="w-3.5 h-3.5" />
+                    <span>+ Tạo phụ lục</span>
+                  </button>
+                )}
               </div>
 
               {detailedTabs.addenda.length === 0 ? (
@@ -1310,7 +1397,7 @@ export default function InteriorContractsPage() {
             <div className="p-6">
               <OperationalAuditTrailCard
                 createdAt={data.contractSummary?.signedDate || null}
-                createdByName={data.contractSummary?.clientRepresentative || 'Phòng Hợp Đồng &amp; Pháp Chế'}
+                createdByName={data.contractSummary?.clientRepresentative || 'Phòng Hợp Đồng & Pháp Chế'}
                 startedAt={data.contractSummary?.signedDate || null}
                 startedByName="Đại diện kinh doanh"
                 completedAt={data.contractSummary?.status === 'completed' ? data.contractSummary.signedDate : null}
@@ -1326,7 +1413,7 @@ export default function InteriorContractsPage() {
                   note: log.action,
                 }))}
                 status={data.contractSummary?.status || 'draft'}
-                title="Dấu vết thời gian &amp; Lịch sử vòng đời hợp đồng"
+                title="Dấu vết thời gian & Lịch sử vòng đời hợp đồng"
               />
             </div>
           )}
@@ -1731,7 +1818,7 @@ export default function InteriorContractsPage() {
               </div>
               <div className="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
                 <span className="text-slate-500">Đơn vị thi công (Bên B):</span>
-                <span className="font-bold text-slate-900 dark:text-white">Công ty TNHH Bella Interior Việt Nam</span>
+                <span className="font-bold text-slate-900 dark:text-white">{header.managerName || 'Bella Interior'}</span>
               </div>
               <div className="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
                 <span className="text-slate-500">Giá trị hợp đồng:</span>
@@ -1756,13 +1843,12 @@ export default function InteriorContractsPage() {
               <button
                 type="button"
                 onClick={() => {
-                  toast.info('Đang mở hộp thoại in của trình duyệt; đây không phải bản scan có chữ ký số.');
                   if (typeof window !== 'undefined') window.print();
                 }}
                 className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Tải bản PDF scan</span>
+                <span>In / Lưu PDF hợp đồng</span>
               </button>
             </div>
           </div>
@@ -1838,6 +1924,17 @@ export default function InteriorContractsPage() {
           } : undefined}
           onClose={() => setShowNewContractModal(false)}
           onChanged={() => loadData(selectedProjectId)}
+        />
+      )}
+      {showAddendumModal && selectedProjectId && data.commercialWorkflow && (
+        <CreateAddendumModal
+          projectId={selectedProjectId}
+          contractId={data.commercialWorkflow.contractId}
+          contractNumber={header.contractId}
+          currentContractValue={kpis.totalContractValue.rawValue ?? 0}
+          milestones={milestones}
+          onClose={() => setShowAddendumModal(false)}
+          onCreated={() => loadData(selectedProjectId)}
         />
       )}
     </div>
