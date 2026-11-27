@@ -7,6 +7,7 @@ import {
   buildSessionConsumptionPlan,
   calculateInventorySummary,
   calculateMonthlyReconciliationEntry,
+  calculatePeriodInventoryMovements,
   calculateConsumptionMovement,
   calculateOpeningStock,
   calculateRestockMovement,
@@ -247,6 +248,55 @@ export async function getInventorySummary() {
     throw new InventoryError(`Failed to fetch inventory summary: ${error.message}`, 'INVENTORY_FETCH_FAILED', { operation: 'getInventorySummary' });
   }
   return calculateInventorySummary(data);
+}
+
+export async function getInventoryPeriodMovementReport(dateFrom: string, dateTo: string) {
+  try {
+    const { supabase, tenantId } = await getSupabaseWithTenant();
+    if (!tenantId) {
+      return { success: false as const, error: INVENTORY_TENANT_ACCESS_ERROR, rows: [], logs: [], summary: null };
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateFrom) || !/^\d{4}-\d{2}-\d{2}$/.test(dateTo)) {
+      return { success: false as const, error: 'Khoảng ngày báo cáo không hợp lệ (YYYY-MM-DD)', rows: [], logs: [], summary: null };
+    }
+
+    // Fetch live items and logs from 1 day prior to dateFrom (buffer for +07 timezone conversion)
+    const bufferStart = new Date(`${dateFrom}T00:00:00Z`);
+    bufferStart.setUTCDate(bufferStart.getUTCDate() - 1);
+
+    const [itemsRes, logsRes] = await Promise.all([
+      supabase
+        .from('inventory_items')
+        .select('id, name, sku, category, unit, stock_level, min_stock_level, price_per_unit')
+        .eq('tenant_id', tenantId)
+        .order('name'),
+      supabase
+        .from('inventory_logs')
+        .select('id, item_id, change_amount, reason, notes, created_at')
+        .eq('tenant_id', tenantId)
+        .gte('created_at', bufferStart.toISOString())
+        .order('created_at', { ascending: false }),
+    ]);
+
+    if (itemsRes.error) {
+      return { success: false as const, error: `Lỗi tải danh mục vật tư: ${itemsRes.error.message}`, rows: [], logs: [], summary: null };
+    }
+    if (logsRes.error) {
+      return { success: false as const, error: `Lỗi tải nhật ký xuất nhập kho: ${logsRes.error.message}`, rows: [], logs: [], summary: null };
+    }
+
+    const report = calculatePeriodInventoryMovements({
+      items: itemsRes.data || [],
+      logs: logsRes.data || [],
+      dateFrom,
+      dateTo,
+    });
+
+    return { success: true as const, ...report };
+  } catch (error: unknown) {
+    console.error('[getInventoryPeriodMovementReport]', error);
+    return { success: false as const, error: getErrorMessage(error, 'Lỗi tải báo cáo xuất nhập tồn'), rows: [], logs: [], summary: null };
+  }
 }
 
 export async function getPackageMaterials(packageId: string, context?: InventoryRuntimeContext) {

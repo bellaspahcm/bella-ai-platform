@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   ArrowDownLeft,
   ArrowUpRight,
   Building2,
+  Calendar,
   ClipboardCheck,
   ClipboardList,
+  Download,
   History,
   Layers,
   Package,
@@ -16,6 +18,7 @@ import {
   Search,
   ShoppingCart,
   Sparkles,
+  Tag,
   TrendingDown,
   TrendingUp,
   Truck,
@@ -27,8 +30,15 @@ import { BUSINESS_RULES } from '@bella/shared';
 import { PremiumSelect } from '@/components/ui/PremiumSelect';
 import { usePageRefresh } from '@/hooks/usePageRefresh';
 import { cn } from '@/lib/utils';
-import { addInventoryItem, consumeInventory } from '@/services/inventory-actions';
-import { MONTHS, YEARS } from './constants';
+import type {
+  PeriodInventoryMovementLogRow,
+  PeriodInventoryMovementRow,
+} from '@/lib/business-rules/inventory';
+import {
+  addInventoryItem,
+  consumeInventory,
+  getInventoryPeriodMovementReport,
+} from '@/services/inventory-actions';
 import { InventoryCreateRequestModal } from './components/InventoryCreateRequestModal';
 import { InventoryReconciliationPanel } from './components/InventoryReconciliationPanel';
 import { InventoryRestockModal } from './components/InventoryRestockModal';
@@ -36,6 +46,7 @@ import { useInventoryPageState } from './hooks/useInventoryPageState';
 import type { ActiveInventoryTab, InventoryItem, NewInventoryItem } from './types';
 
 type InteriorTabKey = Exclude<ActiveInventoryTab, 'sales'>;
+type LogKindFilter = 'all' | 'import' | 'export';
 
 interface InteriorProjectOption {
   id: string;
@@ -177,6 +188,19 @@ const TRANSFER_STATUS_LABELS: Record<string, string> = {
 const formatVnd = (value: number): string =>
   `${Math.round(value).toLocaleString('vi-VN')}đ`;
 
+const formatDateTime = (timestamp: string | null | undefined): string => {
+  if (!timestamp) return '—';
+  const d = new Date(timestamp);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
 const createBlankInteriorItem = (): NewInventoryItem => ({
   name: '',
   sku: '',
@@ -186,6 +210,17 @@ const createBlankInteriorItem = (): NewInventoryItem => ({
   price_per_unit: 0,
   category: INTERIOR_MATERIAL_CATEGORIES[0],
 });
+
+const getDefaultMonthRange = (): { dateFrom: string; dateTo: string } => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return {
+    dateFrom: `${y}-${m}-01`,
+    dateTo: `${y}-${m}-${d}`,
+  };
+};
 
 export function InteriorInventoryView() {
   const {
@@ -211,10 +246,6 @@ export function InteriorInventoryView() {
     setRequestNotes,
     submittingOrder,
     processingOrderId,
-    logMonth,
-    setLogMonth,
-    logYear,
-    setLogYear,
     restockTarget,
     setRestockTarget,
     restockAmt,
@@ -231,7 +262,6 @@ export function InteriorInventoryView() {
     reconRows,
     reconLoading,
     reconSaving,
-    filteredLogs,
     lowCount,
     handleSaveReconciliation,
     updateReconRow,
@@ -245,16 +275,48 @@ export function InteriorInventoryView() {
     refreshPageData,
   } = useInventoryPageState();
 
+  const initialRange = useMemo(() => getDefaultMonthRange(), []);
+  const [dateFrom, setDateFrom] = useState<string>(initialRange.dateFrom);
+  const [dateTo, setDateTo] = useState<string>(initialRange.dateTo);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [selectedSkuCard, setSelectedSkuCard] = useState<string>('all');
+  const [logKindFilter, setLogKindFilter] = useState<LogKindFilter>('all');
   const [seedingCatalog, setSeedingCatalog] = useState(false);
 
-  // Project dispatch modal state (real DB consumption linked to project name in audit notes)
+  // Period Xuất-Nhập-Tồn data from DB
+  const [movementRows, setMovementRows] = useState<PeriodInventoryMovementRow[]>([]);
+  const [movementLogs, setMovementLogs] = useState<PeriodInventoryMovementLogRow[]>([]);
+  const [loadingMovement, setLoadingMovement] = useState<boolean>(true);
+
+  // Project dispatch modal state
   const [projects, setProjects] = useState<InteriorProjectOption[]>([]);
   const [dispatchTarget, setDispatchTarget] = useState<InventoryItem | null>(null);
   const [dispatchQty, setDispatchQty] = useState<number>(1);
   const [dispatchProjectId, setDispatchProjectId] = useState<string>('');
   const [dispatchNote, setDispatchNote] = useState<string>('');
   const [dispatching, setDispatching] = useState(false);
+
+  const loadPeriodReport = useCallback(async () => {
+    setLoadingMovement(true);
+    try {
+      const res = await getInventoryPeriodMovementReport(dateFrom, dateTo);
+      if (!res.success) {
+        toast.error(res.error || 'Không thể tải báo cáo Xuất-Nhập-Tồn');
+        return;
+      }
+      setMovementRows(res.rows);
+      setMovementLogs(res.logs);
+    } catch (err) {
+      console.error('[InteriorInventoryView.loadPeriodReport]', err);
+      toast.error('Lỗi tải dữ liệu Xuất-Nhập-Tồn.');
+    } finally {
+      setLoadingMovement(false);
+    }
+  }, [dateFrom, dateTo]);
+
+  useEffect(() => {
+    void loadPeriodReport();
+  }, [loadPeriodReport, items]);
 
   useEffect(() => {
     let active = true;
@@ -293,54 +355,161 @@ export function InteriorInventoryView() {
     };
   }, [dispatchProjectId]);
 
+  const refreshAll = useCallback(async () => {
+    await refreshPageData();
+    await loadPeriodReport();
+  }, [loadPeriodReport, refreshPageData]);
+
   usePageRefresh(() => {
-    void refreshPageData();
+    void refreshAll();
   });
 
   const interiorTab: InteriorTabKey =
     activeTab === 'sales' ? 'stock' : activeTab;
 
-  const totalInventoryValue = useMemo(
-    () =>
-      items.reduce(
-        (sum, item) => sum + Number(item.stock_level || 0) * Number(item.price_per_unit || 0),
-        0
-      ),
-    [items]
-  );
+  const itemById = useMemo(() => {
+    const map = new Map<string, InventoryItem>();
+    for (const item of items) {
+      map.set(item.id, item);
+    }
+    return map;
+  }, [items]);
 
-  const visibleItems = useMemo(() => {
+  const categoryCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const row of movementRows) {
+      map.set(row.category, (map.get(row.category) ?? 0) + 1);
+    }
+    return map;
+  }, [movementRows]);
+
+  const visibleMovementRows = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return items.filter((item) => {
+    return movementRows.filter((row) => {
       const matchesSearch =
         !q ||
-        item.name.toLowerCase().includes(q) ||
-        (item.sku || '').toLowerCase().includes(q) ||
-        (item.category || '').toLowerCase().includes(q);
-      const isLow = item.stock_level <= item.min_stock_level;
+        row.name.toLowerCase().includes(q) ||
+        row.sku.toLowerCase().includes(q) ||
+        row.category.toLowerCase().includes(q);
+      const isLow = row.current_stock <= row.min_stock_level;
       const matchesStock =
         stockFilter === 'all' ||
         (stockFilter === 'low' && isLow) ||
         (stockFilter === 'ok' && !isLow);
       const matchesCategory =
-        categoryFilter === 'all' || (item.category || '') === categoryFilter;
+        categoryFilter === 'all' || row.category === categoryFilter;
       return matchesSearch && matchesStock && matchesCategory;
     });
-  }, [categoryFilter, items, search, stockFilter]);
+  }, [categoryFilter, movementRows, search, stockFilter]);
 
-  const categoryCounts = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const item of items) {
-      const cat = item.category || 'Khác';
-      map.set(cat, (map.get(cat) ?? 0) + 1);
+  const totals = useMemo(() => {
+    return visibleMovementRows.reduce(
+      (acc, row) => ({
+        openingQty: acc.openingQty + row.opening_qty,
+        importQty: acc.importQty + row.import_qty,
+        exportQty: acc.exportQty + row.export_qty,
+        closingQty: acc.closingQty + row.closing_qty,
+        openingValue: acc.openingValue + row.opening_value,
+        importValue: acc.importValue + row.import_value,
+        exportValue: acc.exportValue + row.export_value,
+        closingValue: acc.closingValue + row.closing_value,
+      }),
+      {
+        openingQty: 0,
+        importQty: 0,
+        exportQty: 0,
+        closingQty: 0,
+        openingValue: 0,
+        importValue: 0,
+        exportValue: 0,
+        closingValue: 0,
+      }
+    );
+  }, [visibleMovementRows]);
+
+  const visibleLogs = useMemo(() => {
+    return movementLogs.filter((log) => {
+      if (selectedSkuCard !== 'all' && log.sku !== selectedSkuCard) return false;
+      if (logKindFilter === 'import' && log.change_amount <= 0) return false;
+      if (logKindFilter === 'export' && log.change_amount >= 0) return false;
+      return true;
+    });
+  }, [logKindFilter, movementLogs, selectedSkuCard]);
+
+  const applyQuickRange = (preset: 'this_month' | 'last_month') => {
+    const now = new Date();
+    if (preset === 'this_month') {
+      const next = getDefaultMonthRange();
+      setDateFrom(next.dateFrom);
+      setDateTo(next.dateTo);
+      return;
     }
-    return map;
-  }, [items]);
+    const prevEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const prevStart = new Date(prevEnd.getFullYear(), prevEnd.getMonth(), 1);
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    setDateFrom(fmt(prevStart));
+    setDateTo(fmt(prevEnd));
+  };
 
-  const projectDispatchLogs = useMemo(
-    () => filteredLogs.filter((log) => Number(log.change_amount) < 0),
-    [filteredLogs]
-  );
+  const handleExportMovementCsv = () => {
+    if (visibleMovementRows.length === 0) {
+      toast.warning('Chưa có dữ liệu Xuất-Nhập-Tồn để xuất.');
+      return;
+    }
+    const headers = [
+      'Mã SP (SKU)',
+      'Tên vật tư',
+      'Nhóm vật tư',
+      'ĐVT',
+      'Đơn giá (VND)',
+      'SL Đầu kỳ',
+      'Giá trị Đầu kỳ',
+      'SL Nhập kỳ',
+      'Giá trị Nhập',
+      'SL Xuất kỳ',
+      'Giá trị Xuất',
+      'SL Cuối kỳ',
+      'Giá trị Cuối kỳ',
+      'Nhập gần nhất',
+      'Xuất gần nhất',
+    ];
+    const escapeCell = (val: string | number) => `"${String(val).replace(/"/g, '""')}"`;
+    const lines = [
+      headers.map(escapeCell).join(','),
+      ...visibleMovementRows.map((row) =>
+        [
+          row.sku,
+          row.name,
+          row.category,
+          row.unit,
+          row.price_per_unit,
+          row.opening_qty,
+          row.opening_value,
+          row.import_qty,
+          row.import_value,
+          row.export_qty,
+          row.export_value,
+          row.closing_qty,
+          row.closing_value,
+          formatDateTime(row.last_import_at),
+          formatDateTime(row.last_export_at),
+        ]
+          .map(escapeCell)
+          .join(',')
+      ),
+    ];
+    const blob = new Blob([`\uFEFF${lines.join('\n')}`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Bao_Cao_Xuat_Nhap_Ton_${dateFrom}_${dateTo}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success('Đã xuất file Xuất-Nhập-Tồn CSV.');
+  };
 
   const handleOpenAddModal = () => {
     setNewItem(createBlankInteriorItem());
@@ -364,7 +533,7 @@ export function InteriorInventoryView() {
       }
       if (inserted > 0) {
         toast.success(`Đã nạp ${inserted} vật tư chuẩn Nội thất vào kho.`);
-        await refreshPageData();
+        await refreshAll();
       } else {
         toast.info('Danh mục vật tư chuẩn Nội thất đã có sẵn trong kho.');
       }
@@ -376,10 +545,19 @@ export function InteriorInventoryView() {
     }
   };
 
-  const handleOpenDispatch = (item: InventoryItem) => {
-    setDispatchTarget(item);
+  const handleOpenDispatch = (itemId: string) => {
+    const rawItem = itemById.get(itemId);
+    if (!rawItem) return;
+    setDispatchTarget(rawItem);
     setDispatchQty(1);
     setDispatchNote('');
+  };
+
+  const handleOpenRestock = (itemId: string) => {
+    const rawItem = itemById.get(itemId);
+    if (!rawItem) return;
+    setRestockTarget(rawItem);
+    setRestockAmt(10);
   };
 
   const handleSubmitDispatch = async () => {
@@ -414,13 +592,23 @@ export function InteriorInventoryView() {
       }
       toast.success(`Đã xuất ${dispatchQty} ${dispatchTarget.unit} "${dispatchTarget.name}" cho ${projectLabel}.`);
       setDispatchTarget(null);
-      await refreshPageData();
+      await refreshAll();
     } catch (err) {
       console.error('[InteriorInventoryView.dispatch]', err);
       toast.error('Lỗi khi xuất kho cho công trình.');
     } finally {
       setDispatching(false);
     }
+  };
+
+  const handleRestockAndReload = async () => {
+    await handleRestock();
+    await loadPeriodReport();
+  };
+
+  const handleAddItemAndReload = async () => {
+    await handleAddItem();
+    await loadPeriodReport();
   };
 
   if (loading) {
@@ -433,59 +621,138 @@ export function InteriorInventoryView() {
 
   return (
     <div className="flex-1 space-y-6 overflow-auto bg-background/30 p-3 sm:p-6 md:space-y-8 md:p-10">
-      {/* ── HEADER & INTERIOR KPI SUMMARY ── */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+      {/* ── HEADER & PERIOD SELECTOR ── */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
             <Layers className="h-3.5 w-3.5" />
-            <span>Kho Xưởng Sản Xuất &amp; Vật Tư Công Trình</span>
+            <span>Kho Xưởng Sản Xuất &amp; Xuất Nhập Tồn Theo Mã SP</span>
           </div>
           <h1 className="mt-2 text-2xl font-black text-slate-900 dark:text-[#EFE9E1] sm:text-3xl">
             Quản Lý Kho Vật Tư Nội Thất
           </h1>
           <p className="mt-1 text-sm font-medium text-slate-500 dark:text-[#CDBCAB]/70">
-            Theo dõi gỗ ván công nghiệp, phụ kiện kim khí, phụ liệu hoàn thiện và xuất nhập kho theo từng dự án thi công.
+            Theo dõi Đầu kỳ – Nhập kỳ – Xuất kỳ – Cuối kỳ theo Mã sản phẩm (SKU), giá trị tồn kho và thời gian xuất nhập thực tế.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-          <div className="customer-detail-card flex min-w-0 items-center gap-3 rounded-[1.5rem] border border-slate-100 bg-white p-4 shadow-lg dark:border-[#3E3A35]/60 dark:bg-[#1C1B19] sm:min-w-[165px]">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <Package className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Mã vật tư</p>
-              <p className="text-xl font-black text-slate-900 dark:text-[#EFE9E1]">{items.length}</p>
-            </div>
-          </div>
-
-          <div className="customer-detail-card flex min-w-0 items-center gap-3 rounded-[1.5rem] border border-slate-100 bg-white p-4 shadow-lg dark:border-[#3E3A35]/60 dark:bg-[#1C1B19] sm:min-w-[165px]">
-            <div
-              className={cn(
-                'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl',
-                lowCount > 0
-                  ? 'animate-pulse bg-amber-50 text-amber-500 dark:bg-amber-500/15'
-                  : 'bg-emerald-50 text-emerald-500 dark:bg-emerald-500/15'
-              )}
+        {/* Period Date Filter */}
+        <div className="customer-detail-card flex flex-wrap items-end gap-3 rounded-2xl border border-slate-100 bg-white p-3.5 shadow-sm dark:border-[#3E3A35]/60 dark:bg-[#1C1B19]">
+          <div className="flex items-center gap-1.5 pb-1">
+            <button
+              type="button"
+              onClick={() => applyQuickRange('this_month')}
+              className="rounded-xl bg-slate-100 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-600 transition-colors hover:bg-primary/10 hover:text-primary dark:bg-[#11100F] dark:text-[#CDBCAB]"
             >
-              <AlertTriangle className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Chạm ngưỡng tồn</p>
-              <p className="text-xl font-black text-slate-900 dark:text-[#EFE9E1]">{lowCount}</p>
-            </div>
+              Tháng này
+            </button>
+            <button
+              type="button"
+              onClick={() => applyQuickRange('last_month')}
+              className="rounded-xl bg-slate-100 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-600 transition-colors hover:bg-primary/10 hover:text-primary dark:bg-[#11100F] dark:text-[#CDBCAB]"
+            >
+              Tháng trước
+            </button>
           </div>
 
-          <div className="customer-detail-card flex min-w-0 items-center gap-3 rounded-[1.5rem] border border-slate-100 bg-white p-4 shadow-lg dark:border-[#3E3A35]/60 dark:bg-[#1C1B19] sm:min-w-[205px]">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
-              <Wallet className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Giá trị tồn kho</p>
-              <p className="truncate text-lg font-black tabular-nums text-slate-900 dark:text-[#EFE9E1]">
-                {formatVnd(totalInventoryValue)}
-              </p>
-            </div>
+          <label className="grid gap-1">
+            <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-slate-400">
+              <Calendar className="h-3 w-3" /> Từ ngày
+            </span>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 outline-none dark:border-[#3E3A35] dark:bg-[#11100F] dark:text-[#EFE9E1]"
+            />
+          </label>
+
+          <label className="grid gap-1">
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Đến ngày</span>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 outline-none dark:border-[#3E3A35] dark:bg-[#11100F] dark:text-[#EFE9E1]"
+            />
+          </label>
+
+          <button
+            type="button"
+            onClick={handleExportMovementCsv}
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-3.5 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-sm transition-all hover:bg-primary-hover active:scale-95"
+          >
+            <Download className="h-3.5 w-3.5" /> Xuất XNT
+          </button>
+        </div>
+      </div>
+
+      {/* ── 4 FINANCIAL INVENTORY KPI CARDS ── */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 sm:gap-4">
+        <div className="customer-detail-card flex items-center gap-3.5 rounded-[1.5rem] border border-slate-100 bg-white p-4 shadow-md dark:border-[#3E3A35]/60 dark:bg-[#1C1B19]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 dark:bg-[#2A2724] dark:text-[#CDBCAB]">
+            <Package className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Giá trị Đầu kỳ</p>
+            <p className="truncate text-lg font-black tabular-nums text-slate-900 dark:text-[#EFE9E1]">
+              {formatVnd(totals.openingValue)}
+            </p>
+            <p className="text-[11px] font-semibold text-slate-400">
+              SL: {totals.openingQty.toLocaleString('vi-VN')}
+            </p>
+          </div>
+        </div>
+
+        <div className="customer-detail-card flex items-center gap-3.5 rounded-[1.5rem] border border-slate-100 bg-white p-4 shadow-md dark:border-[#3E3A35]/60 dark:bg-[#1C1B19]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
+            <TrendingUp className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nhập trong kỳ</p>
+            <p className="truncate text-lg font-black tabular-nums text-emerald-600 dark:text-emerald-400">
+              +{formatVnd(totals.importValue)}
+            </p>
+            <p className="text-[11px] font-semibold text-slate-400">
+              SL nhập: +{totals.importQty.toLocaleString('vi-VN')}
+            </p>
+          </div>
+        </div>
+
+        <div className="customer-detail-card flex items-center gap-3.5 rounded-[1.5rem] border border-slate-100 bg-white p-4 shadow-md dark:border-[#3E3A35]/60 dark:bg-[#1C1B19]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 dark:bg-rose-500/15 dark:text-rose-400">
+            <TrendingDown className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Xuất trong kỳ</p>
+            <p className="truncate text-lg font-black tabular-nums text-rose-500 dark:text-rose-400">
+              -{formatVnd(totals.exportValue)}
+            </p>
+            <p className="text-[11px] font-semibold text-slate-400">
+              SL xuất: -{totals.exportQty.toLocaleString('vi-VN')}
+            </p>
+          </div>
+        </div>
+
+        <div className="customer-detail-card flex items-center gap-3.5 rounded-[1.5rem] border border-primary/20 bg-white p-4 shadow-md dark:border-primary/30 dark:bg-[#1C1B19]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Wallet className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              Giá trị Tồn Cuối kỳ
+            </p>
+            <p className="truncate text-lg font-black tabular-nums text-slate-900 dark:text-[#EFE9E1]">
+              {formatVnd(totals.closingValue)}
+            </p>
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400">
+              <span>{items.length} mã SP</span>
+              {lowCount > 0 && (
+                <span className="inline-flex items-center gap-0.5 font-bold text-amber-500">
+                  <AlertTriangle className="h-3 w-3" /> {lowCount} sắp hết
+                </span>
+              )}
+            </p>
           </div>
         </div>
       </div>
@@ -502,7 +769,7 @@ export function InteriorInventoryView() {
               : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-[#EFE9E1]'
           )}
         >
-          <Package className="h-4 w-4" /> Tồn kho Vật tư &amp; Phụ kiện
+          <Package className="h-4 w-4" /> Xuất – Nhập – Tồn theo Mã SP
         </button>
 
         <button
@@ -532,7 +799,7 @@ export function InteriorInventoryView() {
         </button>
       </div>
 
-      {/* ── MAIN WORKSPACE + LOGS SIDEBAR ── */}
+      {/* ── MAIN WORKSPACE + TIMESTAMPED LEDGER SIDEBAR ── */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 xl:gap-8">
         <div className="space-y-6 xl:col-span-2">
           {interiorTab === 'stock' ? (
@@ -546,10 +813,10 @@ export function InteriorInventoryView() {
                     'rounded-full px-3.5 py-1.5 text-[11px] font-black uppercase tracking-wider transition-all',
                     categoryFilter === 'all'
                       ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'bg-white text-slate-500 border border-slate-200 hover:border-primary/40 dark:bg-[#1C1B19] dark:border-[#3E3A35] dark:text-[#CDBCAB]'
+                      : 'border border-slate-200 bg-white text-slate-500 hover:border-primary/40 dark:border-[#3E3A35] dark:bg-[#1C1B19] dark:text-[#CDBCAB]'
                   )}
                 >
-                  Tất cả nhóm ({items.length})
+                  Tất cả nhóm ({movementRows.length})
                 </button>
                 {INTERIOR_MATERIAL_CATEGORIES.map((category) => (
                   <button
@@ -560,7 +827,7 @@ export function InteriorInventoryView() {
                       'rounded-full px-3.5 py-1.5 text-[11px] font-bold transition-all',
                       categoryFilter === category
                         ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-white text-slate-600 border border-slate-200 hover:border-primary/40 dark:bg-[#1C1B19] dark:border-[#3E3A35] dark:text-[#CDBCAB]'
+                        : 'border border-slate-200 bg-white text-slate-600 hover:border-primary/40 dark:border-[#3E3A35] dark:bg-[#1C1B19] dark:text-[#CDBCAB]'
                     )}
                   >
                     {category} ({categoryCounts.get(category) ?? 0})
@@ -568,13 +835,13 @@ export function InteriorInventoryView() {
                 ))}
               </div>
 
-              {/* Search + Filters + Add CTA */}
+              {/* Search by SKU/Name + Stock Status + Add CTA */}
               <div className="customer-detail-card bella-toolbar flex flex-col gap-3 rounded-[2rem] border border-slate-100 bg-white p-4 shadow-xl dark:border-[#3E3A35]/60 dark:bg-[#1C1B19] sm:flex-row sm:flex-wrap sm:items-center sm:p-5">
                 <div className="relative min-w-0 flex-1">
                   <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
-                    placeholder="Tìm tên ván gỗ, phụ kiện Blum/Hafele, mã SKU..."
+                    placeholder="Tìm theo Mã sản phẩm (SKU), tên vật tư, quy cách..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="w-full rounded-2xl bg-slate-50 py-3 pl-11 pr-4 text-sm font-medium outline-none transition-all focus:ring-2 focus:ring-primary/20 dark:bg-[#11100F] dark:text-[#EFE9E1]"
@@ -584,18 +851,18 @@ export function InteriorInventoryView() {
                   value={stockFilter}
                   onChange={(value) => setStockFilter(value as 'all' | 'low' | 'ok')}
                   options={[
-                    { value: 'all', label: `Tất cả (${items.length})` },
+                    { value: 'all', label: `Tất cả (${movementRows.length})` },
                     { value: 'low', label: `Chạm ngưỡng tồn (${lowCount})` },
-                    { value: 'ok', label: `Sẵn sàng xuất (${Math.max(0, items.length - lowCount)})` },
+                    { value: 'ok', label: `Sẵn sàng xuất (${Math.max(0, movementRows.length - lowCount)})` },
                   ]}
-                  buttonClassName="min-h-11 rounded-2xl border-slate-200 bg-slate-50 px-4 text-xs font-black text-slate-700 hover:border-primary/30 hover:bg-white dark:bg-[#11100F] dark:border-[#3E3A35] dark:text-[#EFE9E1] sm:w-[195px]"
+                  buttonClassName="min-h-11 rounded-2xl border-slate-200 bg-slate-50 px-4 text-xs font-black text-slate-700 hover:border-primary/30 hover:bg-white dark:border-[#3E3A35] dark:bg-[#11100F] dark:text-[#EFE9E1] sm:w-[195px]"
                 />
                 <button
                   type="button"
                   onClick={handleOpenAddModal}
                   className="flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-lg transition-all hover:bg-primary-hover active:scale-95 sm:whitespace-nowrap"
                 >
-                  <Plus className="h-4 w-4" /> Thêm Vật tư Nội thất
+                  <Plus className="h-4 w-4" /> Thêm Mã Sản Phẩm
                 </button>
               </div>
 
@@ -608,34 +875,42 @@ export function InteriorInventoryView() {
                       <span>Khởi tạo nhanh Kho Nội thất chuẩn thực tế</span>
                     </div>
                     <p className="text-xs font-medium text-slate-600 dark:text-[#CDBCAB]">
-                      Nạp sẵn 8 nhóm vật tư lõi (Ván MDF/Plywood An Cường, Ray Blum, Bản lề Hafele, Chỉ PVC, Keo PUR Jowat, Sơn Inchem, Đá Vicostone) vào cơ sở dữ liệu kho của doanh nghiệp.
+                      Nạp sẵn 8 mã sản phẩm chuẩn Nội thất (Ván MDF/Plywood An Cường, Ray Blum, Bản lề Hafele, Chỉ PVC, Keo PUR Jowat, Sơn Inchem, Đá Vicostone) kèm định giá và tồn đầu kỳ vào kho.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={handleSeedStarterCatalog}
                     disabled={seedingCatalog}
-                    className="inline-flex shrink-0 items-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-md transition-all hover:bg-slate-800 disabled:opacity-50 dark:bg-primary dark:text-primary-foreground"
+                    className="inline-flex shrink-0 items-center gap-2 rounded-2xl bg-primary px-5 py-3 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-md transition-all hover:bg-primary-hover disabled:opacity-50"
                   >
                     {seedingCatalog ? (
                       <RefreshCw className="h-4 w-4 animate-spin" />
                     ) : (
                       <Plus className="h-4 w-4" />
                     )}
-                    Nạp 8 vật tư chuẩn Nội thất
+                    Nạp 8 mã vật tư Nội thất
                   </button>
                 </div>
               )}
 
-              {/* Inventory Table */}
+              {/* ── BẢNG XUẤT - NHẬP - TỒN THEO MÃ SẢN PHẨM (SKU) ── */}
               <div className="customer-detail-card w-full overflow-x-auto overscroll-x-contain rounded-[2rem] border border-slate-100 bg-white shadow-xl dark:border-[#3E3A35]/60 dark:bg-[#1C1B19] custom-scrollbar">
-                <table className="bella-data-table min-w-[820px] text-left">
+                <table className="bella-data-table min-w-[1060px] text-left">
                   <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/70 dark:border-[#3E3A35]/40 dark:bg-[#11100F]/50">
-                      {['Vật tư & Quy cách', 'Nhóm / SKU', 'Tồn kho xưởng', 'Đơn giá & Thành tiền', 'Thao tác kho'].map((h) => (
+                    <tr className="border-b border-slate-100 bg-slate-50/80 dark:border-[#3E3A35]/40 dark:bg-[#11100F]/50">
+                      {[
+                        'Mã SP (SKU) & Vật tư',
+                        'Đầu kỳ',
+                        'Nhập kỳ (+)',
+                        'Xuất kỳ (-)',
+                        'Cuối kỳ & Giá trị',
+                        'Thời gian Nhập / Xuất',
+                        'Thao tác',
+                      ].map((h) => (
                         <th
                           key={h}
-                          className="whitespace-nowrap px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400"
+                          className="whitespace-nowrap px-4 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400"
                         >
                           {h}
                         </th>
@@ -643,126 +918,184 @@ export function InteriorInventoryView() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-[#3E3A35]/30">
-                    {visibleItems.length === 0 ? (
+                    {loadingMovement && visibleMovementRows.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-8 py-14 text-center">
+                          <RefreshCw className="mx-auto h-6 w-6 animate-spin text-primary" />
+                        </td>
+                      </tr>
+                    ) : visibleMovementRows.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={5}
+                          colSpan={7}
                           className="px-8 py-16 text-center text-sm font-semibold text-slate-400"
                         >
-                          Không tìm thấy vật tư phù hợp trong kho xưởng.
+                          Không tìm thấy mã vật tư phù hợp trong kỳ báo cáo.
                         </td>
                       </tr>
                     ) : (
-                      visibleItems.map((item) => {
-                        const isLow = item.stock_level <= item.min_stock_level;
-                        const progress = Math.min(
-                          100,
-                          (item.stock_level / Math.max(1, item.min_stock_level * 2)) * 100
-                        );
-                        const itemTotal =
-                          Number(item.stock_level || 0) * Number(item.price_per_unit || 0);
-                        return (
-                          <tr
-                            key={item.id}
-                            className="group transition-colors hover:bg-slate-50/60 dark:hover:bg-[#11100F]/20"
-                          >
-                            <td className="px-6 py-4">
-                              <div className="flex items-start gap-3">
-                                <div
-                                  className={cn(
-                                    'mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
-                                    isLow
-                                      ? 'bg-rose-50 text-rose-500 dark:bg-rose-500/15'
-                                      : 'bg-slate-100 text-slate-500 dark:bg-[#2A2724] dark:text-[#CDBCAB]'
-                                  )}
-                                >
-                                  <Package className="h-4 w-4" />
+                      <>
+                        {visibleMovementRows.map((row) => {
+                          const isLow = row.current_stock <= row.min_stock_level;
+                          const isSelectedCard = selectedSkuCard === row.sku;
+                          return (
+                            <tr
+                              key={row.id}
+                              className={cn(
+                                'group transition-colors hover:bg-slate-50/70 dark:hover:bg-[#11100F]/25',
+                                isSelectedCard && 'bg-primary/5'
+                              )}
+                            >
+                              {/* SKU & Name */}
+                              <td className="max-w-[270px] px-4 py-3.5">
+                                <div className="flex items-start gap-2.5">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setSelectedSkuCard(isSelectedCard ? 'all' : row.sku)
+                                    }
+                                    title="Lọc nhật ký theo Mã SP này"
+                                    className={cn(
+                                      'mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 font-mono text-[10px] font-black transition-colors',
+                                      isSelectedCard
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'bg-slate-100 text-slate-700 hover:bg-primary/15 hover:text-primary dark:bg-[#2A2724] dark:text-[#EFE9E1]'
+                                    )}
+                                  >
+                                    <Tag className="h-3 w-3" />
+                                    {row.sku}
+                                  </button>
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-black leading-snug text-slate-900 dark:text-[#EFE9E1]">
+                                      {row.name}
+                                    </p>
+                                    <p className="mt-0.5 text-[10px] font-bold text-slate-400">
+                                      {row.category} · ĐVT: {row.unit} · ĐG: {formatVnd(row.price_per_unit)}
+                                    </p>
+                                  </div>
                                 </div>
-                                <div className="min-w-0">
-                                  <p className="text-sm font-black text-slate-900 dark:text-[#EFE9E1]">
-                                    {item.name}
-                                  </p>
-                                  <p className="mt-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                                    ĐVT: {item.unit} • Định mức tối thiểu: {item.min_stock_level} {item.unit}
-                                  </p>
-                                </div>
-                              </div>
-                            </td>
+                              </td>
 
-                            <td className="whitespace-nowrap px-6 py-4">
-                              <div className="space-y-1">
-                                <span className="inline-block rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-black text-slate-600 dark:bg-[#2A2724] dark:text-[#EFE9E1]">
-                                  {item.sku || 'CHUA-GAN-SKU'}
-                                </span>
-                                <p className="text-[11px] font-semibold text-slate-500 dark:text-[#CDBCAB]/70">
-                                  {item.category || 'Vật tư nội thất'}
+                              {/* Đầu kỳ */}
+                              <td className="whitespace-nowrap px-4 py-3.5 text-right font-mono">
+                                <p className="text-xs font-black tabular-nums text-slate-700 dark:text-[#EFE9E1]">
+                                  {row.opening_qty.toLocaleString('vi-VN')} {row.unit}
                                 </p>
-                              </div>
-                            </td>
+                                <p className="text-[10px] font-semibold tabular-nums text-slate-400">
+                                  {formatVnd(row.opening_value)}
+                                </p>
+                              </td>
 
-                            <td className="min-w-[165px] whitespace-nowrap px-6 py-4">
-                              <div className="space-y-1.5">
-                                <div className="flex items-center justify-between gap-2">
+                              {/* Nhập kỳ */}
+                              <td className="whitespace-nowrap px-4 py-3.5 text-right font-mono">
+                                <p className="text-xs font-black tabular-nums text-emerald-600 dark:text-emerald-400">
+                                  {row.import_qty > 0
+                                    ? `+${row.import_qty.toLocaleString('vi-VN')} ${row.unit}`
+                                    : '—'}
+                                </p>
+                                <p className="text-[10px] font-semibold tabular-nums text-slate-400">
+                                  {row.import_value > 0 ? formatVnd(row.import_value) : '—'}
+                                </p>
+                              </td>
+
+                              {/* Xuất kỳ */}
+                              <td className="whitespace-nowrap px-4 py-3.5 text-right font-mono">
+                                <p className="text-xs font-black tabular-nums text-rose-500 dark:text-rose-400">
+                                  {row.export_qty > 0
+                                    ? `-${row.export_qty.toLocaleString('vi-VN')} ${row.unit}`
+                                    : '—'}
+                                </p>
+                                <p className="text-[10px] font-semibold tabular-nums text-slate-400">
+                                  {row.export_value > 0 ? formatVnd(row.export_value) : '—'}
+                                </p>
+                              </td>
+
+                              {/* Cuối kỳ & Giá trị */}
+                              <td className="whitespace-nowrap px-4 py-3.5 text-right font-mono">
+                                <div className="flex items-center justify-end gap-1.5">
                                   <span
                                     className={cn(
-                                      'text-sm font-black tabular-nums',
+                                      'text-xs font-black tabular-nums',
                                       isLow ? 'text-rose-500' : 'text-slate-900 dark:text-[#EFE9E1]'
                                     )}
                                   >
-                                    {item.stock_level.toLocaleString('vi-VN')} {item.unit}
+                                    {row.closing_qty.toLocaleString('vi-VN')} {row.unit}
                                   </span>
                                   {isLow && (
-                                    <span className="rounded bg-rose-50 px-1.5 py-0.5 text-[9px] font-black uppercase text-rose-500 dark:bg-rose-500/15">
-                                      Cần nhập
+                                    <span className="rounded bg-rose-50 px-1.5 py-0.5 font-sans text-[9px] font-black uppercase text-rose-500 dark:bg-rose-500/15">
+                                      Thấp
                                     </span>
                                   )}
                                 </div>
-                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#2A2724]">
-                                  <div
-                                    className={cn(
-                                      'h-full rounded-full transition-all duration-500',
-                                      isLow ? 'bg-rose-500' : 'bg-emerald-500'
-                                    )}
-                                    style={{ width: `${progress}%` }}
-                                  />
+                                <p className="text-[11px] font-black tabular-nums text-primary">
+                                  {formatVnd(row.closing_value)}
+                                </p>
+                              </td>
+
+                              {/* Thời gian Nhập / Xuất */}
+                              <td className="whitespace-nowrap px-4 py-3.5 text-[10px] font-semibold">
+                                <div className="space-y-1">
+                                  <p className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                                    <ArrowDownLeft className="h-3 w-3 shrink-0" />
+                                    <span>Nhập: {formatDateTime(row.last_import_at)}</span>
+                                  </p>
+                                  <p className="flex items-center gap-1 text-rose-500 dark:text-rose-400">
+                                    <ArrowUpRight className="h-3 w-3 shrink-0" />
+                                    <span>Xuất: {formatDateTime(row.last_export_at)}</span>
+                                  </p>
                                 </div>
-                              </div>
-                            </td>
+                              </td>
 
-                            <td className="whitespace-nowrap px-6 py-4">
-                              <p className="text-xs font-black tabular-nums text-slate-700 dark:text-[#EFE9E1]">
-                                {formatVnd(Number(item.price_per_unit || 0))} / {item.unit}
-                              </p>
-                              <p className="mt-0.5 text-[11px] font-semibold tabular-nums text-slate-400">
-                                Tồn: {formatVnd(itemTotal)}
-                              </p>
-                            </td>
+                              {/* Actions */}
+                              <td className="whitespace-nowrap px-4 py-3.5">
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenRestock(row.id)}
+                                    className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-700 transition-all hover:bg-emerald-600 hover:text-white dark:bg-emerald-500/15 dark:text-emerald-400"
+                                  >
+                                    <ArrowDownLeft className="h-3 w-3" /> Nhập
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenDispatch(row.id)}
+                                    disabled={row.current_stock <= 0}
+                                    className="inline-flex items-center gap-1 rounded-xl bg-slate-100 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-700 transition-all hover:bg-primary hover:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-40 dark:bg-[#2A2724] dark:text-[#EFE9E1]"
+                                  >
+                                    <ArrowUpRight className="h-3 w-3" /> Xuất
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
 
-                            <td className="whitespace-nowrap px-6 py-4">
-                              <div className="flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setRestockTarget(item);
-                                    setRestockAmt(10);
-                                  }}
-                                  className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-700 transition-all hover:bg-emerald-600 hover:text-white dark:bg-emerald-500/15 dark:text-emerald-400"
-                                >
-                                  <ArrowDownLeft className="h-3.5 w-3.5" /> Nhập kho
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenDispatch(item)}
-                                  disabled={item.stock_level <= 0}
-                                  className="inline-flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-700 transition-all hover:bg-primary hover:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-40 dark:bg-[#2A2724] dark:text-[#EFE9E1]"
-                                >
-                                  <ArrowUpRight className="h-3.5 w-3.5" /> Xuất dự án
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
+                        {/* Totals Summary Row */}
+                        <tr className="border-t-2 border-slate-200 bg-slate-50/90 font-black dark:border-[#3E3A35] dark:bg-[#11100F]/60">
+                          <td className="px-4 py-4 text-xs uppercase tracking-wider text-slate-800 dark:text-[#EFE9E1]">
+                            TỔNG CỘNG ({visibleMovementRows.length} MÃ SP)
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-4 text-right font-mono text-xs tabular-nums text-slate-700 dark:text-[#EFE9E1]">
+                            <div>{totals.openingQty.toLocaleString('vi-VN')}</div>
+                            <div className="text-[11px] text-slate-500">{formatVnd(totals.openingValue)}</div>
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-4 text-right font-mono text-xs tabular-nums text-emerald-600 dark:text-emerald-400">
+                            <div>+{totals.importQty.toLocaleString('vi-VN')}</div>
+                            <div className="text-[11px]">{formatVnd(totals.importValue)}</div>
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-4 text-right font-mono text-xs tabular-nums text-rose-500 dark:text-rose-400">
+                            <div>-{totals.exportQty.toLocaleString('vi-VN')}</div>
+                            <div className="text-[11px]">{formatVnd(totals.exportValue)}</div>
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-4 text-right font-mono text-xs tabular-nums text-primary">
+                            <div>{totals.closingQty.toLocaleString('vi-VN')}</div>
+                            <div className="text-[12px] font-black">{formatVnd(totals.closingValue)}</div>
+                          </td>
+                          <td colSpan={2} className="px-4 py-4 text-[10px] font-bold text-slate-400">
+                            Kỳ: {dateFrom} → {dateTo}
+                          </td>
+                        </tr>
+                      </>
                     )}
                   </tbody>
                 </table>
@@ -918,51 +1251,72 @@ export function InteriorInventoryView() {
           )}
         </div>
 
-        {/* ── RIGHT SIDEBAR: INTERIOR WAREHOUSE LOGS ── */}
+        {/* ── RIGHT SIDEBAR: THẺ KHO / NHẬT KÝ THỜI GIAN NHẬP XUẤT THEO MÃ SP ── */}
         <div className="xl:col-span-1">
           <div className="customer-detail-card flex h-full flex-col rounded-[2rem] border border-slate-100 bg-white p-5 shadow-xl dark:border-[#3E3A35]/60 dark:bg-[#1C1B19] sm:p-7">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-black text-slate-900 dark:text-[#EFE9E1]">
-                <History className="h-5 w-5 text-primary" /> Nhật ký Kho Xưởng
+                <History className="h-5 w-5 text-primary" /> Thẻ Kho &amp; Thời Gian Nhập Xuất
               </h3>
               <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-black text-slate-500 dark:bg-[#2A2724] dark:text-[#CDBCAB]">
-                {projectDispatchLogs.length} xuất / {filteredLogs.length} GD
+                {visibleLogs.length} GD
               </span>
             </div>
 
-            <div className="mb-5 space-y-3 rounded-2xl bg-slate-50 p-4 dark:bg-[#11100F]">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                Lọc kỳ xuất nhập kho
-              </p>
-              <div className="bella-toolbar grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="mb-4 space-y-3 rounded-2xl bg-slate-50 p-4 dark:bg-[#11100F]">
+              <div>
+                <p className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  Lọc theo Mã sản phẩm (SKU)
+                </p>
                 <PremiumSelect
-                  value={String(logMonth)}
-                  onChange={(value) => setLogMonth(Number(value))}
-                  options={MONTHS.map((m, idx) => ({ value: String(idx), label: m }))}
-                  buttonClassName="min-h-10 rounded-xl border-slate-200 bg-white px-3.5 text-xs font-black text-slate-700 hover:border-primary/30 dark:bg-[#1C1B19] dark:border-[#3E3A35] dark:text-[#EFE9E1]"
-                />
-                <PremiumSelect
-                  value={String(logYear)}
-                  onChange={(value) => setLogYear(Number(value))}
-                  options={YEARS.map((y) => ({ value: String(y), label: String(y) }))}
-                  buttonClassName="min-h-10 rounded-xl border-slate-200 bg-white px-3.5 text-xs font-black text-slate-700 hover:border-primary/30 dark:bg-[#1C1B19] dark:border-[#3E3A35] dark:text-[#EFE9E1]"
+                  value={selectedSkuCard}
+                  onChange={setSelectedSkuCard}
+                  options={[
+                    { value: 'all', label: `Tất cả mã SP (${movementRows.length})` },
+                    ...movementRows.map((row) => ({
+                      value: row.sku,
+                      label: `[${row.sku}] ${row.name}`,
+                    })),
+                  ]}
+                  buttonClassName="min-h-10 w-full rounded-xl border-slate-200 bg-white px-3.5 text-xs font-bold text-slate-700 hover:border-primary/30 dark:border-[#3E3A35] dark:bg-[#1C1B19] dark:text-[#EFE9E1]"
                 />
               </div>
-              <div className="flex justify-end">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                  {filteredLogs.length} giao dịch trong kỳ
-                </span>
+
+              <div className="flex items-center gap-1.5">
+                {(
+                  [
+                    { key: 'all', label: 'Tất cả' },
+                    { key: 'import', label: 'Nhập kho (+)' },
+                    { key: 'export', label: 'Xuất kho (-)' },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() => setLogKindFilter(opt.key)}
+                    className={cn(
+                      'flex-1 rounded-xl py-2 text-[10px] font-black uppercase tracking-wider transition-all',
+                      logKindFilter === opt.key
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'bg-white text-slate-500 hover:text-slate-800 dark:bg-[#1C1B19] dark:text-[#CDBCAB]'
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="custom-scrollbar max-h-[600px] flex-1 space-y-3 overflow-y-auto pr-1">
-              {filteredLogs.length === 0 ? (
+            <div className="custom-scrollbar max-h-[620px] flex-1 space-y-3 overflow-y-auto pr-1">
+              {visibleLogs.length === 0 ? (
                 <div className="py-16 text-center">
                   <History className="mx-auto mb-3 h-8 w-8 text-slate-200" />
-                  <p className="text-xs font-bold text-slate-400">Chưa có giao dịch xuất/nhập kho trong kỳ này</p>
+                  <p className="text-xs font-bold text-slate-400">
+                    Chưa có giao dịch nhập/xuất trong khoảng {dateFrom} → {dateTo}
+                  </p>
                 </div>
               ) : (
-                filteredLogs.map((log) => (
+                visibleLogs.map((log) => (
                   <div
                     key={log.id}
                     className="flex items-start gap-3 rounded-2xl border border-transparent bg-slate-50/70 p-3.5 transition-all hover:border-primary/15 hover:bg-white dark:bg-[#11100F]/60 dark:hover:bg-[#1C1B19]"
@@ -982,25 +1336,32 @@ export function InteriorInventoryView() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-black text-slate-800 dark:text-[#EFE9E1]">
-                        {log.inventory_items?.name || 'Vật tư nội thất'}
-                      </p>
-                      <p className="mt-0.5 text-[11px] font-semibold text-slate-500 dark:text-[#CDBCAB]">
+                      <div className="flex items-center gap-1.5">
+                        <span className="rounded bg-slate-200/70 px-1.5 py-0.5 font-mono text-[9px] font-black text-slate-700 dark:bg-[#2A2724] dark:text-[#EFE9E1]">
+                          {log.sku}
+                        </span>
+                        <p className="truncate text-xs font-black text-slate-800 dark:text-[#EFE9E1]">
+                          {log.item_name}
+                        </p>
+                      </div>
+                      <p className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-[#CDBCAB]">
                         {LOG_REASON_LABELS[log.reason] || log.reason}
                         {log.notes ? ` — ${log.notes}` : ''}
                       </p>
-                      <p className="mt-1 text-[10px] font-bold text-slate-400">
-                        {log.created_at ? new Date(log.created_at).toLocaleString('vi-VN') : ''}
-                      </p>
+                      <div className="mt-1.5 flex items-center justify-between text-[10px] font-bold text-slate-400">
+                        <span>{formatDateTime(log.created_at)}</span>
+                        <span className="font-mono text-slate-500 dark:text-[#CDBCAB]">
+                          {formatVnd(log.total_value)}
+                        </span>
+                      </div>
                     </div>
                     <span
                       className={cn(
-                        'shrink-0 text-xs font-black tabular-nums',
+                        'shrink-0 font-mono text-xs font-black tabular-nums',
                         log.change_amount > 0 ? 'text-emerald-600' : 'text-rose-500'
                       )}
                     >
-                      {log.change_amount > 0 ? `+${log.change_amount}` : log.change_amount}{' '}
-                      {log.inventory_items?.unit || ''}
+                      {log.change_amount > 0 ? `+${log.change_amount}` : log.change_amount} {log.unit}
                     </span>
                   </div>
                 ))
@@ -1017,7 +1378,7 @@ export function InteriorInventoryView() {
         submitting={submitting}
         setRestockAmt={setRestockAmt}
         onClose={() => setRestockTarget(null)}
-        onSubmit={handleRestock}
+        onSubmit={handleRestockAndReload}
       />
 
       {/* ── MODAL: TẠO PHIẾU ĐỀ XUẤT MUA / CẤP VẬT TƯ ── */}
@@ -1038,7 +1399,7 @@ export function InteriorInventoryView() {
         onClose={() => setShowCreateRequest(false)}
       />
 
-      {/* ── MODAL: THÊM VẬT TƯ NỘI THẤT MỚI ── */}
+      {/* ── MODAL: THÊM MÃ SẢN PHẨM NỘI THẤT MỚI ── */}
       {showAdd && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
           <div
@@ -1049,10 +1410,10 @@ export function InteriorInventoryView() {
             <div className="mb-6 flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-xl font-black text-slate-900 dark:text-[#EFE9E1]">
-                  Thêm Vật Tư Nội Thất Mới
+                  Thêm Mã Vật Tư Nội Thất Mới
                 </h3>
                 <p className="mt-1 text-xs font-medium text-slate-400">
-                  Khai báo mã gỗ ván, phụ kiện kim khí, sơn/keo hoặc vật liệu hoàn thiện vào kho xưởng.
+                  Khai báo mã sản phẩm (SKU), tồn đầu kỳ, đơn giá và định mức an toàn.
                 </p>
               </div>
               <button
@@ -1081,7 +1442,7 @@ export function InteriorInventoryView() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400">
-                    Mã vật tư (SKU)
+                    Mã sản phẩm (SKU) *
                   </label>
                   <input
                     type="text"
@@ -1139,7 +1500,7 @@ export function InteriorInventoryView() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400">
-                    Tồn kho ban đầu
+                    Số dư đầu kỳ / Tồn ban đầu
                   </label>
                   <input
                     type="number"
@@ -1186,12 +1547,12 @@ export function InteriorInventoryView() {
               </button>
               <button
                 type="button"
-                onClick={handleAddItem}
+                onClick={handleAddItemAndReload}
                 disabled={submitting}
-                className="flex-[2] flex items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-lg transition-all active:scale-95 disabled:opacity-50"
+                className="flex-[2] flex items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-lg transition-all hover:bg-primary-hover active:scale-95 disabled:opacity-50"
               >
                 {submitting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                Lưu Vật Tư Vào Kho
+                Lưu Mã Vật Tư Vào Kho
               </button>
             </div>
           </div>
@@ -1212,7 +1573,7 @@ export function InteriorInventoryView() {
                   <Building2 className="h-5 w-5 text-primary" /> Xuất Vật Tư Cho Dự Án
                 </h3>
                 <p className="mt-1 text-xs font-semibold text-slate-500">
-                  {dispatchTarget.name} (Hiện tồn: {dispatchTarget.stock_level} {dispatchTarget.unit})
+                  [{dispatchTarget.sku || 'N/A'}] {dispatchTarget.name} (Hiện tồn: {dispatchTarget.stock_level} {dispatchTarget.unit})
                 </p>
               </div>
               <button
@@ -1289,7 +1650,7 @@ export function InteriorInventoryView() {
                 type="button"
                 onClick={handleSubmitDispatch}
                 disabled={dispatching}
-                className="flex-[2] flex items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-lg transition-all active:scale-95 disabled:opacity-50"
+                className="flex-[2] flex items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-lg transition-all hover:bg-primary-hover active:scale-95 disabled:opacity-50"
               >
                 {dispatching ? (
                   <RefreshCw className="h-4 w-4 animate-spin" />
