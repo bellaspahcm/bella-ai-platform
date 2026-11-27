@@ -13,9 +13,15 @@ import { InventoryRestockModal } from './components/InventoryRestockModal';
 import { InventoryStockPanel } from './components/InventoryStockPanel';
 import { InventoryTabs } from './components/InventoryTabs';
 import { InventoryTransferOrdersPanel } from './components/InventoryTransferOrdersPanel';
-import { isHaircutProductPresentation } from '@/lib/business-rules/product-presentation-routing';
+import {
+  INTERIOR_PRODUCT_KEY,
+  isHaircutProductPresentation,
+  isInteriorProductPresentation,
+} from '@/lib/business-rules/product-presentation-routing';
+import { getDefaultTenantModuleKey } from '@/lib/business-rules/tenant-modules';
 import { useUser } from '@/lib/user-context';
 import { HaircutInventoryView } from './HaircutInventoryView';
+import { InteriorInventoryView } from './InteriorInventoryView';
 import { useInventoryPageState } from './hooks/useInventoryPageState';
 import { useInventoryForecast } from './hooks/useInventoryForecast';
 import { ProductSalesListPage } from '@/components/product-sales/ProductSalesListPage';
@@ -247,11 +253,27 @@ function HaircutInventoryViewWrapper() {
 }
 
 export default function InventoryPage() {
-  const { product } = useUser();
+  const { product, tenantPresentation, tenantSettings, isLoading } = useUser();
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <RefreshCw className="w-10 h-10 text-primary animate-spin" />
+      </div>
+    );
+  }
+
   const isHaircut = isHaircutProductPresentation(product);
+  const isInterior =
+    isInteriorProductPresentation(product) ||
+    tenantPresentation?.product_key === INTERIOR_PRODUCT_KEY ||
+    getDefaultTenantModuleKey(tenantSettings?.enabled_modules, tenantSettings?.name) === INTERIOR_PRODUCT_KEY;
 
   if (isHaircut) {
     return <HaircutInventoryViewWrapper />;
+  }
+
+  if (isInterior) {
+    return <InteriorInventoryView />;
   }
 
   return <StandardInventoryPage />;

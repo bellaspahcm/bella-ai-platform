@@ -12,11 +12,16 @@ import {
 } from '@/lib/business-rules/tenant-modules';
 
 export const HAIRCUT_PRODUCT_KEY = 'bella_haircut';
+export const INTERIOR_PRODUCT_KEY = 'bella_interior';
 
 type ProductPresentationIdentity = Pick<ProductDefinition, 'productKey'> | null | undefined;
 
 export function isHaircutProductPresentation(product: ProductPresentationIdentity): boolean {
   return product?.productKey === HAIRCUT_PRODUCT_KEY;
+}
+
+export function isInteriorProductPresentation(product: ProductPresentationIdentity): boolean {
+  return product?.productKey === INTERIOR_PRODUCT_KEY;
 }
 
 export type ProductBrandPresentation = Omit<ResolvedTenantBrandIdentity, 'moduleKey'> & {
