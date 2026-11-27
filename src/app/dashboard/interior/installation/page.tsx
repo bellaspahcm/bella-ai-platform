@@ -1180,7 +1180,7 @@ export default function InteriorInstallationPage() {
                 timestamp: '2024-11-01T08:00:00.000Z',
                 actorId: 'pm-1',
                 actorName: 'Kỹ sư Trưởng dự án',
-                note: 'Lập kế hoạch lắp đặt hiện trường &amp; phân chia khu vực thi công',
+                note: 'Lập kế hoạch lắp đặt hiện trường & phân chia khu vực thi công',
               },
               {
                 action: 'transition',

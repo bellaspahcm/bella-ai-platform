@@ -110,7 +110,9 @@ export default function InteriorReportsAnalyticsPage() {
   };
 
   const handleExportPdf = () => {
-    showToast('Chức năng xuất PDF chưa khả dụng; không có tệp nào được tạo.');
+    if (typeof window !== 'undefined') {
+      window.print();
+    }
   };
 
   if (loading && !data) {
@@ -742,18 +744,22 @@ export default function InteriorReportsAnalyticsPage() {
                 <Bell className="w-4 h-4 text-amber-500" />
                 <h2 className="text-sm font-bold text-slate-800">Cảnh báo quản trị</h2>
               </div>
-              <button
-                type="button"
-                onClick={() => showToast('Mở trung tâm quản lý cảnh báo toàn hệ thống...')}
+              <Link
+                href="/dashboard/interior/qc-handover"
                 className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-0.5"
               >
-                <span>Xem tất cả</span>
+                <span>Kiểm tra QC</span>
                 <ArrowRight className="w-3 h-3" />
-              </button>
+              </Link>
             </div>
 
             <div className="space-y-3 mt-3">
-              {data.managementAlerts.map((alert) => (
+              {data.managementAlerts.length === 0 ? (
+                <div className="p-3.5 rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-500">
+                  Không có cảnh báo rủi ro hoặc chứng thư sắp hết hạn.
+                </div>
+              ) : (
+                data.managementAlerts.map((alert) => (
                 <div
                   key={alert.id}
                   onClick={() => setSelectedAlertDetail(alert)}
@@ -775,7 +781,8 @@ export default function InteriorReportsAnalyticsPage() {
                     {alert.badgeLabel}
                   </span>
                 </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
@@ -903,16 +910,13 @@ export default function InteriorReportsAnalyticsPage() {
               {selectedAlertDetail.message}
             </p>
             <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedAlertDetail(null);
-                  showToast('Đã gửi thông báo xử lý tới Project Manager phụ trách.');
-                }}
-                className="px-3.5 py-2 bg-emerald-700 text-white rounded-xl text-xs font-semibold hover:bg-emerald-800 transition"
+              <Link
+                href="/dashboard/interior/schedule"
+                className="px-3.5 py-2 bg-emerald-700 text-white rounded-xl text-xs font-semibold hover:bg-emerald-800 transition inline-flex items-center gap-1"
               >
-                Giao việc xử lý
-              </button>
+                <span>Tạo việc trên Lịch công việc</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
               <button
                 type="button"
                 onClick={() => setSelectedAlertDetail(null)}

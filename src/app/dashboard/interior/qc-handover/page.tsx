@@ -656,7 +656,7 @@ export default function InteriorQCHandoverPage() {
               }`}
             >
               <IconCheckCircle className="w-3.5 h-3.5" />
-              <span>{isHandoverBlocked ? 'Xem Điều Kiện Bàn Giao' : 'Tiến Hành Nghiệm Thu &amp; Ký Số'}</span>
+              <span>{isHandoverBlocked ? 'Xem Điều Kiện Bàn Giao' : 'Tiến Hành Nghiệm Thu & Ký Số'}</span>
             </button>
             <Link
               href="/dashboard/interior/warranty"

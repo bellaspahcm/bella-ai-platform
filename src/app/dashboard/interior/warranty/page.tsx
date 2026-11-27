@@ -843,7 +843,7 @@ export default function WarrantyDashboardPage() {
                 createdAt={selectedCertificate.warrantyStartDate}
                 createdByName="Kỹ sư QC trưởng (Bella Interior)"
                 startedAt={selectedCertificate.warrantyStartDate}
-                startedByName="Đại diện Bàn giao &amp; Nghiệm thu"
+                startedByName="Đại diện Bàn giao & Nghiệm thu"
                 completedAt={selectedCertificate.status === 'expired' ? selectedCertificate.warrantyExpires : null}
                 completedByName="Chủ đầu tư xác nhận bảo hành"
                 executionDuration={computeOperationalLeadTime(selectedCertificate.warrantyStartDate, selectedCertificate.status === 'expired' ? selectedCertificate.warrantyExpires : null)}
@@ -868,19 +868,19 @@ export default function WarrantyDashboardPage() {
                   },
                 ]}
                 status={selectedCertificate.status}
-                title="Dấu vết thời gian &amp; Lịch sử hiệu lực chứng thư"
+                title="Dấu vết thời gian & Lịch sử hiệu lực chứng thư"
               />
             </div>
 
             <div className="flex justify-end space-x-3 pt-2">
               <button
+                type="button"
                 onClick={() => {
-                  setSelectedCertificate(null);
-                  showToast('Chức năng xuất chứng thư PDF chưa khả dụng; không có tệp nào được tạo.');
+                  if (typeof window !== 'undefined') window.print();
                 }}
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs"
               >
-                Xuất PDF Chứng Thư
+                In / Lưu PDF Chứng Thư
               </button>
             </div>
           </div>

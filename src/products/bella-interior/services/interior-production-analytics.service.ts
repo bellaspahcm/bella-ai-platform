@@ -598,26 +598,7 @@ export class InteriorProductionAnalyticsService {
       const { data: rawOrders } = await query;
       const orders = Array.isArray(rawOrders) ? rawOrders : [];
 
-      if (orders.length === 0) {
-        const mock = this.getMockProductionOverview();
-        if (availableProjects.length > 0) {
-          mock.availableProjects = availableProjects;
-        }
-        if (activeProject) {
-          mock.projectHeader = {
-            id: activeProject.id,
-            code: activeProject.code || activeProject.id.slice(0, 8),
-            name: activeProject.name,
-            selectorLabel: `${activeProject.name} (${activeProject.code || activeProject.id.slice(0, 8)})`,
-            clientName: activeProject.customer_name || 'Khách hàng',
-            status: activeProject.status || 'in_production',
-            statusLabel: 'Đang triển khai',
-          };
-        }
-        return mock;
-      }
-
-      // 3. Map orders to ProductionOrderTableRow
+      // 3. Map orders to ProductionOrderTableRow (when 0 orders, return genuine empty state)
       const statusConfig: Record<string, { label: string; badgeClass: string; barColor: string }> = {
         in_production: { label: 'Đang SX', badgeClass: 'bg-green-100 text-green-700', barColor: '#2D7A4F' },
         delayed: { label: 'Trễ hạn', badgeClass: 'bg-red-100 text-red-700', barColor: '#ef4444' },
@@ -761,9 +742,7 @@ export class InteriorProductionAnalyticsService {
 
       return {
         projectHeader: header,
-        availableProjects: availableProjects.length > 0 ? availableProjects : [
-          { id: 'NT-2024-001', label: 'Villa Sunrise Renovation (NT-2024-001)', code: 'NT-2024-001' },
-        ],
+        availableProjects,
         architectureNotice: this.getArchitectureNotice(),
         kpis,
         workflowStages: this.getWorkflowStages(),
@@ -777,7 +756,7 @@ export class InteriorProductionAnalyticsService {
           headers: ['Mã lệnh SX', 'Dự án', 'Hạng mục', 'Công đoạn hiện tại', 'Tiến độ', 'Hạn hoàn thành', 'Trạng thái', 'Thao tác'],
           rows: mappedRows,
         },
-        alerts: this.getAlerts(),
+        alerts: needsAttentionCount > 0 ? this.getAlerts() : { title: 'Cảnh báo sản xuất', viewAllLabel: 'Xem tất cả', items: [] },
         workshopCapacities: this.getWorkshopCapacities(),
       };
     } catch {

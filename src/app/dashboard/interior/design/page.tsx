@@ -108,7 +108,7 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
     { key: 'overview', label: 'Tổng quan', href: '/dashboard/interior/projects', isActive: false },
     { key: 'design', label: 'Thiết kế', href: '/dashboard/interior/design', isActive: true },
     { key: 'materials', label: 'Vật liệu', href: '/dashboard/interior/materials', isActive: false },
-    { key: 'boq', label: 'BOQ &amp; Dự toán', href: '/dashboard/interior/boq', isActive: false },
+    { key: 'boq', label: 'BOQ & Dự toán', href: '/dashboard/interior/boq', isActive: false },
     { key: 'production', label: 'Sản xuất', href: '/dashboard/interior/production', isActive: false },
     { key: 'installation', label: 'Thi công', href: '/dashboard/interior/installation', isActive: false },
     { key: 'reports', label: 'Báo cáo', href: '/dashboard/interior/reports', isActive: false },
@@ -116,7 +116,7 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
   visuals: [
     {
       id: 'vis-1',
-      title: 'Phối cảnh Phòng khách &amp; Bàn trà',
+      title: 'Phối cảnh Phòng khách & Bàn trà',
       roomZone: 'Phòng khách',
       category: '3d',
       categoryLabel: 'Phối cảnh 3D',
@@ -834,7 +834,7 @@ function InteriorDesignStudioContent() {
         file: null,
         previewUrl: '',
       });
-      setToastMessage('Tải lên Cloudflare R2 &amp; lưu phối cảnh 3D thành công!');
+      setToastMessage('Tải lên Cloudflare R2 & lưu phối cảnh 3D thành công!');
       setTimeout(() => setToastMessage(null), 4000);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Lỗi khi tải lên phối cảnh 3D';

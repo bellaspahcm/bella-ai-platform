@@ -373,34 +373,7 @@ export class InteriorQCHandoverAnalyticsService {
       const { data: rawPunchList } = await query;
       const items = Array.isArray(rawPunchList) ? rawPunchList : [];
 
-      if (items.length === 0) {
-        const mock = this.getMockQCHandoverOverview();
-        if (availableProjects.length > 0) {
-          mock.availableProjects = availableProjects;
-        }
-        if (activeProject) {
-          mock.projectHeader = {
-            id: activeProject.id,
-            code: activeProject.code || activeProject.id.slice(0, 8),
-            name: activeProject.name,
-            selectorLabel: activeProject.name,
-            location: activeProject.site_address || 'Quận 7, TP. Hồ Chí Minh',
-            plannedHandoverDate: activeProject.target_completion_date || '15/10/2026',
-            status: activeProject.status || 'ready_for_handover',
-            statusLabel: 'Sẵn sàng bàn giao',
-            notificationsCount: 0,
-          };
-          mock.projectInfoCard = {
-            title: 'Thông tin dự án',
-            projectName: activeProject.name,
-            location: activeProject.site_address || 'Việt Nam',
-            scheduledDateFormatted: `Ngày nghiệm thu dự kiến: ${activeProject.target_completion_date || 'Theo tiến độ hợp đồng'}`,
-          };
-        }
-        return mock;
-      }
-
-      // 3. Map punch list rows
+      // 3. Map punch list rows (when 0 defects exist, return genuine empty state)
       const now = new Date();
       const rows: PunchListTableRow[] = items.map((it, idx) => {
         const severity: PunchSeverityLevel =
@@ -588,9 +561,7 @@ export class InteriorQCHandoverAnalyticsService {
           statusLabel: isEligible ? 'Sẵn sàng bàn giao' : 'Đang nghiệm thu',
           notificationsCount: overdueCount,
         },
-        availableProjects: availableProjects.length > 0 ? availableProjects : [
-          { id: 'NT-2024-001', label: 'The Horizon Residence', code: 'INT-2024-001' },
-        ],
+        availableProjects,
         handoverGate,
         filterTabs,
         kpis,

@@ -213,23 +213,37 @@ export class InteriorFinanceAnalyticsService {
 
     try {
       const client = supabaseClient as unknown as InteriorQueryClient;
-      const [projRes, contractRes, milestoneRes] = await Promise.all([
+      const [projRes, contractRes, milestoneRes, boqRes] = await Promise.all([
         client.from<RawInteriorProject>('interior_projects').select('id, code, name, customer_name, estimated_budget, status').order('created_at', { ascending: false }),
         client.from<RawInteriorContract>('interior_contracts').select('id, project_id, contract_number, title, baseline_contract_value, current_contract_value, status, signed_date'),
         client.from<RawInteriorPaymentMilestone>('interior_payment_milestones').select('id, contract_id, amount, status, collected_amount, paid_at, due_date'),
+        client.from<{ project_id: string; total_internal_cost: string | number; status: string }>('interior_boqs').select('project_id, total_internal_cost, status'),
       ]);
 
       const projects = Array.isArray(projRes.data) ? projRes.data : [];
       const contracts = Array.isArray(contractRes.data) ? contractRes.data : [];
       const milestones = Array.isArray(milestoneRes.data) ? milestoneRes.data : [];
+      const boqs = Array.isArray(boqRes.data) ? boqRes.data : [];
+
+      const zeroBaseline: QuarterBaselineProof = {
+        previousQuarter: quarter,
+        previousRevenue: 0,
+        previousCogs: 0,
+        previousProfit: 0,
+        previousMargin: 0,
+        revenueGrowthRate: 0,
+        cogsGrowthRate: 0,
+        profitGrowthRate: 0,
+        marginDiff: 0,
+      };
 
       if (projects.length === 0) {
-        return this.getMockFinanceOverview(quarter, period);
+        return this.computeOverviewFromProjects([], zeroBaseline, quarter, period);
       }
 
       const rawProjects: RawFinanceProjectItem[] = projects.slice(0, 10).map((p) => {
         const projContracts = contracts.filter((c) => c.project_id === p.id);
-        const contractRev = projContracts.reduce((sum, c) => sum + (Number(c.current_contract_value) || Number(c.baseline_contract_value) || 0), 0) || (Number(p.estimated_budget) || 750_000_000);
+        const contractRev = projContracts.reduce((sum, c) => sum + (Number(c.current_contract_value) || Number(c.baseline_contract_value) || 0), 0) || (Number(p.estimated_budget) || 0);
 
         const contractIds = new Set(projContracts.map((c) => c.id));
         const projMilestones = milestones.filter((m) => contractIds.has(m.contract_id));
@@ -238,11 +252,15 @@ export class InteriorFinanceAnalyticsService {
           return sum;
         }, 0);
 
+        const projBoqs = boqs.filter((b) => b.project_id === p.id);
+        const preferredBoq = projBoqs.find((b) => b.status === 'locked_for_contract' || b.status === 'approved') || projBoqs[0];
+        const realCogs = preferredBoq ? (Number(preferredBoq.total_internal_cost) || 0) : 0;
+
         const completionPct = p.status === 'completed' || p.status === 'handover' ? 100 : (p.status === 'installation' ? 75 : (p.status === 'production' ? 50 : 25));
         const recognizedRev = Math.round((completionPct / 100) * contractRev);
-        const budgetC = Math.round(contractRev * 0.62);
-        const cogsAmount = Math.round(contractRev * 0.635);
-        const forecastMargin = contractRev > 0 ? Number((((contractRev - cogsAmount) / contractRev) * 100).toFixed(1)) : 36.5;
+        const budgetC = realCogs;
+        const cogsAmount = realCogs;
+        const forecastMargin = contractRev > 0 ? Number((((contractRev - cogsAmount) / contractRev) * 100).toFixed(1)) : 0;
 
         return {
           id: p.code || p.id.slice(0, 8),
@@ -250,22 +268,31 @@ export class InteriorFinanceAnalyticsService {
           clientName: p.customer_name || 'Khách hàng',
           contractRevenue: contractRev,
           cogs: cogsAmount,
-          cashCollected: cashColl > 0 ? cashColl : Math.round(contractRev * 0.7),
+          cashCollected: cashColl,
           completionPercent: completionPct,
           recognizedRevenue: recognizedRev,
           budgetCost: budgetC,
           forecastFinalMargin: forecastMargin,
           riskAlert: {
-            label: p.status === 'delayed' ? 'Chậm tiến độ vật tư 3 ngày' : 'Tiến độ dòng tiền bình thường',
+            label: p.status === 'delayed' ? 'Chậm tiến độ vật tư' : 'Tiến độ dòng tiền bình thường',
             severity: (p.status === 'delayed' ? 'warning' : 'normal') as 'normal' | 'warning' | 'danger',
           },
         };
       });
 
-      const baseline = this.getQuarterBaselineProof();
-      return this.computeOverviewFromProjects(rawProjects, baseline, quarter, period);
+      return this.computeOverviewFromProjects(rawProjects, zeroBaseline, quarter, period);
     } catch {
-      return this.getMockFinanceOverview(quarter, period);
+      return this.computeOverviewFromProjects([], {
+        previousQuarter: quarter,
+        previousRevenue: 0,
+        previousCogs: 0,
+        previousProfit: 0,
+        previousMargin: 0,
+        revenueGrowthRate: 0,
+        cogsGrowthRate: 0,
+        profitGrowthRate: 0,
+        marginDiff: 0,
+      }, quarter, period);
     }
   }
 
