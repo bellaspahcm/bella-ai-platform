@@ -122,7 +122,7 @@ export default function AccountingReadinessPage() {
       const [summaryData, queueData, templateData] = await Promise.all([
         getAccountingReadinessSummary(),
         getAccountingReviewQueue({ status: 'NEEDS_REVIEW' }),
-        getAccountingEventTemplates('TT133'),
+        getAccountingEventTemplates('TT99'),
       ]);
       setSummary(summaryData);
       setReviewItems(queueData);
@@ -219,7 +219,7 @@ export default function AccountingReadinessPage() {
                 Sẵn sàng dữ liệu kế toán
               </h2>
               <p className="mt-2 max-w-3xl text-xs md:text-sm font-medium leading-relaxed text-slate-600 dark:text-[#CDBCAB]/75">
-                Kiểm tra dữ liệu SIMPLE đã đủ thông tin để chuyển sang kế toán chuyên nghiệp theo TT133 hay chưa. Lễ tân/admin vẫn nhập liệu đơn giản; các dòng thiếu nghiệp vụ sẽ vào hàng chờ để kế toán xử lý.
+                Kiểm tra dữ liệu SIMPLE đã đủ thông tin để chuyển sang kế toán chuyên nghiệp theo TT99 hay chưa. Lễ tân/admin vẫn nhập liệu đơn giản; các dòng thiếu nghiệp vụ sẽ vào hàng chờ để kế toán xử lý.
               </p>
             </div>
           </div>
@@ -301,7 +301,7 @@ export default function AccountingReadinessPage() {
                 Chất lượng dữ liệu theo nguồn
               </h3>
               <p className="mt-1 text-2xs font-medium text-slate-500 dark:text-[#CDBCAB]/60">
-                Các dòng có business event sẽ được map vào template TT133.
+                Các dòng có business event sẽ được map vào template TT99.
               </p>
             </div>
             <button
@@ -370,7 +370,7 @@ export default function AccountingReadinessPage() {
         </div>
 
         <div className="rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
-          <h3 className="text-sm font-black uppercase tracking-wider text-slate-950 dark:text-[#EFE9E1]">Template TT133</h3>
+          <h3 className="text-sm font-black uppercase tracking-wider text-slate-950 dark:text-[#EFE9E1]">Template TT99</h3>
           <p className="mt-1 text-2xs font-medium text-slate-500 dark:text-[#CDBCAB]/60">
             Bộ quy tắc định khoản mặc định cho các nghiệp vụ SIMPLE.
           </p>

@@ -250,7 +250,7 @@ export default function AccountingHealthPage() {
                 Sức khỏe sổ kế toán
               </h2>
               <p className="mt-2 max-w-3xl text-xs md:text-sm font-medium leading-relaxed text-slate-600 dark:text-[#CDBCAB]/75">
-                Kiểm tra outbox, bút toán nháp, reference trùng, readiness TT133 và dữ liệu legacy trước khi khóa tháng.
+                Kiểm tra outbox, bút toán nháp, reference trùng, readiness TT99 và dữ liệu legacy trước khi khóa tháng.
               </p>
             </div>
           </div>
@@ -308,7 +308,7 @@ export default function AccountingHealthPage() {
               />
               <MetricCard
                 icon={AlertTriangle}
-                label="Readiness TT133"
+                label="Readiness TT99"
                 value={`${summary?.metrics.readiness_score ?? 0}/100`}
                 tone={(summary?.metrics.readiness_score ?? 0) >= 95 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}
               />
