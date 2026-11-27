@@ -1003,11 +1003,14 @@ export async function restockItem(
       importUnitPrice: batchUnitPrice,
     });
 
-    const updatePayload: InventoryItemUpdate = {
-      stock_level: movement.newStock,
-      updated_at: new Date().toISOString(),
-      ...(newUnitPrice !== undefined ? { price_per_unit: nextWeightedAvgPrice } : {}),
-    };
+    const hasCustomPrice = newUnitPrice !== undefined;
+    const updatePayload: InventoryItemUpdate = hasCustomPrice
+      ? {
+          stock_level: movement.newStock,
+          price_per_unit: nextWeightedAvgPrice,
+          updated_at: new Date().toISOString(),
+        }
+      : { stock_level: movement.newStock };
 
     const { error: updateError } = await supabase
       .from('inventory_items')
@@ -1028,16 +1031,18 @@ export async function restockItem(
         unit_price: batchUnitPrice,
         total_value: numericAmount * batchUnitPrice,
         weighted_avg_before: previousPrice,
-        weighted_avg_after: newUnitPrice !== undefined ? nextWeightedAvgPrice : previousPrice,
+        weighted_avg_after: hasCustomPrice ? nextWeightedAvgPrice : previousPrice,
       },
     };
 
     const { error: logError } = await supabase.from('inventory_logs').insert(logPayload);
     if (logError) {
-      const rollbackPayload: InventoryItemUpdate = {
-        stock_level: previousStock,
-        price_per_unit: previousPrice,
-      };
+      const rollbackPayload: InventoryItemUpdate = hasCustomPrice
+        ? {
+            stock_level: previousStock,
+            price_per_unit: item.price_per_unit,
+          }
+        : { stock_level: previousStock };
       const { error: rollbackError } = await supabase
         .from('inventory_items')
         .update(rollbackPayload)
