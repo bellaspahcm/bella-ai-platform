@@ -595,6 +595,13 @@ export default function InteriorInstallationPage() {
             Ghi Nhật Ký Hôm Nay
           </button>
           <Link
+            href="/dashboard/interior/site-diary"
+            className="inline-flex items-center gap-1 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
+          >
+            PWA Giám sát
+            <IconArrowRight className="w-3.5 h-3.5" />
+          </Link>
+          <Link
             href="/dashboard/interior/qc-handover"
             className="inline-flex items-center gap-1 px-3.5 py-1.5 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
           >
