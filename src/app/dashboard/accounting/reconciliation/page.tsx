@@ -312,7 +312,7 @@ export default function ReconciliationPage() {
             onClick={() => setShowSyncModal(true)}
             className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white text-3xs font-black uppercase tracking-widest transition-all shadow-md shrink-0 self-start md:self-auto cursor-pointer"
           >
-            Đồng bộ & Kích hoạt Kế toán Chuyên nghiệp
+            Đồng bộ và Kích hoạt Kế toán Chuyên nghiệp
           </button>
         </div>
       ) : (
