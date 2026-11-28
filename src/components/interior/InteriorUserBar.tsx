@@ -149,7 +149,7 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
 
   const displayEmail = currentUser?.email || sessionEmail || 'admin@bellaspa.vn';
 
-  const roleRaw = currentUser?.role || sessionRole || 'admin';
+  const roleRaw = currentUser?.role || sessionRole || null;
   const displayRole = simulatedRole
     ? `${getInteriorRoleDisplayName(simulatedRole)} (Mô phỏng)`
     : getInteriorRoleDisplayName(roleRaw);
@@ -307,7 +307,7 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
                   Mô phỏng góc nhìn RBAC
                 </span>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
-                  Xem trước menu và giao diện thực tế từng vai trò
+                  Xem trước menu; quyền thực tế không thay đổi
                 </span>
               </div>
               {simulatedRole && (
@@ -328,17 +328,13 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
             {/* Roles List */}
             <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 p-1">
               {INTERIOR_ROLES.map((r) => {
-                const isSelected = simulatedRole ? simulatedRole === r.roleKey : (r.roleKey === 'OWNER' || r.roleKey === 'ADMIN');
+                const isSelected = simulatedRole ? simulatedRole === r.roleKey : false;
                 return (
                   <button
                     key={r.roleKey}
                     type="button"
                     onClick={() => {
-                      if (r.roleKey === 'OWNER' || r.roleKey === 'ADMIN') {
-                        setSimulatedInteriorRole(null);
-                      } else {
-                        setSimulatedInteriorRole(r.roleKey);
-                      }
+                      setSimulatedInteriorRole(r.roleKey);
                       setIsRoleSwitcherOpen(false);
                     }}
                     className={`w-full text-left px-3 py-2 rounded-xl transition-colors flex items-center justify-between gap-2.5 cursor-pointer ${
@@ -370,7 +366,7 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
 
             {/* Footer */}
             <div className="p-2.5 px-3 bg-slate-50/60 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
-              <span>Đang chọn: <strong>{simulatedRole ? getInteriorRoleDisplayName(simulatedRole) : 'Toàn quyền (Admin)'}</strong></span>
+              <span>Đang chọn: <strong>{simulatedRole ? getInteriorRoleDisplayName(simulatedRole) : 'Vai trò hiện tại'}</strong></span>
               {simulatedRole && (
                 <span className="text-amber-600 dark:text-amber-400 font-medium">Đang mô phỏng</span>
               )}
@@ -630,3 +626,4 @@ export default function InteriorUserBar({ className = '', align = 'right' }: Int
     </div>
   );
 }
+

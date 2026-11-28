@@ -57,7 +57,7 @@ export function InteriorRoleSelector({ enabled, className = '' }: InteriorRoleSe
 
   const currentRoleName = simulatedRole
     ? getInteriorRoleDisplayName(simulatedRole)
-    : 'Toàn quyền (Admin)';
+    : 'Vai trò hiện tại';
 
   return (
     <div className={`px-3 mb-2 relative z-30 ${className}`} ref={containerRef}>
@@ -119,18 +119,14 @@ export function InteriorRoleSelector({ enabled, className = '' }: InteriorRoleSe
             {INTERIOR_ROLES.map((r) => {
               const isSelected = simulatedRole
                 ? simulatedRole === r.roleKey
-                : r.roleKey === 'OWNER' || r.roleKey === 'ADMIN';
+                : false;
 
               return (
                 <button
                   key={r.roleKey}
                   type="button"
                   onClick={() => {
-                    if (r.roleKey === 'OWNER' || r.roleKey === 'ADMIN') {
-                      setSimulatedInteriorRole(null);
-                    } else {
-                      setSimulatedInteriorRole(r.roleKey);
-                    }
+                    setSimulatedInteriorRole(r.roleKey);
                     setIsOpen(false);
                   }}
                   className={`w-full text-left px-2.5 py-2 rounded-xl transition-colors flex items-center justify-between gap-2 cursor-pointer ${
@@ -159,7 +155,7 @@ export function InteriorRoleSelector({ enabled, className = '' }: InteriorRoleSe
 
           {/* Footer note */}
           <div className="p-2 px-3 bg-slate-50/60 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-500 flex items-center justify-between">
-            <span>Menu sẽ tự động lọc tương ứng</span>
+            <span>Chỉ xem trước menu; quyền thực tế không đổi</span>
             {simulatedRole && (
               <span className="text-amber-600 dark:text-amber-400 font-bold">Đang mô phỏng</span>
             )}
@@ -169,3 +165,4 @@ export function InteriorRoleSelector({ enabled, className = '' }: InteriorRoleSe
     </div>
   );
 }
+
