@@ -295,7 +295,7 @@ export default function LandingPage() {
                     <p>
                       Bella EIP hỗ trợ vận hành các chuỗi dịch vụ đa phân hệ quy mô lớn.
                       Hệ thống tự động hóa quy trình đặt lịch, phân bổ và tính toán hoa hồng kỹ thuật viên,
-                      đảm bảo dữ liệu lương bất biến và trích xuất báo cáo P&L theo dòng tiền thực thu.
+                      đảm bảo dữ liệu lương bất biến và trích xuất báo cáo P&amp;L theo dòng tiền thực thu.
                     </p>
                   </motion.div>
 
