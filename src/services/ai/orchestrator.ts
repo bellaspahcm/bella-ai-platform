@@ -231,9 +231,9 @@ function getStrategicRecommendations(routedTo: string): string[] {
     "Duy trì hội đồng giao ban điều hành AI định kỳ hàng tuần giữa 5 khối chuyên môn để phòng ngừa rủi ro chéo."
   ];
   return [
-    "Định kỳ rà soát các chỉ số vận hành cốt lõi toàn diện chuỗi chi nhánh Bella Spa.",
-    "Sử dụng AI Copilot để phân tích chéo dữ liệu giữa các phòng ban nhằm nâng cao hiệu suất.",
-    "Chủ động lên kế hoạch phòng ngừa rủi ro về mặt nhân sự, tồn kho và đối soát tài chính."
+    "Định kỳ rà soát các chỉ số vận hành cốt lõi theo từng chi nhánh và dự án.",
+    "Sử dụng AI Copilot để tổng hợp chéo dữ liệu giữa các bộ phận nhằm nâng cao hiệu suất.",
+    "Chủ động lập kế hoạch phòng ngừa rủi ro về tiến độ, nhân sự, tồn kho và dòng tiền."
   ];
 }
 
@@ -348,27 +348,10 @@ export async function runCOOOrchestrator(
   let strategicRecommendations = getStrategicRecommendations(routedTo);
 
   if (!geminiApiKey || geminiApiKey.trim().length < 10) {
-     
-    const fs = require("fs");
-     
-    const path = require("path");
-    const envPath = path.join(process.cwd(), ".env.local");
-    const exists = fs.existsSync(envPath);
-    let debugInfo = `Cwd: ${process.cwd()}, Path: ${envPath}, Exists: ${exists}`;
-    if (exists) {
-      try {
-        const content = fs.readFileSync(envPath, "utf8");
-        debugInfo += `, Content Length: ${content.length}`;
-        const match = content.match(/^GEMINI_API_KEY\s*=\s*(.+)$/m);
-        debugInfo += `, Match Found: ${!!match}`;
-        if (match) {
-          debugInfo += `, Match[1] Length: ${match[1] ? match[1].trim().length : 0}`;
-        }
-      } catch (err: unknown) {
-        debugInfo += `, Read Error: ${err instanceof Error ? err.message : String(err)}`;
-      }
-    }
-    executiveSummary = `⚠️ Hệ thống chưa nạp được GEMINI_API_KEY hợp lệ từ file .env.local (Độ dài khóa tìm được: ${geminiApiKey ? geminiApiKey.trim().length : 0} ký tự). Chi tiết chẩn đoán: [${debugInfo}]. Vui lòng kiểm tra lại cấu hình key trong file .env.local ở thư mục gốc dự án.`;
+    console.warn("[AI COO Service] Gemini API key unavailable or invalid; falling back to concise internal summary.");
+    executiveSummary = subAgentResponse.summary?.trim()
+      ? subAgentResponse.summary
+      : "Trợ lý AI hiện chưa sẵn sàng phân tích chuyên sâu. Vui lòng thử lại sau ít phút hoặc liên hệ quản trị viên hệ thống.";
   } else {
     try {
       console.log("[AI COO Service] Phát hiện GEMINI_API_KEY. Tiến hành gọi Gemini API cho phân tích thông minh...");
@@ -476,13 +459,16 @@ Bạn phải trả về DUY NHẤT một chuỗi JSON hợp lệ (không chứa 
           console.log("[AI COO Service] Gọi Gemini thành công và phân tích số liệu thành công!");
         }
       } else {
-        const errPayload = await response.json().catch(() => ({}));
         console.error("[AI COO Service] Gọi Gemini API thất bại, HTTP status:", response.status);
-        executiveSummary = `⚠️ Gọi Gemini API thất bại (HTTP Status: ${response.status}). Phản hồi lỗi: ${JSON.stringify(errPayload)}`;
+        executiveSummary = subAgentResponse.summary?.trim()
+          ? subAgentResponse.summary
+          : "Trợ lý AI hiện đang tạm bận khi tổng hợp dữ liệu. Vui lòng thử lại sau ít phút.";
       }
     } catch (geminiErr: unknown) {
       console.error("[AI COO Service] Lỗi xảy ra trong quá trình gọi hoặc parse dữ liệu Gemini:", geminiErr);
-      executiveSummary = `⚠️ Lỗi hệ thống khi gọi Gemini: ${geminiErr instanceof Error ? geminiErr.message : String(geminiErr)}`;
+      executiveSummary = subAgentResponse.summary?.trim()
+        ? subAgentResponse.summary
+        : "Trợ lý AI hiện gặp gián đoạn kết nối tạm thời. Vui lòng thử lại sau ít phút.";
     }
   }
 

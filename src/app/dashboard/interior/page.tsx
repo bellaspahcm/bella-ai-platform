@@ -38,6 +38,16 @@ import type {
 } from '@/products/bella-interior/domain/portfolio-overview.types';
 import { useUser } from '@/lib/user-context';
 import InteriorUserBar from '@/components/interior/InteriorUserBar';
+import {
+  INTERIOR_ROLE_CHANGE_EVENT,
+  getSimulatedInteriorRole,
+  normalizeInteriorRoleKey,
+  type InteriorRoleKey,
+} from '@/products/bella-interior/lib/interior-rbac-navigation';
+import {
+  getInteriorLaunchpadItems,
+  type InteriorPwaCapabilityFlags,
+} from '@/products/bella-interior/lib/interior-pwa-navigation';
 
 interface MockProject {
   id: string;
@@ -74,6 +84,32 @@ export default function InteriorDashboardPage() {
   const [selectedWorkspaceProject, setSelectedWorkspaceProject] = useState<MockProject | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<BusinessChainPeriodKey>('this_month');
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
+  const [simulatedRole, setSimulatedRole] = useState<InteriorRoleKey | null>(null);
+  const [selfRoleKey, setSelfRoleKey] = useState<InteriorRoleKey | null>(null);
+  const [selfCaps, setSelfCaps] = useState<InteriorPwaCapabilityFlags | null>(null);
+
+  useEffect(() => {
+    setSimulatedRole(getSimulatedInteriorRole());
+    const handleRoleEvent = (e: Event) => {
+      const evt = e as CustomEvent<{ role?: InteriorRoleKey | null }>;
+      setSimulatedRole(evt.detail?.role ?? getSimulatedInteriorRole());
+    };
+    window.addEventListener(INTERIOR_ROLE_CHANGE_EVENT, handleRoleEvent);
+
+    fetch('/api/interior/me/access', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json: { success?: boolean; data?: { primaryRoleKey?: InteriorRoleKey | null; capabilities?: InteriorPwaCapabilityFlags } } | null) => {
+        if (json?.success && json.data) {
+          setSelfRoleKey(json.data.primaryRoleKey ?? null);
+          setSelfCaps(json.data.capabilities ?? null);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      window.removeEventListener(INTERIOR_ROLE_CHANGE_EVENT, handleRoleEvent);
+    };
+  }, []);
 
   useEffect(() => {
     // Canonical real-time read through Portfolio Analytics endpoint
@@ -140,6 +176,15 @@ export default function InteriorDashboardPage() {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(val);
   };
 
+  const effectivePwaRole: InteriorRoleKey | null =
+    simulatedRole ?? selfRoleKey ?? normalizeInteriorRoleKey(userContext?.user?.role ?? null);
+  const mobileQuickModules = getInteriorLaunchpadItems(
+    effectivePwaRole,
+    simulatedRole ? null : selfCaps,
+  )
+    .filter((item) => item.id !== 'overview')
+    .slice(0, 6);
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
       {/* ─── 00. TOP CONTROL & USER BAR ───────────────────────────────── */}
@@ -188,6 +233,43 @@ export default function InteriorDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* ─── 01.5 MOBILE PWA QUICK LAUNCH STRIP (lg:hidden) ────────────── */}
+      {mobileQuickModules.length > 0 && (
+        <section aria-label="Lối tắt PWA theo vai trò" className="lg:hidden space-y-2">
+          <div className="flex items-center justify-between px-0.5">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Truy cập nhanh Mobile PWA
+            </h2>
+            {mobileQuickModules.some((item) => item.id === 'site-diary') && (
+              <Link
+                href="/site-pwa"
+                className="text-[11px] font-bold text-emerald-700 dark:text-amber-400 flex items-center gap-1"
+              >
+                App Hiện trường <ExternalLink className="w-3 h-3" />
+              </Link>
+            )}
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {mobileQuickModules.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className="relative flex flex-col justify-between p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs active:scale-95 transition min-h-[72px]"
+              >
+                {item.badge && (
+                  <span className="self-end text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-600 text-white leading-none">
+                    {item.badge}
+                  </span>
+                )}
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight mt-auto">
+                  {item.shortLabel}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ─── 02. 4 EXECUTIVE KPI CARDS WITH SPARKLINES ────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -766,45 +848,24 @@ export default function InteriorDashboardPage() {
             <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Công nợ đến hạn</p>
-                <p className="text-xl font-black text-slate-900 dark:text-white mt-0.5">1,25 tỷ</p>
-                <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
-                  ↑ 2 khoản sắp đến hạn (+200tr)
-                </p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mt-0.5">Chưa có dữ liệu</p>
               </div>
-              {/* Sparkline */}
-              <svg className="w-20 h-6 text-amber-500" viewBox="0 0 100 30" fill="none">
-                <path d="M0 20 Q 30 25, 50 15 T 80 10 T 100 5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
             </div>
 
             {/* Metric 2 */}
             <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Chi phí vượt dự toán</p>
-                <p className="text-xl font-black text-slate-900 dark:text-white mt-0.5">180 triệu</p>
-                <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-0.5">
-                  ↑ +10% so với dự toán BOQ
-                </p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mt-0.5">Chưa có dữ liệu</p>
               </div>
-              {/* Sparkline */}
-              <svg className="w-20 h-6 text-rose-500" viewBox="0 0 100 30" fill="none">
-                <path d="M0 10 Q 30 15, 60 18 T 100 25" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
             </div>
 
             {/* Metric 3 */}
             <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Biên lợi nhuận dự kiến</p>
-                <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">38.5%</p>
-                <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
-                  ↑ +1.2% tối ưu hao hụt ván xưởng
-                </p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mt-0.5">Chưa có dữ liệu</p>
               </div>
-              {/* Sparkline */}
-              <svg className="w-20 h-6 text-emerald-500" viewBox="0 0 100 30" fill="none">
-                <path d="M0 25 Q 30 20, 60 10 T 100 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
             </div>
           </div>
         </div>

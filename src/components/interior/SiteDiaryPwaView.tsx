@@ -87,6 +87,9 @@ export interface SiteCapabilities {
   canApproveQc: boolean;
   canReadSchedule: boolean;
   canUpdateSchedule: boolean;
+  canReadProduction: boolean;
+  canReadWarranty: boolean;
+  canCreateWarranty: boolean;
   canManageRoles: boolean;
 }
 
@@ -133,6 +136,32 @@ interface InstallationPlanItem {
   scheduledEndDate: string;
   overallProgressPercent: number;
   rooms: InstallationRoomItem[];
+}
+
+interface ProductionOrderSummary {
+  id: string;
+  orderNumber: string;
+  mode: string;
+  status: string;
+  workshopManagerName?: string;
+  scheduledStartDate?: string;
+  scheduledCompletionDate?: string;
+}
+
+interface WarrantyCertificateSummary {
+  id: string;
+  certificateNumber: string;
+  status: string;
+  warrantyEndDate: string;
+  coverageScope?: string;
+}
+
+interface WarrantyTicketSummary {
+  id: string;
+  description: string;
+  priority: string;
+  status: string;
+  createdAt: string;
 }
 
 interface BeforeInstallPromptEvent extends Event {
@@ -252,6 +281,9 @@ function resolveEffectiveCapabilities(
     canApproveQc: false,
     canReadSchedule: false,
     canUpdateSchedule: false,
+    canReadProduction: false,
+    canReadWarranty: false,
+    canCreateWarranty: false,
     canManageRoles: false,
   };
 
@@ -260,18 +292,23 @@ function resolveEffectiveCapabilities(
   const isExecutiveOrAdmin = simulatedRole === 'OWNER' || simulatedRole === 'ADMIN';
   const isSiteOrPm = simulatedRole === 'SITE_MANAGER' || simulatedRole === 'PM';
   const isQc = simulatedRole === 'QC';
+  const isProd = simulatedRole === 'PRODUCTION_MANAGER';
+  const isWarranty = simulatedRole === 'WARRANTY';
 
   return {
     canReadDiaries: isExecutiveOrAdmin || isSiteOrPm || isQc || simulatedRole === 'EXECUTIVE',
     canCreateDiary: isExecutiveOrAdmin || isSiteOrPm,
     canUpdateDiary: isExecutiveOrAdmin || isSiteOrPm,
     canUploadSitePhoto: isExecutiveOrAdmin || isSiteOrPm || isQc,
-    canReadQc: isExecutiveOrAdmin || isSiteOrPm || isQc,
-    canCreateQc: isExecutiveOrAdmin || isSiteOrPm || isQc,
+    canReadQc: isExecutiveOrAdmin || isSiteOrPm || isQc || isProd || isWarranty,
+    canCreateQc: isExecutiveOrAdmin || isSiteOrPm || isQc || isProd,
     canUpdateQc: isExecutiveOrAdmin || isSiteOrPm || isQc,
     canApproveQc: isExecutiveOrAdmin || isQc,
-    canReadSchedule: isExecutiveOrAdmin || isSiteOrPm || isQc || simulatedRole === 'DESIGNER' || simulatedRole === 'PRODUCTION_MANAGER',
+    canReadSchedule: isExecutiveOrAdmin || isSiteOrPm || isQc || simulatedRole === 'DESIGNER' || isProd,
     canUpdateSchedule: isExecutiveOrAdmin || simulatedRole === 'PM',
+    canReadProduction: isExecutiveOrAdmin || isSiteOrPm || isQc || isProd || simulatedRole === 'DESIGNER' || simulatedRole === 'QS' || simulatedRole === 'EXECUTIVE',
+    canReadWarranty: isExecutiveOrAdmin || isSiteOrPm || isQc || isWarranty || simulatedRole === 'SALES' || simulatedRole === 'EXECUTIVE',
+    canCreateWarranty: isExecutiveOrAdmin || isWarranty,
     canManageRoles: isExecutiveOrAdmin,
   };
 }
@@ -351,6 +388,13 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
   const [plans, setPlans] = useState<InstallationPlanItem[]>([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState<boolean>(false);
 
+  const [productionOrders, setProductionOrders] = useState<ProductionOrderSummary[]>([]);
+  const [isLoadingProduction, setIsLoadingProduction] = useState<boolean>(false);
+
+  const [warrantyCerts, setWarrantyCerts] = useState<WarrantyCertificateSummary[]>([]);
+  const [warrantyTickets, setWarrantyTickets] = useState<WarrantyTicketSummary[]>([]);
+  const [isLoadingWarranty, setIsLoadingWarranty] = useState<boolean>(false);
+
   // ─── State: Daily Site Diary Form ───────────────────────────────────────────
   const [entryDate, setEntryDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [weather, setWeather] = useState<'sunny' | 'cloudy' | 'rainy' | 'stormy'>('sunny');
@@ -383,7 +427,7 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
   // ─── State: Navigation & Feedback ───────────────────────────────────────────
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'diary' | 'history' | 'qc' | 'progress'>('diary');
+  const [activeTab, setActiveTab] = useState<'diary' | 'history' | 'qc' | 'progress' | 'production' | 'warranty'>('diary');
 
   // ─── Connectivity & PWA Install Event Listeners ─────────────────────────────
   useEffect(() => {
@@ -612,6 +656,61 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
     }
   }, []);
 
+  const fetchProductionOrders = useCallback(async (projId: string) => {
+    if (!projId) {
+      setProductionOrders([]);
+      return;
+    }
+    try {
+      setIsLoadingProduction(true);
+      const res = await fetch(`/api/interior/production/orders?projectId=${encodeURIComponent(projId)}`, {
+        cache: 'no-store',
+      });
+      if (res.ok) {
+        const json = (await res.json()) as { success?: boolean; data?: { orders?: ProductionOrderSummary[] } };
+        setProductionOrders(json.success && Array.isArray(json.data?.orders) ? json.data.orders : []);
+      } else {
+        setProductionOrders([]);
+      }
+    } catch {
+      setProductionOrders([]);
+    } finally {
+      setIsLoadingProduction(false);
+    }
+  }, []);
+
+  const fetchWarrantyOverview = useCallback(async (projId: string) => {
+    if (!projId) {
+      setWarrantyCerts([]);
+      setWarrantyTickets([]);
+      return;
+    }
+    try {
+      setIsLoadingWarranty(true);
+      const [certRes, ticketRes] = await Promise.all([
+        fetch(`/api/interior/delivery/warranty?projectId=${encodeURIComponent(projId)}&type=certificates`, { cache: 'no-store' }),
+        fetch(`/api/interior/delivery/warranty?projectId=${encodeURIComponent(projId)}&type=tickets`, { cache: 'no-store' }),
+      ]);
+      if (certRes.ok) {
+        const certJson = (await certRes.json()) as { success?: boolean; data?: { certificates?: WarrantyCertificateSummary[] } };
+        setWarrantyCerts(certJson.success && Array.isArray(certJson.data?.certificates) ? certJson.data.certificates : []);
+      } else {
+        setWarrantyCerts([]);
+      }
+      if (ticketRes.ok) {
+        const ticketJson = (await ticketRes.json()) as { success?: boolean; data?: { tickets?: WarrantyTicketSummary[] } };
+        setWarrantyTickets(ticketJson.success && Array.isArray(ticketJson.data?.tickets) ? ticketJson.data.tickets : []);
+      } else {
+        setWarrantyTickets([]);
+      }
+    } catch {
+      setWarrantyCerts([]);
+      setWarrantyTickets([]);
+    } finally {
+      setIsLoadingWarranty(false);
+    }
+  }, []);
+
   useEffect(() => {
     void fetchProjects();
     void fetchSelfAccess();
@@ -624,7 +723,13 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
       void fetchQcItems(selectedProjectId);
       void fetchInstallationPlans(selectedProjectId);
     }
-  }, [selectedProjectId, fetchSelfAccess, fetchDiaries, fetchQcItems, fetchInstallationPlans]);
+  }, [
+    selectedProjectId,
+    fetchSelfAccess,
+    fetchDiaries,
+    fetchQcItems,
+    fetchInstallationPlans,
+  ]);
 
   // ─── Effective Permissions & Active Tab Guard ───────────────────────────────
   const effectiveCaps = resolveEffectiveCapabilities(selfAccess?.capabilities ?? null, simulatedRole);
@@ -635,13 +740,50 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
     || selfAccess?.roles.some((r) => r.roleKey === 'ADMIN' || r.roleKey === 'OWNER');
 
   useEffect(() => {
-    if (isLoadingAccess) return;
-    if (!effectiveCaps.canCreateDiary && effectiveCaps.canReadQc && !effectiveCaps.canReadDiaries && activeTab === 'diary') {
-      setActiveTab('qc');
-    } else if (!effectiveCaps.canCreateDiary && effectiveCaps.canReadDiaries && activeTab === 'diary') {
-      setActiveTab('history');
+    if (!selectedProjectId || isLoadingAccess) return;
+    if (effectiveCaps.canReadProduction) {
+      void fetchProductionOrders(selectedProjectId);
+    } else {
+      setProductionOrders([]);
     }
-  }, [isLoadingAccess, effectiveCaps.canCreateDiary, effectiveCaps.canReadQc, effectiveCaps.canReadDiaries, activeTab]);
+    if (effectiveCaps.canReadWarranty) {
+      void fetchWarrantyOverview(selectedProjectId);
+    } else {
+      setWarrantyCerts([]);
+      setWarrantyTickets([]);
+    }
+  }, [
+    selectedProjectId,
+    isLoadingAccess,
+    effectiveCaps.canReadProduction,
+    effectiveCaps.canReadWarranty,
+    fetchProductionOrders,
+    fetchWarrantyOverview,
+  ]);
+
+  useEffect(() => {
+    if (isLoadingAccess) return;
+    if (!effectiveCaps.canCreateDiary && activeTab === 'diary') {
+      if (displayRoleKey === 'PRODUCTION_MANAGER' && effectiveCaps.canReadProduction) {
+        setActiveTab('production');
+      } else if (displayRoleKey === 'WARRANTY' && effectiveCaps.canReadWarranty) {
+        setActiveTab('warranty');
+      } else if (effectiveCaps.canReadQc && !effectiveCaps.canReadDiaries) {
+        setActiveTab('qc');
+      } else if (effectiveCaps.canReadDiaries) {
+        setActiveTab('history');
+      }
+    }
+  }, [
+    isLoadingAccess,
+    displayRoleKey,
+    effectiveCaps.canCreateDiary,
+    effectiveCaps.canReadQc,
+    effectiveCaps.canReadDiaries,
+    effectiveCaps.canReadProduction,
+    effectiveCaps.canReadWarranty,
+    activeTab,
+  ]);
 
   // ─── Real Image Upload to Cloudflare R2 Handler ─────────────────────────────
   const uploadPhotosToR2 = async (
@@ -1112,6 +1254,34 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
             }`}
           >
             <span>🏗️</span> Hạng mục lắp đặt
+          </button>
+        )}
+
+        {effectiveCaps.canReadProduction && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('production')}
+            className={`min-h-[44px] py-2 px-3 text-xs font-semibold rounded-xl border transition flex items-center justify-center gap-1.5 ${
+              activeTab === 'production'
+                ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-emerald-400'
+            }`}
+          >
+            <span>🏭</span> Xưởng SX ({productionOrders.length})
+          </button>
+        )}
+
+        {effectiveCaps.canReadWarranty && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('warranty')}
+            className={`min-h-[44px] py-2 px-3 text-xs font-semibold rounded-xl border transition flex items-center justify-center gap-1.5 ${
+              activeTab === 'warranty'
+                ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-emerald-400'
+            }`}
+          >
+            <span>🎗️</span> Bảo hành ({warrantyTickets.length})
           </button>
         )}
       </nav>
@@ -1808,6 +1978,126 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ────────────────────────────────────────────────────────────────────────── */}
+      {/* TAB 5: LỆNH SẢN XUẤT XƯỞNG (/api/interior/production/orders)             */}
+      {/* ────────────────────────────────────────────────────────────────────────── */}
+      {activeTab === 'production' && effectiveCaps.canReadProduction && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 shadow-xs">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <span>🏭</span> Lệnh Sản Xuất Xưởng
+            </h2>
+            <Link
+              href="/dashboard/interior/production"
+              className="text-xs font-semibold text-emerald-700 dark:text-amber-400 hover:underline"
+            >
+              Mở trang Xưởng →
+            </Link>
+          </div>
+          {isLoadingProduction ? (
+            <p className="text-xs text-slate-500 py-4 text-center">Đang tải lệnh sản xuất...</p>
+          ) : productionOrders.length === 0 ? (
+            <p className="text-xs text-slate-500 py-4 text-center">Chưa có lệnh sản xuất nào cho dự án này.</p>
+          ) : (
+            <div className="space-y-2.5 text-xs">
+              {productionOrders.map((order) => (
+                <div
+                  key={order.id}
+                  className="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-1.5"
+                >
+                  <div className="flex items-center justify-between gap-2 font-semibold text-slate-900 dark:text-white">
+                    <span className="font-mono">{order.orderNumber}</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                      {order.status}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 flex flex-wrap gap-x-3 gap-y-1">
+                    <span>Hình thức: {order.mode === 'outsource' ? 'Gia công ngoài' : 'Xưởng nội bộ'}</span>
+                    {order.workshopManagerName && <span>Quản đốc: {order.workshopManagerName}</span>}
+                    {order.scheduledCompletionDate && <span>Hạn xong: {order.scheduledCompletionDate}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ────────────────────────────────────────────────────────────────────────── */}
+      {/* TAB 6: CHỨNG THƯ & PHIẾU BẢO HÀNH (/api/interior/delivery/warranty)       */}
+      {/* ────────────────────────────────────────────────────────────────────────── */}
+      {activeTab === 'warranty' && effectiveCaps.canReadWarranty && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-4 shadow-xs">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <span>🎗️</span> Bảo Hành &amp; Hậu Mãi
+            </h2>
+            <Link
+              href="/dashboard/interior/warranty"
+              className="text-xs font-semibold text-emerald-700 dark:text-amber-400 hover:underline"
+            >
+              Mở trang Bảo hành →
+            </Link>
+          </div>
+          {isLoadingWarranty ? (
+            <p className="text-xs text-slate-500 py-4 text-center">Đang tải hồ sơ bảo hành...</p>
+          ) : (
+            <div className="space-y-4 text-xs">
+              <div className="space-y-2">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  Chứng thư bảo hành ({warrantyCerts.length})
+                </p>
+                {warrantyCerts.length === 0 ? (
+                  <p className="text-slate-500 text-xs">Chưa có chứng thư bảo hành cho dự án.</p>
+                ) : (
+                  warrantyCerts.map((cert) => (
+                    <div
+                      key={cert.id}
+                      className="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-1"
+                    >
+                      <div className="flex items-center justify-between font-semibold text-slate-900 dark:text-white">
+                        <span className="font-mono">{cert.certificateNumber}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                          {cert.status}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Hết hạn: {cert.warrantyEndDate}
+                        {cert.coverageScope ? ` • ${cert.coverageScope}` : ''}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  Phiếu yêu cầu bảo trì ({warrantyTickets.length})
+                </p>
+                {warrantyTickets.length === 0 ? (
+                  <p className="text-slate-500 text-xs">Không có phiếu bảo hành tồn đọng.</p>
+                ) : (
+                  warrantyTickets.map((ticket) => (
+                    <div
+                      key={ticket.id}
+                      className="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-1"
+                    >
+                      <div className="flex items-center justify-between font-semibold text-slate-900 dark:text-white">
+                        <span>{ticket.description}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 shrink-0">
+                          {ticket.priority} • {ticket.status}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">Ngày báo: {ticket.createdAt}</p>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           )}
         </div>

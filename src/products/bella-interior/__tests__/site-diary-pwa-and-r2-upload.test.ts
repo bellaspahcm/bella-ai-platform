@@ -506,6 +506,8 @@ describe('Site Diary PWA & Cloudflare R2 Upload Suite', () => {
         INTERIOR_PERMISSIONS.qcRead,
         INTERIOR_PERMISSIONS.qcCreate,
         INTERIOR_PERMISSIONS.acceptanceEvidenceUpload,
+        INTERIOR_PERMISSIONS.productionRead,
+        INTERIOR_PERMISSIONS.warrantyRead,
       ]);
 
       resolveActorAccessMock.mockResolvedValue({
@@ -610,6 +612,9 @@ describe('Site Diary PWA & Cloudflare R2 Upload Suite', () => {
       expect(json.data.capabilities.canCreateDiary).toBe(true);
       expect(json.data.capabilities.canUploadSitePhoto).toBe(true);
       expect(json.data.capabilities.canCreateQc).toBe(true);
+      expect(json.data.capabilities.canReadProduction).toBe(true);
+      expect(json.data.capabilities.canReadWarranty).toBe(true);
+      expect(json.data.capabilities.canCreateWarranty).toBe(false);
     });
 
     it('maps PATCH site-diary and upload routes to appropriate Interior RBAC permissions', () => {
