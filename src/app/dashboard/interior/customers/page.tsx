@@ -158,6 +158,8 @@ export default function CustomersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [sourceFilter, setSourceFilter] = useState<string>('all');
+  const [managerFilter, setManagerFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
@@ -592,6 +594,29 @@ export default function CustomersPage() {
 
   const customersList = data.customers;
 
+  const sourceOptions = useMemo(() => {
+    const list = Array.isArray(customersList) ? customersList : [];
+    const map = new Map<string, string>();
+    for (const c of list) {
+      const value = (c.source || c.sourceLabel || '').trim();
+      const label = (c.sourceLabel || c.source || '').trim();
+      if (value && label && !map.has(value)) {
+        map.set(value, label);
+      }
+    }
+    return Array.from(map.entries()).map(([value, label]) => ({ value, label }));
+  }, [customersList]);
+
+  const managerOptions = useMemo(() => {
+    const list = Array.isArray(customersList) ? customersList : [];
+    const set = new Set<string>();
+    for (const c of list) {
+      const manager = (c.managerName || '').trim();
+      if (manager) set.add(manager);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'vi'));
+  }, [customersList]);
+
   // Filter customers by search and category
   const filteredCustomers = useMemo(() => {
     const list = Array.isArray(customersList) ? customersList : [];
@@ -602,16 +627,18 @@ export default function CustomersPage() {
         (c.managerName || '').toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesType = typeFilter === 'all' || c.type === (typeFilter as CustomerType);
+      const matchesSource = sourceFilter === 'all' || (c.source || c.sourceLabel || '').trim() === sourceFilter;
+      const matchesManager = managerFilter === 'all' || (c.managerName || '').trim() === managerFilter;
       const matchesStatus = statusFilter === 'all' || c.status === (statusFilter as CustomerStatus);
 
-      return matchesSearch && matchesType && matchesStatus;
+      return matchesSearch && matchesType && matchesSource && matchesManager && matchesStatus;
     });
-  }, [customersList, searchQuery, typeFilter, statusFilter]);
+  }, [customersList, searchQuery, typeFilter, sourceFilter, managerFilter, statusFilter]);
 
   // Reset pagination to page 1 on query/filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, typeFilter, statusFilter]);
+  }, [searchQuery, typeFilter, sourceFilter, managerFilter, statusFilter]);
 
   const totalItems = filteredCustomers.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -1169,21 +1196,35 @@ export default function CustomersPage() {
           </div>
 
           <div className="relative">
-            <button
-              type="button"
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors"
+            <select
+              aria-label="Lọc theo nguồn khách hàng"
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+              className="appearance-none pl-3 pr-7 py-1.5 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors cursor-pointer"
             >
-              Nguồn khách hàng ⌵
-            </button>
+              <option value="all">Nguồn khách hàng ⌵</option>
+              {sourceOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="relative">
-            <button
-              type="button"
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors"
+            <select
+              aria-label="Lọc theo người phụ trách"
+              value={managerFilter}
+              onChange={(e) => setManagerFilter(e.target.value)}
+              className="appearance-none pl-3 pr-7 py-1.5 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors cursor-pointer"
             >
-              Người phụ trách ⌵
-            </button>
+              <option value="all">Người phụ trách ⌵</option>
+              {managerOptions.map((manager) => (
+                <option key={manager} value={manager}>
+                  {manager}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="relative">
@@ -1205,10 +1246,18 @@ export default function CustomersPage() {
 
           <button
             type="button"
-            onClick={() => setCustomerSuccessNotice('🔍 Bộ lọc nâng cao: Đang hiển thị toàn bộ phân khúc khách hàng')}
+            onClick={() => {
+              setSearchQuery('');
+              setTypeFilter('all');
+              setSourceFilter('all');
+              setManagerFilter('all');
+              setStatusFilter('all');
+            }}
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors cursor-pointer"
           >
-            Bộ lọc khác ⌵
+            {typeFilter !== 'all' || sourceFilter !== 'all' || managerFilter !== 'all' || statusFilter !== 'all' || searchQuery.trim() !== ''
+              ? 'Xóa bộ lọc'
+              : 'Đặt lại bộ lọc'}
           </button>
         </div>
 
