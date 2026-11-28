@@ -112,6 +112,10 @@ jobs:
         run: node scripts/apply-platform-health-probe-migration.cjs
         env:
           PRODUCTION_SUPABASE_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
+      - name: Apply only the reviewed Interior approval migration
+        run: node scripts/apply-interior-design-approval-migration.cjs
+        env:
+          PRODUCTION_SUPABASE_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
       - name: Verify Production migration ledger
         run: npm run db:migration:check
         env:

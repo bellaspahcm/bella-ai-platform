@@ -7,6 +7,7 @@ import type {
   CreateVisualPerspectiveInput,
   CreateTechnicalDrawingInput,
   CreateDesignDocumentInput,
+  DesignStudioOverviewResponse,
 } from '@/products/bella-interior/domain/design-overview.types';
 
 export const dynamic = 'force-dynamic';
@@ -117,7 +118,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         return NextResponse.json({ success: false, error: 'INTERIOR_DESIGN_REVISION_READ_FAILED' }, { status: 503 });
       }
 
-      let finalOverview = {
+      let finalOverview: DesignStudioOverviewResponse = {
         ...overview,
         visuals: [],
         technicalDrawings: [],

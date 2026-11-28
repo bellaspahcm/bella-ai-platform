@@ -72,7 +72,7 @@ context: ['{project-root}/docs/governance/BELLA_AI_CODING_CONSTITUTION.md']
 - Given duyệt revision mới thành công, when tải lại dữ liệu hiện tại, then danh sách bản vẽ chuyển sang active revision mới và GET cũ không ghi đè kết quả.
 - Given thao tác khóa revision từ Design Studio, when người dùng yêu cầu duyệt, then API dùng cùng RPC duyệt; revision đã duyệt không thể bị mở khóa bằng cách hạ status.
 - Given dữ liệu Production lịch sử thiếu audit phê duyệt đáng tin cậy, when xử lý bản ghi, then không tự gán active pointer.
-- Given merge vào `main`, when Production CI chạy, then dùng pipeline Production hiện có; không khởi chạy CI `#e2e` riêng.
+- Given merge vào `main`, when Production CI chạy, then áp đúng migration Interior theo version/hash đã review trước khi deploy app; không khởi chạy CI `#e2e` riêng.
 - Given revision có trạng thái chưa nhận diện hoặc `superseded`, when hiển thị trong chi tiết/list revision, then giữ trạng thái thật và không bật thao tác duyệt.
 - Given tệp PDF/DXF hoặc thiếu metadata, when mở modal bản vẽ, then định dạng, trạng thái và thông tin phê duyệt không bị thay bằng mặc định DWG/AutoCAD/người duyệt mẫu.
 - Given người dùng đổi dự án khi yêu cầu duyệt đang chờ, when phản hồi đến, then không áp trạng thái duyệt lên dự án đang xem khác.
@@ -85,6 +85,7 @@ context: ['{project-root}/docs/governance/BELLA_AI_CODING_CONSTITUTION.md']
 
 **Manual checks (if no CLI):**
 - Sau deploy, kiểm tra project Production mục tiêu: 0 bản vẽ, revision được phản ánh riêng, không còn các tệp mẫu trong chi tiết.
+- Production workflow dùng runner Linux trên `main`, xác nhận target/ref/hash và chỉ cho phép migration Interior này là pending trước khi áp dụng.
 - Sau áp dụng migration Production, đọc lại định nghĩa RPC và ledger; không tạo hoặc cập nhật dữ liệu test.
 
 ## Suggested Review Order
@@ -140,3 +141,11 @@ context: ['{project-root}/docs/governance/BELLA_AI_CODING_CONSTITUTION.md']
 
 - DTO chỉ mang metadata revision, file và approver thực tế.
   [`design-overview.types.ts:60`](../../src/products/bella-interior/domain/design-overview.types.ts#L60)
+
+**Áp migration và deploy Production**
+
+- Runner khóa target Production, commit `main`, version/hash và chỉ áp khi đây là migration duy nhất đang chờ; sau đó đọc lại SQL ledger cùng ACL ba RPC.
+  [`apply-interior-design-approval-migration.cjs:1`](../../scripts/apply-interior-design-approval-migration.cjs#L1)
+
+- Release gọi runner sau health migration và trước gate đối chiếu ledger.
+  [`deploy-production.yml:115`](../../.github/workflows/deploy-production.yml#L115)

@@ -162,7 +162,11 @@ export class InMemoryInteriorRepository implements IInteriorRepository, IInterio
         })),
       } satisfies InteriorDesignPortfolioProjectSummary;
     }));
-    return summaries.filter((summary): summary is InteriorDesignPortfolioProjectSummary => summary !== null);
+    const result: InteriorDesignPortfolioProjectSummary[] = [];
+    for (const summary of summaries) {
+      if (summary !== null) result.push(summary);
+    }
+    return result;
   }
 
   // --- Design Takeoff Staging & Review (Phase 2A) ---

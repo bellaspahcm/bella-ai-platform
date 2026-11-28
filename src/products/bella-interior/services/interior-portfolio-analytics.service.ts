@@ -517,7 +517,7 @@ export class InteriorPortfolioAnalyticsService {
         : displayedApprovedRevision === null
         ? 'none' as const
         : 'available' as const;
-      const technicalDrawingAssetCount = designRevisionDataStatus !== 'available'
+      const technicalDrawingAssetCount = displayedApprovedRevision === null
         ? null
         : displayedApprovedRevision.assets.filter((asset) =>
             (TECHNICAL_DRAWING_ASSET_TYPES.has(asset.type) || ['dwg', 'dxf'].includes(

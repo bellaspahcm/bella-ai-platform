@@ -149,6 +149,7 @@ if (require.main === module) {
 module.exports = {
   EXPECTED_VERSION,
   EXPECTED_SHA256,
+  PRODUCTION_MIGRATION_VERSION_ALIASES,
   assertProductionTarget,
   decideMigrationAction,
 };
