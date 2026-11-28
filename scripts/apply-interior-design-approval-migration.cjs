@@ -1,9 +1,10 @@
 'use strict';
 
 const { execFileSync } = require('node:child_process');
-const { createHash } = require('node:crypto');
+const { createHash, X509Certificate } = require('node:crypto');
 const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
+const { rootCertificates } = require('node:tls');
 const { assertProductionTarget } = require('./apply-platform-health-probe-migration.cjs');
 const { normalizeMigrationSql, normalizeRecordedMigrationStatements } = require('./apply-e2e-pr-migrations.cjs');
 
@@ -11,6 +12,8 @@ const EXPECTED_VERSION = '20261128145534';
 const EXPECTED_NAME = 'interior_design_approval_sets_active_revision';
 const EXPECTED_SHA256 = '04E7A3B68151D80F348652A55469F103B1BA5E046982B1326E63FD062459CFD7';
 const MIGRATION_PATH = join(process.cwd(), 'supabase', 'migrations', `${EXPECTED_VERSION}_${EXPECTED_NAME}.sql`);
+const SUPABASE_ROOT_CA_PATH = join(__dirname, 'certificates', 'supabase-root-2021.crt');
+const EXPECTED_SUPABASE_ROOT_FINGERPRINT = '807025ad50d4ed219d2c9c7d299c004f824eb00cf7f65afef607d07b72e6cafa';
 let executionStage = 'runner';
 
 function safeErrorCode(error) {
@@ -24,7 +27,20 @@ function productionClientConfig(databaseUrl) {
   assertProductionTarget(databaseUrl);
   const target = new URL(databaseUrl);
   target.searchParams.delete('sslmode');
-  return { connectionString: target.toString(), ssl: { rejectUnauthorized: true }, connectionTimeoutMillis: 10000 };
+  const supabaseRootCa = readFileSync(SUPABASE_ROOT_CA_PATH, 'utf8');
+  const certificate = new X509Certificate(supabaseRootCa);
+  if (certificate.fingerprint256.replaceAll(':', '').toLowerCase() !== EXPECTED_SUPABASE_ROOT_FINGERPRINT) {
+    throw new Error('Reviewed Supabase root certificate fingerprint mismatch.');
+  }
+  return {
+    host: target.hostname,
+    port: Number(target.port || 5432),
+    database: decodeURIComponent(target.pathname.slice(1)),
+    user: decodeURIComponent(target.username),
+    password: decodeURIComponent(target.password),
+    ssl: { ca: [...rootCertificates, supabaseRootCa], rejectUnauthorized: true, servername: target.hostname },
+    connectionTimeoutMillis: 10000,
+  };
 }
 
 async function verifyProductionFunctions(client) {
@@ -177,7 +193,7 @@ async function main() {
 
 if (require.main === module) {
   main().catch(error => {
-    const known = /^(Production migration can run only from the protected main release workflow\.|Invalid GitHub release SHA\.|Main changed; refusing Production migration\.|Interior migration content does not match the reviewed SHA-256\.|Secure Production database configuration is required\.|Production database target does not match the approved Supabase project\.|Production database executor identity or privileges rejected\.|Interior migration version exists with a different ledger record\.|Interior migration SQL is already recorded under another version\.|Interior RPC security read-back did not match the reviewed ACL contract\.|Interior migration ledger transaction read-back failed\.|COMMIT outcome unknown; inspect Production ledger before retry\.|COMMIT acknowledged but Production migration read-back failed; inspect before retry\.)/;
+    const known = /^(Production migration can run only from the protected main release workflow\.|Invalid GitHub release SHA\.|Main changed; refusing Production migration\.|Interior migration content does not match the reviewed SHA-256\.|Secure Production database configuration is required\.|Production database target does not match the approved Supabase project\.|Reviewed Supabase root certificate fingerprint mismatch\.|Production database executor identity or privileges rejected\.|Interior migration version exists with a different ledger record\.|Interior migration SQL is already recorded under another version\.|Interior RPC security read-back did not match the reviewed ACL contract\.|Interior migration ledger transaction read-back failed\.|COMMIT outcome unknown; inspect Production ledger before retry\.|COMMIT acknowledged but Production migration read-back failed; inspect before retry\.)/;
     const message = known.test(error.message) ? error.message : 'Interior migration runner failed; inspect Production ledger before retry.';
     console.error(`${message} stage=${executionStage} code=${safeErrorCode(error)}`);
     process.exitCode = 1;
