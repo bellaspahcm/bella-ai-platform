@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type RevisionStatus = 'draft' | 'review' | 'approved' | 'rejected';
+type RevisionStatus = 'draft' | 'review' | 'approved' | 'rejected' | 'superseded' | 'unknown';
 
 export interface DesignRevision {
   id: string;
@@ -63,7 +63,9 @@ export async function GET(request: Request): Promise<NextResponse> {
         || typeof revision.submittedBy !== 'string' || typeof revision.submittedAt !== 'string') return [];
       const status: RevisionStatus = revision.status === 'approved' ? 'approved'
         : revision.status === 'client_review' || revision.status === 'in_review' ? 'review'
-          : revision.status === 'rejected' ? 'rejected' : 'draft';
+          : revision.status === 'rejected' ? 'rejected'
+            : revision.status === 'superseded' ? 'superseded'
+              : revision.status === 'draft' ? 'draft' : 'unknown';
       return [{
         id: revision.id,
         projectId: revision.projectId,

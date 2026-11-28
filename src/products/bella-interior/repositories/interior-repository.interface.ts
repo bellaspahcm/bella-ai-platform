@@ -73,6 +73,21 @@ export interface InteriorContractAmendmentContext extends InteriorPaymentContrac
   readonly milestones: ReadonlyArray<PaymentMilestone>;
 }
 
+export interface InteriorDesignRevisionPortfolioSummary {
+  readonly id: string;
+  readonly projectId: string;
+  readonly versionNumber: number;
+  readonly status: string;
+  readonly isActiveRevision: boolean;
+  readonly assets: ReadonlyArray<{ readonly type: string; readonly fileUrl: string }>;
+}
+
+export interface InteriorDesignPortfolioProjectSummary {
+  readonly projectId: string;
+  readonly canReadDesign: boolean;
+  readonly revisions: ReadonlyArray<InteriorDesignRevisionPortfolioSummary>;
+}
+
 export interface IInteriorRepository {
   // Design & Specification
   saveProject(tenantId: string, project: InteriorProject): Promise<void>;
@@ -83,6 +98,7 @@ export interface IInteriorRepository {
   saveDesignRevision(tenantId: string, revision: DesignRevision): Promise<void>;
   getDesignRevision(tenantId: string, revisionId: string): Promise<DesignRevision | null>;
   listDesignRevisions(tenantId: string, projectId: string): Promise<DesignRevision[]>;
+  listDesignRevisionPortfolioSummaries?(tenantId: string, projectIds: ReadonlyArray<string>): Promise<InteriorDesignPortfolioProjectSummary[]>;
 
   // Design Takeoff Staging & Review (Phase 2A)
   saveTakeoffRun(tenantId: string, run: DesignTakeoffRun): Promise<void>;

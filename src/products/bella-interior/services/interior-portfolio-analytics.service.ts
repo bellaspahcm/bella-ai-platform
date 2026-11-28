@@ -11,7 +11,11 @@
  */
 
 import { TenantIsolationViolationError } from '../domain/errors';
-import type { IInteriorRepository } from '../repositories/interior-repository.interface';
+import type {
+  IInteriorRepository,
+  InteriorDesignPortfolioProjectSummary,
+  InteriorDesignRevisionPortfolioSummary,
+} from '../repositories/interior-repository.interface';
 import type { HandoverDossier } from '../domain/delivery-aftercare/types';
 import type {
   PortfolioOverviewResponse,
@@ -27,6 +31,18 @@ import type {
   ProjectStage,
   ScheduleHealth,
 } from '../domain/portfolio-overview.types';
+
+const TECHNICAL_DRAWING_ASSET_TYPES = new Set<string>([
+  'technical_2d',
+  'cad_dwg',
+  'pdf_drawing',
+  'technical_drawing',
+  '2d_cad',
+  'technical',
+  'cad',
+  'dwg',
+  'dxf',
+]);
 
 export class InteriorPortfolioAnalyticsService {
   constructor(private readonly repository?: IInteriorRepository) {}
@@ -427,8 +443,11 @@ export class InteriorPortfolioAnalyticsService {
     let aheadCount = 0;
     let completedCount = 0;
 
-    const perProjectFetched = await Promise.all(
-      rawProjects.map(async (project) => {
+    const [portfolioDesignSummaryRows, perProjectFetched] = await Promise.all([
+      repo.listDesignRevisionPortfolioSummaries
+        ? repo.listDesignRevisionPortfolioSummaries(tenantId, rawProjects.map((project) => project.id)).catch(() => null)
+        : Promise.resolve(null),
+      Promise.all(rawProjects.map(async (project) => {
         const [contractsWithPayments, quotations, punchList, diaries, handovers, warranty] = await Promise.all([
           repo.listContractsByProject(tenantId, project.id).then(async (contracts) => {
             const paymentsByContract = await Promise.all(
@@ -476,11 +495,36 @@ export class InteriorPortfolioAnalyticsService {
           certsCount: warranty.certsCount,
           tickets: warranty.tickets,
         };
-      })
+      })),
+    ]);
+    const portfolioDesignSummariesByProject = new Map<string, InteriorDesignPortfolioProjectSummary>(
+      (portfolioDesignSummaryRows ?? []).map((summary) => [summary.projectId, summary]),
     );
 
     for (const fetched of perProjectFetched) {
       const { project, contracts, paymentsByContract, quotations, punchList, diaries, handovers, certsCount, tickets } = fetched;
+      const designProjectSummary = portfolioDesignSummariesByProject.get(project.id);
+      const designRevisionSummaries = designProjectSummary?.canReadDesign ? designProjectSummary.revisions : null;
+      const approvedRevisions = designRevisionSummaries?.filter((revision) => revision.status === 'approved') ?? null;
+      const latestApprovedRevision = approvedRevisions?.reduce<InteriorDesignRevisionPortfolioSummary | null>(
+        (latest, revision) => !latest || revision.versionNumber > latest.versionNumber ? revision : latest,
+        null,
+      ) ?? null;
+      const activeApprovedRevision = approvedRevisions?.find((revision) => revision.isActiveRevision) ?? null;
+      const displayedApprovedRevision = activeApprovedRevision ?? latestApprovedRevision;
+      const designRevisionDataStatus = designRevisionSummaries === null
+        ? 'unavailable' as const
+        : displayedApprovedRevision === null
+        ? 'none' as const
+        : 'available' as const;
+      const technicalDrawingAssetCount = designRevisionDataStatus !== 'available'
+        ? null
+        : displayedApprovedRevision.assets.filter((asset) =>
+            (TECHNICAL_DRAWING_ASSET_TYPES.has(asset.type) || ['dwg', 'dxf'].includes(
+              asset.fileUrl.split(/[?#]/, 1)[0].split('/').pop()?.match(/\.([a-z0-9]{1,10})$/i)?.[1]?.toLowerCase() ?? ''
+            )) &&
+            asset.fileUrl.trim().length > 0
+          ).length;
       // 1. Contracts & Payments
       let pContractVal = 0;
       let pCollectedVal = 0;
@@ -656,6 +700,10 @@ export class InteriorPortfolioAnalyticsService {
           ? 'Nghiệm thu lắp đặt'
           : 'Bàn giao và kích hoạt bảo hành',
         imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
+        approvedRevisionNumber: displayedApprovedRevision?.versionNumber ?? null,
+        approvedRevisionIsActive: displayedApprovedRevision ? activeApprovedRevision !== null : null,
+        designRevisionDataStatus,
+        technicalDrawingAssetCount,
       });
     }
 

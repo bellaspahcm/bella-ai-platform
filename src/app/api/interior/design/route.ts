@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
-import { interiorRbacRpcClient, isInteriorRbacRecord } from '@/products/bella-interior/lib/rbac-api';
+import { interiorMutationRow, interiorRbacRpcClient, isInteriorRbacRecord } from '@/products/bella-interior/lib/rbac-api';
 import { resolveTenantProject } from '@/products/bella-interior/lib/project-resolver';
 import { InteriorDesignAnalyticsService } from '@/products/bella-interior/services/interior-design-analytics.service';
 import type {
@@ -77,10 +77,16 @@ function formatStatusBadge(status: string): string {
   }
 }
 
+function getFileExtension(fileUrl: string): string {
+  const path = fileUrl.split(/[?#]/, 1)[0] ?? '';
+  const filename = path.split('/').pop() ?? '';
+  return filename.match(/\.([a-z0-9]{1,10})$/i)?.[1]?.toLowerCase() ?? '';
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
   if (!ctx.ok) return ctx.response;
-  const projectIdParam = request.nextUrl.searchParams.get('projectId');
+  const projectIdParam = request.nextUrl.searchParams.get('projectId') || request.nextUrl.searchParams.get('project_id');
 
   const projectResult = await resolveTenantProject(ctx.supabase, ctx.tenantId, projectIdParam);
   if (!projectResult.ok && projectResult.error === 'AMBIGUOUS_PROJECT_SELECTION') {
@@ -91,8 +97,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       availableProjects: projectResult.availableProjects,
     }, { status: 400 });
   }
+  if (!projectResult.ok) {
+    return NextResponse.json({ success: false, error: 'INTERIOR_PROJECT_NOT_FOUND' }, { status: 404 });
+  }
 
-  const effectiveProjectId = projectResult.ok ? projectResult.projectId : undefined;
+  const effectiveProjectId = projectResult.projectId;
 
   try {
     const overview = await InteriorDesignAnalyticsService.getDesignStudioOverview(ctx.tenantId, effectiveProjectId);
@@ -104,19 +113,33 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         rpc.rpc('interior_list_room_zones', { p_project_id: effectiveProjectId }),
         rpc.rpc('interior_list_projects'),
       ]);
+      if (revisionResult.error || !Array.isArray(revisionResult.data) || roomZoneResult.error || projectsResult.error) {
+        return NextResponse.json({ success: false, error: 'INTERIOR_DESIGN_REVISION_READ_FAILED' }, { status: 503 });
+      }
 
-      let finalOverview = overview;
+      let finalOverview = {
+        ...overview,
+        visuals: [],
+        technicalDrawings: [],
+        relatedDocuments: [],
+      };
       const allProjects = Array.isArray(projectsResult.data) ? projectsResult.data : [];
       const projectRow = allProjects.find(
         (p) => typeof p === 'object' && p !== null && (p as { id?: string }).id === effectiveProjectId
       ) as Record<string, unknown> | undefined;
 
+      if (!projectRow) {
+        return NextResponse.json({ success: false, error: 'INTERIOR_PROJECT_NOT_FOUND' }, { status: 404 });
+      }
+
       if (projectRow) {
         const pCode = typeof projectRow.code === 'string' ? projectRow.code : 'INT-PROJECT';
         const pName = typeof projectRow.name === 'string' ? projectRow.name : 'Dự án nội thất';
         const pStatus = typeof projectRow.status === 'string' ? projectRow.status : 'in_progress';
-        const pCustomer = typeof projectRow.customer_name === 'string' ? projectRow.customer_name : 'Khách hàng';
-        const budgetNum = Number(projectRow.estimated_budget) || 0;
+        const rawCustomerName = projectRow.customerName ?? projectRow.customer_name;
+        const rawBudget = projectRow.estimatedBudget ?? projectRow.estimated_budget;
+        const pCustomer = typeof rawCustomerName === 'string' ? rawCustomerName : 'Khách hàng';
+        const budgetNum = Number(rawBudget) || 0;
         const budgetFormatted = budgetNum >= 1_000_000_000
           ? `${(budgetNum / 1_000_000_000).toFixed(2).replace(/\.?0+$/, '')} tỷ`
           : budgetNum >= 1_000_000
@@ -124,7 +147,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           : `${budgetNum.toLocaleString('vi-VN')} đ`;
 
         finalOverview = {
-          ...overview,
+          ...finalOverview,
           project: {
             id: effectiveProjectId,
             code: pCode,
@@ -142,85 +165,132 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       const revisions = Array.isArray(revisionResult.data)
         ? (revisionResult.data as Array<Record<string, unknown>>)
         : [];
+      const sortedRevisions = [...revisions].sort((a, b) => {
+        const versionA = Number(a.versionNumber ?? a.version_number ?? 0);
+        const versionB = Number(b.versionNumber ?? b.version_number ?? 0);
+        return versionB - versionA;
+      });
       const roomZones = Array.isArray(roomZoneResult.data)
         ? roomZoneResult.data.filter(isInteriorRbacRecord)
         : [];
+      const latestApprovedRevision = sortedRevisions.find((revision) => revision.status === 'approved') ?? null;
+      const activeApprovedRevision = sortedRevisions.find(
+        (revision) => revision.status === 'approved' && revision.isActiveRevision === true
+      ) ?? null;
+      const displayedRevision = sortedRevisions[0] ?? null;
 
       // ─── Synchronize version lock from latest revision or robust default ───
-      if (revisions.length > 0) {
-        const sortedRevisions = [...revisions].sort((a, b) => {
-          const vA = Number(a.versionNumber ?? a.version_number ?? 0);
-          const vB = Number(b.versionNumber ?? b.version_number ?? 0);
-          return vB - vA;
-        });
-        const latestRev = sortedRevisions[0];
+      if (displayedRevision) {
+        const latestRev = displayedRevision;
         const vNum = Number(latestRev.versionNumber ?? latestRev.version_number ?? 1);
-        const revStatusRaw = String(latestRev.status ?? 'approved');
-        const status: 'draft' | 'review' | 'approved' | 'rejected' =
+        const revStatusRaw = String(latestRev.status ?? '').toLowerCase();
+        const status: 'draft' | 'review' | 'approved' | 'rejected' | 'superseded' | 'unknown' =
           revStatusRaw === 'approved' ? 'approved' :
           revStatusRaw === 'rejected' ? 'rejected' :
-          revStatusRaw === 'draft' ? 'draft' : 'review';
+          revStatusRaw === 'draft' ? 'draft' :
+          revStatusRaw === 'superseded' ? 'superseded' :
+          ['review', 'in_review', 'client_review'].includes(revStatusRaw) ? 'review' : 'unknown';
         const isApproved = status === 'approved';
-        const rawDate = latestRev.approvedAt ?? latestRev.approved_at ?? latestRev.submittedAt ?? latestRev.submitted_at;
-        let approvalDateFormatted = '06/11/2026';
-        if (rawDate) {
+        const rawDate = isApproved ? latestRev.approvedAt ?? latestRev.approved_at : null;
+        let approvalDateFormatted = '—';
+        if (typeof rawDate === 'string' && rawDate.length > 0) {
           try {
-            const d = new Date(String(rawDate));
+            const d = new Date(rawDate);
             if (!isNaN(d.getTime())) {
               approvalDateFormatted = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
             }
           } catch {
-            // retain fallback
+              // Keep the explicit empty date when stored metadata is invalid.
           }
         }
         const isUuid = (val: unknown): boolean =>
           typeof val === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
 
-        let approver = 'Trần Thị Mai';
-        const rawSignoff = latestRev.clientSignoffName ?? latestRev.client_signoff_name;
+        let approver = 'Chưa ghi nhận';
         const rawApprovedBy = latestRev.approvedBy ?? latestRev.approved_by;
-        const customerName = projectRow?.customer_name;
 
-        if (rawSignoff && typeof rawSignoff === 'string' && !isUuid(rawSignoff)) {
-          approver = rawSignoff;
-        } else if (rawApprovedBy && typeof rawApprovedBy === 'string' && !isUuid(rawApprovedBy)) {
+        if (rawApprovedBy && typeof rawApprovedBy === 'string' && !isUuid(rawApprovedBy)) {
           approver = rawApprovedBy;
-        } else if (customerName && typeof customerName === 'string') {
-          approver = customerName;
-        } else if (isUuid(rawApprovedBy)) {
-          approver = 'KTS. Trưởng (Thiết kế)';
-        } else {
-          approver = overview.versionLock?.approvedBy || 'Trần Thị Mai';
         }
         const desc = String(
           latestRev.changeSummary ??
           latestRev.change_summary ??
           latestRev.title ??
-          overview.versionLock?.description ??
-          'Phiên bản thiết kế chính thức'
+          'Chưa có mô tả'
         );
 
         finalOverview = {
           ...finalOverview,
           versionLock: {
-            versionId: String(latestRev.id ?? 'rev-r1-0'),
+            versionId: String(latestRev.id ?? ''),
             versionNumber: `R${vNum}.0`,
             status,
-            statusLabel: isApproved ? 'Đã duyệt' : 'Chờ duyệt',
+            statusLabel: isApproved
+              ? 'Đã duyệt'
+              : status === 'rejected'
+              ? 'Từ chối'
+              : status === 'superseded'
+              ? 'Đã thay thế'
+              : status === 'unknown'
+              ? 'Chưa xác định'
+              : status === 'draft'
+              ? 'Bản nháp'
+              : 'Chờ duyệt',
             statusBadgeClass: isApproved
               ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              : status === 'rejected'
+              ? 'bg-rose-50 text-rose-700 border-rose-200'
+              : status === 'superseded'
+              ? 'bg-slate-50 text-slate-600 border-slate-200'
+              : status === 'unknown'
+              ? 'bg-slate-50 text-slate-600 border-slate-200'
               : 'bg-amber-50 text-amber-700 border-amber-200',
             isLocked: isApproved,
-            lockLabel: isApproved ? 'Đã khóa' : 'Chưa khóa',
-            lockBadgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+            lockLabel: isApproved ? 'Đã khóa' : status === 'superseded' ? 'Đã thay thế' : status === 'unknown' ? 'Chưa xác định' : 'Chưa khóa',
+            lockBadgeClass: isApproved
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              : status === 'superseded'
+              ? 'bg-slate-50 text-slate-600 border-slate-200'
+              : status === 'unknown'
+              ? 'bg-slate-50 text-slate-600 border-slate-200'
+              : 'bg-amber-50 text-amber-700 border-amber-200',
             approvalDateFormatted,
             approvedBy: approver,
             description: desc,
-            lockBannerTitle: isApproved ? 'Approved Design Lock' : 'Thiết kế đang cập nhật',
+            lockBannerTitle: isApproved ? 'Approved Design Lock' : status === 'superseded' ? 'Revision đã thay thế' : status === 'unknown' ? 'Trạng thái revision' : 'Thiết kế đang cập nhật',
             lockBannerSubtitle: isApproved
-              ? 'Đã khóa thiết kế, chỉ cho phép tạo phiên bản mới'
-              : 'Đang mở khóa để kiến trúc sư hoàn thiện hồ sơ',
-            canUnlock: true,
+              ? activeApprovedRevision?.id === latestRev.id
+                ? 'Đã duyệt và đang là revision kích hoạt của dự án.'
+                : 'Đã duyệt nhưng chưa được đặt làm revision kích hoạt của dự án.'
+              : status === 'rejected'
+              ? 'Revision này đã bị từ chối.'
+              : status === 'superseded'
+              ? 'Revision này đã được thay thế bởi revision khác.'
+              : status === 'unknown'
+              ? 'Trạng thái revision chưa được nhận diện; không thể phê duyệt từ màn hình này.'
+              : 'Revision mới nhất chưa được phê duyệt.',
+            canUnlock: false,
+          },
+        };
+      } else {
+        finalOverview = {
+          ...finalOverview,
+          versionLock: {
+            ...finalOverview.versionLock,
+            versionId: '',
+            versionNumber: '—',
+            status: 'draft',
+            statusLabel: 'Chưa có revision',
+            statusBadgeClass: 'bg-slate-50 text-slate-600 border-slate-200',
+            isLocked: false,
+            lockLabel: 'Chưa khóa',
+            lockBadgeClass: 'bg-slate-50 text-slate-600 border-slate-200',
+            approvalDateFormatted: '—',
+            approvedBy: 'Chưa ghi nhận',
+            description: 'Chưa có revision thiết kế được lưu.',
+            lockBannerTitle: 'Trạng thái revision',
+            lockBannerSubtitle: 'Chưa có revision đã lưu cho dự án này.',
+            canUnlock: false,
           },
         };
       }
@@ -228,9 +298,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       // ─── Extract real assets & material specs from Supabase revisions ───
       const rawAssets: Array<Record<string, unknown>> = [];
       const rawMaterials: Array<Record<string, unknown>> = [];
+      const drawingRevision = activeApprovedRevision ?? latestApprovedRevision ?? sortedRevisions[0] ?? null;
 
       for (const rev of revisions) {
-        if (Array.isArray(rev.assets)) {
+        if (rev === drawingRevision && Array.isArray(rev.assets)) {
           for (const a of rev.assets) {
             if (typeof a === 'object' && a !== null) {
               rawAssets.push({
@@ -238,6 +309,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
                 revisionStatus: rev.status,
                 revisionTitle: rev.title,
                 submittedBy: rev.submittedBy,
+                revisionApprovedBy: rev.approvedBy ?? rev.approved_by,
               });
             }
           }
@@ -253,15 +325,53 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
       // If database has technical drawings or assets, map them directly into finalOverview
       if (rawAssets.length > 0) {
-        const dbTechnicalDrawings = rawAssets
-          .filter(
-            (a) =>
-              a.type === '2d_cad' ||
-              a.type === 'technical' ||
-              a.type === 'cad' ||
-              String(a.fileUrl || '').endsWith('.dwg') ||
-              String(a.fileUrl || '').endsWith('.dxf')
+        const technicalDrawingTypes = new Set<string>([
+          'technical_2d',
+          'cad_dwg',
+          'pdf_drawing',
+          'technical_drawing',
+          '2d_cad',
+          'technical',
+          'cad',
+          'dwg',
+          'dxf',
+        ]);
+        const visualAssetTypes = new Set<string>(['concept_3d', 'moodboard', '3d_render', 'perspective', 'render']);
+        const dbVisuals = rawAssets
+          .filter((asset) =>
+            visualAssetTypes.has(String(asset.type ?? asset.assetType ?? asset.asset_type ?? '').toLowerCase()) &&
+            String(asset.fileUrl ?? asset.file_url ?? '').trim().length > 0
           )
+          .map((asset, index) => {
+            const assetType = String(asset.type ?? asset.assetType ?? asset.asset_type ?? '').toLowerCase();
+            const fileUrl = String(asset.fileUrl ?? asset.file_url ?? '');
+            const extension = getFileExtension(fileUrl);
+            const rawAuthor = asset.submittedBy ?? asset.submitted_by;
+            const authorName = typeof rawAuthor === 'string' && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawAuthor)
+              ? rawAuthor
+              : 'Chưa ghi nhận';
+            return {
+              id: String(asset.id ?? `visual-${index}`),
+              title: String(asset.title ?? 'Phối cảnh thiết kế'),
+              roomZone: '',
+              category: assetType === 'moodboard' ? 'document' as const : '3d' as const,
+              categoryLabel: assetType === 'moodboard' ? 'Moodboard' : 'Phối cảnh 3D',
+              imageUrl: fileUrl,
+              thumbnailUrl: fileUrl,
+              isPrimary: false,
+              viewAngleName: String(asset.title ?? 'Phối cảnh thiết kế'),
+              fileFormat: extension ? extension.toUpperCase() : 'Tệp',
+              updatedDateFormatted: '—',
+              authorName,
+            };
+          });
+        const dbTechnicalDrawings = rawAssets
+          .filter((asset) => {
+            const assetType = String(asset.type ?? asset.assetType ?? asset.asset_type ?? '').toLowerCase();
+            const fileUrl = String(asset.fileUrl ?? asset.file_url ?? '');
+            const extension = getFileExtension(fileUrl);
+            return (technicalDrawingTypes.has(assetType) || ['dwg', 'dxf'].includes(extension)) && fileUrl.trim().length > 0;
+          })
           .map((a, idx) => {
             let parsedNotes: Record<string, string> = {};
             try {
@@ -271,35 +381,64 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             } catch {
               parsedNotes = {};
             }
-            const isApproved = a.revisionStatus === 'approved';
-            const fileUrl = String(a.fileUrl || '');
-            const ext = fileUrl.split('.').pop()?.toUpperCase() || 'DWG';
+            const isApproved = drawingRevision?.status === 'approved';
+            const fileUrl = String(a.fileUrl ?? a.file_url ?? '');
+            const extension = getFileExtension(fileUrl);
+            const rawAuthor = parsedNotes.author ?? a.submittedBy ?? a.submitted_by;
+            const author = typeof rawAuthor === 'string' && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawAuthor)
+              ? rawAuthor
+              : 'Chưa ghi nhận';
+            const createdAt = a.createdAt ?? a.created_at;
+            let updatedDateFormatted = '—';
+            if (typeof createdAt === 'string') {
+              const createdDate = new Date(createdAt);
+              if (!Number.isNaN(createdDate.getTime())) {
+                updatedDateFormatted = `${String(createdDate.getDate()).padStart(2, '0')}/${String(createdDate.getMonth() + 1).padStart(2, '0')}/${createdDate.getFullYear()}`;
+              }
+            }
             return {
               id: String(a.id || `dwg-${idx}`),
+              revisionId: typeof a.revisionId === 'string' ? a.revisionId : typeof a.revision_id === 'string' ? a.revision_id : undefined,
+              approvedBy: isApproved
+                ? typeof a.revisionApprovedBy === 'string' && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(a.revisionApprovedBy)
+                  ? a.revisionApprovedBy
+                  : 'Chưa ghi nhận'
+                : undefined,
               title: String(a.title || 'Bản vẽ kỹ thuật'),
               drawingCode:
-                parsedNotes.code ||
+                (typeof parsedNotes.code === 'string' ? parsedNotes.code : '') ||
                 (typeof a.notes === 'string' && !a.notes.startsWith('{')
                   ? a.notes
-                  : `REV 1 - DWG-0${idx + 1}`),
-              fileType: ext === 'DXF' || ext === 'PDF' ? ext : 'DWG',
-              author: parsedNotes.author || String(a.submittedBy || 'KTS. Bella Interior'),
-              updatedDateFormatted: '06/11/2026',
-              statusLabel: isApproved ? 'Đã duyệt' : 'Chờ duyệt',
+                  : ''),
+              fileType: ['dwg', 'dxf', 'pdf'].includes(extension) ? extension.toUpperCase() : 'Tệp',
+              author,
+              updatedDateFormatted,
+              statusLabel: isApproved ? 'Đã duyệt' : drawingRevision?.status === 'rejected' ? 'Từ chối' : drawingRevision?.status === 'superseded' ? 'Đã thay thế' : ['draft', 'in_review', 'client_review'].includes(String(drawingRevision?.status ?? '')) ? 'Chờ duyệt' : 'Chưa xác định',
               statusBadgeClass: isApproved
                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                : 'bg-amber-50 text-amber-700 border-amber-200',
+                : drawingRevision?.status === 'rejected'
+                ? 'bg-rose-50 text-rose-700 border-rose-200'
+                : drawingRevision?.status === 'superseded'
+                ? 'bg-slate-50 text-slate-600 border-slate-200'
+                : ['draft', 'in_review', 'client_review'].includes(String(drawingRevision?.status ?? ''))
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-slate-50 text-slate-600 border-slate-200',
               fileUrl,
               downloadUrl: fileUrl,
-              fileSize: parsedNotes.fileSize || '14.8 MB',
-              hasFile: Boolean(fileUrl),
-              scale: parsedNotes.scale || '1:100',
-              sheetNumber: parsedNotes.sheet || `KT-0${idx + 1}/18`,
+              fileSize: typeof parsedNotes.fileSize === 'string' ? parsedNotes.fileSize : '',
+              hasFile: fileUrl.trim().length > 0,
+              scale: typeof parsedNotes.scale === 'string' ? parsedNotes.scale : '',
+              sheetNumber: typeof parsedNotes.sheet === 'string' ? parsedNotes.sheet : '',
             };
           });
 
         const dbDocuments = rawAssets
-          .filter((a) => a.type === 'document' || String(a.fileUrl || '').endsWith('.pdf'))
+          .filter((asset) => {
+            const assetType = String(asset.type ?? asset.assetType ?? asset.asset_type ?? '').toLowerCase();
+            const fileUrl = String(asset.fileUrl ?? asset.file_url ?? '');
+            const extension = getFileExtension(fileUrl);
+            return (assetType === 'document' || assetType === 'pdf' || (extension === 'pdf' && !technicalDrawingTypes.has(assetType))) && fileUrl.trim().length > 0;
+          })
           .map((a, idx) => {
             let parsedNotes: Record<string, string> = {};
             try {
@@ -309,33 +448,32 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             } catch {
               parsedNotes = {};
             }
-            const fileUrl = String(a.fileUrl || '');
+            const fileUrl = String(a.fileUrl ?? a.file_url ?? '');
+            const rawAuthor = parsedNotes.author ?? a.submittedBy ?? a.submitted_by;
+            const author = typeof rawAuthor === 'string' && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawAuthor)
+              ? rawAuthor
+              : 'Chưa ghi nhận';
+            const extension = getFileExtension(fileUrl);
             return {
               id: String(a.id || `doc-${idx}`),
               title: String(a.title || 'Hồ sơ tài liệu'),
-              documentCategory: 'Chỉ dẫn kỹ thuật',
-              fileType: 'PDF',
-              author: parsedNotes.author || String(a.submittedBy || 'Phòng Kỹ Thuật Bella'),
-              updatedDateFormatted: '06/11/2026',
-              fileSize: parsedNotes.fileSize || '8.2 MB',
+              documentCategory: typeof a.notes === 'string' && !a.notes.startsWith('{') ? a.notes : 'Tài liệu',
+              fileType: extension ? extension.toUpperCase() : 'Tệp',
+              author,
+              updatedDateFormatted: '—',
+              fileSize: typeof parsedNotes.fileSize === 'string' ? parsedNotes.fileSize : '',
               fileUrl,
               downloadUrl: fileUrl,
-              hasFile: Boolean(fileUrl),
+              hasFile: fileUrl.trim().length > 0,
             };
           });
 
-        if (dbTechnicalDrawings.length > 0) {
-          finalOverview = {
-            ...finalOverview,
-            technicalDrawings: dbTechnicalDrawings,
-          };
-        }
-        if (dbDocuments.length > 0) {
-          finalOverview = {
-            ...finalOverview,
-            relatedDocuments: dbDocuments,
-          };
-        }
+        finalOverview = {
+          ...finalOverview,
+          visuals: dbVisuals,
+          technicalDrawings: dbTechnicalDrawings,
+          relatedDocuments: dbDocuments,
+        };
       }
 
       // If database has material specs, map them directly into finalOverview
@@ -419,28 +557,53 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   try {
     if (action === 'toggle_lock') {
-      const versionId = typeof payload.versionId === 'string' ? payload.versionId : 'rev-r1-0';
-      const versionLock = await InteriorDesignAnalyticsService.toggleDesignLock(ctx.tenantId, versionId);
+      const versionId = typeof payload.versionId === 'string' ? payload.versionId : '';
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(versionId)) {
+        return NextResponse.json({ success: false, error: 'INTERIOR_DESIGN_REVISION_NOT_FOUND' }, { status: 404 });
+      }
+      if (payload.targetState !== true) {
+        return NextResponse.json({
+          success: false,
+          error: 'APPROVED_REVISION_IMMUTABLE',
+          message: 'Revision đã duyệt không thể mở khóa; hãy tạo revision mới để tiếp tục chỉnh sửa.',
+        }, { status: 409 });
+      }
 
-      // If versionId is a UUID in the database, persist lock state to interior_design_revisions
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(versionId);
-      if (isUuid) {
-        try {
-          const revTable = getDynamicTable(ctx.supabase, 'interior_design_revisions');
-          await revTable
-            .update({
-              status: versionLock.isLocked ? 'approved' : 'review',
-            })
-            .eq('tenant_id', ctx.tenantId)
-            .eq('id', versionId);
-        } catch {
-          // best-effort persistence
-        }
+      const { data, error } = await interiorRbacRpcClient(ctx.supabase).rpc('interior_approve_design_revision', {
+        p_revision_id: versionId,
+        p_approval_notes: null,
+      });
+      if (error) {
+        const denied = error.message?.includes('AuthorizationViolation') === true;
+        return NextResponse.json({ success: false, error: denied ? 'INTERIOR_PERMISSION_DENIED' : 'INTERIOR_DESIGN_REVISION_APPROVAL_FAILED' }, {
+          status: denied ? 403 : 503,
+        });
+      }
+      const outcome = interiorMutationRow(data);
+      if (!outcome || outcome.status !== 'COMMITTED' || typeof outcome.approved_at !== 'string') {
+        const reason = typeof outcome?.reason === 'string' ? outcome.reason : 'DESIGN_APPROVAL_DENIED';
+        const status = reason === 'REVISION_ALREADY_APPROVED' || reason === 'REVISION_STATE_NOT_APPROVABLE' ? 409
+          : reason === 'INVALID_APPROVAL_INPUT' ? 422 : 403;
+        return NextResponse.json({ success: false, error: 'INTERIOR_DESIGN_APPROVAL_DENIED', reason }, { status });
       }
 
       return NextResponse.json({
         success: true,
-        data: { versionLock },
+        data: {
+          versionLock: {
+            versionId,
+            status: 'approved',
+            statusLabel: 'Đã duyệt',
+            statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+            isLocked: true,
+            lockLabel: 'Đã khóa',
+            lockBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+            approvalDateFormatted: new Date(outcome.approved_at).toLocaleDateString('vi-VN'),
+            lockBannerTitle: 'Revision đã duyệt',
+            lockBannerSubtitle: 'Revision đã được duyệt và đặt làm revision đang kích hoạt của dự án.',
+            canUnlock: false,
+          },
+        },
       }, { headers: { 'Cache-Control': 'no-store' } });
     }
 

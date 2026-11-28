@@ -27,7 +27,6 @@ import {
   Layers,
   CheckCircle2,
   Lock,
-  Unlock,
   Calendar,
   User,
   FileText,
@@ -68,10 +67,28 @@ import {
 
 import type {
   DesignStudioOverviewResponse,
+  DesignVersionLockInfo,
   DesignVisualItem,
   DesignTechnicalDrawingItem,
   DesignDocumentItem,
 } from '@/products/bella-interior/domain/design-overview.types';
+
+const NO_DESIGN_VERSION_LOCK: DesignVersionLockInfo = {
+  versionId: '',
+  versionNumber: '—',
+  status: 'draft',
+  statusLabel: 'Chưa có revision',
+  statusBadgeClass: 'bg-slate-50 text-slate-600 border-slate-200',
+  isLocked: false,
+  lockLabel: 'Chưa khóa',
+  lockBadgeClass: 'bg-slate-50 text-slate-600 border-slate-200',
+  approvalDateFormatted: '—',
+  approvedBy: 'Chưa ghi nhận',
+  description: 'Chưa có revision thiết kế được tải.',
+  lockBannerTitle: 'Trạng thái revision',
+  lockBannerSubtitle: 'Chưa có revision đã lưu cho dự án này.',
+  canUnlock: false,
+};
 
 // Baseline initial state for instant zero-flicker render
 const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
@@ -87,22 +104,7 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
     clientName: 'Trần Thị Mai',
     contractValueFormatted: '3.85 tỷ',
   },
-  versionLock: {
-    versionId: 'rev-r1-0',
-    versionNumber: 'R1.0',
-    status: 'approved',
-    statusLabel: 'Đã duyệt',
-    statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    isLocked: true,
-    lockLabel: 'Đã khóa',
-    lockBadgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
-    approvalDateFormatted: '06/11/2026',
-    approvedBy: 'Trần Thị Mai',
-    description: 'Phiên bản thiết kế chính thức',
-    lockBannerTitle: 'Approved Design Lock',
-    lockBannerSubtitle: 'Đã khóa thiết kế, chỉ cho phép tạo phiên bản mới',
-    canUnlock: true,
-  },
+  versionLock: NO_DESIGN_VERSION_LOCK,
   activeTab: 'design',
   subTabs: [
     { key: 'overview', label: 'Tổng quan', href: '/dashboard/interior/projects', isActive: false },
@@ -113,171 +115,9 @@ const INITIAL_DESIGN_OVERVIEW: DesignStudioOverviewResponse = {
     { key: 'installation', label: 'Thi công', href: '/dashboard/interior/installation', isActive: false },
     { key: 'reports', label: 'Báo cáo', href: '/dashboard/interior/reports', isActive: false },
   ],
-  visuals: [
-    {
-      id: 'vis-1',
-      title: 'Phối cảnh Phòng khách & Bàn trà',
-      roomZone: 'Phòng khách',
-      category: '3d',
-      categoryLabel: 'Phối cảnh 3D',
-      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/installation/site-progress-main.jpg',
-      thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/installation/site-progress-main.jpg',
-      isPrimary: true,
-      viewAngleName: 'Góc nhìn chính (Chính diện sofa & bàn trà tròn)',
-      resolution: '4K Ultra-HD (3840x2160)',
-      fileFormat: '3ds Max / Corona Render',
-      updatedDateFormatted: '06/11/2026',
-      authorName: 'KTS. Hoàng Long',
-    },
-    {
-      id: 'vis-2',
-      title: 'Khu vực Bàn ăn & Đèn chùm thả',
-      roomZone: 'Phòng ăn',
-      category: '3d',
-      categoryLabel: 'Phối cảnh 3D',
-      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/luxury-living-room.jpg',
-      thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/luxury-living-room.jpg',
-      isPrimary: false,
-      viewAngleName: 'Góc nhìn phòng ăn liên thông',
-      resolution: '4K Ultra-HD',
-      fileFormat: 'Corona Render',
-      updatedDateFormatted: '05/11/2026',
-      authorName: 'KTS. Hoàng Long',
-    },
-    {
-      id: 'vis-3',
-      title: 'Phòng ngủ Master & Hệ vách ốp đầu giường',
-      roomZone: 'Phòng ngủ Master',
-      category: '3d',
-      categoryLabel: 'Phối cảnh 3D',
-      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/bedroom-render-modern.jpg',
-      thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/bedroom-render-modern.jpg',
-      isPrimary: false,
-      viewAngleName: 'Góc nhìn tổng thể giường ngủ',
-      resolution: '4K Ultra-HD',
-      fileFormat: 'Corona Render',
-      updatedDateFormatted: '05/11/2026',
-      authorName: 'KTS. Lê Hoàng',
-    },
-    {
-      id: 'vis-4',
-      title: 'Không gian Bếp đảo & Tủ bếp Acrylic',
-      roomZone: 'Bếp & Đảo bếp',
-      category: '3d',
-      categoryLabel: 'Phối cảnh 3D',
-      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/kitchen-design-render.jpg',
-      thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/kitchen-design-render.jpg',
-      isPrimary: false,
-      viewAngleName: 'Góc nhìn đảo bếp & tủ bếp kịch trần',
-      resolution: '4K Ultra-HD',
-      fileFormat: 'Corona Render',
-      updatedDateFormatted: '04/11/2026',
-      authorName: 'KTS. Lê Hoàng',
-    },
-    {
-      id: 'vis-5',
-      title: 'Phòng làm việc & Hệ tủ sách kính Slim',
-      roomZone: 'Phòng làm việc',
-      category: '3d',
-      categoryLabel: 'Phối cảnh 3D',
-      imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/office-tower-wide.jpg',
-      thumbnailUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/office-tower-wide.jpg',
-      isPrimary: false,
-      viewAngleName: 'Góc làm việc & view sân vườn',
-      resolution: '4K Ultra-HD',
-      fileFormat: 'Corona Render',
-      updatedDateFormatted: '04/11/2026',
-      authorName: 'KTS. Hoàng Long',
-    },
-  ],
-  technicalDrawings: [
-    {
-      id: 'dwg-1',
-      title: 'Mặt bằng bố trí nội thất tầng 1 & tầng 2',
-      drawingCode: 'REV 2 - ARCH-01',
-      fileType: 'DWG',
-      author: 'KTS. Hoàng Long',
-      updatedDateFormatted: '06/11/2026',
-      statusLabel: 'Đã duyệt',
-      statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      fileUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/blueprints/DET-04.dwg',
-      fileSize: '14.8 MB',
-      hasFile: true,
-      downloadUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/blueprints/DET-04.dwg',
-      sheetNumber: 'KT-01/18',
-      scale: '1:100',
-    },
-    {
-      id: 'dwg-2',
-      title: 'Chi tiết mặt cắt kỹ thuật bổ đồ gỗ nội thất',
-      drawingCode: 'REV 2 - DET-02',
-      fileType: 'DWG',
-      author: 'KTS. Lê Hoàng',
-      updatedDateFormatted: '06/11/2026',
-      statusLabel: 'Đã duyệt',
-      statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      fileUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/blueprints/DET-04.dwg',
-      fileSize: '22.4 MB',
-      hasFile: true,
-      downloadUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/blueprints/DET-04.dwg',
-      sheetNumber: 'KT-06/18',
-      scale: '1:25',
-    },
-    {
-      id: 'dwg-3',
-      title: 'Sơ đồ định vị ổ cắm, công tắc & chiếu sáng thông minh',
-      drawingCode: 'REV 1 - MEP-01',
-      fileType: 'PDF',
-      author: 'KS. Nguyễn Văn Tuấn',
-      updatedDateFormatted: '04/11/2026',
-      statusLabel: 'Đã duyệt',
-      statusBadgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      fileUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/handover/handover-signoff.jpg',
-      fileSize: '8.2 MB',
-      hasFile: true,
-      downloadUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/handover/handover-signoff.jpg',
-      sheetNumber: 'MEP-01/08',
-      scale: '1:100',
-    },
-  ],
-  relatedDocuments: [
-    {
-      id: 'doc-1',
-      title: 'Hồ sơ chỉ dẫn kỹ thuật & tiêu chuẩn thi công gỗ óc chó',
-      documentCategory: 'Chỉ dẫn kỹ thuật',
-      fileType: 'PDF',
-      author: 'Phòng Kỹ Thuật Bella',
-      updatedDateFormatted: '06/11/2026',
-      fileSize: '4.5 MB',
-      fileUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/handover/handover-signoff.jpg',
-      hasFile: true,
-      downloadUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/handover/handover-signoff.jpg',
-    },
-    {
-      id: 'doc-2',
-      title: 'Biên bản nghiệm thu hồ sơ thiết kế ý tưởng (Concept Sign-off)',
-      documentCategory: 'Biên bản phê duyệt',
-      fileType: 'PDF',
-      author: 'Trần Thị Mai',
-      updatedDateFormatted: '06/11/2026',
-      fileSize: '1.2 MB',
-      fileUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/handover/handover-signoff.jpg',
-      hasFile: true,
-      downloadUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/handover/handover-signoff.jpg',
-    },
-    {
-      id: 'doc-3',
-      title: 'Bảng mẫu vật liệu thực tế (Physical Moodboard & Material Swatch)',
-      documentCategory: 'Moodboard',
-      fileType: 'PDF',
-      author: 'KTS. Hoàng Long',
-      updatedDateFormatted: '02/11/2026',
-      fileSize: '18.6 MB',
-      fileUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/material-texture-board.jpg',
-      hasFile: true,
-      downloadUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/design/material-texture-board.jpg',
-    },
-  ],
+  visuals: [],
+  technicalDrawings: [],
+  relatedDocuments: [],
   materials: [
     {
       id: 'mat-1',
@@ -420,6 +260,7 @@ function InteriorDesignStudioContent() {
   const searchParams = useSearchParams();
   const initialProjectId = searchParams.get('projectId');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(initialProjectId || null);
+  const selectedProjectIdRef = useRef<string | null>(initialProjectId || null);
   const [projectOptions, setProjectOptions] = useState<InteriorProjectItem[]>([]);
   const [projectsLoading, setProjectsLoading] = useState<boolean>(true);
   const [viewMode, setViewMode] = useState<'gallery' | 'list'>('gallery');
@@ -430,6 +271,8 @@ function InteriorDesignStudioContent() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [data, setData] = useState<DesignStudioOverviewResponse>(INITIAL_DESIGN_OVERVIEW);
+  const [drawingLoadStatus, setDrawingLoadStatus] = useState<'loading' | 'loaded' | 'unavailable'>('loading');
+  const displayedRevisionIdRef = useRef(data.versionLock.versionId);
   const [selectedVisualId, setSelectedVisualId] = useState<string>('vis-1');
   const [activeViewerTab, setActiveViewerTab] = useState<'3d' | 'technical' | 'documents'>('3d');
 
@@ -488,6 +331,7 @@ function InteriorDesignStudioContent() {
 
   // Lock toggling state
   const [isTogglingLock, setIsTogglingLock] = useState<boolean>(false);
+  const revisionReadGeneration = useRef(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'info' | 'warning'>('success');
 
@@ -538,8 +382,13 @@ function InteriorDesignStudioContent() {
 
   // Sync selected project with URL query param if present
   useEffect(() => {
+    displayedRevisionIdRef.current = data.versionLock.versionId;
+  }, [data.versionLock.versionId]);
+
+  useEffect(() => {
     const urlProjectId = searchParams.get('projectId');
     if (urlProjectId && urlProjectId !== selectedProjectId) {
+      selectedProjectIdRef.current = urlProjectId;
       setSelectedProjectId(urlProjectId);
     }
   }, [searchParams, selectedProjectId]);
@@ -562,6 +411,19 @@ function InteriorDesignStudioContent() {
   // Load design data whenever selectedProjectId changes
   useEffect(() => {
     if (!selectedProjectId) return;
+    const requestGeneration = ++revisionReadGeneration.current;
+    setData((previous) => ({
+      ...previous,
+      visuals: [],
+      technicalDrawings: [],
+      relatedDocuments: [],
+      versionLock: NO_DESIGN_VERSION_LOCK,
+    }));
+    setSelectedVisualId('');
+    setSelectedDrawingForView(null);
+    setSelectedDocForView(null);
+    setShowFullscreenModal(false);
+    setDrawingLoadStatus('loading');
     let isMounted = true;
 
     async function fetchDesignData() {
@@ -572,16 +434,33 @@ function InteriorDesignStudioContent() {
         if (res.ok) {
           const json = await res.json();
           const incoming = json.data?.overview || json.data || json;
-          if (isMounted && incoming && typeof incoming === 'object' && Array.isArray(incoming.visuals)) {
-            setData(incoming);
+          if (isMounted && selectedProjectIdRef.current === selectedProjectId
+            && requestGeneration === revisionReadGeneration.current
+            && json.success === true
+            && incoming && typeof incoming === 'object' && incoming.project?.id === selectedProjectId
+            && Array.isArray(incoming.visuals)) {
+            setData((previous) => selectedProjectIdRef.current === selectedProjectId
+              && requestGeneration === revisionReadGeneration.current
+              ? incoming
+              : previous);
+            setDrawingLoadStatus('loaded');
             if (incoming.visuals.length > 0) {
               const primary = incoming.visuals.find((v: { isPrimary?: boolean }) => v.isPrimary) || incoming.visuals[0];
               setSelectedVisualId(primary.id);
+            } else {
+              setSelectedVisualId('');
             }
+          } else if (isMounted && selectedProjectIdRef.current === selectedProjectId
+            && requestGeneration === revisionReadGeneration.current) {
+            setDrawingLoadStatus('unavailable');
           }
+        } else if (isMounted && selectedProjectIdRef.current === selectedProjectId
+          && requestGeneration === revisionReadGeneration.current) {
+          setDrawingLoadStatus('unavailable');
         }
       } catch {
-        // Retain initial state
+        if (isMounted && selectedProjectIdRef.current === selectedProjectId
+          && requestGeneration === revisionReadGeneration.current) setDrawingLoadStatus('unavailable');
       }
     }
 
@@ -592,62 +471,9 @@ function InteriorDesignStudioContent() {
     };
   }, [selectedProjectId]);
 
-  // ── Load drawings/visuals/documents from DB (merges into data state) ────────
-  useEffect(() => {
-    if (!selectedProjectId) return;
-    let isMounted = true;
-
-    async function fetchDrawings() {
-      try {
-        const url = `/api/interior/design/drawings?projectId=${encodeURIComponent(selectedProjectId || '')}`;
-        const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) return;
-        const json = await res.json();
-        if (!isMounted || !json.success) return;
-
-        const hasVisuals = Array.isArray(json.visuals) && json.visuals.length > 0;
-        const hasDrawings = Array.isArray(json.technicalDrawings) && json.technicalDrawings.length > 0;
-        const hasDocs = Array.isArray(json.relatedDocuments) && json.relatedDocuments.length > 0;
-
-        if (!hasVisuals && !hasDrawings && !hasDocs && !json.revisionVersion) return; // DB empty → keep initial seed
-
-        setData((prev) => {
-          const currentLock = prev.versionLock || INITIAL_DESIGN_OVERVIEW.versionLock;
-          const isApproved = json.revisionStatus === 'approved';
-          return {
-            ...prev,
-            visuals: hasVisuals ? json.visuals : prev.visuals,
-            technicalDrawings: hasDrawings ? json.technicalDrawings : prev.technicalDrawings,
-            relatedDocuments: hasDocs ? json.relatedDocuments : prev.relatedDocuments,
-            versionLock: {
-              ...currentLock,
-              versionNumber: json.revisionVersion ? `R${json.revisionVersion}.0` : (currentLock.versionNumber || 'R1.0'),
-              status: isApproved ? 'approved' : currentLock.status,
-              statusLabel: isApproved ? 'Đã duyệt' : (currentLock.statusLabel || 'Đã duyệt'),
-              isLocked: json.revisionStatus ? isApproved : currentLock.isLocked,
-              lockLabel: json.revisionStatus ? (isApproved ? 'Đã khóa' : 'Chưa khóa') : (currentLock.lockLabel || 'Đã khóa'),
-              approvedBy: json.approvedBy || currentLock.approvedBy || 'Trần Thị Mai',
-              approvalDateFormatted: json.approvedAt || currentLock.approvalDateFormatted || '06/11/2026',
-            },
-          };
-        });
-
-        // Set primary visual
-        if (hasVisuals) {
-          const primary = json.visuals.find((v: { isPrimary?: boolean }) => v.isPrimary) || json.visuals[0];
-          if (primary?.id) setSelectedVisualId(primary.id);
-        }
-      } catch {
-        // Retain initial seed data
-      }
-    }
-
-    fetchDrawings();
-    return () => { isMounted = false; };
-  }, [selectedProjectId]);
-
   // Project navigation handlers
   const handleSelectProject = (projectId: string) => {
+    selectedProjectIdRef.current = projectId;
     setSelectedProjectId(projectId);
     setShowProjectDropdown(false);
     const url = new URL(window.location.href);
@@ -656,6 +482,7 @@ function InteriorDesignStudioContent() {
   };
 
   const handleReturnToHub = () => {
+    selectedProjectIdRef.current = null;
     setSelectedProjectId(null);
     setShowProjectDropdown(false);
     const url = new URL(window.location.href);
@@ -694,11 +521,13 @@ function InteriorDesignStudioContent() {
   });
 
   // Active Visual item selected
-  const activeVisual: DesignVisualItem =
-    data.visuals.find((v) => v.id === selectedVisualId) || data.visuals[0];
+  const activeVisual: DesignVisualItem | null =
+    data.visuals.find((v) => v.id === selectedVisualId) || data.visuals[0] || null;
 
   // Handle Toggle Lock
   const handleToggleLock = async () => {
+    const requestedProjectId = data.project.id;
+    const requestedVersionId = data.versionLock.versionId;
     try {
       setIsTogglingLock(true);
       const res = await fetch('/api/interior/design', {
@@ -706,29 +535,82 @@ function InteriorDesignStudioContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'toggle_lock',
-          versionId: data.versionLock.versionId,
-          targetState: !data.versionLock.isLocked,
+          versionId: requestedVersionId,
+          projectId: requestedProjectId,
+          targetState: true,
         }),
       });
 
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
+          const isStillDisplayed = selectedProjectIdRef.current === requestedProjectId
+            && displayedRevisionIdRef.current === requestedVersionId;
+          if (!isStillDisplayed) {
+            setToastMessage('Revision đã được xử lý; màn hình đang xem không bị thay đổi.');
+            setTimeout(() => setToastMessage(null), 4000);
+            return;
+          }
+
+          const requestGeneration = ++revisionReadGeneration.current;
           const updatedLock = json.data.versionLock || json.data;
-          setData((prev) => ({
-            ...prev,
-            versionLock: {
-              ...(prev.versionLock || INITIAL_DESIGN_OVERVIEW.versionLock),
-              ...updatedLock,
-            },
-          }));
-          const isNowLocked = updatedLock.isLocked;
-          const msg = isNowLocked
-            ? 'Đã kích hoạt Approved Design Lock! Bản thiết kế đã được bảo vệ khóa sản xuất.'
-            : 'Đã mở khóa thiết kế! Cho phép kiến trúc sư cập nhật thông số và tài liệu.';
-          setToastMessage(msg);
+          setDrawingLoadStatus('loading');
+          setData((prev) => {
+            if (prev.project.id !== requestedProjectId || prev.versionLock.versionId !== requestedVersionId) return prev;
+            return {
+              ...prev,
+              visuals: [],
+              technicalDrawings: [],
+              relatedDocuments: [],
+              versionLock: {
+                ...(prev.versionLock || INITIAL_DESIGN_OVERVIEW.versionLock),
+                ...updatedLock,
+              },
+            };
+          });
+          setToastMessage('Revision đã được duyệt và kích hoạt.');
+          setTimeout(() => setToastMessage(null), 4000);
+
+          try {
+            const refreshedResponse = await fetch(
+              `/api/interior/design?projectId=${encodeURIComponent(requestedProjectId)}`,
+              { cache: 'no-store' },
+            );
+            if (!refreshedResponse.ok) {
+              if (selectedProjectIdRef.current === requestedProjectId
+                && revisionReadGeneration.current === requestGeneration) setDrawingLoadStatus('unavailable');
+              return;
+            }
+            const refreshedJson = await refreshedResponse.json();
+            const refreshedOverview = refreshedJson.data?.overview;
+            if (refreshedJson.success && refreshedOverview?.project?.id === requestedProjectId
+              && selectedProjectIdRef.current === requestedProjectId
+              && displayedRevisionIdRef.current === requestedVersionId
+              && revisionReadGeneration.current === requestGeneration) {
+              setData((prev) => prev.project.id === requestedProjectId
+                && displayedRevisionIdRef.current === requestedVersionId
+                && revisionReadGeneration.current === requestGeneration
+                ? refreshedOverview
+                : prev);
+              setDrawingLoadStatus('loaded');
+            } else if (selectedProjectIdRef.current === requestedProjectId
+              && revisionReadGeneration.current === requestGeneration) {
+              setDrawingLoadStatus('unavailable');
+            }
+          } catch {
+            if (selectedProjectIdRef.current === requestedProjectId
+              && revisionReadGeneration.current === requestGeneration) setDrawingLoadStatus('unavailable');
+          }
+        } else {
+          setToastMessage('Không thể duyệt revision này. Vui lòng kiểm tra quyền và trạng thái revision.');
           setTimeout(() => setToastMessage(null), 4000);
         }
+      } else {
+        const failure = await res.json().catch(() => null) as { message?: unknown } | null;
+        setToastMessage(typeof failure?.message === 'string'
+          ? failure.message
+          : 'Không thể duyệt revision này. Vui lòng kiểm tra quyền và trạng thái revision.');
+        setTimeout(() => setToastMessage(null), 4000);
       }
     } catch {
       setToastMessage('Lỗi khi thao tác khóa thiết kế. Vui lòng thử lại.');
@@ -1634,7 +1516,7 @@ function InteriorDesignStudioContent() {
           </div>
         </div>
 
-        {/* Right Card: Approved Design Lock Status &amp; Unlock Action */}
+        {/* Right Card: Approved Design Lock Status &amp; Revision Approval */}
         <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
@@ -1654,18 +1536,22 @@ function InteriorDesignStudioContent() {
           <button
             type="button"
             onClick={handleToggleLock}
-            disabled={isTogglingLock}
+            disabled={isTogglingLock || !data.versionLock?.versionId || !['draft', 'review'].includes(data.versionLock.status)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors shrink-0 shadow-2xs"
           >
             {data.versionLock?.isLocked ? (
               <>
-                <Unlock className="w-3.5 h-3.5 text-slate-500" />
-                <span>Mở khóa</span>
+                <Lock className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Đã duyệt &amp; khóa</span>
               </>
+            ) : !data.versionLock?.versionId ? (
+              <span>Chưa có revision</span>
+            ) : !['draft', 'review'].includes(data.versionLock.status) ? (
+              <span>Không thể duyệt</span>
             ) : (
               <>
                 <Lock className="w-3.5 h-3.5 text-amber-600" />
-                <span>Khóa lại</span>
+                <span>Duyệt &amp; kích hoạt</span>
               </>
             )}
           </button>
@@ -1758,6 +1644,7 @@ function InteriorDesignStudioContent() {
               <button
                 type="button"
                 onClick={() => setShowFullscreenModal(true)}
+                disabled={!activeVisual}
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors ml-1"
               >
                 <Maximize2 className="w-3.5 h-3.5" />
@@ -1770,41 +1657,51 @@ function InteriorDesignStudioContent() {
           {activeViewerTab === '3d' && (
             <div className="space-y-4 flex-1 flex flex-col justify-between">
               {/* Main Large Visualizer */}
-              <div
-                className="relative w-full aspect-16/10 rounded-2xl overflow-hidden bg-slate-900 shadow-inner group cursor-pointer"
-                onClick={() => setShowFullscreenModal(true)}
-              >
-                <img
-                  src={activeVisual.imageUrl}
-                  alt={activeVisual.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                />
+              {activeVisual ? (
+                <div
+                  className="relative w-full aspect-16/10 rounded-2xl overflow-hidden bg-slate-900 shadow-inner group cursor-pointer"
+                  onClick={() => setShowFullscreenModal(true)}
+                >
+                  <img
+                    src={activeVisual.imageUrl}
+                    alt={activeVisual.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                  />
 
-                {/* Subtle gradient vignette */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
+                  {/* Subtle gradient vignette */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
 
-                {/* Fullscreen hint — visible on hover */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                  <div className="flex items-center gap-2 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg">
-                    <Maximize2 className="w-3.5 h-3.5" />
-                    <span>Click để xem toàn màn hình</span>
+                  {/* Fullscreen hint — visible on hover */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                    <div className="flex items-center gap-2 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg">
+                      <Maximize2 className="w-3.5 h-3.5" />
+                      <span>Click để xem toàn màn hình</span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Bottom Overlay Label */}
-                <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" />
-                    <span className="font-bold drop-shadow">{activeVisual.title}</span>
-                    <span className="text-[11px] text-slate-200 opacity-90 drop-shadow">
-                      ({activeVisual.roomZone})
+                  {/* Bottom Overlay Label */}
+                  <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" />
+                      <span className="font-bold drop-shadow">{activeVisual.title}</span>
+                      <span className="text-[11px] text-slate-200 opacity-90 drop-shadow">
+                        ({activeVisual.roomZone})
+                      </span>
+                    </div>
+                    <span className="hidden sm:inline-block text-[10px] font-mono bg-black/50 backdrop-blur-md px-2 py-0.5 rounded text-slate-300">
+                      {activeVisual.resolution}
                     </span>
                   </div>
-                  <span className="hidden sm:inline-block text-[10px] font-mono bg-black/50 backdrop-blur-md px-2 py-0.5 rounded text-slate-300">
-                    {activeVisual.resolution}
-                  </span>
                 </div>
-              </div>
+              ) : (
+                <div className="relative w-full aspect-16/10 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-inner flex items-center justify-center px-6 text-center text-sm text-slate-500 dark:text-slate-400">
+                  {drawingLoadStatus === 'loading'
+                    ? 'Đang tải dữ liệu thiết kế…'
+                    : drawingLoadStatus === 'unavailable'
+                    ? 'Không tải được dữ liệu thiết kế. Vui lòng thử lại.'
+                    : 'Chưa có phối cảnh thiết kế được lưu cho dự án này.'}
+                </div>
+              )}
 
               {/* Gallery Thumbnails Carousel Strip */}
               <div className="grid grid-cols-5 gap-3 pt-1">
@@ -1889,6 +1786,16 @@ function InteriorDesignStudioContent() {
               <div className="text-xs font-semibold text-slate-500 pt-1">
                 Danh mục hồ sơ bản vẽ kỹ thuật kiến trúc, bổ đồ gỗ &amp; MEP:
               </div>
+
+              {data.technicalDrawings.length === 0 && (
+                <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-4 py-6 text-center text-xs text-slate-500 dark:text-slate-400">
+                  {drawingLoadStatus === 'loading'
+                    ? 'Đang tải trạng thái bản vẽ…'
+                    : drawingLoadStatus === 'unavailable'
+                    ? 'Không tải được dữ liệu bản vẽ. Vui lòng thử lại.'
+                    : 'Chưa có tệp bản vẽ kỹ thuật được đính kèm cho revision này.'}
+                </div>
+              )}
 
               {data.technicalDrawings.map((dwg) => {
                 const hasFile = dwg.hasFile !== false && Boolean(dwg.fileUrl);
@@ -2121,7 +2028,7 @@ function InteriorDesignStudioContent() {
       </div>
 
       {/* ─── Modal 1: Fullscreen 3D Perspectives Lightbox ─── */}
-      {showFullscreenModal && (
+      {showFullscreenModal && activeVisual && (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col justify-between p-4 sm:p-6 animate-in fade-in">
           {/* Header */}
           <div className="flex items-center justify-between text-white pb-3 border-b border-white/10">
@@ -2914,7 +2821,7 @@ function InteriorDesignStudioContent() {
                     <h3 className="text-base font-bold text-slate-900 dark:text-white">
                       {selectedDrawingForView.title}
                     </h3>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${selectedDrawingForView.statusBadgeClass}`}>
                       {selectedDrawingForView.statusLabel}
                     </span>
                   </div>
@@ -2939,25 +2846,27 @@ function InteriorDesignStudioContent() {
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
                   <div className="text-[11px] text-slate-400">Định dạng tệp</div>
                   <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
-                    AutoCAD ({selectedDrawingForView.fileType})
+                    {['DWG', 'DXF'].includes(selectedDrawingForView.fileType.toUpperCase())
+                      ? `CAD (${selectedDrawingForView.fileType})`
+                      : selectedDrawingForView.fileType}
                   </div>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
                   <div className="text-[11px] text-slate-400">Dung lượng</div>
                   <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
-                    {selectedDrawingForView.fileSize}
+                    {selectedDrawingForView.fileSize || 'Chưa ghi nhận'}
                   </div>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
                   <div className="text-[11px] text-slate-400">Tỷ lệ bản vẽ</div>
                   <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
-                    {selectedDrawingForView.scale || '1:100'}
+                    {selectedDrawingForView.scale || 'Chưa ghi nhận'}
                   </div>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
                   <div className="text-[11px] text-slate-400">Số hiệu tờ</div>
                   <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
-                    {selectedDrawingForView.sheetNumber || 'KT-01/18'}
+                    {selectedDrawingForView.sheetNumber || 'Chưa ghi nhận'}
                   </div>
                 </div>
               </div>
@@ -2966,10 +2875,10 @@ function InteriorDesignStudioContent() {
               <div className="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 text-xs text-blue-900 dark:text-blue-300 space-y-2">
                 <div className="flex items-center gap-2 font-bold">
                   <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                  <span>Hồ sơ kỹ thuật CAD gốc được bảo vệ toàn vẹn</span>
+                  <span>Tệp bản vẽ được lưu theo revision</span>
                 </div>
                 <p className="leading-relaxed text-slate-600 dark:text-slate-300 text-[11px]">
-                  Tệp bản vẽ định dạng gốc (.DWG) chứa đầy đủ các layer kiến trúc, kích thước kỹ thuật thi công và ký hiệu vật tư. Để đảm bảo tính chính xác tuyệt đối và không làm sai lệch bản vẽ của KTS, vui lòng tải tệp gốc về máy tính để mở bằng <strong>AutoCAD, Revit, SketchUp</strong> hoặc xem qua <strong>Autodesk Viewer</strong>.
+                  Định dạng tệp: <strong>{selectedDrawingForView.fileType}</strong>. Hãy mở hoặc tải tệp bằng ứng dụng tương thích với định dạng đã lưu.
                 </p>
               </div>
 
@@ -2985,10 +2894,14 @@ function InteriorDesignStudioContent() {
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
                   <span className="text-slate-400">Người phê duyệt:</span>
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">Trần Thị Mai (Đã duyệt chính thức)</span>
+                  <span className={`font-semibold ${selectedDrawingForView.statusLabel === 'Đã duyệt' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                    {selectedDrawingForView.statusLabel === 'Đã duyệt'
+                      ? selectedDrawingForView.approvedBy || 'Chưa ghi nhận'
+                      : selectedDrawingForView.statusLabel === 'Chưa xác định' ? 'Chưa xác định' : 'Chưa duyệt'}
+                  </span>
                 </div>
                 <div className="flex justify-between py-1">
-                  <span className="text-slate-400">Ngày phát hành hồ sơ:</span>
+                  <span className="text-slate-400">Ngày ghi nhận tệp:</span>
                   <span className="font-semibold text-slate-900 dark:text-white">{selectedDrawingForView.updatedDateFormatted}</span>
                 </div>
               </div>
@@ -3017,13 +2930,15 @@ function InteriorDesignStudioContent() {
                 {selectedDrawingForView.downloadUrl && (
                   <a
                     href={selectedDrawingForView.downloadUrl}
-                    download={selectedDrawingForView.drawingCode ? `${selectedDrawingForView.drawingCode}.dwg` : true}
+                    download={selectedDrawingForView.drawingCode && selectedDrawingForView.fileType !== 'Tệp'
+                      ? `${selectedDrawingForView.drawingCode}.${selectedDrawingForView.fileType.toLowerCase()}`
+                      : true}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-colors shadow-sm"
                   >
                     <Download className="w-4 h-4" />
-                    <span>Tải tệp DWG gốc ({selectedDrawingForView.fileSize})</span>
+                    <span>Tải tệp {selectedDrawingForView.fileType}{selectedDrawingForView.fileSize ? ` (${selectedDrawingForView.fileSize})` : ''}</span>
                   </a>
                 )}
               </div>
