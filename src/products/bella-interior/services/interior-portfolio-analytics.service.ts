@@ -427,41 +427,87 @@ export class InteriorPortfolioAnalyticsService {
     let aheadCount = 0;
     let completedCount = 0;
 
-    for (const project of rawProjects) {
+    const perProjectFetched = await Promise.all(
+      rawProjects.map(async (project) => {
+        const [contractsWithPayments, quotations, punchList, diaries, handovers, warranty] = await Promise.all([
+          repo.listContractsByProject(tenantId, project.id).then(async (contracts) => {
+            const paymentsByContract = await Promise.all(
+              contracts.map((c) => repo.listPaymentTransactions(tenantId, c.id))
+            );
+            return { contracts, paymentsByContract };
+          }),
+          repo.listQuotationsByProject(tenantId, project.id).catch(() => []),
+          repo.listPunchListItems(tenantId, project.id),
+          repo.listSiteDiaries(tenantId, project.id),
+          (async (): Promise<HandoverDossier[]> => {
+            try {
+              if (typeof repo.listHandoverDossiers === 'function') {
+                return await repo.listHandoverDossiers(tenantId, project.id);
+              }
+              const single = await repo.getHandoverDossier(tenantId, project.id);
+              return single ? [single] : [];
+            } catch {
+              return [];
+            }
+          })(),
+          (async () => {
+            try {
+              const certsPromise =
+                typeof repo.listWarrantyCertificates === 'function'
+                  ? repo.listWarrantyCertificates(tenantId, project.id)
+                  : Promise.resolve([]);
+              const ticketsPromise = repo.listWarrantyTickets(tenantId, project.id);
+              const [certs, tickets] = await Promise.all([certsPromise, ticketsPromise]);
+              return { certsCount: certs.length, tickets };
+            } catch {
+              return { certsCount: 0, tickets: [] };
+            }
+          })(),
+        ]);
+
+        return {
+          project,
+          contracts: contractsWithPayments.contracts,
+          paymentsByContract: contractsWithPayments.paymentsByContract,
+          quotations,
+          punchList,
+          diaries,
+          handovers,
+          certsCount: warranty.certsCount,
+          tickets: warranty.tickets,
+        };
+      })
+    );
+
+    for (const fetched of perProjectFetched) {
+      const { project, contracts, paymentsByContract, quotations, punchList, diaries, handovers, certsCount, tickets } = fetched;
       // 1. Contracts & Payments
-      const contracts = await repo.listContractsByProject(tenantId, project.id);
       let pContractVal = 0;
       let pCollectedVal = 0;
 
-      for (const c of contracts) {
+      contracts.forEach((c, idx) => {
         if (['signed', 'active', 'completed'].includes(c.status)) {
           pContractVal += (c.currentContractValue || c.baselineContractValue || 0);
         }
-        const payments = await repo.listPaymentTransactions(tenantId, c.id);
+        const payments = paymentsByContract[idx] ?? [];
         for (const p of payments) {
           pCollectedVal += p.amount;
         }
-      }
+      });
 
       totalContractValue += pContractVal;
       totalCollectedAmount += pCollectedVal;
 
       // 2. Quotations
-      try {
-        const quotations = await repo.listQuotationsByProject(tenantId, project.id);
-        totalQuotationCount += quotations.length;
-        for (const q of quotations) {
-          totalQuotationValue += q.grandTotal;
-          if (q.status === 'accepted') {
-            acceptedQuotationCount++;
-          }
+      totalQuotationCount += quotations.length;
+      for (const q of quotations) {
+        totalQuotationValue += q.grandTotal;
+        if (q.status === 'accepted') {
+          acceptedQuotationCount++;
         }
-      } catch {
-        // Optional quotations
       }
 
       // 3. Execution: Punch List & Site Diaries
-      const punchList = await repo.listPunchListItems(tenantId, project.id);
       totalPunchListCount += punchList.length;
       let projectOpenPunchCount = 0;
       let projectHasCriticalPunch = false;
@@ -477,45 +523,25 @@ export class InteriorPortfolioAnalyticsService {
         }
       }
 
-      const diaries = await repo.listSiteDiaries(tenantId, project.id);
       siteDiaryCount += diaries.length;
 
       // 4. Delivery: Handover Dossiers
-      try {
-        let handovers: HandoverDossier[] = [];
-        if (typeof repo.listHandoverDossiers === 'function') {
-          handovers = await repo.listHandoverDossiers(tenantId, project.id);
-        } else {
-          const single = await repo.getHandoverDossier(tenantId, project.id);
-          if (single) handovers = [single];
+      handoverDossiersCount += handovers.length;
+      for (const h of handovers) {
+        if (h.clientAccepted) {
+          clientAcceptedHandoversCount++;
         }
-        handoverDossiersCount += handovers.length;
-        for (const h of handovers) {
-          if (h.clientAccepted) {
-            clientAcceptedHandoversCount++;
-          }
-        }
-      } catch {
-        // Optional handovers
       }
 
       // 5. Warranty: Certificates & Tickets
-      try {
-        if (typeof repo.listWarrantyCertificates === 'function') {
-          const certs = await repo.listWarrantyCertificates(tenantId, project.id);
-          activeCertificatesCount += certs.length;
+      activeCertificatesCount += certsCount;
+      totalWarrantyTicketsCount += tickets.length;
+      for (const t of tickets) {
+        if (t.status === 'resolved' || t.status === 'closed') {
+          resolvedWarrantyTicketsCount++;
+        } else {
+          openWarrantyTicketsCount++;
         }
-        const tickets = await repo.listWarrantyTickets(tenantId, project.id);
-        totalWarrantyTicketsCount += tickets.length;
-        for (const t of tickets) {
-          if (t.status === 'resolved' || t.status === 'closed') {
-            resolvedWarrantyTicketsCount++;
-          } else {
-            openWarrantyTicketsCount++;
-          }
-        }
-      } catch {
-        // Optional warranty
       }
 
       // Stage & Progress Derivation
