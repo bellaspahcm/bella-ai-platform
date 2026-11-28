@@ -10,7 +10,7 @@ const { normalizeMigrationSql, normalizeRecordedMigrationStatements } = require(
 
 const EXPECTED_VERSION = '20261128145534';
 const EXPECTED_NAME = 'interior_design_approval_sets_active_revision';
-const EXPECTED_SHA256 = '6E4010191E13253A6C70A8F704443024DCA90C7494854F287929DE77A19D84FC';
+const EXPECTED_SHA256 = '04E7A3B68151D80F348652A55469F103B1BA5E046982B1326E63FD062459CFD7';
 const MIGRATION_PATH = join(process.cwd(), 'supabase', 'migrations', `${EXPECTED_VERSION}_${EXPECTED_NAME}.sql`);
 let executionStage = 'runner';
 

@@ -164,3 +164,5 @@ $$;
 
 REVOKE ALL ON FUNCTION public.interior_list_design_portfolio_summaries(uuid[]) FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION public.interior_list_design_portfolio_summaries(uuid[]) TO authenticated;
+
+NOTIFY pgrst, 'reload schema';
