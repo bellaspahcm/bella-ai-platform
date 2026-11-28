@@ -79,12 +79,16 @@ export function DashboardAuthLoadingShell() {
 }
 
 import { useState, useEffect, useLayoutEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import InteriorMobileBottomNav from '@/components/interior/InteriorMobileBottomNav';
-import { isInteriorMobileShellPath } from '@/products/bella-interior/lib/interior-pwa-navigation';
+import {
+  isForeignVerticalPathForInterior,
+  isInteriorMobileShellPath,
+} from '@/products/bella-interior/lib/interior-pwa-navigation';
 
 export function DashboardAuthorizedShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { isLoading, user, tenantSettings: fullTenantSettings, tenantPresentation, product } = useUser();
   const tenantSettings = tenantPresentation ?? fullTenantSettings;
   const presentation = tenantSettings ? resolveDashboardPresentation(tenantSettings, product) : null;
@@ -124,7 +128,18 @@ export function DashboardAuthorizedShell({ children }: { children: React.ReactNo
     }
   }, []);
 
-  if (!mounted || isLoading) {
+  const resolvedProductKey = product?.productKey ?? presentation?.brand.moduleKey ?? null;
+  const shouldRedirectForeignInteriorRoute =
+    Boolean(mounted && !isLoading && user && tenantSettings && user.tenant_id === tenantSettings.id)
+    && isForeignVerticalPathForInterior(pathname, resolvedProductKey);
+
+  useEffect(() => {
+    if (shouldRedirectForeignInteriorRoute) {
+      router.replace('/dashboard/interior');
+    }
+  }, [shouldRedirectForeignInteriorRoute, router]);
+
+  if (!mounted || isLoading || shouldRedirectForeignInteriorRoute) {
     return <DashboardAuthLoadingShell />;
   }
 

@@ -302,3 +302,34 @@ export function isInteriorMobileShellPath(
     || pathname === '/dashboard/settings'
   );
 }
+
+const NON_INTERIOR_VERTICAL_PREFIXES: readonly string[] = [
+  '/dashboard/education',
+  '/dashboard/beauty-spa-v2',
+  '/dashboard/medical',
+  '/dashboard/healthcare',
+  '/dashboard/real-estate',
+  '/dashboard/nail',
+  '/dashboard/hospitality',
+  '/dashboard/manufacturing',
+  '/dashboard/sessions',
+  '/dashboard/bookings',
+  '/dashboard/services',
+  '/dashboard/packages',
+  '/dashboard/ktv',
+];
+
+/**
+ * Returns true when an authenticated Bella Interior tenant lands on another
+ * vertical's route (e.g. from a stale browser tab or cross-account switch),
+ * so the shell can redirect them back to /dashboard/interior immediately.
+ */
+export function isForeignVerticalPathForInterior(
+  pathname: string | null | undefined,
+  productKey?: string | null,
+): boolean {
+  if (productKey !== 'bella_interior' || !pathname) return false;
+  return NON_INTERIOR_VERTICAL_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
