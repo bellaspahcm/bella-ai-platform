@@ -29,6 +29,7 @@ import {
   ClipboardList,
   Check,
   ChevronDown,
+  Loader2,
 } from 'lucide-react';
 
 import type {
@@ -151,7 +152,71 @@ export default function InteriorDashboardPage() {
   }, []);
 
   if (!portfolioData || !portfolioData.businessChainProgress) {
-    return <div className="p-6 text-sm text-slate-700 dark:text-slate-300" role="status">{portfolioError || portfolioData ? 'Không thể tải dữ liệu tổng quan. Vui lòng thử lại.' : 'Đang tải dữ liệu tổng quan…'}</div>;
+    if (portfolioError || portfolioData) {
+      return (
+        <div className="p-6 max-w-xl mx-auto mt-12 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-white dark:bg-slate-900 text-center space-y-3 shadow-sm" role="status">
+          <AlertTriangle className="w-8 h-8 text-rose-500 mx-auto" />
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+            Không thể tải dữ liệu tổng quan. Vui lòng thử lại.
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-xs font-semibold hover:opacity-90 transition"
+          >
+            Tải lại trang
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="p-4 sm:p-6 space-y-6 animate-pulse" role="status" aria-label="Đang tải dữ liệu tổng quan">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5 text-sm font-medium text-slate-600 dark:text-slate-300">
+              <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
+              <span>Đang tải dữ liệu tổng quan...</span>
+            </div>
+            <div className="h-7 w-64 rounded-xl bg-slate-200/80 dark:bg-slate-800" />
+          </div>
+          <div className="h-10 w-44 rounded-xl bg-slate-200/80 dark:bg-slate-800" />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[0, 1, 2, 3].map((idx) => (
+            <div key={idx} className="h-28 rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+              <div className="h-4 w-24 rounded bg-slate-200/80 dark:bg-slate-800" />
+              <div className="h-7 w-20 rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-3 w-32 rounded bg-slate-100 dark:bg-slate-800/80" />
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 h-64 rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4">
+            <div className="h-5 w-48 rounded bg-slate-200/80 dark:bg-slate-800" />
+            <div className="h-40 rounded-xl bg-slate-100 dark:bg-slate-800/70" />
+          </div>
+          <div className="h-64 rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3">
+            <div className="h-5 w-36 rounded bg-slate-200/80 dark:bg-slate-800" />
+            <div className="h-12 rounded-xl bg-slate-100 dark:bg-slate-800/70" />
+            <div className="h-12 rounded-xl bg-slate-100 dark:bg-slate-800/70" />
+            <div className="h-12 rounded-xl bg-slate-100 dark:bg-slate-800/70" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[0, 1, 2, 3].map((idx) => (
+            <div key={idx} className="h-52 rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+              <div className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800/70" />
+              <div className="h-4 w-3/4 rounded bg-slate-200/80 dark:bg-slate-800" />
+              <div className="h-3 w-1/2 rounded bg-slate-100 dark:bg-slate-800/80" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   const businessChainProgress = portfolioData.businessChainProgress;
