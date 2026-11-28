@@ -1285,7 +1285,7 @@ export function Sidebar() {
                     type="button"
                     onClick={() => setSimulatedInteriorRole(null)}
                     className="mt-1 text-[9px] font-bold text-amber-300 hover:text-white underline cursor-pointer flex items-center gap-1"
-                    title="Thoát chế độ mô phỏng vai trò, trở về toàn quyền Admin"
+                    title="Thoát chế độ mô phỏng vai trò"
                   >
                     <span>↩ Thoát mô phỏng</span>
                   </button>
@@ -1335,6 +1335,7 @@ export function Sidebar() {
     </>
   );
 }
+
 
 
 

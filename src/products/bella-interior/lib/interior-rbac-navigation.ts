@@ -327,9 +327,9 @@ export function isInteriorMenuItemAllowed(
  */
 export function getInteriorRoleDisplayName(role: string | null | undefined): string {
   const roleKey = normalizeInteriorRoleKey(role);
-  if (!roleKey) return 'Quản trị viên';
+  if (!roleKey) return 'Chưa xác định';
   const meta = INTERIOR_ROLES.find((r) => r.roleKey === roleKey);
-  return meta?.displayName || 'Quản trị viên';
+  return meta?.displayName || 'Chưa xác định';
 }
 
 /**
@@ -365,3 +365,4 @@ export function setSimulatedInteriorRole(role: InteriorRoleKey | null): void {
     // Graceful fallback if localStorage is disabled
   }
 }
+

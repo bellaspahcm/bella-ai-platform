@@ -59,7 +59,7 @@ interface MockProject {
   statusLabel: string;
   statusColor: string;
   contractValue: number;
-  grossMarginFormatted: string;
+  grossMarginPercent: number;
   approvedRevisionNumber: number | null;
   leadArchitect: string;
   progressPercent: number;
@@ -131,7 +131,7 @@ export default function InteriorDashboardPage() {
               statusLabel: p.stageLabel,
               statusColor: p.stageBadgeClass || 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800/40',
               contractValue: p.contractValue,
-              grossMarginFormatted: p.grossMarginFormatted || 'Chưa có dữ liệu',
+              grossMarginPercent: p.grossMarginPercent || 0,
               approvedRevisionNumber: null,
               leadArchitect: p.leadArchitect,
               progressPercent: p.progressPercent,
@@ -760,7 +760,7 @@ export default function InteriorDashboardPage() {
                     {formatCurrency(project.contractValue)}
                   </td>
                   <td className="py-3.5 px-4 font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                    {project.grossMarginFormatted}
+                    {project.grossMarginPercent}%
                   </td>
                   <td className="py-3.5 px-4 whitespace-nowrap">
                     <button
@@ -944,7 +944,7 @@ export default function InteriorDashboardPage() {
                 <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
                   <span className="text-[11px] text-slate-500 font-medium">Lợi nhuận gộp</span>
                   <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                    {selectedWorkspaceProject.grossMarginFormatted}
+                    {selectedWorkspaceProject.grossMarginPercent}%
                   </p>
                 </div>
                 <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
@@ -1066,3 +1066,4 @@ export default function InteriorDashboardPage() {
     </div>
   );
 }
+
