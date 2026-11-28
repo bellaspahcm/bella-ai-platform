@@ -33,12 +33,21 @@ import {
 
 import type {
   BusinessChainPeriodKey,
-  BusinessChainProgressOverview,
   BusinessChainPeriodData,
   PortfolioOverviewResponse,
 } from '@/products/bella-interior/domain/portfolio-overview.types';
 import { useUser } from '@/lib/user-context';
 import InteriorUserBar from '@/components/interior/InteriorUserBar';
+import {
+  INTERIOR_ROLE_CHANGE_EVENT,
+  getSimulatedInteriorRole,
+  normalizeInteriorRoleKey,
+  type InteriorRoleKey,
+} from '@/products/bella-interior/lib/interior-rbac-navigation';
+import {
+  getInteriorLaunchpadItems,
+  type InteriorPwaCapabilityFlags,
+} from '@/products/bella-interior/lib/interior-pwa-navigation';
 
 interface MockProject {
   id: string;
@@ -50,219 +59,15 @@ interface MockProject {
   statusLabel: string;
   statusColor: string;
   contractValue: number;
-  grossMarginPercent: number;
-  approvedRevisionNumber: number;
+  grossMarginFormatted: string;
+  approvedRevisionNumber: number | null;
   leadArchitect: string;
   progressPercent: number;
   nextAction: string;
   imageUrl: string;
   architectAvatar: string;
-  roomsCount: number;
+  roomsCount: number | null;
 }
-
-const INITIAL_PROJECTS: MockProject[] = [
-  {
-    id: 'INT-2024-001',
-    code: 'INT-2024-001',
-    name: 'Villa Sunrise Renovation',
-    customerName: 'Ahmad Santoso',
-    projectType: 'Biệt thự cao cấp · SunCasa Group',
-    status: 'production',
-    statusLabel: 'Sản xuất',
-    statusColor: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800/40',
-    contractValue: 1680000000,
-    grossMarginPercent: 25.6,
-    approvedRevisionNumber: 2,
-    leadArchitect: 'KTS. Hoàng Long',
-    progressPercent: 65,
-    nextAction: 'Khóa hợp đồng từ BOQ',
-    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
-    architectAvatar: 'L',
-    roomsCount: 6,
-  },
-  {
-    id: 'INT-2024-002',
-    code: 'INT-2024-002',
-    name: 'Dubai Luxury Villa Fitout',
-    customerName: 'Sheikh Mansoor',
-    projectType: 'Dinh thự Palm Jumeirah · Dubai Group',
-    status: 'installation',
-    statusLabel: 'Lắp đặt',
-    statusColor: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800/40',
-    contractValue: 418000000,
-    grossMarginPercent: 25.8,
-    approvedRevisionNumber: 3,
-    leadArchitect: 'KTS. Lê Hoàng Sơn',
-    progressPercent: 82,
-    nextAction: 'Lắp đặt phòng khách',
-    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/office-tower-lobby.jpg',
-    architectAvatar: 'S',
-    roomsCount: 8,
-  },
-  {
-    id: 'INT-THD-2026',
-    code: 'INT-THD-2026',
-    name: 'Villa Riverside Thảo Điền - Fitout Trọn Gói',
-    customerName: 'Trần Minh Quân',
-    projectType: 'Biệt thự ven sông cao cấp · Thảo Điền Q2',
-    status: 'production',
-    statusLabel: 'Đã duyệt HĐ',
-    statusColor: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800/40',
-    contractValue: 1350000000,
-    grossMarginPercent: 44.4,
-    approvedRevisionNumber: 1,
-    leadArchitect: 'KTS. Lê Hoàng Sơn',
-    progressPercent: 50,
-    nextAction: 'Gia công xuất xưởng Đợt 3',
-    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
-    architectAvatar: 'S',
-    roomsCount: 6,
-  },
-  {
-    id: 'INT-2024-003',
-    code: 'INT-2024-003',
-    name: 'Penthouse Metropolis Liễu Giai',
-    customerName: 'Trịnh Thăng Bình',
-    projectType: 'Penthouse 2 tầng · Metropolis JSC',
-    status: 'design',
-    statusLabel: 'Thiết kế',
-    statusColor: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/50 dark:text-purple-400 dark:border-purple-800/40',
-    contractValue: 780000000,
-    grossMarginPercent: 39.8,
-    approvedRevisionNumber: 1,
-    leadArchitect: 'KTS. Phan Hải',
-    progressPercent: 30,
-    nextAction: 'Duyệt bản vẽ',
-    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/skyline-residence.jpg',
-    architectAvatar: 'H',
-    roomsCount: 5,
-  },
-  {
-    id: 'INT-2024-004',
-    code: 'INT-2024-004',
-    name: 'Duplex Aqua Bay Ecopark',
-    customerName: 'Phạm Hồng Nhung',
-    projectType: 'Căn hộ Duplex cao cấp',
-    status: 'handover',
-    statusLabel: 'Đã bàn giao',
-    statusColor: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800/40',
-    contractValue: 850000000,
-    grossMarginPercent: 38.5,
-    approvedRevisionNumber: 1,
-    leadArchitect: 'KTS. Hoàng Long',
-    progressPercent: 100,
-    nextAction: 'Kích hoạt bảo hành',
-    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/installation/site-progress-main.jpg',
-    architectAvatar: 'L',
-    roomsCount: 3,
-  },
-];
-
-interface UrgentItem {
-  id: string;
-  projectId: string;
-  tag: string;
-  tagClass: string;
-  projectName: string;
-  taskTitle: string;
-  dueTime: string;
-  timeClass: string;
-  imageUrl: string;
-  actionHref: string;
-}
-
-const URGENT_ITEMS: UrgentItem[] = [
-  {
-    id: 'u-1',
-    projectId: 'INT-2024-001',
-    tag: 'Khẩn cấp',
-    tagClass: 'bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-900',
-    projectName: 'Villa Sunrise Renovation',
-    taskTitle: 'Thiếu duyệt bản vẽ',
-    dueTime: 'Hôm nay',
-    timeClass: 'text-rose-600 dark:text-rose-400 font-semibold',
-    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
-    actionHref: '/dashboard/interior/projects/INT-2024-001',
-  },
-  {
-    id: 'u-2',
-    projectId: 'INT-2024-002',
-    tag: 'Sắp đến hạn',
-    tagClass: 'bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-900',
-    projectName: 'Dubai Luxury Villa Fitout',
-    taskTitle: 'Kiểm tra tiến độ xưởng',
-    dueTime: '2 ngày',
-    timeClass: 'text-amber-700 dark:text-amber-400 font-semibold',
-    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/office-tower-lobby.jpg',
-    actionHref: '/dashboard/interior/projects/INT-2024-002',
-  },
-  {
-    id: 'u-3',
-    projectId: 'INT-2024-003',
-    tag: 'Chờ duyệt',
-    tagClass: 'bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-900',
-    projectName: 'Penthouse Metropolis Liễu Giai',
-    taskTitle: 'Biên bản nghiệm thu',
-    dueTime: '3 ngày',
-    timeClass: 'text-blue-600 dark:text-blue-400 font-semibold',
-    imageUrl: 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/skyline-residence.jpg',
-    actionHref: '/dashboard/interior/projects/INT-2024-003',
-  },
-];
-
-const DEFAULT_BUSINESS_CHAIN_PROGRESS: BusinessChainProgressOverview = {
-  defaultPeriod: 'this_month',
-  periods: {
-    this_month: {
-      periodKey: 'this_month',
-      periodLabel: 'Tháng này',
-      stages: [
-        { key: 'design', label: 'Thiết kế', percent: 92 },
-        { key: 'commercial', label: 'Thương mại', percent: 85 },
-        { key: 'production', label: 'Sản xuất', percent: 70 },
-        { key: 'handover', label: 'Bàn giao', percent: 45 },
-      ],
-      overallPercent: 65,
-      statusLabel: 'Đúng tiến độ',
-    },
-    last_month: {
-      periodKey: 'last_month',
-      periodLabel: 'Tháng trước',
-      stages: [
-        { key: 'design', label: 'Thiết kế', percent: 88 },
-        { key: 'commercial', label: 'Thương mại', percent: 80 },
-        { key: 'production', label: 'Sản xuất', percent: 62 },
-        { key: 'handover', label: 'Bàn giao', percent: 38 },
-      ],
-      overallPercent: 58,
-      statusLabel: 'Đúng tiến độ',
-    },
-    this_quarter: {
-      periodKey: 'this_quarter',
-      periodLabel: 'Quý này (Q4)',
-      stages: [
-        { key: 'design', label: 'Thiết kế', percent: 94 },
-        { key: 'commercial', label: 'Thương mại', percent: 89 },
-        { key: 'production', label: 'Sản xuất', percent: 75 },
-        { key: 'handover', label: 'Bàn giao', percent: 52 },
-      ],
-      overallPercent: 72,
-      statusLabel: 'Vượt tiến độ +3%',
-    },
-    all: {
-      periodKey: 'all',
-      periodLabel: 'Toàn bộ thời gian',
-      stages: [
-        { key: 'design', label: 'Thiết kế', percent: 90 },
-        { key: 'commercial', label: 'Thương mại', percent: 84 },
-        { key: 'production', label: 'Sản xuất', percent: 68 },
-        { key: 'handover', label: 'Bàn giao', percent: 48 },
-      ],
-      overallPercent: 66,
-      statusLabel: 'Đúng tiến độ',
-    },
-  },
-};
 
 export default function InteriorDashboardPage() {
   const userContext = useUser();
@@ -270,15 +75,41 @@ export default function InteriorDashboardPage() {
     ? userContext.user.full_name.split(' ').slice(-1)[0]
     : 'bạn';
 
-  const [projects, setProjects] = useState<MockProject[]>(INITIAL_PROJECTS);
+  const [projects, setProjects] = useState<MockProject[]>([]);
   const [portfolioData, setPortfolioData] = useState<PortfolioOverviewResponse | null>(null);
+  const [portfolioError, setPortfolioError] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('all');
   const [projectPage, setProjectPage] = useState<number>(1);
   const PROJECT_PAGE_SIZE = 8;
   const [selectedWorkspaceProject, setSelectedWorkspaceProject] = useState<MockProject | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<BusinessChainPeriodKey>('this_month');
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
-  const [businessChainOverview, setBusinessChainOverview] = useState<BusinessChainProgressOverview>(DEFAULT_BUSINESS_CHAIN_PROGRESS);
+  const [simulatedRole, setSimulatedRole] = useState<InteriorRoleKey | null>(null);
+  const [selfRoleKey, setSelfRoleKey] = useState<InteriorRoleKey | null>(null);
+  const [selfCaps, setSelfCaps] = useState<InteriorPwaCapabilityFlags | null>(null);
+
+  useEffect(() => {
+    setSimulatedRole(getSimulatedInteriorRole());
+    const handleRoleEvent = (e: Event) => {
+      const evt = e as CustomEvent<{ role?: InteriorRoleKey | null }>;
+      setSimulatedRole(evt.detail?.role ?? getSimulatedInteriorRole());
+    };
+    window.addEventListener(INTERIOR_ROLE_CHANGE_EVENT, handleRoleEvent);
+
+    fetch('/api/interior/me/access', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json: { success?: boolean; data?: { primaryRoleKey?: InteriorRoleKey | null; capabilities?: InteriorPwaCapabilityFlags } } | null) => {
+        if (json?.success && json.data) {
+          setSelfRoleKey(json.data.primaryRoleKey ?? null);
+          setSelfCaps(json.data.capabilities ?? null);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      window.removeEventListener(INTERIOR_ROLE_CHANGE_EVENT, handleRoleEvent);
+    };
+  }, []);
 
   useEffect(() => {
     // Canonical real-time read through Portfolio Analytics endpoint
@@ -289,7 +120,7 @@ export default function InteriorDashboardPage() {
           const overview: PortfolioOverviewResponse = json.data;
           setPortfolioData(overview);
 
-          if (overview.projects && Array.isArray(overview.projects) && overview.projects.length > 0) {
+          if (overview.projects && Array.isArray(overview.projects)) {
             const mapped: MockProject[] = overview.projects.map((p, idx) => ({
               id: p.id || `proj-${idx + 1}`,
               code: p.code || `INT-${idx + 1}`,
@@ -300,70 +131,32 @@ export default function InteriorDashboardPage() {
               statusLabel: p.stageLabel,
               statusColor: p.stageBadgeClass || 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800/40',
               contractValue: p.contractValue,
-              grossMarginPercent: p.grossMarginPercent || 0,
-              approvedRevisionNumber: 1,
+              grossMarginFormatted: p.grossMarginFormatted || 'Chưa có dữ liệu',
+              approvedRevisionNumber: null,
               leadArchitect: p.leadArchitect,
               progressPercent: p.progressPercent,
               nextAction: p.nextAction,
               imageUrl: p.imageUrl || 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
               architectAvatar: p.leadArchitect.slice(0, 1) || 'A',
-              roomsCount: 4,
+              roomsCount: null,
             }));
             setProjects(mapped);
           }
 
-          if (overview.businessChainProgress) {
-            setBusinessChainOverview(overview.businessChainProgress);
-          }
-        } else {
-          // Fallback to /api/interior/projects
-          fetch('/api/interior/projects')
-            .then((res) => (res.ok ? res.json() : null))
-            .then((data) => {
-              if (data?.data?.projects && Array.isArray(data.data.projects) && data.data.projects.length > 0) {
-                const merged: MockProject[] = data.data.projects.map((p: Record<string, unknown>, idx: number) => {
-                  const pId = typeof p.id === 'string' ? p.id : '';
-                  const pCode = typeof p.code === 'string' ? p.code : '';
-                  const pName = typeof p.name === 'string' ? p.name : '';
-                  const pCustomer = typeof p.customerName === 'string' ? p.customerName : typeof p.clientName === 'string' ? p.clientName : '';
-                  const pBudget = typeof p.estimatedBudget === 'number' ? p.estimatedBudget : Number(p.estimatedBudget) || (typeof p.contractValue === 'number' ? p.contractValue : 0);
-                  const pArch = typeof p.leadArchitectName === 'string' ? p.leadArchitectName : typeof p.leadArchitect === 'string' ? p.leadArchitect : '';
-                  const pStatus = typeof p.status === 'string' ? p.status : 'design';
-
-                  const fallback = INITIAL_PROJECTS.find((df) => df.id === pId || df.code === pCode);
-                  return {
-                    id: pId || fallback?.id || `proj-${idx + 1}`,
-                    code: pCode || fallback?.code || `INT-2024-${String(idx + 1).padStart(3, '0')}`,
-                    name: pName || fallback?.name || `Dự án nội thất ${pCode || ''}`,
-                    customerName: pCustomer || fallback?.customerName || 'Khách hàng',
-                    projectType: fallback?.projectType || 'Biệt thự cao cấp',
-                    status: (pStatus as MockProject['status']) || fallback?.status || 'design',
-                    statusLabel: fallback?.statusLabel || (pStatus === 'production' ? 'Sản xuất' : pStatus === 'installation' ? 'Lắp đặt' : pStatus === 'handover' ? 'Bàn giao' : 'Thiết kế'),
-                    statusColor: fallback?.statusColor || 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800/40',
-                    contractValue: pBudget || fallback?.contractValue || 0,
-                    grossMarginPercent: fallback?.grossMarginPercent ?? 40.0,
-                    approvedRevisionNumber: fallback?.approvedRevisionNumber ?? 1,
-                    leadArchitect: pArch || fallback?.leadArchitect || 'KTS. Lê Hoàng Sơn',
-                    progressPercent: fallback?.progressPercent ?? 50,
-                    nextAction: fallback?.nextAction ?? 'Kiểm tra tiến độ',
-                    imageUrl: fallback?.imageUrl || 'https://pub-a9633dba6b104c5e951ebd3609e71520.r2.dev/interior/projects/villa-sunrise-renovation.jpg',
-                    architectAvatar: fallback?.architectAvatar || 'S',
-                    roomsCount: fallback?.roomsCount || 4,
-                  };
-                });
-                setProjects(merged);
-              }
-            })
-            .catch(() => {});
-        }
+        } else setPortfolioError(true);
       })
       .catch(() => {
-        // Safe fallback maintains uninterrupted UI
+        setPortfolioError(true);
       });
   }, []);
 
+  if (!portfolioData || !portfolioData.businessChainProgress) {
+    return <div className="p-6 text-sm text-slate-700 dark:text-slate-300" role="status">{portfolioError || portfolioData ? 'Không thể tải dữ liệu tổng quan. Vui lòng thử lại.' : 'Đang tải dữ liệu tổng quan…'}</div>;
+  }
+
+  const businessChainProgress = portfolioData.businessChainProgress;
   const currentPeriodData: BusinessChainPeriodData =
-    businessChainOverview.periods[selectedPeriod] || businessChainOverview.periods.this_month;
+    businessChainProgress.periods[selectedPeriod] || businessChainProgress.periods.this_month;
 
   const filteredProjects = projects.filter((p) => {
     if (activeTab === 'design') return p.status === 'design';
@@ -382,6 +175,15 @@ export default function InteriorDashboardPage() {
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(val);
   };
+
+  const effectivePwaRole: InteriorRoleKey | null =
+    simulatedRole ?? selfRoleKey ?? normalizeInteriorRoleKey(userContext?.user?.role ?? null);
+  const mobileQuickModules = getInteriorLaunchpadItems(
+    effectivePwaRole,
+    simulatedRole ? null : selfCaps,
+  )
+    .filter((item) => item.id !== 'overview')
+    .slice(0, 6);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
@@ -431,6 +233,43 @@ export default function InteriorDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* ─── 01.5 MOBILE PWA QUICK LAUNCH STRIP (lg:hidden) ────────────── */}
+      {mobileQuickModules.length > 0 && (
+        <section aria-label="Lối tắt PWA theo vai trò" className="lg:hidden space-y-2">
+          <div className="flex items-center justify-between px-0.5">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Truy cập nhanh Mobile PWA
+            </h2>
+            {mobileQuickModules.some((item) => item.id === 'site-diary') && (
+              <Link
+                href="/site-pwa"
+                className="text-[11px] font-bold text-emerald-700 dark:text-amber-400 flex items-center gap-1"
+              >
+                App Hiện trường <ExternalLink className="w-3 h-3" />
+              </Link>
+            )}
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {mobileQuickModules.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className="relative flex flex-col justify-between p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs active:scale-95 transition min-h-[72px]"
+              >
+                {item.badge && (
+                  <span className="self-end text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-600 text-white leading-none">
+                    {item.badge}
+                  </span>
+                )}
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight mt-auto">
+                  {item.shortLabel}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ─── 02. 4 EXECUTIVE KPI CARDS WITH SPARKLINES ────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -487,7 +326,7 @@ export default function InteriorDashboardPage() {
             </p>
             <div className="flex items-baseline justify-between gap-2 mt-1">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                {portfolioData ? portfolioData.financialSummary.totalContractFormatted : '9,28 tỷ đ'}
+                {portfolioData.financialSummary.totalContractFormatted}
               </span>
               {/* Sparkline Amber SVG */}
               <svg className="w-20 h-7 text-amber-500 shrink-0" viewBox="0 0 100 30" fill="none">
@@ -669,99 +508,6 @@ export default function InteriorDashboardPage() {
                   </div>
                 );
               })
-            ) : projects.length > 0 ? (
-              projects.slice(0, 3).map((proj) => {
-                const stageTasks: Record<string, { tag: string; tagClass: string; task: string; due: string; timeClass: string; iconType: 'file' | 'wrench' | 'check' }> = {
-                  design: {
-                    tag: 'Thiết kế',
-                    tagClass: 'bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-900',
-                    task: 'Phê duyệt hồ sơ thiết kế kỹ thuật thi công',
-                    due: 'Hôm nay',
-                    timeClass: 'text-rose-600 dark:text-rose-400 font-semibold',
-                    iconType: 'file',
-                  },
-                  production: {
-                    tag: 'Sản xuất',
-                    tagClass: 'bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-900',
-                    task: 'Kiểm tra tiến độ xưởng & KCS hoàn thiện',
-                    due: '2 ngày',
-                    timeClass: 'text-amber-600 dark:text-amber-400 font-semibold',
-                    iconType: 'wrench',
-                  },
-                  installation: {
-                    tag: 'Lắp đặt',
-                    tagClass: 'bg-indigo-100 text-indigo-800 border border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-900',
-                    task: 'Kiểm tra hiện trường & đối soát kích thước',
-                    due: '3 ngày',
-                    timeClass: 'text-indigo-600 dark:text-indigo-400 font-semibold',
-                    iconType: 'wrench',
-                  },
-                  handover: {
-                    tag: 'Nghiệm thu',
-                    tagClass: 'bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-900',
-                    task: 'Biên bản nghiệm thu bàn giao & bảo hành',
-                    due: 'Theo lịch',
-                    timeClass: 'text-emerald-600 dark:text-emerald-400 font-semibold',
-                    iconType: 'check',
-                  },
-                };
-
-                const cfg = stageTasks[proj.status] || stageTasks.design;
-                const stageLinks: Record<string, string> = {
-                  design: `/dashboard/interior/design?projectId=${proj.id}`,
-                  production: `/dashboard/interior/production?projectId=${proj.id}`,
-                  installation: `/dashboard/interior/installation?projectId=${proj.id}`,
-                  handover: `/dashboard/interior/qc-handover?projectId=${proj.id}`,
-                };
-                const actionHref = stageLinks[proj.status] || `/dashboard/interior/design?projectId=${proj.id}`;
-
-                return (
-                  <div
-                    key={proj.id}
-                    onClick={() => setSelectedWorkspaceProject(proj)}
-                    className="p-3.5 rounded-2xl bg-slate-50/70 hover:bg-slate-100/80 dark:bg-slate-800/40 dark:hover:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-3 transition-all group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
-                        {cfg.iconType === 'file' ? (
-                          <FileText className="w-5 h-5 text-blue-500" />
-                        ) : cfg.iconType === 'wrench' ? (
-                          <Wrench className="w-5 h-5 text-amber-500" />
-                        ) : (
-                          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                        )}
-                      </div>
-                      <div className="min-w-0 space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${cfg.tagClass}`}>
-                            {cfg.tag}
-                          </span>
-                          <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                            {proj.name}
-                          </p>
-                        </div>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                          {proj.nextAction || cfg.task}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-shrink-0 text-right">
-                      <span className={`text-xs ${cfg.timeClass}`}>
-                        {cfg.due}
-                      </span>
-                      <Link
-                        href={actionHref}
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-                        title={`Chuyển đến phân hệ ${cfg.tag}`}
-                      >
-                        <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })
             ) : (
               <p className="text-xs text-slate-400 text-center py-4">Không có việc khẩn cấp cần xử lý</p>
             )}
@@ -794,7 +540,7 @@ export default function InteriorDashboardPage() {
               {isPeriodDropdownOpen && (
                 <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-20 animate-in fade-in zoom-in-95 duration-100">
                   {(['this_month', 'last_month', 'this_quarter', 'all'] as BusinessChainPeriodKey[]).map((key) => {
-                    const periodItem = businessChainOverview.periods[key];
+                    const periodItem = businessChainProgress.periods[key];
                     const isSelected = selectedPeriod === key;
                     return (
                       <button
@@ -826,28 +572,28 @@ export default function InteriorDashboardPage() {
               {
                 key: 'design',
                 label: 'Thiết kế',
-                pct: currentPeriodData.stages.find((s) => s.key === 'design')?.percent ?? 92,
+                pct: currentPeriodData.stages.find((s) => s.key === 'design')?.percent ?? 0,
                 icon: Layers,
                 color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/60 dark:text-blue-400',
               },
               {
                 key: 'commercial',
                 label: 'Thương mại',
-                pct: currentPeriodData.stages.find((s) => s.key === 'commercial')?.percent ?? 85,
+                pct: currentPeriodData.stages.find((s) => s.key === 'commercial')?.percent ?? 0,
                 icon: FileText,
                 color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/60 dark:text-purple-400',
               },
               {
                 key: 'production',
                 label: 'Sản xuất',
-                pct: currentPeriodData.stages.find((s) => s.key === 'production')?.percent ?? 70,
+                pct: currentPeriodData.stages.find((s) => s.key === 'production')?.percent ?? 0,
                 icon: Wrench,
                 color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/60 dark:text-amber-400',
               },
               {
                 key: 'handover',
                 label: 'Bàn giao',
-                pct: currentPeriodData.stages.find((s) => s.key === 'handover')?.percent ?? 45,
+                pct: currentPeriodData.stages.find((s) => s.key === 'handover')?.percent ?? 0,
                 icon: Award,
                 color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 dark:text-emerald-400',
               },
@@ -1007,14 +753,14 @@ export default function InteriorDashboardPage() {
                   <td className="py-3.5 px-4 whitespace-nowrap">
                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/40 whitespace-nowrap">
                       <ShieldCheck className="w-3.5 h-3.5" />
-                      Rev #{project.approvedRevisionNumber} Lock
+                      {project.approvedRevisionNumber === null ? 'Chưa có dữ liệu' : `Rev #${project.approvedRevisionNumber} Lock`}
                     </span>
                   </td>
                   <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white whitespace-nowrap">
                     {formatCurrency(project.contractValue)}
                   </td>
                   <td className="py-3.5 px-4 font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                    {project.grossMarginPercent}%
+                    {project.grossMarginFormatted}
                   </td>
                   <td className="py-3.5 px-4 whitespace-nowrap">
                     <button
@@ -1102,45 +848,24 @@ export default function InteriorDashboardPage() {
             <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Công nợ đến hạn</p>
-                <p className="text-xl font-black text-slate-900 dark:text-white mt-0.5">1,25 tỷ</p>
-                <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
-                  ↑ 2 khoản sắp đến hạn (+200tr)
-                </p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mt-0.5">Chưa có dữ liệu</p>
               </div>
-              {/* Sparkline */}
-              <svg className="w-20 h-6 text-amber-500" viewBox="0 0 100 30" fill="none">
-                <path d="M0 20 Q 30 25, 50 15 T 80 10 T 100 5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
             </div>
 
             {/* Metric 2 */}
             <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Chi phí vượt dự toán</p>
-                <p className="text-xl font-black text-slate-900 dark:text-white mt-0.5">180 triệu</p>
-                <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-0.5">
-                  ↑ +10% so với dự toán BOQ
-                </p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mt-0.5">Chưa có dữ liệu</p>
               </div>
-              {/* Sparkline */}
-              <svg className="w-20 h-6 text-rose-500" viewBox="0 0 100 30" fill="none">
-                <path d="M0 10 Q 30 15, 60 18 T 100 25" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
             </div>
 
             {/* Metric 3 */}
             <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Biên lợi nhuận dự kiến</p>
-                <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">38.5%</p>
-                <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
-                  ↑ +1.2% tối ưu hao hụt ván xưởng
-                </p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mt-0.5">Chưa có dữ liệu</p>
               </div>
-              {/* Sparkline */}
-              <svg className="w-20 h-6 text-emerald-500" viewBox="0 0 100 30" fill="none">
-                <path d="M0 25 Q 30 20, 60 10 T 100 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
             </div>
           </div>
         </div>
@@ -1219,19 +944,19 @@ export default function InteriorDashboardPage() {
                 <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
                   <span className="text-[11px] text-slate-500 font-medium">Lợi nhuận gộp</span>
                   <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                    {selectedWorkspaceProject.grossMarginPercent}%
+                    {selectedWorkspaceProject.grossMarginFormatted}
                   </p>
                 </div>
                 <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
                   <span className="text-[11px] text-slate-500 font-medium">Bản vẽ Lock</span>
                   <p className="text-sm font-bold text-amber-600 dark:text-amber-400 mt-0.5">
-                    Rev #{selectedWorkspaceProject.approvedRevisionNumber}
+                    {selectedWorkspaceProject.approvedRevisionNumber === null ? 'Chưa có dữ liệu' : `Rev #${selectedWorkspaceProject.approvedRevisionNumber}`}
                   </p>
                 </div>
                 <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
                   <span className="text-[11px] text-slate-500 font-medium">Số khu vực</span>
                   <p className="text-sm font-bold text-blue-600 dark:text-blue-400 mt-0.5">
-                    {selectedWorkspaceProject.roomsCount} phòng
+                    {selectedWorkspaceProject.roomsCount === null ? 'Chưa có dữ liệu' : `${selectedWorkspaceProject.roomsCount} phòng`}
                   </p>
                 </div>
               </div>

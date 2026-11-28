@@ -45,6 +45,9 @@ export interface SiteCapabilities {
   canApproveQc: boolean;
   canReadSchedule: boolean;
   canUpdateSchedule: boolean;
+  canReadProduction: boolean;
+  canReadWarranty: boolean;
+  canCreateWarranty: boolean;
   canManageRoles: boolean;
 }
 
@@ -184,6 +187,9 @@ export async function GET(request: Request): Promise<NextResponse> {
       INTERIOR_PERMISSIONS.acceptanceEvidenceUpload,
       INTERIOR_PERMISSIONS.scheduleRead,
       INTERIOR_PERMISSIONS.scheduleUpdate,
+      INTERIOR_PERMISSIONS.productionRead,
+      INTERIOR_PERMISSIONS.warrantyRead,
+      INTERIOR_PERMISSIONS.warrantyCreate,
       INTERIOR_PERMISSIONS.rolesRead,
     ] as const;
 
@@ -216,6 +222,9 @@ export async function GET(request: Request): Promise<NextResponse> {
       canApproveQc: has(INTERIOR_PERMISSIONS.qcApprove),
       canReadSchedule: has(INTERIOR_PERMISSIONS.scheduleRead),
       canUpdateSchedule: has(INTERIOR_PERMISSIONS.scheduleUpdate),
+      canReadProduction: has(INTERIOR_PERMISSIONS.productionRead),
+      canReadWarranty: has(INTERIOR_PERMISSIONS.warrantyRead),
+      canCreateWarranty: has(INTERIOR_PERMISSIONS.warrantyCreate),
       canManageRoles: has(INTERIOR_PERMISSIONS.rolesRead),
     };
 

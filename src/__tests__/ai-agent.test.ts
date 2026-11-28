@@ -395,13 +395,55 @@ describe("AI COO Orchestrator Routing & RPC execution", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
 
-    expect(body.analysis.executiveSummary).toContain("HTTP Status: 503");
+    expect(body.analysis.executiveSummary).toContain("Bảng cân đối tài khoản phát sinh");
+    expect(body.analysis.executiveSummary).not.toContain("HTTP Status:");
+    expect(body.analysis.executiveSummary).not.toContain("Gemini unavailable");
     expect(body.analysis.fullData).toEqual([
       expect.objectContaining({
         account_code: "111",
         debit_balance: 10000000,
       })
     ]);
+  });
+
+  it("never leaks .env.local diagnostics or key details when GEMINI_API_KEY is missing", async () => {
+    const previousKey = process.env.GEMINI_API_KEY;
+    delete process.env.GEMINI_API_KEY;
+    try {
+      mockFrom.mockImplementationOnce(() => routeBuilder({
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({ data: ADMIN_USER, error: null }),
+        insert: mockInsert
+      }));
+
+      mockRpc.mockImplementation((fnName) => {
+        if (fnName === "get_trial_balance") {
+          return Promise.resolve({
+            data: [{ account_code: "111", account_name: "Tiền mặt", debit_balance: 5000000, credit_balance: 0 }],
+            error: null
+          });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const req = new NextRequest("http://localhost/api/v1/ai/coo-orchestrator", {
+        method: "POST",
+        body: JSON.stringify({ command: "Xuất bảng cân đối phát sinh" })
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(200);
+      const body = await res.json();
+
+      expect(body.analysis.executiveSummary).toContain("Bảng cân đối tài khoản phát sinh");
+      expect(body.analysis.executiveSummary).not.toContain(".env.local");
+      expect(body.analysis.executiveSummary).not.toContain("GEMINI_API_KEY");
+      expect(body.analysis.executiveSummary).not.toContain("Cwd:");
+      expect(body.analysis.executiveSummary).not.toContain("Match Found:");
+    } finally {
+      if (previousKey !== undefined) process.env.GEMINI_API_KEY = previousKey;
+    }
   });
 });
 

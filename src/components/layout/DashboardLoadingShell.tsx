@@ -80,6 +80,8 @@ export function DashboardAuthLoadingShell() {
 
 import { useState, useEffect, useLayoutEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import InteriorMobileBottomNav from '@/components/interior/InteriorMobileBottomNav';
+import { isInteriorMobileShellPath } from '@/products/bella-interior/lib/interior-pwa-navigation';
 
 export function DashboardAuthorizedShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -159,12 +161,22 @@ export function DashboardAuthorizedShell({ children }: { children: React.ReactNo
     );
   }
 
+  const isInteriorMobileShell = isInteriorMobileShellPath(
+    pathname,
+    product?.productKey ?? presentation.brand.moduleKey,
+  );
+
   return (
     <div className="dashboard-shell flex h-screen overflow-hidden bg-background">
       <Sidebar />
-      <main className="dashboard-main beauty-erp-content flex-1 flex flex-col min-w-0 pt-16 lg:pt-0 max-w-full overflow-y-auto overflow-x-auto">
+      <main
+        className={`dashboard-main beauty-erp-content flex-1 flex flex-col min-w-0 pt-16 lg:pt-0 max-w-full overflow-y-auto overflow-x-auto ${
+          isInteriorMobileShell ? 'pb-20 lg:pb-0' : ''
+        }`}
+      >
         {children}
       </main>
+      {isInteriorMobileShell && <InteriorMobileBottomNav />}
     </div>
   );
 }
