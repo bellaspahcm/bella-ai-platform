@@ -480,7 +480,6 @@ const bellaInteriorMenuItems: SidebarMenuItem[] = [
   { type: 'header', label: 'QUẢN TRỊ' },
   { icon: BarChart3, label: 'Báo cáo', href: '/dashboard/interior/reports' },
   { icon: Wallet, label: 'Sổ cái kế toán TT99', href: '/dashboard/accounting' },
-  { icon: FileSpreadsheet, label: 'Báo cáo tài chính TT99', href: '/dashboard/accounting/reports' },
   { icon: Users, label: 'Nhân sự & Phân quyền', href: '/dashboard/interior/roles' },
   { icon: Settings, label: 'Cài đặt', href: '/dashboard/settings?product=bella_interior' },
 ];

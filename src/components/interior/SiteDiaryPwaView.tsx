@@ -1138,15 +1138,15 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
 
           {/* Admin Role UI Simulator */}
           {canAdminSimulate && (
-            <div className="flex items-center gap-1.5 text-[11px]">
-              <label htmlFor="pwa-role-preview" className="text-slate-500 dark:text-slate-400">
+            <div className="w-full min-w-0 flex flex-col sm:flex-row sm:items-center gap-1.5 text-[11px]">
+              <label htmlFor="pwa-role-preview" className="text-slate-500 dark:text-slate-400 shrink-0">
                 Xem UI theo role:
               </label>
               <select
                 id="pwa-role-preview"
                 value={simulatedRole ?? ''}
                 onChange={(e) => handleSwitchSimulatedRole(e.target.value)}
-                className="bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full min-w-0 max-w-full sm:flex-1 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="">Theo quyền thật ({selfAccess?.primaryRoleKey || 'Active'})</option>
                 {INTERIOR_ROLES.map((r) => (
@@ -1177,7 +1177,7 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
               id="project-select"
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="w-full min-h-[44px] bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              className="w-full min-w-0 max-w-full min-h-[44px] bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             >
               {projects.map((p) => {
                 const isAssigned = selfAccess?.assignedProjectIds.includes(p.id);
@@ -1332,7 +1332,7 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
+                <div className="min-w-0">
                   <label htmlFor="diary-date-input" className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                     Ngày ghi nhận:
                   </label>
@@ -1341,7 +1341,7 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
                     type="date"
                     value={entryDate}
                     onChange={(e) => setEntryDate(e.target.value)}
-                    className="w-full min-h-[42px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full min-w-0 max-w-full box-border min-h-[42px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     required
                   />
                 </div>
@@ -1854,7 +1854,7 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
                   aria-label="Hạng mục lỗi QC"
                   value={qcCategory}
                   onChange={(e) => setQcCategory(e.target.value as QcPunchListItem['category'])}
-                  className="min-h-[40px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 text-xs"
+                  className="w-full min-w-0 max-w-full min-h-[40px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 text-xs"
                 >
                   {QC_CATEGORIES.map((cat) => (
                     <option key={cat.value} value={cat.value}>
@@ -1866,7 +1866,7 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
                   aria-label="Mức độ nghiêm trọng QC"
                   value={qcSeverity}
                   onChange={(e) => setQcSeverity(e.target.value as QcPunchListItem['severity'])}
-                  className="min-h-[40px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 text-xs"
+                  className="w-full min-w-0 max-w-full min-h-[40px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 text-xs"
                 >
                   <option value="minor">Nhẹ (Minor)</option>
                   <option value="major">Trung bình / Cần sửa (Major)</option>
@@ -2149,7 +2149,7 @@ export default function SiteDiaryPwaView({ standaloneMode = false }: SiteDiaryPw
                   id="edit-weather"
                   value={editWeather}
                   onChange={(e) => setEditWeather(e.target.value as typeof editWeather)}
-                  className="w-full min-h-[40px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3"
+                  className="w-full min-w-0 max-w-full min-h-[40px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3"
                 >
                   {WEATHER_OPTIONS.map((w) => (
                     <option key={w.id} value={w.id}>

@@ -1602,7 +1602,7 @@ export default function SchedulePage() {
       {/* ─── Row 3: Upcoming Tasks, Project Progress &amp; Action Suggestions ─── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 items-stretch">
         {/* Card 1: Công việc sắp tới (4 Cols) */}
-        <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex flex-col justify-between">
+        <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex flex-col justify-start">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
               Công việc sắp tới

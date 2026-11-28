@@ -7,6 +7,7 @@ import {
   INTERIOR_PWA_MODULES,
   getInteriorBottomNavItems,
   getInteriorLaunchpadItems,
+  isForeignVerticalPathForInterior,
   isInteriorMobileShellPath,
   isInteriorPwaModuleAllowed,
 } from '../lib/interior-pwa-navigation';
@@ -88,5 +89,18 @@ describe('Bella Interior Full-Product Mobile PWA Navigation', () => {
     expect(isInteriorMobileShellPath('/dashboard/inventory', 'bella_spa')).toBe(false);
     expect(isInteriorMobileShellPath('/dashboard/education', 'bella_preschool')).toBe(false);
     expect(isInteriorMobileShellPath('/dashboard/medical', 'bella_hospital')).toBe(false);
+  });
+
+  it('flags foreign vertical paths for bella_interior tenants so stale tabs redirect back to /dashboard/interior', () => {
+    expect(isForeignVerticalPathForInterior('/dashboard/education/enrollments', 'bella_interior')).toBe(true);
+    expect(isForeignVerticalPathForInterior('/dashboard/beauty-spa-v2', 'bella_interior')).toBe(true);
+    expect(isForeignVerticalPathForInterior('/dashboard/medical/patients', 'bella_interior')).toBe(true);
+
+    // Allowed Interior & shared platform paths must NOT redirect
+    expect(isForeignVerticalPathForInterior('/dashboard/interior', 'bella_interior')).toBe(false);
+    expect(isForeignVerticalPathForInterior('/dashboard/interior/site-diary', 'bella_interior')).toBe(false);
+    expect(isForeignVerticalPathForInterior('/dashboard/accounting', 'bella_interior')).toBe(false);
+    expect(isForeignVerticalPathForInterior('/dashboard/inventory', 'bella_interior')).toBe(false);
+    expect(isForeignVerticalPathForInterior('/dashboard/education/enrollments', 'bella_preschool')).toBe(false);
   });
 });
