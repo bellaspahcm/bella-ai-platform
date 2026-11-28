@@ -215,8 +215,15 @@ export function requiredInteriorPermission(request: Request, body: JsonRecord | 
   }
   if (pathname === '/api/interior/design') {
     if (method === 'GET') return INTERIOR_PERMISSIONS.designRead;
-    if (method === 'POST') return INTERIOR_PERMISSIONS.designCreate;
+    if (method === 'POST') {
+      return body?.action === 'toggle_lock'
+        ? INTERIOR_PERMISSIONS.designApprove
+        : INTERIOR_PERMISSIONS.designCreate;
+    }
     if (method === 'PATCH') return INTERIOR_PERMISSIONS.designUpdate;
+  }
+  if (pathname === '/api/interior/design/drawings' && method === 'GET') {
+    return INTERIOR_PERMISSIONS.designRead;
   }
   if (pathname === '/api/interior/design/revisions') {
     if (method === 'GET') return INTERIOR_PERMISSIONS.designRead;
@@ -348,7 +355,7 @@ function projectIdCandidates(request: Request, body: JsonRecord | null): string[
   const candidates: string[] = [];
   const projectRoute = url.pathname.replace(/\/+$/, '').match(/^\/api\/interior\/projects\/([^/]+)$/);
   const pathValue = projectRoute?.[1];
-  const queryValue = url.searchParams.get('project_id') ?? url.searchParams.get('projectId');
+  const queryValues = [url.searchParams.get('project_id'), url.searchParams.get('projectId')];
   if (pathValue) {
     try {
       candidates.push(decodeURIComponent(pathValue));
@@ -356,7 +363,9 @@ function projectIdCandidates(request: Request, body: JsonRecord | null): string[
       candidates.push('invalid-project-id');
     }
   }
-  if (queryValue) candidates.push(queryValue);
+  for (const queryValue of queryValues) {
+    if (queryValue) candidates.push(queryValue);
+  }
 
   const bodyRecords = [
     body,
@@ -366,8 +375,9 @@ function projectIdCandidates(request: Request, body: JsonRecord | null): string[
     nestedRecord(body, 'payload'),
   ];
   for (const row of bodyRecords) {
-    const value = row?.project_id ?? row?.projectId;
-    if (typeof value === 'string' && value.trim().length > 0) candidates.push(value.trim());
+    for (const value of [row?.project_id, row?.projectId]) {
+      if (typeof value === 'string' && value.trim().length > 0) candidates.push(value.trim());
+    }
   }
   return candidates;
 }

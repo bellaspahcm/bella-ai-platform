@@ -53,6 +53,10 @@ export interface PortfolioProjectItem {
   readonly grossMarginFormatted: string;
   readonly nextAction: string;
   readonly imageUrl: string;
+  readonly approvedRevisionNumber?: number | null;
+  readonly approvedRevisionIsActive?: boolean | null;
+  readonly designRevisionDataStatus?: 'available' | 'none' | 'unavailable';
+  readonly technicalDrawingAssetCount?: number | null;
 }
 
 export interface ProgressOverviewSummary {

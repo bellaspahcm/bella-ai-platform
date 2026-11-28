@@ -63,6 +63,9 @@ interface MockProject {
   contractValue: number;
   grossMarginPercent: number;
   approvedRevisionNumber: number | null;
+  approvedRevisionIsActive: boolean | null;
+  designRevisionDataStatus: 'available' | 'none' | 'unavailable';
+  technicalDrawingAssetCount: number | null;
   leadArchitect: string;
   progressPercent: number;
   nextAction: string;
@@ -142,7 +145,10 @@ export default function InteriorDashboardPage() {
               statusColor: p.stageBadgeClass || 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800/40',
               contractValue: p.contractValue,
               grossMarginPercent: p.grossMarginPercent || 0,
-              approvedRevisionNumber: null,
+              approvedRevisionNumber: p.approvedRevisionNumber ?? null,
+              approvedRevisionIsActive: p.approvedRevisionIsActive ?? null,
+              designRevisionDataStatus: p.designRevisionDataStatus ?? 'unavailable',
+              technicalDrawingAssetCount: p.technicalDrawingAssetCount ?? null,
               leadArchitect: p.leadArchitect,
               progressPercent: p.progressPercent,
               nextAction: p.nextAction,
@@ -825,10 +831,32 @@ export default function InteriorDashboardPage() {
                     </div>
                   </td>
                   <td className="py-3.5 px-4 whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/40 whitespace-nowrap">
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      {project.approvedRevisionNumber === null ? 'Chưa có dữ liệu' : `Rev #${project.approvedRevisionNumber} Lock`}
-                    </span>
+                    <div className="flex flex-col items-start gap-1">
+                      <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md border whitespace-nowrap ${
+                        project.approvedRevisionNumber === null
+                          ? 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border-amber-200/60 dark:border-amber-800/40'
+                          : 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/60 dark:border-emerald-800/40'
+                      }`}>
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        {project.designRevisionDataStatus === 'unavailable'
+                          ? 'Không tải được trạng thái revision'
+                          : project.approvedRevisionNumber === null
+                          ? 'Chưa có revision duyệt'
+                          : `Rev #${project.approvedRevisionNumber} · Đã duyệt`}
+                      </span>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                        {project.designRevisionDataStatus === 'unavailable'
+                          ? 'Chưa xác minh được tệp bản vẽ'
+                          : project.designRevisionDataStatus === 'none'
+                          ? 'Chưa có revision duyệt để kiểm tra bản vẽ'
+                          : project.technicalDrawingAssetCount === null
+                          ? 'Chưa kiểm tra tệp bản vẽ'
+                          : project.technicalDrawingAssetCount === 0
+                          ? 'Chưa có tệp bản vẽ'
+                          : `${project.technicalDrawingAssetCount} tệp bản vẽ`}
+                        {project.approvedRevisionIsActive === false ? ' · Chưa kích hoạt' : ''}
+                      </span>
+                    </div>
                   </td>
                   <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white whitespace-nowrap">
                     {formatCurrency(project.contractValue)}
@@ -1022,9 +1050,25 @@ export default function InteriorDashboardPage() {
                   </p>
                 </div>
                 <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-[11px] text-slate-500 font-medium">Bản vẽ Lock</span>
+                  <span className="text-[11px] text-slate-500 font-medium">Revision duyệt</span>
                   <p className="text-sm font-bold text-amber-600 dark:text-amber-400 mt-0.5">
-                    {selectedWorkspaceProject.approvedRevisionNumber === null ? 'Chưa có dữ liệu' : `Rev #${selectedWorkspaceProject.approvedRevisionNumber}`}
+                    {selectedWorkspaceProject.approvedRevisionNumber === null
+                      ? selectedWorkspaceProject.designRevisionDataStatus === 'unavailable'
+                        ? 'Không tải được trạng thái revision'
+                        : 'Chưa có revision duyệt'
+                      : `Rev #${selectedWorkspaceProject.approvedRevisionNumber} · Đã duyệt`}
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    {selectedWorkspaceProject.designRevisionDataStatus === 'unavailable'
+                      ? 'Chưa xác minh được tệp bản vẽ'
+                      : selectedWorkspaceProject.designRevisionDataStatus === 'none'
+                      ? 'Chưa có revision duyệt để kiểm tra bản vẽ'
+                      : selectedWorkspaceProject.technicalDrawingAssetCount === null
+                      ? 'Chưa kiểm tra tệp bản vẽ'
+                      : selectedWorkspaceProject.technicalDrawingAssetCount === 0
+                      ? 'Chưa có tệp bản vẽ'
+                      : `${selectedWorkspaceProject.technicalDrawingAssetCount} tệp bản vẽ`}
+                    {selectedWorkspaceProject.approvedRevisionIsActive === false ? ' · Chưa kích hoạt' : ''}
                   </p>
                 </div>
                 <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">

@@ -11,6 +11,7 @@ import { TenantIsolationViolationError, TakeoffRunImmutableError } from '../doma
 import type {
   InteriorCustomerApprovalAddendumSubject,
   InteriorCustomerApprovalContractSubject,
+  InteriorDesignPortfolioProjectSummary,
   IInteriorRepository,
   SaveBOQOptions,
 } from './interior-repository.interface';
@@ -137,6 +138,35 @@ export class InMemoryInteriorRepository implements IInteriorRepository, IInterio
       }
     }
     return result.sort((a, b) => a.versionNumber - b.versionNumber);
+  }
+
+  async listDesignRevisionPortfolioSummaries(tenantId: string, projectIds: ReadonlyArray<string>): Promise<InteriorDesignPortfolioProjectSummary[]> {
+    const summaries = await Promise.all(projectIds.map(async (projectId) => {
+      const [project, revisions] = await Promise.all([
+        this.getProject(tenantId, projectId),
+        this.listDesignRevisions(tenantId, projectId),
+      ]);
+      if (!project) return null;
+      return {
+        projectId,
+        canReadDesign: true,
+        revisions: revisions.map((revision) => ({
+          id: revision.id,
+          projectId: revision.projectId,
+          versionNumber: revision.versionNumber,
+          status: revision.status,
+          isActiveRevision: project.activeApprovedRevisionId === revision.id,
+          assets: revision.assets
+            .filter((asset) => typeof asset.fileUrl === 'string' && asset.fileUrl.trim().length > 0)
+            .map((asset) => ({ type: asset.type, fileUrl: asset.fileUrl })),
+        })),
+      } satisfies InteriorDesignPortfolioProjectSummary;
+    }));
+    const result: InteriorDesignPortfolioProjectSummary[] = [];
+    for (const summary of summaries) {
+      if (summary !== null) result.push(summary);
+    }
+    return result;
   }
 
   // --- Design Takeoff Staging & Review (Phase 2A) ---

@@ -8,7 +8,7 @@
  * @module src/products/bella-interior/domain/design-overview.types
  */
 
-export type DesignVersionStatus = 'draft' | 'review' | 'approved' | 'rejected';
+export type DesignVersionStatus = 'draft' | 'review' | 'approved' | 'rejected' | 'superseded' | 'unknown';
 export type DesignVisualCategory = '3d' | 'technical' | 'document';
 export type MaterialApprovalStatus = 'approved' | 'reference' | 'pending';
 
@@ -59,6 +59,8 @@ export interface DesignVisualItem {
 
 export interface DesignTechnicalDrawingItem {
   readonly id: string;
+  readonly revisionId?: string;
+  readonly approvedBy?: string;
   readonly title: string;
   readonly drawingCode: string; // e.g. "REV 2", "DWG-01"
   readonly fileType: string; // "DWG", "PDF"

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveInteriorContext } from '@/products/bella-interior/lib/server-context';
 import { resolveTenantProject } from '@/products/bella-interior/lib/project-resolver';
+import { interiorRbacRpcClient, isInteriorRbacRecord } from '@/products/bella-interior/lib/rbac-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,21 +16,51 @@ interface AssetRow {
   created_at: string;
 }
 
-interface DynamicQuery {
-  eq: (col: string, val: unknown) => DynamicQuery;
-  order: (col: string, opts?: { ascending?: boolean }) => DynamicQuery;
-  then: <T>(
-    onfulfilled?: ((value: { data: unknown; error: unknown }) => T | PromiseLike<T>) | null
-  ) => Promise<T>;
+interface RevRow {
+  id: string;
+  version_number: number;
+  title: string;
+  status: string;
+  approved_by: string | null;
+  approved_at: string | null;
+  submitted_by: string;
+  is_active_revision: boolean;
+  assets: AssetRow[];
 }
 
-interface DynamicTable {
-  select: (cols: string) => DynamicQuery;
-  insert: (row: Record<string, unknown>) => { select: (cols: string) => { single: () => Promise<{ data: unknown; error: unknown }> } };
-}
-
-function getDynamicTable(supabase: unknown, table: string): DynamicTable {
-  return (supabase as { from: (t: string) => DynamicTable }).from(table);
+function toRevisionRows(value: unknown, tenantId: string, projectId: string): RevRow[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(isInteriorRbacRecord).flatMap((revision): RevRow[] => {
+    if (typeof revision.id !== 'string' || typeof revision.versionNumber !== 'number'
+      || typeof revision.title !== 'string' || typeof revision.status !== 'string'
+      || revision.tenantId !== tenantId || revision.projectId !== projectId) return [];
+    const assets = Array.isArray(revision.assets)
+      ? revision.assets.filter(isInteriorRbacRecord).flatMap((asset): AssetRow[] => {
+          if (asset.tenantId !== revision.tenantId || asset.revisionId !== revision.id
+            || typeof asset.id !== 'string' || typeof asset.type !== 'string'
+            || typeof asset.title !== 'string' || typeof asset.fileUrl !== 'string') return [];
+          return [{
+            id: asset.id,
+            asset_type: asset.type,
+            title: asset.title,
+            file_url: asset.fileUrl,
+            notes: typeof asset.notes === 'string' ? asset.notes : null,
+            created_at: typeof asset.createdAt === 'string' ? asset.createdAt : '',
+          }];
+        })
+      : [];
+    return [{
+      id: revision.id,
+      version_number: revision.versionNumber,
+      title: revision.title,
+      status: revision.status,
+      approved_by: typeof revision.approvedBy === 'string' ? revision.approvedBy : null,
+      approved_at: typeof revision.approvedAt === 'string' ? revision.approvedAt : null,
+      submitted_by: typeof revision.submittedBy === 'string' ? revision.submittedBy : '',
+      is_active_revision: revision.isActiveRevision === true,
+      assets,
+    }];
+  });
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -37,22 +68,35 @@ function getDynamicTable(supabase: unknown, table: string): DynamicTable {
 function formatDate(iso: string): string {
   try {
     const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
     return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
   } catch { return ''; }
 }
 
-function fileTypeFromUrl(url: string): 'DWG' | 'PDF' | 'DXF' | 'IMG' {
-  const ext = url.split('.').pop()?.toLowerCase() ?? '';
-  if (ext === 'dwg') return 'DWG';
-  if (ext === 'dxf') return 'DXF';
-  if (ext === 'pdf') return 'PDF';
-  return 'IMG';
+function fileTypeFromUrl(url: string): string {
+  const path = url.split(/[?#]/, 1)[0].toLowerCase();
+  const filename = path.split('/').pop() ?? '';
+  const extension = filename.match(/\.([a-z0-9]{1,10})$/)?.[1];
+  return extension ? extension.toUpperCase() : 'Tệp';
 }
 
-function assetTypeToTab(assetType: string): 'visuals' | 'technicalDrawings' | 'relatedDocuments' {
-  if (assetType === 'technical_drawing' || assetType === 'dwg' || assetType === 'dxf') return 'technicalDrawings';
-  if (assetType === 'document' || assetType === 'pdf') return 'relatedDocuments';
-  return 'visuals'; // 3d_render, perspective, etc.
+function assetTypeToTab(assetType: string, fileUrl: string): 'visuals' | 'technicalDrawings' | 'relatedDocuments' | null {
+  const normalizedType = assetType.toLowerCase();
+  if (['technical_2d', 'cad_dwg', 'pdf_drawing', 'technical_drawing', '2d_cad', 'technical', 'cad', 'dwg', 'dxf'].includes(normalizedType)) {
+    return 'technicalDrawings';
+  }
+  const extension = fileTypeFromUrl(fileUrl).toLowerCase();
+  if (['dwg', 'dxf'].includes(extension)) return 'technicalDrawings';
+  if (['document', 'pdf'].includes(normalizedType)) return 'relatedDocuments';
+  if (['concept_3d', 'moodboard', '3d_render', 'perspective', 'render'].includes(normalizedType)) return 'visuals';
+  return null;
+}
+
+function displayActorName(value: string | null | undefined): string {
+  if (!value || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
+    return 'Chưa ghi nhận';
+  }
+  return value;
 }
 
 // ─── GET /api/interior/design/drawings ───────────────────────────────────────
@@ -61,92 +105,108 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const ctx = await resolveInteriorContext(request);
   if (!ctx.ok) return ctx.response;
 
-  const projectIdParam = request.nextUrl.searchParams.get('projectId');
+  const projectIdParam = request.nextUrl.searchParams.get('projectId') || request.nextUrl.searchParams.get('project_id');
   const projectResult = await resolveTenantProject(ctx.supabase, ctx.tenantId, projectIdParam);
 
   if (!projectResult.ok) {
-    return NextResponse.json({ success: true, visuals: [], technicalDrawings: [], relatedDocuments: [] });
+    return NextResponse.json({ success: false, error: 'INTERIOR_PROJECT_NOT_FOUND' }, { status: 404 });
   }
 
   const effectiveProjectId = projectResult.projectId;
 
   try {
-    // Find latest revision for this project
-    type RevRow = { id: string; version_number: number; status: string; approved_by: string | null; approved_at: string | null; submitted_by: string };
-    const revTable = getDynamicTable(ctx.supabase, 'interior_design_revisions');
-    const revResult = await revTable
-      .select('id, version_number, status, approved_by, approved_at, submitted_by')
-      .eq('tenant_id', ctx.tenantId)
-      .eq('project_id', effectiveProjectId)
-      .order('version_number', { ascending: false })
-      .then((r: { data: unknown; error: unknown }) => r);
+    const revResult = await interiorRbacRpcClient(ctx.supabase).rpc('interior_list_design_revisions', {
+      p_project_id: effectiveProjectId,
+    });
 
-    const revRows = (Array.isArray(revResult.data) ? revResult.data : []) as RevRow[];
-    const latestRev = revRows.find((r) => r.status === 'approved') ?? revRows[0] ?? null;
-
-    if (!latestRev) {
-      return NextResponse.json({ success: true, visuals: [], technicalDrawings: [], relatedDocuments: [], revisionId: null });
-    }
-
-    // Fetch all assets for this revision
-    const assetTable = getDynamicTable(ctx.supabase, 'interior_design_assets');
-    const assetResult = await assetTable
-      .select('id, asset_type, title, file_url, notes, created_at')
-      .eq('tenant_id', ctx.tenantId)
-      .eq('revision_id', latestRev.id)
-      .order('created_at', { ascending: true })
-      .then((r: { data: unknown; error: unknown }) => r);
-
-    if (assetResult.error) {
+    if (revResult.error || !Array.isArray(revResult.data)) {
       return NextResponse.json({ success: false, error: 'DB_READ_ERROR' }, { status: 500 });
     }
 
-    const rows = (Array.isArray(assetResult.data) ? assetResult.data : []) as AssetRow[];
+    const revRows = toRevisionRows(revResult.data, ctx.tenantId, effectiveProjectId).sort((a, b) => b.version_number - a.version_number);
+    const latestApprovedRevision = revRows.find((r) => r.status === 'approved') ?? null;
+    const activeApprovedRevision = revRows.find((revision) => revision.is_active_revision && revision.status === 'approved') ?? null;
+    const latestRev = activeApprovedRevision ?? latestApprovedRevision ?? revRows[0] ?? null;
+
+    if (!latestRev) {
+      return NextResponse.json({
+        success: true,
+        visuals: [],
+        technicalDrawings: [],
+        relatedDocuments: [],
+        revisionId: null,
+        revisionVersion: null,
+        revisionStatus: null,
+        revisionTitle: null,
+        approvedBy: null,
+        approvedAt: null,
+      });
+    }
+
+    const rows = latestRev.assets;
 
     const visuals: unknown[] = [];
     const technicalDrawings: unknown[] = [];
     const relatedDocuments: unknown[] = [];
 
     rows.forEach((row, idx) => {
-      const tab = assetTypeToTab(row.asset_type);
+      if (!row.file_url.trim()) return;
+      const tab = assetTypeToTab(row.asset_type, row.file_url);
+      if (!tab) return;
       const dateFormatted = formatDate(row.created_at);
-      const authorName = latestRev.approved_by ?? latestRev.submitted_by;
+      const authorName = latestRev.status === 'approved'
+        ? displayActorName(latestRev.approved_by)
+        : displayActorName(latestRev.submitted_by);
 
       if (tab === 'visuals') {
         visuals.push({
           id: row.id,
           title: row.title,
           roomZone: row.notes ?? '',
-          category: '3d',
-          categoryLabel: 'Phối cảnh 3D',
+          category: row.asset_type.toLowerCase() === 'moodboard' ? 'document' : '3d',
+          categoryLabel: row.asset_type.toLowerCase() === 'moodboard' ? 'Moodboard' : 'Phối cảnh 3D',
           imageUrl: row.file_url,
           thumbnailUrl: row.file_url,
-          isPrimary: idx === 0,
-          viewAngleName: row.notes ?? row.title,
-          resolution: '4K Ultra-HD',
-          fileFormat: 'Render',
+          isPrimary: false,
+          viewAngleName: row.title,
+          fileFormat: fileTypeFromUrl(row.file_url),
           updatedDateFormatted: dateFormatted,
           authorName,
         });
       } else if (tab === 'technicalDrawings') {
         const fType = fileTypeFromUrl(row.file_url);
         // Extract drawing code from notes or title
-        const drawingCode = row.notes?.match(/^REV\s*\d+\s*-\s*\S+/i)?.[0] ?? row.title.slice(0, 20);
+        const drawingCode = row.notes?.match(/^REV\s*\d+\s*-\s*\S+/i)?.[0] ?? '';
         technicalDrawings.push({
           id: row.id,
+          revisionId: latestRev.id,
+          approvedBy: latestRev.status === 'approved' ? displayActorName(latestRev.approved_by) : undefined,
           title: row.title,
           drawingCode,
           fileType: fType,
           author: authorName,
           updatedDateFormatted: dateFormatted,
-          statusLabel: latestRev.status === 'approved' ? 'Đã duyệt' : 'Chờ duyệt',
-          statusBadgeClass:
-            latestRev.status === 'approved'
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-              : 'bg-amber-50 text-amber-700 border-amber-200',
+          statusLabel: latestRev.status === 'approved'
+            ? 'Đã duyệt'
+            : latestRev.status === 'rejected'
+            ? 'Từ chối'
+            : latestRev.status === 'superseded'
+            ? 'Đã thay thế'
+            : ['draft', 'in_review', 'client_review'].includes(latestRev.status)
+            ? 'Chờ duyệt'
+            : 'Chưa xác định',
+          statusBadgeClass: latestRev.status === 'approved'
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            : latestRev.status === 'rejected'
+            ? 'bg-rose-50 text-rose-700 border-rose-200'
+            : latestRev.status === 'superseded'
+            ? 'bg-slate-50 text-slate-600 border-slate-200'
+            : ['draft', 'in_review', 'client_review'].includes(latestRev.status)
+            ? 'bg-amber-50 text-amber-700 border-amber-200'
+            : 'bg-slate-50 text-slate-600 border-slate-200',
           fileUrl: row.file_url,
           fileSize: '',
-          hasFile: true,
+          hasFile: row.file_url.trim().length > 0,
           downloadUrl: row.file_url,
           sheetNumber: '',
           scale: '',
@@ -162,7 +222,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           updatedDateFormatted: dateFormatted,
           fileSize: '',
           fileUrl: row.file_url,
-          hasFile: true,
+          hasFile: Boolean(row.file_url),
           downloadUrl: row.file_url,
         });
       }
@@ -176,8 +236,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       revisionId: latestRev.id,
       revisionVersion: latestRev.version_number,
       revisionStatus: latestRev.status,
-      approvedBy: latestRev.approved_by || 'Trần Thị Mai',
-      approvedAt: latestRev.approved_at ? formatDate(latestRev.approved_at) : '06/11/2026',
+      revisionTitle: latestRev.title,
+      revisionIsActive: activeApprovedRevision?.id === latestRev.id,
+      approvedBy: latestRev.status === 'approved' ? displayActorName(latestRev.approved_by) : null,
+      approvedAt: latestRev.status === 'approved' && latestRev.approved_at ? formatDate(latestRev.approved_at) : null,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';

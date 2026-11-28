@@ -50,6 +50,8 @@ import type {
   InteriorCustomerApprovalAddendumSubject,
   InteriorCustomerApprovalContractSubject,
   InteriorContractAmendmentContext,
+  InteriorDesignPortfolioProjectSummary,
+  InteriorDesignRevisionPortfolioSummary,
   InteriorPaymentContractContext,
   IInteriorRepository,
   SaveBOQOptions,
@@ -1509,6 +1511,48 @@ export class SupabaseInteriorRepository implements IInteriorRepository, IInterio
       revisions.push(mapRowToRevision(row, assets, materialSpecs));
     }
     return revisions;
+  }
+
+  async listDesignRevisionPortfolioSummaries(tenantId: string, projectIds: ReadonlyArray<string>): Promise<InteriorDesignPortfolioProjectSummary[]> {
+    const validTenantId = ensureUuid(tenantId);
+    const validProjectIds = [...new Set(projectIds.map(ensureUuid))];
+    if (validProjectIds.length === 0) return [];
+    const { data, error } = await interiorRbacRpcClient(this.supabase).rpc('interior_list_design_portfolio_summaries', {
+      p_project_ids: validProjectIds,
+    });
+    if (error || !Array.isArray(data)) {
+      throw new Error(`[InteriorRepo] listDesignRevisionPortfolioSummaries failed: ${error?.message ?? 'Invalid revision result'}`);
+    }
+
+    return data.filter(isInteriorRbacRecord).flatMap((projectSummary): InteriorDesignPortfolioProjectSummary[] => {
+      if (typeof projectSummary.projectId !== 'string' || !validProjectIds.includes(projectSummary.projectId)
+        || typeof projectSummary.canReadDesign !== 'boolean' || !Array.isArray(projectSummary.revisions)) return [];
+      const revisions = projectSummary.revisions.filter(isInteriorRbacRecord).flatMap((revision): InteriorDesignRevisionPortfolioSummary[] => {
+        if (typeof revision.id !== 'string' || typeof revision.versionNumber !== 'number' || typeof revision.status !== 'string'
+          || revision.projectId !== projectSummary.projectId) return [];
+        const assets = Array.isArray(revision.assets)
+          ? revision.assets.filter(isInteriorRbacRecord).flatMap((asset) =>
+              asset.tenantId === validTenantId && asset.revisionId === revision.id
+                && typeof asset.type === 'string' && typeof asset.fileUrl === 'string' && asset.fileUrl.trim().length > 0
+                ? [{ type: asset.type, fileUrl: asset.fileUrl }]
+                : []
+            )
+          : [];
+        return [{
+          id: revision.id,
+          projectId: projectSummary.projectId as string,
+          versionNumber: revision.versionNumber,
+          status: revision.status,
+          isActiveRevision: revision.isActiveRevision === true,
+          assets,
+        }];
+      });
+      return [{
+        projectId: projectSummary.projectId,
+        canReadDesign: projectSummary.canReadDesign,
+        revisions: projectSummary.canReadDesign ? revisions : [],
+      }];
+    });
   }
 
   /**
