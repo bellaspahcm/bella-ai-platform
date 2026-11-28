@@ -38,6 +38,7 @@ import type {
   PortfolioOverviewResponse,
 } from '@/products/bella-interior/domain/portfolio-overview.types';
 import { useUser } from '@/lib/user-context';
+import { resolveDashboardPresentation } from '@/lib/business-rules/product-presentation-routing';
 import InteriorUserBar from '@/components/interior/InteriorUserBar';
 import {
   INTERIOR_ROLE_CHANGE_EVENT,
@@ -75,6 +76,14 @@ export default function InteriorDashboardPage() {
   const userName = userContext?.user?.full_name
     ? userContext.user.full_name.split(' ').slice(-1)[0]
     : 'bạn';
+  const activeTenant = userContext?.tenantPresentation ?? userContext?.tenantSettings ?? null;
+  const resolvedTenantPresentation = activeTenant
+    ? resolveDashboardPresentation(activeTenant, userContext?.product)
+    : null;
+  const tenantDisplayName =
+    resolvedTenantPresentation?.brand.brandName ||
+    activeTenant?.name ||
+    'Bella Interior OS';
 
   const [projects, setProjects] = useState<MockProject[]>([]);
   const [portfolioData, setPortfolioData] = useState<PortfolioOverviewResponse | null>(null);
@@ -256,7 +265,7 @@ export default function InteriorDashboardPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-            Bella Interior OS
+            {tenantDisplayName}
           </span>
           <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-tight">
             Trung tâm Điều hành Nội thất
