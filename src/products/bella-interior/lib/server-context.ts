@@ -261,6 +261,7 @@ export function requiredInteriorPermission(request: Request, body: JsonRecord | 
     if (method === 'GET') return INTERIOR_PERMISSIONS.contractRead;
     if (method === 'POST') return INTERIOR_PERMISSIONS.contractWrite;
   }
+  if (pathname === '/api/interior/portfolio/analytics' && method === 'GET') return INTERIOR_PERMISSIONS.financeRead;
   if (pathname === '/api/interior/finance' && method === 'GET') return INTERIOR_PERMISSIONS.financeRead;
   if (pathname === '/api/interior/reports/analytics' && method === 'GET') return INTERIOR_PERMISSIONS.reportsRead;
   if (pathname === '/api/interior/schedule') {
@@ -633,4 +634,5 @@ export async function resolveInteriorContext(
     return { ok: false, response: interiorFailure('INTERIOR_UNAVAILABLE', 503) };
   }
 }
+
 
