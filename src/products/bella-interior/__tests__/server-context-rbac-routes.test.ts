@@ -6,6 +6,12 @@ import {
 } from '../lib/server-context';
 
 describe('Interior route action and scope mapping', () => {
+  it('maps portfolio reads to finance permission and rejects unconfigured methods', () => {
+    const url = 'https://bella.example/api/interior/portfolio/analytics';
+    expect(requiredInteriorPermission(new Request(url), null)).toBe(INTERIOR_PERMISSIONS.financeRead);
+    expect(requiredInteriorPermission(new Request(url, { method: 'POST' }), null)).toBeNull();
+  });
+
   it('rejects client-controlled actor, tenant and role identity headers before auth resolution', async () => {
     for (const header of ['x-user-id', 'x-actor-id', 'x-tenant-id', 'x-role', 'x-impersonate']) {
       const result = await resolveInteriorContext(new Request(
@@ -130,3 +136,4 @@ describe('Interior route action and scope mapping', () => {
     expect(result).toEqual({ status: 'INVALID' });
   });
 });
+
