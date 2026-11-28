@@ -386,7 +386,7 @@ export default function LandingPage() {
               </span>
               <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
                 <span className="text-white">Hệ Thống Phân Tích</span><br/>
-                <span className="text-transparent bg-clip-text" style={{backgroundImage: 'linear-gradient(90deg, #60a5fa, #34d399)'}}>& Điều Phối Thực Tế</span>
+                <span className="text-transparent bg-clip-text" style={{backgroundImage: 'linear-gradient(90deg, #60a5fa, #34d399)'}}>&amp; Điều Phối Thực Tế</span>
               </h2>
               <p className="text-slate-300 text-sm font-semibold leading-relaxed">
                 Tích hợp toàn bộ báo cáo doanh thu thực thu, trích quỹ lương dự phòng KTV và nhật ký RLS trong một màn hình thống nhất.
@@ -425,7 +425,7 @@ export default function LandingPage() {
                         <Brain className="w-4 h-4" />
                       </div>
                       <div className="flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-400 hover:bg-white/5 font-semibold text-xs transition-colors">
-                        <span>Financial P&L</span>
+                        <span>Financial P&amp;L</span>
                         <BarChart3 className="w-4 h-4" />
                       </div>
                     </div>
@@ -544,7 +544,7 @@ export default function LandingPage() {
                       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30 mb-1">
                         <Cpu className="w-3 h-3" /> AI COO Engine
                       </div>
-                      <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">Điều phối & Sắp xếp<br/>thông minh</h3>
+                      <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">Điều phối &amp; Sắp xếp<br/>thông minh</h3>
                       <p className="text-slate-300 text-sm font-semibold leading-relaxed">
                         Động cơ tự động phân bổ ca làm việc, thời gian phục vụ, và lộ trình di chuyển của kỹ thuật viên tối ưu theo thời gian thực. Giảm thiểu tối đa tình trạng xung đột hoặc trùng lịch hẹn.
                       </p>
@@ -593,7 +593,7 @@ export default function LandingPage() {
                       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-violet-500/20 text-violet-300 border border-violet-500/30 mb-1">
                         <Brain className="w-3 h-3" /> Salary Engine v3
                       </div>
-                      <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">Động cơ tính Lương<br/>& Hoa hồng minh bạch</h3>
+                      <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">Động cơ tính Lương<br/>&amp; Hoa hồng minh bạch</h3>
                       <p className="text-slate-300 text-sm font-semibold leading-relaxed">
                         Quy tắc tính toán hoa hồng chặt chẽ thừa kế cấu trúc đa cấp bậc. Đảm bảo dữ liệu lương của nhân viên/KTV minh bạch và đồng bộ theo thời gian thực từ dữ liệu chấm công chuyên cần và KPI records.
                       </p>
@@ -644,9 +644,9 @@ export default function LandingPage() {
                   >
                     <div className="lg:col-span-7 space-y-6 text-left">
                       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mb-1">
-                        <BarChart3 className="w-3 h-3" /> P&L Intelligence
+                        <BarChart3 className="w-3 h-3" /> P&amp;L Intelligence
                       </div>
-                      <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">Tài chính chuỗi<br/>& Báo cáo P&L thực tế</h3>
+                      <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">Tài chính chuỗi<br/>&amp; Báo cáo P&amp;L thực tế</h3>
                       <p className="text-slate-300 text-sm font-semibold leading-relaxed">
                         Phân tích sâu kết quả kinh doanh dòng tiền thực. Chỉ ghi nhận chi phí lương kỹ thuật viên thực tế và doanh thu dịch vụ đã được xác nhận (Status: Completed) để ngăn chặn rủi ro thổi phồng kết quả.
                       </p>
@@ -661,7 +661,7 @@ export default function LandingPage() {
                     </div>
                     <div className="lg:col-span-5 rounded-2xl p-5 border border-white/10 space-y-4 text-left" style={{background: 'rgba(255,255,255,0.05)'}}>
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Báo cáo P&L chi nhánh</span>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Báo cáo P&amp;L chi nhánh</span>
                         <span className="text-[9px] text-emerald-400 font-black border border-emerald-500/30 px-2 py-0.5 rounded-full bg-emerald-500/10">REAL-TIME</span>
                       </div>
                       <div className="space-y-4 text-xs">
@@ -832,7 +832,7 @@ export default function LandingPage() {
                     <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Đã hoàn thành phân hệ quản trị ✅</p>
                   </div>
                   <p className="text-slate-300 text-xs font-semibold leading-relaxed">
-                    Phân hệ quản trị Bất động sản đã hoàn thành toàn diện. Tích hợp quản lý dự án BĐS, bảng hàng căn hộ, hợp đồng & đặt cọc, chăm sóc khách hàng đầu tư và tự động hóa quy trình phân bổ Lead/SLA.
+                    Phân hệ quản trị Bất động sản đã hoàn thành toàn diện. Tích hợp quản lý dự án BĐS, bảng hàng căn hộ, hợp đồng &amp; đặt cọc, chăm sóc khách hàng đầu tư và tự động hóa quy trình phân bổ Lead/SLA.
                   </p>
                   <div className="relative w-full h-36 rounded-2xl overflow-hidden border border-white/10 group-hover:border-blue-500/30 transition-all duration-500">
                     <Image
@@ -941,10 +941,10 @@ export default function LandingPage() {
                       className="block w-full px-4 py-3.5 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all outline-none font-semibold text-white text-xs border border-white/10"
                       style={{background: 'rgba(255,255,255,0.06)'}}
                     >
-                      <option value="spa" style={{background: '#1e293b'}}>Spa & Beauty Clinic</option>
-                      <option value="fitness" style={{background: '#1e293b'}}>Fitness & Gym Center</option>
-                      <option value="homecare" style={{background: '#1e293b'}}>Chăm sóc sức khỏe gia đình (Mẹ & Bé)</option>
-                      <option value="academy" style={{background: '#1e293b'}}>Học viện & Đào tạo nghề</option>
+                      <option value="spa" style={{background: '#1e293b'}}>Spa &amp; Beauty Clinic</option>
+                      <option value="fitness" style={{background: '#1e293b'}}>Fitness &amp; Gym Center</option>
+                      <option value="homecare" style={{background: '#1e293b'}}>Chăm sóc sức khỏe gia đình (Mẹ &amp; Bé)</option>
+                      <option value="academy" style={{background: '#1e293b'}}>Học viện &amp; Đào tạo nghề</option>
                       <option value="other" style={{background: '#1e293b'}}>Dịch vụ chuỗi/Khác</option>
                     </select>
                   </div>
@@ -994,9 +994,9 @@ export default function LandingPage() {
               <div className="space-y-4 text-left">
                 <h5 className="text-xs font-black text-white/80 uppercase tracking-widest">Phân hệ EIP</h5>
                 <ul className="space-y-2.5 text-xs font-semibold text-slate-400">
-                  <li><Link href="/bellaspa" className="hover:text-white transition-colors">Bella Spa Mẹ & Bé</Link></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Bella Clinic & Y khoa</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Bella Fitness & Gym</a></li>
+                  <li><Link href="/bellaspa" className="hover:text-white transition-colors">Bella Spa Mẹ &amp; Bé</Link></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Bella Clinic &amp; Y khoa</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Bella Fitness &amp; Gym</a></li>
                   <li><a href="#" className="hover:text-white transition-colors">Học viện Đào tạo</a></li>
                 </ul>
               </div>
