@@ -4,8 +4,7 @@ const { execFileSync } = require('node:child_process');
 const { createHash } = require('node:crypto');
 const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
-const { assertProductionTarget, PRODUCTION_MIGRATION_VERSION_ALIASES } = require('./apply-platform-health-probe-migration.cjs');
-const { listLocalMigrationVersions, parseSupabaseMigrationList } = require('./check-supabase-migrations.cjs');
+const { assertProductionTarget } = require('./apply-platform-health-probe-migration.cjs');
 const { normalizeMigrationSql, normalizeRecordedMigrationStatements } = require('./apply-e2e-pr-migrations.cjs');
 
 const EXPECTED_VERSION = '20261128145534';
@@ -18,29 +17,36 @@ function safeErrorCode(error) {
   return typeof error?.code === 'string' && /^[A-Z0-9_]{1,48}$/.test(error.code) ? error.code : 'UNCLASSIFIED';
 }
 
-function runSupabase(args, databaseUrl) {
-  if (process.platform !== 'linux') throw new Error('Production migration requires the protected Linux release runner.');
-  try {
-    return execFileSync('npx', ['--yes', 'supabase', ...args, '--db-url', databaseUrl], {
-      cwd: process.cwd(),
-      encoding: 'utf8',
-      env: { ...process.env, SUPABASE_DB_URL: databaseUrl },
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-  } catch {
-    throw new Error('Supabase migration command failed; credentials and raw CLI output were suppressed.');
-  }
-}
-
-function listRemoteVersions(databaseUrl) {
-  const output = runSupabase(['migration', 'list'], databaseUrl);
-  return parseSupabaseMigrationList(output).map(row => row.remote).filter(Boolean).sort();
-}
-
 function productionClientConfig(databaseUrl) {
+  if (!databaseUrl || process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0') {
+    throw new Error('Secure Production database configuration is required.');
+  }
+  assertProductionTarget(databaseUrl);
   const target = new URL(databaseUrl);
   target.searchParams.delete('sslmode');
   return { connectionString: target.toString(), ssl: { rejectUnauthorized: true }, connectionTimeoutMillis: 10000 };
+}
+
+async function verifyProductionFunctions(client) {
+  const functions = await client.query(`WITH expected(oid) AS (VALUES
+      (to_regprocedure('public.interior_approve_design_revision(uuid,text)')),
+      (to_regprocedure('public.interior_list_design_revisions(uuid)')),
+      (to_regprocedure('public.interior_list_design_portfolio_summaries(uuid[])'))
+    )
+    SELECT count(*)::integer AS function_count,
+      coalesce(bool_and(p.oid IS NOT NULL AND p.prosecdef
+        AND coalesce(p.proconfig,ARRAY[]::text[]) @> ARRAY['search_path=""']
+        AND NOT has_function_privilege('anon',p.oid,'EXECUTE')
+        AND has_function_privilege('authenticated',p.oid,'EXECUTE')
+        AND NOT has_function_privilege('service_role',p.oid,'EXECUTE')
+        AND NOT EXISTS (SELECT 1 FROM aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
+          WHERE a.grantee=0 AND a.privilege_type='EXECUTE')
+        AND pg_get_userbyid(p.proowner)=pg_get_userbyid(d.datdba)),false) AS functions_secure
+    FROM expected e LEFT JOIN pg_proc p ON p.oid=e.oid
+    CROSS JOIN pg_database d WHERE d.datname=current_database()`);
+  if (functions.rows.length !== 1 || functions.rows[0].function_count !== 3 || !functions.rows[0].functions_secure) {
+    throw new Error('Interior RPC security read-back did not match the reviewed ACL contract.');
+  }
 }
 
 async function verifyProductionReadback(databaseUrl, migrationText) {
@@ -56,50 +62,10 @@ async function verifyProductionReadback(databaseUrl, migrationText) {
         normalizeRecordedMigrationStatements(result.rows[0].statements) !== normalizeMigrationSql(migrationText)) {
       throw new Error('Interior migration name, version or recorded SQL did not match Git.');
     }
-    const functions = await client.query(`WITH expected(oid) AS (VALUES
-        (to_regprocedure('public.interior_approve_design_revision(uuid,text)')),
-        (to_regprocedure('public.interior_list_design_revisions(uuid)')),
-        (to_regprocedure('public.interior_list_design_portfolio_summaries(uuid[])'))
-      )
-      SELECT count(*)::integer AS function_count,
-        coalesce(bool_and(p.oid IS NOT NULL AND p.prosecdef
-          AND coalesce(p.proconfig,ARRAY[]::text[]) @> ARRAY['search_path=""']
-          AND NOT has_function_privilege('anon',p.oid,'EXECUTE')
-          AND has_function_privilege('authenticated',p.oid,'EXECUTE')
-          AND NOT has_function_privilege('service_role',p.oid,'EXECUTE')
-          AND NOT EXISTS (SELECT 1 FROM aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
-            WHERE a.grantee=0 AND a.privilege_type='EXECUTE')
-          AND pg_get_userbyid(p.proowner)=pg_get_userbyid(d.datdba)),false) AS functions_secure
-      FROM expected e LEFT JOIN pg_proc p ON p.oid=e.oid
-      CROSS JOIN pg_database d WHERE d.datname=current_database()`);
-    if (functions.rows.length !== 1 || functions.rows[0].function_count !== 3 || !functions.rows[0].functions_secure) {
-      throw new Error('Interior RPC security read-back did not match the reviewed ACL contract.');
-    }
+    await verifyProductionFunctions(client);
   } finally {
     await client.end().catch(() => {});
   }
-}
-
-function migrationState(localVersions, remoteVersions) {
-  const resolvedRemoteVersions = remoteVersions.map(
-    version => PRODUCTION_MIGRATION_VERSION_ALIASES.get(version) ?? version,
-  );
-  const localSet = new Set(localVersions);
-  const remoteSet = new Set(resolvedRemoteVersions);
-  const pending = localVersions.filter(version => !remoteSet.has(version));
-  const remoteOnly = resolvedRemoteVersions.filter(version => !localSet.has(version));
-
-  if (remoteOnly.length > 0) {
-    throw new Error(`Production migration ledger has versions missing from Git: ${remoteOnly.join(', ')}`);
-  }
-  if (remoteSet.has(EXPECTED_VERSION)) {
-    if (pending.length > 0) {
-      throw new Error(`Refusing migration; another local migration is pending: ${pending.join(', ')}`);
-    }
-    return 'already-applied';
-  }
-  if (pending.length === 1 && pending[0] === EXPECTED_VERSION) return 'apply';
-  throw new Error(`Refusing migration; expected only ${EXPECTED_VERSION} pending, found: ${pending.join(', ') || 'none'}`);
 }
 
 function assertRunnerContext() {
@@ -113,53 +79,109 @@ function assertRunnerContext() {
   if (sha !== head || sha !== remote) throw new Error('Main changed; refusing Production migration.');
 }
 
+async function applyReviewedMigration(client, migrationText, databaseUrl) {
+  let commitSent = false;
+  let action = 'apply';
+  await client.query('BEGIN');
+  try {
+    await client.query("SET LOCAL lock_timeout = '5s'; SET LOCAL statement_timeout = '60s'");
+    const identity = await client.query(`SELECT current_user AS executor, session_user AS session,
+      pg_get_userbyid(datdba) AS database_owner,
+      has_schema_privilege(current_user,'public','CREATE') AS schema_create,
+      has_table_privilege(current_user,'supabase_migrations.schema_migrations','SELECT') AS ledger_read,
+      has_table_privilege(current_user,'supabase_migrations.schema_migrations','INSERT') AS ledger_insert
+      FROM pg_database WHERE datname=current_database()`);
+    const principal = identity.rows[0];
+    if (identity.rows.length !== 1 || principal.executor !== principal.session || principal.executor !== principal.database_owner ||
+        !principal.schema_create || !principal.ledger_read || !principal.ledger_insert) {
+      throw new Error('Production database executor identity or privileges rejected.');
+    }
+
+    await client.query('LOCK TABLE supabase_migrations.schema_migrations IN SHARE ROW EXCLUSIVE MODE');
+    const recorded = await client.query(
+      'SELECT name, statements FROM supabase_migrations.schema_migrations WHERE version = $1',
+      [EXPECTED_VERSION],
+    );
+    if (recorded.rows.length > 0) {
+      if (recorded.rows.length !== 1 || recorded.rows[0].name !== EXPECTED_NAME ||
+          normalizeRecordedMigrationStatements(recorded.rows[0].statements) !== normalizeMigrationSql(migrationText)) {
+        throw new Error('Interior migration version exists with a different ledger record.');
+      }
+      await verifyProductionFunctions(client);
+      action = 'already-applied';
+    } else {
+      const history = await client.query(
+        'SELECT version, statements FROM supabase_migrations.schema_migrations WHERE statements IS NOT NULL AND version <> $1',
+        [EXPECTED_VERSION],
+      );
+      const duplicate = history.rows.some((row) =>
+        normalizeRecordedMigrationStatements(row.statements) === normalizeMigrationSql(migrationText));
+      if (duplicate) throw new Error('Interior migration SQL is already recorded under another version.');
+
+      // Apply only the reviewed migration bytes inside the same transaction as its exact ledger entry.
+      await client.query(migrationText);
+      await verifyProductionFunctions(client);
+      await client.query(
+        'INSERT INTO supabase_migrations.schema_migrations (version,name,statements,created_by) VALUES ($1,$2,$3,current_user)',
+        [EXPECTED_VERSION, EXPECTED_NAME, [migrationText]],
+      );
+      const readback = await client.query(
+        'SELECT name, statements FROM supabase_migrations.schema_migrations WHERE version = $1',
+        [EXPECTED_VERSION],
+      );
+      if (readback.rows.length !== 1 || readback.rows[0].name !== EXPECTED_NAME ||
+          normalizeRecordedMigrationStatements(readback.rows[0].statements) !== normalizeMigrationSql(migrationText)) {
+        throw new Error('Interior migration ledger transaction read-back failed.');
+      }
+    }
+
+    commitSent = true;
+    await client.query('COMMIT');
+  } catch (error) {
+    if (commitSent) throw new Error('COMMIT outcome unknown; inspect Production ledger before retry.');
+    try { await client.query('ROLLBACK'); } catch { /* Preserve the original failure. */ }
+    throw error;
+  }
+
+  await verifyProductionReadback(databaseUrl, migrationText).catch(() => {
+    throw new Error('COMMIT acknowledged but Production migration read-back failed; inspect before retry.');
+  });
+  return action;
+}
+
 async function main() {
   assertRunnerContext();
-  executionStage = 'target-config';
-  const databaseUrl = process.env.PRODUCTION_SUPABASE_DB_URL;
-  if (!databaseUrl) throw new Error('Production database credential is required by the protected release runner.');
-  assertProductionTarget(databaseUrl);
-
   executionStage = 'migration-integrity';
   const bytes = readFileSync(MIGRATION_PATH);
   if (createHash('sha256').update(bytes).digest('hex').toUpperCase() !== EXPECTED_SHA256) {
     throw new Error('Interior migration content does not match the reviewed SHA-256.');
   }
   const migrationText = bytes.toString('utf8');
-  const localVersions = listLocalMigrationVersions();
-  if (!localVersions.includes(EXPECTED_VERSION)) throw new Error('Approved Interior migration is missing from this revision.');
 
-  executionStage = 'ledger-preflight';
-  const before = listRemoteVersions(databaseUrl);
-  if (before.length === 0) throw new Error('Production migration ledger could not be verified.');
-  const action = migrationState(localVersions, before);
-  if (action === 'apply') {
-    // Apply the exact timestamped Git migration. No include-all or MCP-generated version is used.
-    executionStage = 'migration-apply';
-    runSupabase(['migration', 'up'], databaseUrl);
-  }
-
-  executionStage = 'ledger-readback';
-  const after = listRemoteVersions(databaseUrl);
-  if (!after.includes(EXPECTED_VERSION) || migrationState(localVersions, after) !== 'already-applied') {
-    throw new Error('Interior migration ledger read-back failed.');
-  }
-  executionStage = 'sql-readback';
+  executionStage = 'target-config';
+  const databaseUrl = process.env.PRODUCTION_SUPABASE_DB_URL;
+  const config = productionClientConfig(databaseUrl);
+  const { Client } = require('pg');
+  const client = new Client(config);
+  let action;
   try {
-    await verifyProductionReadback(databaseUrl, migrationText);
-  } catch {
-    throw new Error('Interior migration SQL or RPC security read-back failed.');
+    executionStage = 'database-connect';
+    await client.connect();
+    executionStage = 'database-transaction';
+    action = await applyReviewedMigration(client, migrationText, databaseUrl);
+  } finally {
+    await client.end().catch(() => {});
   }
   console.log(`Interior design approval migration ${EXPECTED_VERSION}: ${action === 'apply' ? 'applied' : 'already present'}.`);
 }
 
 if (require.main === module) {
   main().catch(error => {
-    const known = /^(Production migration ledger has versions missing from Git:|Refusing migration; expected only |Main changed; refusing Production migration\.|Invalid GitHub release SHA\.|Production migration can run only from the protected main release workflow\.|Production database credential is required by the protected release runner\.|Production database target does not match the approved Supabase project\.|Interior migration content does not match the reviewed SHA-256\.|Approved Interior migration is missing from this revision\.|Production migration ledger could not be verified\.|Interior migration ledger read-back failed\.|Interior migration SQL or RPC security read-back failed\.)/;
+    const known = /^(Production migration can run only from the protected main release workflow\.|Invalid GitHub release SHA\.|Main changed; refusing Production migration\.|Interior migration content does not match the reviewed SHA-256\.|Secure Production database configuration is required\.|Production database target does not match the approved Supabase project\.|Production database executor identity or privileges rejected\.|Interior migration version exists with a different ledger record\.|Interior migration SQL is already recorded under another version\.|Interior RPC security read-back did not match the reviewed ACL contract\.|Interior migration ledger transaction read-back failed\.|COMMIT outcome unknown; inspect Production ledger before retry\.|COMMIT acknowledged but Production migration read-back failed; inspect before retry\.)/;
     const message = known.test(error.message) ? error.message : 'Interior migration runner failed; inspect Production ledger before retry.';
     console.error(`${message} stage=${executionStage} code=${safeErrorCode(error)}`);
     process.exitCode = 1;
   });
 }
 
-module.exports = { EXPECTED_VERSION, EXPECTED_NAME, EXPECTED_SHA256, migrationState };
+module.exports = { EXPECTED_VERSION, EXPECTED_NAME, EXPECTED_SHA256, applyReviewedMigration, verifyProductionFunctions };
