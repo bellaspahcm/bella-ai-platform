@@ -148,8 +148,8 @@ export default function LandingPage() {
             {/* Logo */}
             <Link href="/" className="flex items-center group">
               <img
-                src="/FullLogo_Transparent_NoBuffer.png?v=2"
-                alt="Bella EIP Logo"
+                src="/FullLogo_Transparent_NoBuffer.png?v=3"
+                alt="Bella AI Platform Logo"
                 width={150}
                 height={42}
                 className="h-9 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
@@ -974,8 +974,8 @@ export default function LandingPage() {
               <div className="space-y-6 text-left">
                 <div className="flex items-center gap-3">
                   <img
-                    src="/FullLogo_Transparent_NoBuffer.png?v=2"
-                    alt="Bella EIP Logo"
+                    src="/FullLogo_Transparent_NoBuffer.png?v=3"
+                    alt="Bella AI Platform Logo"
                     width={130}
                     height={36}
                     className="h-8.5 w-auto object-contain brightness-0 invert opacity-80"
